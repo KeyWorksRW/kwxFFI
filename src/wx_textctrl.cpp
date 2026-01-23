@@ -1,0 +1,195 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT void* wxTextCtrl_Create(wxWindow* parent, int id, wxString* text, int x, int y,
+                                   int width, int height, long style)
+    {
+        return (void*) new wxTextCtrl(parent, id, *text, wxPoint(x, y), wxSize(width, height),
+                                      style, wxDefaultValidator);
+    }
+
+    EXPORT wxString* wxTextCtrl_GetValue(void* self)
+    {
+        wxString* result = new wxString();
+        *result = ((wxTextCtrl*) self)->GetValue();
+        return result;
+    }
+
+    EXPORT void wxTextCtrl_SetValue(wxTextCtrl* self, wxString* value)
+    {
+        self->SetValue(*value);
+    }
+
+    EXPORT void wxTextCtrl_ChangeValue(wxTextCtrl* self, wxString* value)
+    {
+        self->ChangeValue(*value);
+    }
+
+    EXPORT int wxTextCtrl_GetLineLength(wxTextCtrl* self, long lineNo)
+    {
+        return self->GetLineLength(lineNo);
+    }
+
+    EXPORT wxString* wxTextCtrl_GetLineText(wxTextCtrl* self, long lineNo)
+    {
+        wxString* result = new wxString();
+        *result = self->GetLineText(lineNo);
+        return result;
+    }
+
+    EXPORT int wxTextCtrl_GetNumberOfLines(wxTextCtrl* self)
+    {
+        return self->GetNumberOfLines();
+    }
+
+    EXPORT bool wxTextCtrl_IsModified(wxTextCtrl* self)
+    {
+        return self->IsModified();
+    }
+
+    EXPORT bool wxTextCtrl_IsEditable(wxTextCtrl* self)
+    {
+        return self->IsEditable();
+    }
+
+    EXPORT void wxTextCtrl_GetSelection(wxTextCtrl* self, void* from, void* to)
+    {
+        self->GetSelection((long*) from, (long*) to);
+    }
+
+    EXPORT void wxTextCtrl_Clear(wxTextCtrl* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT void wxTextCtrl_Replace(wxTextCtrl* self, long from, long to, wxString* value)
+    {
+        self->Replace(from, to, *value);
+    }
+
+    EXPORT void wxTextCtrl_Remove(wxTextCtrl* self, long from, long to)
+    {
+        self->Remove(from, to);
+    }
+
+    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file)
+    {
+        return self->LoadFile(*file);
+    }
+
+    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file)
+    {
+        return self->SaveFile(*file);
+    }
+
+    EXPORT void wxTextCtrl_DiscardEdits(wxTextCtrl* self)
+    {
+        self->DiscardEdits();
+    }
+
+    EXPORT void wxTextCtrl_WriteText(wxTextCtrl* self, wxString* text)
+    {
+        self->WriteText(*text);
+    }
+
+    EXPORT void wxTextCtrl_AppendText(wxTextCtrl* self, wxString* text)
+    {
+        self->AppendText(*text);
+    }
+
+    EXPORT long wxTextCtrl_XYToPosition(wxTextCtrl* self, long x, long y)
+    {
+        return self->XYToPosition(x, y);
+    }
+
+    EXPORT int wxTextCtrl_PositionToXY(wxTextCtrl* self, long pos, long* x, long* y)
+    {
+        return (int) self->PositionToXY(pos, x, y);
+    }
+
+    EXPORT void wxTextCtrl_ShowPosition(wxTextCtrl* self, long pos)
+    {
+        self->ShowPosition(pos);
+    }
+
+    EXPORT void wxTextCtrl_Copy(wxTextCtrl* self)
+    {
+        self->Copy();
+    }
+
+    EXPORT void wxTextCtrl_Cut(wxTextCtrl* self)
+    {
+        self->Cut();
+    }
+
+    EXPORT void wxTextCtrl_Paste(wxTextCtrl* self)
+    {
+        self->Paste();
+    }
+
+    EXPORT bool wxTextCtrl_CanCopy(wxTextCtrl* self)
+    {
+        return self->CanCopy();
+    }
+
+    EXPORT bool wxTextCtrl_CanCut(wxTextCtrl* self)
+    {
+        return self->CanCut();
+    }
+
+    EXPORT bool wxTextCtrl_CanPaste(wxTextCtrl* self)
+    {
+        return self->CanPaste();
+    }
+
+    EXPORT void wxTextCtrl_Undo(wxTextCtrl* self)
+    {
+        self->Undo();
+    }
+
+    EXPORT void wxTextCtrl_Redo(wxTextCtrl* self)
+    {
+        self->Redo();
+    }
+
+    EXPORT bool wxTextCtrl_CanUndo(wxTextCtrl* self)
+    {
+        return self->CanUndo();
+    }
+
+    EXPORT bool wxTextCtrl_CanRedo(wxTextCtrl* self)
+    {
+        return self->CanRedo();
+    }
+
+    EXPORT void wxTextCtrl_SetInsertionPoint(wxTextCtrl* self, long pos)
+    {
+        self->SetInsertionPoint(pos);
+    }
+
+    EXPORT void wxTextCtrl_SetInsertionPointEnd(wxTextCtrl* self)
+    {
+        self->SetInsertionPointEnd();
+    }
+
+    EXPORT long wxTextCtrl_GetInsertionPoint(wxTextCtrl* self)
+    {
+        return self->GetInsertionPoint();
+    }
+
+    EXPORT long wxTextCtrl_GetLastPosition(wxTextCtrl* self)
+    {
+        return self->GetLastPosition();
+    }
+
+    EXPORT void wxTextCtrl_SetSelection(wxTextCtrl* self, long from, long to)
+    {
+        self->SetSelection(from, to);
+    }
+
+    EXPORT void wxTextCtrl_SetEditable(wxTextCtrl* self, bool editable)
+    {
+        self->SetEditable(editable);
+    }
+}

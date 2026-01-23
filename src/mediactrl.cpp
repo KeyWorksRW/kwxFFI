@@ -1,0 +1,134 @@
+/*==============================================================================
+ * mediactrl.cpp
+ *
+ * C wrapper for wxMediaCtrl
+ *
+ * (C) 2002-2011 wxEiffel and wxHaskell contributors. See contributors.txt
+ *
+ * Licensed under the wxWidgets library license. see LICENSE.
+ *
+ *==============================================================================*/
+
+#include "wrapper.h"
+
+#include <wx/mediactrl.h>
+
+extern "C"
+{
+    ////////////////////////////////////////////////////////////////////////////////
+    // Event Handlers
+    ////////////////////////////////////////////////////////////////////////////////
+
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_FINISHED)
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_STOP)
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_LOADED)
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_STATECHANGED)
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_PLAY)
+    MAKE_EVENT_WRAPPER(EVT_MEDIA_PAUSE)
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Wrappers
+    ////////////////////////////////////////////////////////////////////////////////
+
+    /*-----------------------------------------------------------------------------
+      MediaCtrl
+    -----------------------------------------------------------------------------*/
+    EXPORT wxMediaCtrl* wxMediaCtrl_Create(void* parent, int id, wxString* fileName, int x, int y,
+                                           int w, int h, long style, wxString* szBackend,
+                                           wxString* name)
+    {
+        return new wxMediaCtrl((wxWindow*) parent, (wxWindowID) id,
+                               (fileName ? *fileName : wxString("")), wxPoint(x, y), wxSize(w, h),
+                               style, (szBackend ? *szBackend : wxString("")), wxDefaultValidator,
+                               (name ? *name : wxString("MediaCtrl")));
+    }
+
+    EXPORT void wxMediaCtrl_Delete(wxMediaCtrl* self)
+    {
+        if (self)
+            delete self;
+    }
+
+    EXPORT wxSize* wxMediaCtrl_GetBestSize(wxMediaCtrl* self)
+    {
+        wxSize* sz = new wxSize();
+        *sz = self->GetBestSize();
+        return sz;
+    }
+
+    EXPORT double wxMediaCtrl_GetPlaybackRate(wxMediaCtrl* self)
+    {
+        return self->GetPlaybackRate();
+    }
+
+    EXPORT double wxMediaCtrl_GetVolume(wxMediaCtrl* self)
+    {
+        return self->GetVolume();
+    }
+
+    EXPORT int wxMediaCtrl_GetState(wxMediaCtrl* self)
+    {
+        return self->GetState();
+    }
+
+    EXPORT wxFileOffset wxMediaCtrl_Length(wxMediaCtrl* self)
+    {
+        return self->Length();
+    }
+
+    EXPORT bool wxMediaCtrl_Load(wxMediaCtrl* self, const wxString* fileName)
+    {
+        return self->Load(*fileName);
+    }
+
+    EXPORT bool wxMediaCtrl_LoadURI(wxMediaCtrl* self, const wxString* uri)
+    {
+        return self->LoadURI(*uri);
+    }
+
+    EXPORT bool wxMediaCtrl_LoadURIWithProxy(wxMediaCtrl* self, const wxString* uri,
+                                             const wxString* proxy)
+    {
+        return self->LoadURIWithProxy(*uri, *proxy);
+    }
+
+    EXPORT bool wxMediaCtrl_Pause(wxMediaCtrl* self)
+    {
+        return self->Pause();
+    }
+
+    EXPORT bool wxMediaCtrl_Play(wxMediaCtrl* self)
+    {
+        return self->Play();
+    }
+
+    EXPORT wxFileOffset wxMediaCtrl_Seek(wxMediaCtrl* self, wxFileOffset offsetWhere, int mode)
+    {
+        return self->Seek(offsetWhere, static_cast<wxSeekMode>(mode));
+    }
+
+    EXPORT bool wxMediaCtrl_SetPlaybackRate(wxMediaCtrl* self, double dRate)
+    {
+        return self->SetPlaybackRate(dRate);
+    }
+
+    EXPORT bool wxMediaCtrl_SetVolume(wxMediaCtrl* self, double dVolume)
+    {
+        return self->SetVolume(dVolume);
+    }
+
+    EXPORT bool wxMediaCtrl_ShowPlayerControls(wxMediaCtrl* self, int flags)
+    {
+        return self->ShowPlayerControls(static_cast<wxMediaCtrlPlayerControls>(flags));
+    }
+
+    EXPORT bool wxMediaCtrl_Stop(wxMediaCtrl* self)
+    {
+        return self->Stop();
+    }
+
+    EXPORT wxFileOffset wxMediaCtrl_Tell(wxMediaCtrl* self)
+    {
+        return self->Tell();
+    }
+}

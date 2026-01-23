@@ -1,0 +1,126 @@
+#include "wrapper.h"
+#include <wx/mimetype.h>
+
+extern "C"
+{
+    EXPORT void* wxMimeTypesManager_Create()
+    {
+        return (void*) wxTheMimeTypesManager;
+    }
+
+    EXPORT void* wxMimeTypesManager_GetFileTypeFromExtension(wxMimeTypesManager* self,
+                                                             wxString* _ext)
+    {
+        return (void*) self->GetFileTypeFromExtension(*_ext);
+    }
+
+    EXPORT void* wxMimeTypesManager_GetFileTypeFromMimeType(wxMimeTypesManager* self,
+                                                            wxString* _name)
+    {
+        return (void*) self->GetFileTypeFromMimeType(*_name);
+    }
+
+    EXPORT int wxMimeTypesManager_EnumAllFileTypes(wxMimeTypesManager* self, void* _lst)
+    {
+        wxArrayString arr;
+        int result = (int) self->EnumAllFileTypes(arr);
+
+        if (_lst)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) _lst)[i] = strdup(arr.Item(i).utf8_str().data());
+        }
+
+        return result;
+    }
+
+    EXPORT void wxMimeTypesManager_AddFallbacks(wxMimeTypesManager* self, void* _types)
+    {
+        self->AddFallbacks((const wxFileTypeInfo*) _types);
+    }
+
+    EXPORT bool wxMimeTypesManager_IsOfType(wxMimeTypesManager* self, wxString* _type,
+                                            wxString* _wildcard)
+    {
+        return self->IsOfType(*_type, *_wildcard);
+    }
+
+    EXPORT wxString* wxFileType_GetMimeType(wxFileType* self)
+    {
+        wxString* result = new wxString();
+        if (self->GetMimeType(result) != true)
+            result->Clear();
+        return result;
+    }
+
+    EXPORT int wxFileType_GetMimeTypes(void* self, void* _lst)
+    {
+        wxArrayString arr;
+
+        if (((wxFileType*) self)->GetMimeTypes(arr) && _lst)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) _lst)[i] = strdup(arr.Item(i).utf8_str().data());
+        }
+
+        return arr.GetCount();
+    }
+
+    EXPORT int wxFileType_GetExtensions(void* self, void* _lst)
+    {
+        wxArrayString arr;
+
+        if (((wxFileType*) self)->GetExtensions(arr) && _lst)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) _lst)[i] = strdup(arr.Item(i).utf8_str().data());
+        }
+
+        return arr.GetCount();
+    }
+
+    EXPORT bool wxFileType_GetIcon(wxFileType* self, wxIcon* icon)
+    {
+        wxIconLocation iconLoc;
+        bool res = self->GetIcon(&iconLoc);
+        *icon = wxIcon(iconLoc);
+        return res;
+    }
+
+    EXPORT wxString* wxFileType_GetDescription(wxFileType* self)
+    {
+        wxString* result = new wxString();
+        if (self->GetDescription(result) != true)
+            result->Clear();
+        return result;
+    }
+
+    EXPORT wxString* wxFileType_GetOpenCommand(wxFileType* self, void* _params)
+    {
+        wxString* result = new wxString();
+        if (self->GetOpenCommand(result, *((wxFileType::MessageParameters*) _params)) != true)
+            result->Clear();
+        return result;
+    }
+
+    EXPORT wxString* wxFileType_GetPrintCommand(wxFileType* self, void* _params)
+    {
+        wxString* result = new wxString();
+        if (self->GetPrintCommand(result, *((wxFileType::MessageParameters*) _params)) != true)
+            result->Clear();
+        return result;
+    }
+
+    EXPORT wxString* wxFileType_ExpandCommand(wxFileType* self, void* _cmd, void* _params)
+    {
+        wxString* result = new wxString();
+        *result =
+            self->ExpandCommand((const char*) _cmd, *((wxFileType::MessageParameters*) _params));
+        return result;
+    }
+
+    EXPORT void wxFileType_Delete(void* self)
+    {
+        delete (wxFileType*) self;
+    }
+}

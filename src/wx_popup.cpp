@@ -1,0 +1,40 @@
+#include "wrapper.h"
+#include <wx/popupwin.h>
+
+extern "C"
+{
+    // wxPopupWindow
+
+    EXPORT void* wxPopupWindow_Create(wxWindow* parent, int flags)
+    {
+        return (void*) new wxPopupWindow(parent, flags);
+    }
+
+    EXPORT bool wxPopupWindow_Create2(wxPopupWindow* self, wxWindow* parent, int flags)
+    {
+        return self->Create(parent, flags);
+    }
+
+    EXPORT void wxPopupWindow_Position(wxPopupWindow* self, int ptOriginX, int ptOriginY, int sizeW,
+                                       int sizeH)
+    {
+        self->Position(wxPoint(ptOriginX, ptOriginY), wxSize(sizeW, sizeH));
+    }
+
+    // wxPopupTransientWindow
+
+    EXPORT void* wxPopupTransientWindow_Create(wxWindow* parent, int flags)
+    {
+        return (void*) new wxPopupTransientWindow(parent, flags);
+    }
+
+    EXPORT void wxPopupTransientWindow_Popup(wxPopupTransientWindow* self, wxWindow* focus)
+    {
+        self->Popup(focus);
+    }
+
+    EXPORT void wxPopupTransientWindow_Dismiss(wxPopupTransientWindow* self)
+    {
+        self->Dismiss();
+    }
+}

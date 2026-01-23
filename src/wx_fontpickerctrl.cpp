@@ -1,0 +1,35 @@
+// wx_fontpickerctrl.cpp - wxFontPickerCtrl wrappers
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT wxFontPickerCtrl* wxFontPickerCtrl_Create(wxWindow* parent, int id, wxFont* initial,
+                                                     int x, int y, int w, int h, long style)
+    {
+        return new wxFontPickerCtrl(parent, id, initial ? *initial : wxNullFont, wxPoint(x, y),
+                                    wxSize(w, h), style);
+    }
+
+    EXPORT wxFont* wxFontPickerCtrl_GetSelectedFont(wxFontPickerCtrl* self)
+    {
+        wxFont* result = new wxFont();
+        *result = self->GetSelectedFont();
+        return result;
+    }
+
+    EXPORT void wxFontPickerCtrl_SetSelectedFont(wxFontPickerCtrl* self, wxFont* font)
+    {
+        if (font)
+            self->SetSelectedFont(*font);
+    }
+
+    EXPORT int wxFontPickerCtrl_GetMaxPointSize(wxFontPickerCtrl* self)
+    {
+        return self->GetMaxPointSize();
+    }
+
+    EXPORT void wxFontPickerCtrl_SetMaxPointSize(wxFontPickerCtrl* self, int maxSize)
+    {
+        self->SetMaxPointSize(maxSize);
+    }
+}

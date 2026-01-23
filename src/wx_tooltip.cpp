@@ -1,0 +1,56 @@
+#include "wrapper.h"
+#include <wx/tooltip.h>
+
+extern "C"
+{
+    EXPORT void* wxToolTip_Create(wxString* tip)
+    {
+        return (void*) new wxToolTip(*tip);
+    }
+
+    EXPORT wxString* wxToolTip_GetTip(wxToolTip* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetTip();
+        return result;
+    }
+
+    EXPORT void* wxToolTip_GetWindow(wxToolTip* self)
+    {
+        return (void*) self->GetWindow();
+    }
+
+    EXPORT void wxToolTip_SetTip(wxToolTip* self, wxString* tip)
+    {
+        self->SetTip(*tip);
+    }
+
+    // Static methods
+
+    EXPORT void wxToolTip_Enable(bool flag)
+    {
+        wxToolTip::Enable(flag);
+    }
+
+    EXPORT void wxToolTip_SetDelay(long milliseconds)
+    {
+        wxToolTip::SetDelay(milliseconds);
+    }
+
+    EXPORT void wxToolTip_SetAutoPop(long milliseconds)
+    {
+        wxToolTip::SetAutoPop(milliseconds);
+    }
+
+    EXPORT void wxToolTip_SetReshow(long milliseconds)
+    {
+        wxToolTip::SetReshow(milliseconds);
+    }
+
+#ifdef __WXMSW__
+    EXPORT void wxToolTip_SetMaxWidth(int width)
+    {
+        wxToolTip::SetMaxWidth(width);
+    }
+#endif
+}

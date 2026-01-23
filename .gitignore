@@ -1,0 +1,15 @@
+lib/
+.cache
+.local
+.private
+.serena
+.vscode
+
+# cmake
+CMakeFiles/
+build/
+
+# VSCode files
+.vscode/
+*.code-workspace
+*.code-search

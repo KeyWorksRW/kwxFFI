@@ -1,0 +1,228 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT void* wxPrintDialog_Create(wxWindow* parent, wxPrintDialogData* data)
+    {
+        return (void*) new wxPrintDialog(parent, data);
+    }
+
+    EXPORT void wxPrintDialog_GetPrintData(wxPrintDialog* self, wxPrintData* _ref)
+    {
+        *_ref = self->GetPrintData();
+    }
+
+    EXPORT void* wxPrintDialog_GetPrintDC(wxPrintDialog* self)
+    {
+        return (void*) self->GetPrintDC();
+    }
+
+    EXPORT void* wxPageSetupDialog_Create(wxWindow* parent, wxPageSetupData* data)
+    {
+        return (void*) new wxPageSetupDialog(parent, data);
+    }
+
+    EXPORT void wxPageSetupDialog_GetPageSetupData(wxPageSetupDialog* self, wxPageSetupData* _ref)
+    {
+        *_ref = self->GetPageSetupData();
+    }
+
+    EXPORT int wxPageSetupDialog_ShowModal(wxPageSetupDialog* self)
+    {
+        return (int) self->ShowModal();
+    }
+
+    EXPORT void* wxPageSetupDialogData_Create()
+    {
+        return (void*) new wxPageSetupDialogData();
+    }
+
+    EXPORT void* wxPageSetupDialogData_CreateFromData(wxPrintData* printData)
+    {
+        return (void*) new wxPageSetupDialogData(*printData);
+    }
+
+    EXPORT void wxPageSetupDialogData_Delete(wxPageSetupDialogData* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxSize* wxPageSetupDialogData_GetPaperSize(wxPageSetupDialogData* self)
+    {
+        wxSize* s = new wxSize();
+        *s = self->GetPaperSize();
+        return s;
+    }
+
+    EXPORT int wxPageSetupDialogData_GetPaperId(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetPaperId();
+    }
+
+    EXPORT wxPoint* wxPageSetupDialogData_GetMinMarginTopLeft(wxPageSetupDialogData* self)
+    {
+        wxPoint* pt = new wxPoint();
+        *pt = self->GetMinMarginTopLeft();
+        return pt;
+    }
+
+    EXPORT wxPoint* wxPageSetupDialogData_GetMinMarginBottomRight(wxPageSetupDialogData* self)
+    {
+        wxPoint* pt = new wxPoint();
+        *pt = self->GetMinMarginBottomRight();
+        return pt;
+    }
+
+    EXPORT wxPoint* wxPageSetupDialogData_GetMarginTopLeft(wxPageSetupDialogData* self)
+    {
+        wxPoint* pt = new wxPoint();
+        *pt = self->GetMarginTopLeft();
+        return pt;
+    }
+
+    EXPORT wxPoint* wxPageSetupDialogData_GetMarginBottomRight(wxPageSetupDialogData* self)
+    {
+        wxPoint* pt = new wxPoint();
+        *pt = self->GetMarginBottomRight();
+        return pt;
+    }
+
+    EXPORT int wxPageSetupDialogData_GetDefaultMinMargins(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetDefaultMinMargins();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetEnableMargins(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetEnableMargins();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetEnableOrientation(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetEnableOrientation();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetEnablePaper(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetEnablePaper();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetEnablePrinter(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetEnablePrinter();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetDefaultInfo(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetDefaultInfo();
+    }
+
+    EXPORT int wxPageSetupDialogData_GetEnableHelp(wxPageSetupDialogData* self)
+    {
+        return (int) self->GetEnableHelp();
+    }
+
+    EXPORT void wxPageSetupDialogData_SetPaperSize(wxPageSetupDialogData* self, int w, int h)
+    {
+        self->SetPaperSize(wxSize(w, h));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetPaperId(wxPageSetupDialogData* self, void* id)
+    {
+        self->SetPaperId(*((wxPaperSize*) id));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetPaperSizeId(wxPageSetupDialogData* self, int id)
+    {
+        self->SetPaperSize((wxPaperSize) id);
+    }
+
+    EXPORT void wxPageSetupDialogData_SetMinMarginTopLeft(wxPageSetupDialogData* self, int x, int y)
+    {
+        self->SetMinMarginTopLeft(wxPoint(x, y));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetMinMarginBottomRight(wxPageSetupDialogData* self, int x,
+                                                              int y)
+    {
+        self->SetMinMarginBottomRight(wxPoint(x, y));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetMarginTopLeft(wxPageSetupDialogData* self, int x, int y)
+    {
+        self->SetMarginTopLeft(wxPoint(x, y));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetMarginBottomRight(wxPageSetupDialogData* self, int x,
+                                                           int y)
+    {
+        self->SetMarginBottomRight(wxPoint(x, y));
+    }
+
+    EXPORT void wxPageSetupDialogData_SetDefaultMinMargins(wxPageSetupDialogData* self, bool flag)
+    {
+        self->SetDefaultMinMargins(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_SetDefaultInfo(wxPageSetupDialogData* self, bool flag)
+    {
+        self->SetDefaultInfo(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_EnableMargins(wxPageSetupDialogData* self, bool flag)
+    {
+        self->EnableMargins(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_EnableOrientation(wxPageSetupDialogData* self, bool flag)
+    {
+        self->EnableOrientation(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_EnablePaper(wxPageSetupDialogData* self, bool flag)
+    {
+        self->EnablePaper(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_EnablePrinter(wxPageSetupDialogData* self, bool flag)
+    {
+        self->EnablePrinter(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_EnableHelp(wxPageSetupDialogData* self, bool flag)
+    {
+        self->EnableHelp(flag);
+    }
+
+    EXPORT void wxPageSetupDialogData_CalculateIdFromPaperSize(wxPageSetupDialogData* self)
+    {
+        self->CalculateIdFromPaperSize();
+    }
+
+    EXPORT void wxPageSetupDialogData_CalculatePaperSizeFromId(wxPageSetupDialogData* self)
+    {
+        self->CalculatePaperSizeFromId();
+    }
+
+    EXPORT void wxPageSetupDialogData_Assign(wxPageSetupDialogData* self,
+                                             wxPageSetupDialogData* data)
+    {
+        *self = *data;
+    }
+
+    EXPORT void wxPageSetupDialogData_AssignData(wxPageSetupDialogData* self, wxPrintData* data)
+    {
+        *self = *data;
+    }
+
+    EXPORT void wxPageSetupDialogData_GetPrintData(wxPageSetupDialogData* self, wxPrintData* _ref)
+    {
+        *_ref = self->GetPrintData();
+    }
+
+    EXPORT void wxPageSetupDialogData_SetPrintData(wxPageSetupDialogData* self,
+                                                   wxPrintData* printData)
+    {
+        self->SetPrintData(*printData);
+    }
+}

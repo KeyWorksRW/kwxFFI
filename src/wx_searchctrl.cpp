@@ -1,0 +1,52 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT wxSearchCtrl* wxSearchCtrl_Create(wxWindow* parent, int id, wxString* value, int x,
+                                             int y, int w, int h, int style)
+    {
+        return new wxSearchCtrl(parent, id, *value, wxPoint(x, y), wxSize(w, h), style);
+    }
+
+    EXPORT void wxSearchCtrl_SetMenu(wxSearchCtrl* self, wxMenu* menu)
+    {
+        self->SetMenu(menu);
+    }
+
+    EXPORT wxMenu* wxSearchCtrl_GetMenu(wxSearchCtrl* self)
+    {
+        return self->GetMenu();
+    }
+
+    EXPORT void wxSearchCtrl_ShowSearchButton(wxSearchCtrl* self, bool show)
+    {
+        self->ShowSearchButton(show);
+    }
+
+    EXPORT bool wxSearchCtrl_IsSearchButtonVisible(wxSearchCtrl* self)
+    {
+        return self->IsSearchButtonVisible();
+    }
+
+    EXPORT void wxSearchCtrl_ShowCancelButton(wxSearchCtrl* self, bool show)
+    {
+        self->ShowCancelButton(show);
+    }
+
+    EXPORT bool wxSearchCtrl_IsCancelButtonVisible(wxSearchCtrl* self)
+    {
+        return self->IsCancelButtonVisible();
+    }
+
+    EXPORT void wxSearchCtrl_SetDescriptiveText(wxSearchCtrl* self, wxString* text)
+    {
+        self->SetDescriptiveText(*text);
+    }
+
+    EXPORT wxString* wxSearchCtrl_GetDescriptiveText(wxSearchCtrl* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetDescriptiveText();
+        return result;
+    }
+}

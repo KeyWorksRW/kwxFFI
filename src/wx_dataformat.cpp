@@ -1,0 +1,50 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT wxDataFormat* wxDataFormat_CreateFromId(wxString* name)
+    {
+        return new wxDataFormat(*name);
+    }
+
+    EXPORT wxDataFormat* wxDataFormat_CreateFromType(int typ)
+    {
+        return new wxDataFormat((wxDataFormat::NativeFormat) typ);
+    }
+
+    EXPORT void wxDataFormat_Delete(wxDataFormat* self)
+    {
+        delete self;
+    }
+
+    EXPORT bool wxDataFormat_IsEqual(wxDataFormat* self, wxDataFormat* other)
+    {
+        return *self == *other;
+    }
+
+    EXPORT wxString* wxDataFormat_GetId(wxDataFormat* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetId();
+        return result;
+    }
+
+    EXPORT int wxDataFormat_GetType(wxDataFormat* self)
+    {
+        return (int) self->GetType();
+    }
+
+    EXPORT void wxDataFormat_SetId(wxDataFormat* self, wxString* id)
+    {
+        self->SetId(*id);
+    }
+
+    EXPORT void wxDataFormat_SetType(wxDataFormat* self, int typ)
+    {
+#ifdef __WIN32__
+        self->SetType((wxDataFormat::NativeFormat) typ);
+#else
+        self->SetType((wxDataFormatId) typ);
+#endif
+    }
+}

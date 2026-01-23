@@ -1,0 +1,324 @@
+// wx_webview.cpp
+// C wrapper for wxWebView
+
+#include "wrapper.h"
+
+extern "C"
+{
+    // Factory method - create with default backend
+    EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y, int w,
+                                    int h, wxString* backend, int style)
+    {
+        return wxWebView::New(parent, id, *url, wxPoint(x, y), wxSize(w, h),
+                              backend ? *backend : wxString(wxWebViewBackendDefault), style);
+    }
+
+    // Navigation
+    EXPORT void wxWebView_LoadURL(wxWebView* self, wxString* url)
+    {
+        self->LoadURL(*url);
+    }
+
+    EXPORT void wxWebView_GoBack(wxWebView* self)
+    {
+        self->GoBack();
+    }
+
+    EXPORT void wxWebView_GoForward(wxWebView* self)
+    {
+        self->GoForward();
+    }
+
+    EXPORT void wxWebView_Stop(wxWebView* self)
+    {
+        self->Stop();
+    }
+
+    EXPORT void wxWebView_Reload(wxWebView* self, int flags)
+    {
+        self->Reload((wxWebViewReloadFlags) flags);
+    }
+
+    EXPORT bool wxWebView_CanGoBack(wxWebView* self)
+    {
+        return self->CanGoBack();
+    }
+
+    EXPORT bool wxWebView_CanGoForward(wxWebView* self)
+    {
+        return self->CanGoForward();
+    }
+
+    // Content access
+    EXPORT wxString* wxWebView_GetCurrentURL(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetCurrentURL();
+        return result;
+    }
+
+    EXPORT wxString* wxWebView_GetCurrentTitle(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetCurrentTitle();
+        return result;
+    }
+
+    EXPORT wxString* wxWebView_GetPageSource(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetPageSource();
+        return result;
+    }
+
+    EXPORT wxString* wxWebView_GetPageText(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetPageText();
+        return result;
+    }
+
+    // Status
+    EXPORT bool wxWebView_IsBusy(wxWebView* self)
+    {
+        return self->IsBusy();
+    }
+
+    // HTML content
+    EXPORT void wxWebView_SetPage(wxWebView* self, wxString* html, wxString* baseUrl)
+    {
+        self->SetPage(*html, *baseUrl);
+    }
+
+    // JavaScript execution
+    EXPORT bool wxWebView_RunScript(wxWebView* self, wxString* javascript, wxString* output)
+    {
+        if (output)
+        {
+            return self->RunScript(*javascript, output);
+        }
+        else
+        {
+            return self->RunScript(*javascript);
+        }
+    }
+
+    // Zoom
+    EXPORT void wxWebView_SetZoom(wxWebView* self, int zoom)
+    {
+        self->SetZoom((wxWebViewZoom) zoom);
+    }
+
+    EXPORT int wxWebView_GetZoom(wxWebView* self)
+    {
+        return (int) self->GetZoom();
+    }
+
+    EXPORT void wxWebView_SetZoomType(wxWebView* self, int zoomType)
+    {
+        self->SetZoomType((wxWebViewZoomType) zoomType);
+    }
+
+    EXPORT int wxWebView_GetZoomType(wxWebView* self)
+    {
+        return (int) self->GetZoomType();
+    }
+
+    EXPORT float wxWebView_GetZoomFactor(wxWebView* self)
+    {
+        return self->GetZoomFactor();
+    }
+
+    EXPORT void wxWebView_SetZoomFactor(wxWebView* self, float zoom)
+    {
+        self->SetZoomFactor(zoom);
+    }
+
+    // Context menu
+    EXPORT void wxWebView_EnableContextMenu(wxWebView* self, bool enable)
+    {
+        self->EnableContextMenu(enable);
+    }
+
+    EXPORT bool wxWebView_IsContextMenuEnabled(wxWebView* self)
+    {
+        return self->IsContextMenuEnabled();
+    }
+
+    // Editing
+    EXPORT bool wxWebView_CanCut(wxWebView* self)
+    {
+        return self->CanCut();
+    }
+
+    EXPORT bool wxWebView_CanCopy(wxWebView* self)
+    {
+        return self->CanCopy();
+    }
+
+    EXPORT bool wxWebView_CanPaste(wxWebView* self)
+    {
+        return self->CanPaste();
+    }
+
+    EXPORT void wxWebView_Cut(wxWebView* self)
+    {
+        self->Cut();
+    }
+
+    EXPORT void wxWebView_Copy(wxWebView* self)
+    {
+        self->Copy();
+    }
+
+    EXPORT void wxWebView_Paste(wxWebView* self)
+    {
+        self->Paste();
+    }
+
+    // Selection
+    EXPORT wxString* wxWebView_GetSelectedText(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetSelectedText();
+        return result;
+    }
+
+    EXPORT wxString* wxWebView_GetSelectedSource(wxWebView* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetSelectedSource();
+        return result;
+    }
+
+    EXPORT void wxWebView_ClearSelection(wxWebView* self)
+    {
+        self->ClearSelection();
+    }
+
+    EXPORT bool wxWebView_HasSelection(wxWebView* self)
+    {
+        return self->HasSelection();
+    }
+
+    // Find
+    EXPORT long wxWebView_Find(wxWebView* self, wxString* text, int flags)
+    {
+        return self->Find(*text, flags);
+    }
+
+    // Print
+    EXPORT void wxWebView_Print(wxWebView* self)
+    {
+        self->Print();
+    }
+
+    // Access control
+    EXPORT bool wxWebView_IsAccessToDevToolsEnabled(wxWebView* self)
+    {
+        return self->IsAccessToDevToolsEnabled();
+    }
+
+    EXPORT void wxWebView_EnableAccessToDevTools(wxWebView* self, bool enable)
+    {
+        self->EnableAccessToDevTools(enable);
+    }
+
+    // Backend info
+    EXPORT bool wxWebView_IsBackendAvailable(wxString* backend)
+    {
+        return wxWebView::IsBackendAvailable(*backend);
+    }
+
+    // Editable mode
+    EXPORT void wxWebView_SetEditable(wxWebView* self, bool enable)
+    {
+        self->SetEditable(enable);
+    }
+
+    EXPORT bool wxWebView_IsEditable(wxWebView* self)
+    {
+        return self->IsEditable();
+    }
+
+    // wxWebViewEvent methods
+    EXPORT wxString* wxWebViewEvent_GetURL(wxWebViewEvent* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetURL();
+        return result;
+    }
+
+    EXPORT wxString* wxWebViewEvent_GetTarget(wxWebViewEvent* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetTarget();
+        return result;
+    }
+
+    EXPORT int wxWebViewEvent_GetNavigationAction(wxWebViewEvent* self)
+    {
+        return (int) self->GetNavigationAction();
+    }
+
+    EXPORT int wxWebViewEvent_GetInt(wxWebViewEvent* self)
+    {
+        return self->GetInt();
+    }
+
+    EXPORT wxString* wxWebViewEvent_GetString(wxWebViewEvent* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetString();
+        return result;
+    }
+
+    // Event exports
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NAVIGATING)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NAVIGATED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_LOADED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_ERROR)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NEWWINDOW)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_TITLE_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_FULLSCREEN_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_SCRIPT_RESULT)
+
+    // Zoom constants
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TINY, wxWEBVIEW_ZOOM_TINY)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_SMALL, wxWEBVIEW_ZOOM_SMALL)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_MEDIUM, wxWEBVIEW_ZOOM_MEDIUM)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_LARGE, wxWEBVIEW_ZOOM_LARGE)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_LARGEST, wxWEBVIEW_ZOOM_LARGEST)
+
+    // Zoom type constants
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TYPE_LAYOUT, wxWEBVIEW_ZOOM_TYPE_LAYOUT)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TYPE_TEXT, wxWEBVIEW_ZOOM_TYPE_TEXT)
+
+    // Reload flags
+    WXFFI_CONSTANT_INT(expWEBVIEW_RELOAD_DEFAULT, wxWEBVIEW_RELOAD_DEFAULT)
+    WXFFI_CONSTANT_INT(expWEBVIEW_RELOAD_NO_CACHE, wxWEBVIEW_RELOAD_NO_CACHE)
+
+    // Find flags
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_WRAP, wxWEBVIEW_FIND_WRAP)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_ENTIRE_WORD, wxWEBVIEW_FIND_ENTIRE_WORD)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_MATCH_CASE, wxWEBVIEW_FIND_MATCH_CASE)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_HIGHLIGHT_RESULT, wxWEBVIEW_FIND_HIGHLIGHT_RESULT)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_BACKWARDS, wxWEBVIEW_FIND_BACKWARDS)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_DEFAULT, wxWEBVIEW_FIND_DEFAULT)
+
+    // Navigation error constants
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_CONNECTION, wxWEBVIEW_NAV_ERR_CONNECTION)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_CERTIFICATE, wxWEBVIEW_NAV_ERR_CERTIFICATE)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_AUTH, wxWEBVIEW_NAV_ERR_AUTH)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_SECURITY, wxWEBVIEW_NAV_ERR_SECURITY)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_NOT_FOUND, wxWEBVIEW_NAV_ERR_NOT_FOUND)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_REQUEST, wxWEBVIEW_NAV_ERR_REQUEST)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_USER_CANCELLED, wxWEBVIEW_NAV_ERR_USER_CANCELLED)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_OTHER, wxWEBVIEW_NAV_ERR_OTHER)
+
+    // Navigation action flags
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_NONE, wxWEBVIEW_NAV_ACTION_NONE)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_USER, wxWEBVIEW_NAV_ACTION_USER)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_OTHER, wxWEBVIEW_NAV_ACTION_OTHER)
+}

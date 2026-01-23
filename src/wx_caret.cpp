@@ -1,0 +1,69 @@
+#include "wrapper.h"
+#include <wx/caret.h>
+
+extern "C"
+{
+    EXPORT wxCaret* wxCaret_Create(wxWindow* window, int width, int height)
+    {
+        return new wxCaret(window, width, height);
+    }
+
+    EXPORT bool wxCaret_IsOk(wxCaret* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT bool wxCaret_IsVisible(wxCaret* self)
+    {
+        return self->IsVisible();
+    }
+
+    EXPORT wxPoint* wxCaret_GetPosition(wxCaret* self)
+    {
+        wxPoint* p = new wxPoint();
+        *p = self->GetPosition();
+        return p;
+    }
+
+    EXPORT wxSize* wxCaret_GetSize(wxCaret* self)
+    {
+        wxSize* s = new wxSize();
+        *s = self->GetSize();
+        return s;
+    }
+
+    EXPORT wxWindow* wxCaret_GetWindow(wxCaret* self)
+    {
+        return self->GetWindow();
+    }
+
+    EXPORT void wxCaret_SetSize(wxCaret* self, int width, int height)
+    {
+        self->SetSize(width, height);
+    }
+
+    EXPORT void wxCaret_Move(wxCaret* self, int x, int y)
+    {
+        self->Move(x, y);
+    }
+
+    EXPORT void wxCaret_Show(wxCaret* self)
+    {
+        self->Show();
+    }
+
+    EXPORT void wxCaret_Hide(wxCaret* self)
+    {
+        self->Hide();
+    }
+
+    EXPORT int wxCaret_GetBlinkTime()
+    {
+        return wxCaret::GetBlinkTime();
+    }
+
+    EXPORT void wxCaret_SetBlinkTime(int milliseconds)
+    {
+        wxCaret::SetBlinkTime(milliseconds);
+    }
+}

@@ -1,0 +1,504 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    // Constructor
+    EXPORT wxRichTextCtrl* wxRichTextCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
+                                                 int h, int style)
+    {
+        return new wxRichTextCtrl(parent, id, wxEmptyString, wxPoint(x, y), wxSize(w, h), style,
+                                  wxDefaultValidator);
+    }
+
+    // Basic text operations
+    EXPORT wxString* wxRichTextCtrl_GetValue(wxRichTextCtrl* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetValue();
+        return result;
+    }
+
+    EXPORT void wxRichTextCtrl_SetValue(wxRichTextCtrl* self, wxString* value)
+    {
+        self->SetValue(*value);
+    }
+
+    EXPORT wxString* wxRichTextCtrl_GetRange(wxRichTextCtrl* self, long from, long to)
+    {
+        wxString* result = new wxString();
+        *result = self->GetRange(from, to);
+        return result;
+    }
+
+    EXPORT int wxRichTextCtrl_GetLineLength(wxRichTextCtrl* self, long lineNo)
+    {
+        return self->GetLineLength(lineNo);
+    }
+
+    EXPORT wxString* wxRichTextCtrl_GetLineText(wxRichTextCtrl* self, long lineNo)
+    {
+        wxString* result = new wxString();
+        *result = self->GetLineText(lineNo);
+        return result;
+    }
+
+    EXPORT int wxRichTextCtrl_GetNumberOfLines(wxRichTextCtrl* self)
+    {
+        return self->GetNumberOfLines();
+    }
+
+    // Modification state
+    EXPORT bool wxRichTextCtrl_IsModified(wxRichTextCtrl* self)
+    {
+        return self->IsModified();
+    }
+
+    EXPORT void wxRichTextCtrl_MarkDirty(wxRichTextCtrl* self)
+    {
+        self->MarkDirty();
+    }
+
+    EXPORT void wxRichTextCtrl_DiscardEdits(wxRichTextCtrl* self)
+    {
+        self->DiscardEdits();
+    }
+
+    // Editable state
+    EXPORT bool wxRichTextCtrl_IsEditable(wxRichTextCtrl* self)
+    {
+        return self->IsEditable();
+    }
+
+    EXPORT void wxRichTextCtrl_SetEditable(wxRichTextCtrl* self, bool editable)
+    {
+        self->SetEditable(editable);
+    }
+
+    // Selection
+    EXPORT void wxRichTextCtrl_GetSelection(wxRichTextCtrl* self, long* from, long* to)
+    {
+        self->GetSelection(from, to);
+    }
+
+    EXPORT void wxRichTextCtrl_SetSelection(wxRichTextCtrl* self, long from, long to)
+    {
+        self->SetSelection(from, to);
+    }
+
+    EXPORT void wxRichTextCtrl_SelectAll(wxRichTextCtrl* self)
+    {
+        self->SelectAll();
+    }
+
+    EXPORT void wxRichTextCtrl_SelectNone(wxRichTextCtrl* self)
+    {
+        self->SelectNone();
+    }
+
+    EXPORT wxString* wxRichTextCtrl_GetStringSelection(wxRichTextCtrl* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetStringSelection();
+        return result;
+    }
+
+    // Insertion point
+    EXPORT long wxRichTextCtrl_GetInsertionPoint(wxRichTextCtrl* self)
+    {
+        return self->GetInsertionPoint();
+    }
+
+    EXPORT long wxRichTextCtrl_GetLastPosition(wxRichTextCtrl* self)
+    {
+        return self->GetLastPosition();
+    }
+
+    EXPORT void wxRichTextCtrl_SetInsertionPoint(wxRichTextCtrl* self, long pos)
+    {
+        self->SetInsertionPoint(pos);
+    }
+
+    EXPORT void wxRichTextCtrl_SetInsertionPointEnd(wxRichTextCtrl* self)
+    {
+        self->SetInsertionPointEnd();
+    }
+
+    // Text manipulation
+    EXPORT void wxRichTextCtrl_WriteText(wxRichTextCtrl* self, wxString* text)
+    {
+        self->WriteText(*text);
+    }
+
+    EXPORT void wxRichTextCtrl_AppendText(wxRichTextCtrl* self, wxString* text)
+    {
+        self->AppendText(*text);
+    }
+
+    EXPORT void wxRichTextCtrl_Clear(wxRichTextCtrl* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT void wxRichTextCtrl_Replace(wxRichTextCtrl* self, long from, long to, wxString* value)
+    {
+        self->Replace(from, to, *value);
+    }
+
+    EXPORT void wxRichTextCtrl_Remove(wxRichTextCtrl* self, long from, long to)
+    {
+        self->Remove(from, to);
+    }
+
+    // File operations
+    EXPORT bool wxRichTextCtrl_LoadFile(wxRichTextCtrl* self, wxString* file, int type)
+    {
+        return self->LoadFile(*file, type);
+    }
+
+    EXPORT bool wxRichTextCtrl_SaveFile(wxRichTextCtrl* self, wxString* file, int type)
+    {
+        return self->SaveFile(*file, type);
+    }
+
+    EXPORT wxString* wxRichTextCtrl_GetFilename(wxRichTextCtrl* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetFilename();
+        return result;
+    }
+
+    EXPORT void wxRichTextCtrl_SetFilename(wxRichTextCtrl* self, wxString* filename)
+    {
+        self->SetFilename(*filename);
+    }
+
+    // Undo/Redo
+    EXPORT void wxRichTextCtrl_Undo(wxRichTextCtrl* self)
+    {
+        self->Undo();
+    }
+
+    EXPORT void wxRichTextCtrl_Redo(wxRichTextCtrl* self)
+    {
+        self->Redo();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanUndo(wxRichTextCtrl* self)
+    {
+        return self->CanUndo();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanRedo(wxRichTextCtrl* self)
+    {
+        return self->CanRedo();
+    }
+
+    // Clipboard
+    EXPORT void wxRichTextCtrl_Copy(wxRichTextCtrl* self)
+    {
+        self->Copy();
+    }
+
+    EXPORT void wxRichTextCtrl_Cut(wxRichTextCtrl* self)
+    {
+        self->Cut();
+    }
+
+    EXPORT void wxRichTextCtrl_Paste(wxRichTextCtrl* self)
+    {
+        self->Paste();
+    }
+
+    EXPORT void wxRichTextCtrl_DeleteSelection(wxRichTextCtrl* self)
+    {
+        self->DeleteSelection();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanCopy(wxRichTextCtrl* self)
+    {
+        return self->CanCopy();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanCut(wxRichTextCtrl* self)
+    {
+        return self->CanCut();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanPaste(wxRichTextCtrl* self)
+    {
+        return self->CanPaste();
+    }
+
+    EXPORT bool wxRichTextCtrl_CanDeleteSelection(wxRichTextCtrl* self)
+    {
+        return self->CanDeleteSelection();
+    }
+
+    // Text styling
+    EXPORT bool wxRichTextCtrl_SetStyle(wxRichTextCtrl* self, long start, long end,
+                                        wxTextAttr* style)
+    {
+        return self->SetStyle(start, end, *style);
+    }
+
+    EXPORT bool wxRichTextCtrl_GetStyle(wxRichTextCtrl* self, long position, wxTextAttr* style)
+    {
+        return self->GetStyle(position, *style);
+    }
+
+    EXPORT bool wxRichTextCtrl_SetDefaultStyle(wxRichTextCtrl* self, wxTextAttr* style)
+    {
+        return self->SetDefaultStyle(*style);
+    }
+
+    EXPORT wxTextAttr* wxRichTextCtrl_GetDefaultStyle(wxRichTextCtrl* self)
+    {
+        wxTextAttr* result = new wxTextAttr();
+        *result = self->GetDefaultStyle();
+        return result;
+    }
+
+    // Font operations (convenience methods)
+    EXPORT bool wxRichTextCtrl_SetFont(wxRichTextCtrl* self, wxFont* font)
+    {
+        return self->SetFont(*font);
+    }
+
+    EXPORT bool wxRichTextCtrl_SetFontStyle(wxRichTextCtrl* self, long start, long end,
+                                            wxFont* font)
+    {
+        wxTextAttr attr;
+        attr.SetFont(*font);
+        return self->SetStyle(start, end, attr);
+    }
+
+    // Positioning
+    EXPORT long wxRichTextCtrl_XYToPosition(wxRichTextCtrl* self, long x, long y)
+    {
+        return self->XYToPosition(x, y);
+    }
+
+    EXPORT bool wxRichTextCtrl_PositionToXY(wxRichTextCtrl* self, long pos, long* x, long* y)
+    {
+        return self->PositionToXY(pos, x, y);
+    }
+
+    EXPORT void wxRichTextCtrl_ShowPosition(wxRichTextCtrl* self, long position)
+    {
+        self->ShowPosition(position);
+    }
+
+    // Read-only state
+    EXPORT void wxRichTextCtrl_SetReadOnly(wxRichTextCtrl* self, bool readOnly)
+    {
+        long style = self->GetWindowStyle();
+        if (readOnly)
+            style |= wxRE_READONLY;
+        else
+            style &= ~wxRE_READONLY;
+        self->SetWindowStyle(style);
+    }
+
+    EXPORT bool wxRichTextCtrl_IsReadOnly(wxRichTextCtrl* self)
+    {
+        return (self->GetWindowStyle() & wxRE_READONLY) != 0;
+    }
+
+    // Layout
+    EXPORT bool wxRichTextCtrl_LayoutContent(wxRichTextCtrl* self, bool onlyVisibleRect)
+    {
+        return self->LayoutContent(onlyVisibleRect);
+    }
+
+    EXPORT void wxRichTextCtrl_ForceDelayedLayout(wxRichTextCtrl* self)
+    {
+        self->ForceDelayedLayout();
+    }
+
+    // Scrolling
+    EXPORT void wxRichTextCtrl_ScrollIntoView(wxRichTextCtrl* self, long position, int keyCode)
+    {
+        self->ScrollIntoView(position, keyCode);
+    }
+
+    // Text attribute helpers
+    EXPORT void wxRichTextCtrl_BeginBold(wxRichTextCtrl* self)
+    {
+        self->BeginBold();
+    }
+
+    EXPORT void wxRichTextCtrl_EndBold(wxRichTextCtrl* self)
+    {
+        self->EndBold();
+    }
+
+    EXPORT void wxRichTextCtrl_BeginItalic(wxRichTextCtrl* self)
+    {
+        self->BeginItalic();
+    }
+
+    EXPORT void wxRichTextCtrl_EndItalic(wxRichTextCtrl* self)
+    {
+        self->EndItalic();
+    }
+
+    EXPORT void wxRichTextCtrl_BeginUnderline(wxRichTextCtrl* self)
+    {
+        self->BeginUnderline();
+    }
+
+    EXPORT void wxRichTextCtrl_EndUnderline(wxRichTextCtrl* self)
+    {
+        self->EndUnderline();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginFontSize(wxRichTextCtrl* self, int pointSize)
+    {
+        return self->BeginFontSize(pointSize);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndFontSize(wxRichTextCtrl* self)
+    {
+        return self->EndFontSize();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginFont(wxRichTextCtrl* self, wxFont* font)
+    {
+        return self->BeginFont(*font);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndFont(wxRichTextCtrl* self)
+    {
+        return self->EndFont();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginTextColour(wxRichTextCtrl* self, wxColour* colour)
+    {
+        return self->BeginTextColour(*colour);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndTextColour(wxRichTextCtrl* self)
+    {
+        return self->EndTextColour();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginAlignment(wxRichTextCtrl* self, int alignment)
+    {
+        return self->BeginAlignment((wxTextAttrAlignment) alignment);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndAlignment(wxRichTextCtrl* self)
+    {
+        return self->EndAlignment();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginLeftIndent(wxRichTextCtrl* self, int leftIndent,
+                                               int leftSubIndent)
+    {
+        return self->BeginLeftIndent(leftIndent, leftSubIndent);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndLeftIndent(wxRichTextCtrl* self)
+    {
+        return self->EndLeftIndent();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginRightIndent(wxRichTextCtrl* self, int rightIndent)
+    {
+        return self->BeginRightIndent(rightIndent);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndRightIndent(wxRichTextCtrl* self)
+    {
+        return self->EndRightIndent();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginParagraphSpacing(wxRichTextCtrl* self, int before, int after)
+    {
+        return self->BeginParagraphSpacing(before, after);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndParagraphSpacing(wxRichTextCtrl* self)
+    {
+        return self->EndParagraphSpacing();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginLineSpacing(wxRichTextCtrl* self, int lineSpacing)
+    {
+        return self->BeginLineSpacing(lineSpacing);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndLineSpacing(wxRichTextCtrl* self)
+    {
+        return self->EndLineSpacing();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginNumberedBullet(wxRichTextCtrl* self, int bulletNumber,
+                                                   int leftIndent, int leftSubIndent,
+                                                   int bulletStyle)
+    {
+        return self->BeginNumberedBullet(bulletNumber, leftIndent, leftSubIndent, bulletStyle);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndNumberedBullet(wxRichTextCtrl* self)
+    {
+        return self->EndNumberedBullet();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginSymbolBullet(wxRichTextCtrl* self, wxString* symbol,
+                                                 int leftIndent, int leftSubIndent, int bulletStyle)
+    {
+        return self->BeginSymbolBullet(*symbol, leftIndent, leftSubIndent, bulletStyle);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndSymbolBullet(wxRichTextCtrl* self)
+    {
+        return self->EndSymbolBullet();
+    }
+
+    EXPORT bool wxRichTextCtrl_BeginStandardBullet(wxRichTextCtrl* self, wxString* bulletName,
+                                                   int leftIndent, int leftSubIndent,
+                                                   int bulletStyle)
+    {
+        return self->BeginStandardBullet(*bulletName, leftIndent, leftSubIndent, bulletStyle);
+    }
+
+    EXPORT bool wxRichTextCtrl_EndStandardBullet(wxRichTextCtrl* self)
+    {
+        return self->EndStandardBullet();
+    }
+
+    // URL handling
+    EXPORT bool wxRichTextCtrl_BeginURL(wxRichTextCtrl* self, wxString* url,
+                                        wxString* characterStyle)
+    {
+        return self->BeginURL(*url, characterStyle ? *characterStyle : wxString(wxEmptyString));
+    }
+
+    EXPORT bool wxRichTextCtrl_EndURL(wxRichTextCtrl* self)
+    {
+        return self->EndURL();
+    }
+
+    // List operations
+    EXPORT bool wxRichTextCtrl_WriteImage(wxRichTextCtrl* self, wxImage* image, int bitmapType)
+    {
+        return self->WriteImage(*image, (wxBitmapType) bitmapType);
+    }
+
+    EXPORT bool wxRichTextCtrl_WriteImageFile(wxRichTextCtrl* self, wxString* filename,
+                                              int bitmapType)
+    {
+        return self->WriteImage(*filename, (wxBitmapType) bitmapType);
+    }
+
+    EXPORT bool wxRichTextCtrl_Newline(wxRichTextCtrl* self)
+    {
+        return self->Newline();
+    }
+
+    EXPORT bool wxRichTextCtrl_LineBreak(wxRichTextCtrl* self)
+    {
+        return self->LineBreak();
+    }
+}

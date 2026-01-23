@@ -1,0 +1,70 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT wxInfoBar* wxInfoBar_Create(wxWindow* parent, int id)
+    {
+        return new wxInfoBar(parent, id);
+    }
+
+    EXPORT void wxInfoBar_AddButton(wxInfoBar* self, int btnid, wxString* label)
+    {
+        self->AddButton(btnid, *label);
+    }
+
+    EXPORT void wxInfoBar_Dismiss(wxInfoBar* self)
+    {
+        self->Dismiss();
+    }
+
+    EXPORT size_t wxInfoBar_GetButtonCount(wxInfoBar* self)
+    {
+        return self->GetButtonCount();
+    }
+
+    EXPORT int wxInfoBar_GetButtonId(wxInfoBar* self, int idx)
+    {
+        return self->GetButtonId(idx);
+    }
+
+    EXPORT int wxInfoBar_GetEffectDuration(wxInfoBar* self)
+    {
+        return self->GetEffectDuration();
+    }
+
+    EXPORT int wxInfoBar_GetShowEffect(wxInfoBar* self)
+    {
+        return static_cast<int>(self->GetShowEffect());
+    }
+
+    EXPORT int wxInfoBar_GetHideEffect(wxInfoBar* self)
+    {
+        return static_cast<int>(self->GetHideEffect());
+    }
+
+    EXPORT bool wxInfoBar_HasFlag(wxInfoBar* self, int flag)
+    {
+        return self->HasFlag(flag);
+    }
+
+    EXPORT void wxInfoBar_RemoveButton(wxInfoBar* self, int btnid)
+    {
+        self->RemoveButton(btnid);
+    }
+
+    EXPORT void wxInfoBar_SetEffectDuration(wxInfoBar* self, int duration)
+    {
+        self->SetEffectDuration(duration);
+    }
+
+    EXPORT void wxInfoBar_SetShowHideEffects(wxInfoBar* self, int showEffect, int hideEffect)
+    {
+        self->SetShowHideEffects(static_cast<wxShowEffect>(showEffect),
+                                 static_cast<wxShowEffect>(hideEffect));
+    }
+
+    EXPORT void wxInfoBar_ShowMessage(wxInfoBar* self, wxString* msg, int flags)
+    {
+        self->ShowMessage(*msg, flags);
+    }
+}

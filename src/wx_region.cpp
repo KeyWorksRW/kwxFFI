@@ -1,0 +1,89 @@
+#include "wrapper.h"
+
+extern "C"
+{
+    EXPORT void* wxRegion_CreateDefault()
+    {
+        return (void*) new wxRegion();
+    }
+
+    EXPORT void* wxRegion_CreateFromRect(int x, int y, int w, int h)
+    {
+        return (void*) new wxRegion((wxCoord) x, (wxCoord) y, (wxCoord) w, (wxCoord) h);
+    }
+
+    EXPORT void wxRegion_Delete(wxRegion* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxRegion_Assign(wxRegion* self, wxRegion* region)
+    {
+        *self = *region;
+    }
+
+    EXPORT void wxRegion_Clear(wxRegion* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT bool wxRegion_UnionRect(wxRegion* self, int x, int y, int width, int height)
+    {
+        return self->Union((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
+    }
+
+    EXPORT bool wxRegion_UnionRegion(wxRegion* self, wxRegion* region)
+    {
+        return self->Union(*region);
+    }
+
+    EXPORT bool wxRegion_IntersectRect(wxRegion* self, int x, int y, int width, int height)
+    {
+        return self->Intersect((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
+    }
+
+    EXPORT bool wxRegion_IntersectRegion(wxRegion* self, wxRegion* region)
+    {
+        return self->Intersect(*region);
+    }
+
+    EXPORT bool wxRegion_SubtractRect(wxRegion* self, int x, int y, int width, int height)
+    {
+        return self->Subtract((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
+    }
+
+    EXPORT bool wxRegion_SubtractRegion(wxRegion* self, wxRegion* region)
+    {
+        return self->Subtract(*region);
+    }
+
+    EXPORT bool wxRegion_XorRect(wxRegion* self, int x, int y, int width, int height)
+    {
+        return self->Xor((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
+    }
+
+    EXPORT bool wxRegion_XorRegion(wxRegion* self, wxRegion* region)
+    {
+        return self->Xor(*region);
+    }
+
+    EXPORT void wxRegion_GetBox(wxRegion* self, void* x, void* y, void* w, void* h)
+    {
+        self->GetBox(*((wxCoord*) x), *((wxCoord*) y), *((wxCoord*) w), *((wxCoord*) h));
+    }
+
+    EXPORT bool wxRegion_IsEmpty(wxRegion* self)
+    {
+        return self->IsEmpty();
+    }
+
+    EXPORT bool wxRegion_ContainsPoint(wxRegion* self, int x, int y)
+    {
+        return self->Contains((wxCoord) x, (wxCoord) y);
+    }
+
+    EXPORT bool wxRegion_ContainsRect(wxRegion* self, int x, int y, int width, int height)
+    {
+        return self->Contains((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
+    }
+}
