@@ -94,11 +94,6 @@ if( MSVC )
 
     string( REPLACE "/Zi" "/Z7" z_seven ${CMAKE_C_FLAGS_DEBUG} )
     set( CMAKE_C_FLAGS_DEBUG ${z_seven} CACHE STRING "C Debug flags" FORCE )
-
-    # Use static runtime for Release builds to run with Wine without needing to install the dlls
-    if( NOT BUILD_SHARED_LIBS )
-        set( CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" )
-    endif()
 elseif( APPLE )
     # macOS (Xcode/Clang) - optimize for size
     string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
