@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 3.20 )
+cmake_minimum_required( VERSION 3.30 )
 
 string( TIMESTAMP YEAR "%y" ) # e.g., "25"
 string( TIMESTAMP DOY "%j" ) # e.g., "192"
@@ -10,6 +10,14 @@ set( PROJECT_VERSION_MINOR 1 )
 set( PROJECT_VERSION_PATCH 0 )
 set( PROJECT_VERSION_BUILD ${BUILD_NUM} )
 set( PROJECT_VERSION_YEAR ${PROJECT_YEAR} )
+
+# REVIEW: [Randalphwa - 01-31-2026] It might make sense for the caller
+# to be able to override the shared dll name by using the language's name, as in:
+# kwxLuaJitFFI.dll or kwxFortranFFI.dll
+# Child CMakeLists.txt might have:
+# if(NOT DEFINED PROJECT_NAME)
+# project(kwxFFI)
+# endif()
 
 project( kwxFFI
     LANGUAGES
@@ -42,16 +50,30 @@ set( CMAKE_CXX_STANDARD_REQUIRED True )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
 # ###################### Options #######################
-# creates a compile_commands.json file in the build directory, suitable for clangd
-set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-
-option( BUILD_SHARED_LIBS "Build kwxFFI shared libraries" OFF )
-
-if( BUILD_SHARED_LIBS )
-    message( NOTICE "Building kwxFFI shared libraries" )
-else()
-    message( NOTICE "Building kwxFFI static libraries" )
+# Only generate compile_commands.json for local development
+if( NOT DEFINED ENV{CI} )
+    # creates a compile_commands.json file in the build directory, suitable for clangd
+    set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 endif()
+
+# kwxFFI is always built as a shared DLL
+set( BUILD_SHARED_LIBS ON CACHE BOOL "kwxFFI is always built as a shared DLL" FORCE )
+message( NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries" )
+
+# ###################### Version #######################
+# Generate C++ header file with version constants for use in source code
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/src/version.h.in
+    ${CMAKE_CURRENT_LIST_DIR}/src/version.h
+    @ONLY
+)
+
+# Generate Windows resource file with version info for executable properties
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_LIST_DIR}/src/version.rc
+    @ONLY
+)
 
 # ###################### ccache support #######################
 find_program( CCACHE_PROGRAM ccache )
@@ -94,14 +116,42 @@ if( MSVC )
 
     string( REPLACE "/Zi" "/Z7" z_seven ${CMAKE_C_FLAGS_DEBUG} )
     set( CMAKE_C_FLAGS_DEBUG ${z_seven} CACHE STRING "C Debug flags" FORCE )
-elseif( APPLE )
-    # macOS (Xcode/Clang) - optimize for size
+
+    # Enable AddressSanitizer in Debug builds
+    if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        add_compile_options( /fsanitize=address )
+        add_link_options( /fsanitize=address )
+        # REVIEW: [Randalphwa - 01-26-2026] Even with MSVC from 2026, incremental linking
+        # messes with debugging where you the code you see is not what is actually running as
+        # you step through it.
+        # add_link_options( /INCREMENTAL:NO /OPT:REF /OPT:ICF )
+        add_link_options( /INCREMENTAL:YES /OPT:NOREF /OPT:ICF )
+    endif()
+
+    # Increase stack size for large projects with many object files
+    string( APPEND CMAKE_EXE_LINKER_FLAGS " /STACK:8388608" ) # 8MB stack
+elseif( UNIX AND NOT APPLE )
+    # Use the package PkgConfig to detect GTK+ headers/library files
+    find_package( PkgConfig REQUIRED )
+
+    pkg_check_modules( GTK3 REQUIRED gtk+-3.0 )
+    include_directories( ${GTK3_INCLUDE_DIRS} )
+    link_directories( ${GTK3_LIBRARY_DIRS} )
+    add_definitions( ${GTK3_CFLAGS_OTHER} )
+
+    pkg_check_modules( X11 REQUIRED x11 )
+    include_directories( ${X11_INCLUDE_DIRS} )
+    link_directories( ${X11_LIBRARY_DIRS} )
+    add_definitions( ${X11_CFLAGS_OTHER} )
+
+    # Linux/BSD (gcc/clang) - optimize for size
     string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
     set( CMAKE_CXX_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C++ Release flags" FORCE )
     string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_C_FLAGS_RELEASE} )
     set( CMAKE_C_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C Release flags" FORCE )
-elseif( UNIX )
-    # Linux/BSD (gcc/clang) - optimize for size
+
+elseif( APPLE )
+    # macOS (Xcode/Clang) - optimize for size
     string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
     set( CMAKE_CXX_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C++ Release flags" FORCE )
     string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_C_FLAGS_RELEASE} )
@@ -117,17 +167,21 @@ endif()
 
 include( FetchContent )
 
+# Suppress verbose FetchContent git output (CMake 3.30+)
+set(FETCHCONTENT_QUIET ON)
+
 # Set wxWidgets build options BEFORE FetchContent_MakeAvailable
-set( wxBUILD_SHARED ${BUILD_SHARED_LIBS} CACHE BOOL "Build wxWidgets libraries to match kwxFFI" )
+# wxWidgets is always built as static libraries even though kwxFFI is a shared DLL
+set( wxBUILD_SHARED OFF CACHE BOOL "Build wxWidgets as static libraries" FORCE )
+# REVIEW: [Randalphwa - 01-31-2026] Rust will insist on static release for Windows
+set( wxBUILD_USE_STATIC_RUNTIME OFF CACHE BOOL "Use dynamic runtime library" )
 set( wxUSE_UNICODE_UTF8 1 CACHE BOOL "Use UTF-8 internally in wxWidgets" )
 set( wxUSE_UTF8_LOCALE_ONLY 1 CACHE BOOL "Use UTF-8 locale only in wxWidgets" )
 set( wxUSE_GUI ON CACHE BOOL "This is a GUI application" FORCE )
-set( wxUSE_LUNASVG ON CACHE BOOL "Use LunaSVG for rendering SVG images" FORCE )
+set( wxUSE_LUNASVG builtin CACHE BOOL "Use LunaSVG for rendering SVG images" FORCE )
 set( wxUSE_NANOSVG OFF CACHE BOOL "Use NanoSVG for rendering SVG images" FORCE )
 set( wxBUILD_INSTALL OFF CACHE BOOL "Don't build wxWidgets install" )
 
-set( wxUSE_TGA OFF CACHE BOOL "Don't build tga image support" )
-set( wxUSE_PCX OFF CACHE BOOL "Don't build pcx image support" )
 set( wxUSE_IFF OFF CACHE BOOL "Don't build iff image support" )
 
 # On Windows, the only browser backend that ships with Windows 10 and 11 is IE.
@@ -168,8 +222,8 @@ message( STATUS "Fetching wxWidgets (this may take awhile) ..." )
 
 FetchContent_Declare(
     wxWidgets
-    GIT_REPOSITORY https://github.com/KeyWorksRW/wxFetch.git
-    GIT_TAG main
+    GIT_REPOSITORY https://github.com/KeyWorksRW/kwxFetch.git
+    GIT_TAG dev
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
 )
@@ -198,9 +252,8 @@ add_library( kwxFFI ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
 
 target_precompile_headers( kwxFFI PRIVATE "include/wrapper.h" )
 
-if( BUILD_SHARED_LIBS )
-    target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
-endif()
+# kwxFFI is a shared DLL but wxWidgets is static, so we don't define WXUSINGDLL
+# target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
 
 if( MSVC )
     target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
