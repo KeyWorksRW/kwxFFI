@@ -170,6 +170,9 @@ include( FetchContent )
 # Suppress verbose FetchContent git output (CMake 3.30+)
 set(FETCHCONTENT_QUIET ON)
 
+# Suppress verbose FetchContent git output (CMake 3.30+)
+set(FETCHCONTENT_QUIET ON)
+
 # Set wxWidgets build options BEFORE FetchContent_MakeAvailable
 # wxWidgets is always built as static libraries even though kwxFFI is a shared DLL
 set( wxBUILD_SHARED OFF CACHE BOOL "Build wxWidgets as static libraries" FORCE )
@@ -215,9 +218,6 @@ if( APPLE )
     set( wxUSE_REGEX OFF CACHE BOOL "Don't use pcre (problems compiling on Mac" )
 endif()
 
-# Prevent FetchContent from updating wxWidgets after initial download
-set( FETCHCONTENT_UPDATES_DISCONNECTED wxWidgets ON CACHE BOOL "Prevent FetchContent from updating wxWidgets after initial download" )
-
 message( STATUS "Fetching wxWidgets (this may take awhile) ..." )
 
 FetchContent_Declare(
@@ -225,7 +225,6 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/KeyWorksRW/kwxFetch.git
     GIT_TAG dev
     GIT_SHALLOW TRUE
-    GIT_PROGRESS TRUE
 )
 
 message( NOTICE "Configuring wxWidgets..." )
