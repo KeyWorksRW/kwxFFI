@@ -263,7 +263,7 @@ elseif( UNIX )
 endif()
 
 target_include_directories( kwxFFI PRIVATE
-    include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${wxWidgets_SOURCE_DIR}/include
 )
 
