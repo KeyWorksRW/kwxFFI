@@ -261,6 +261,10 @@ elseif( UNIX )
     target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
 endif()
 
+if( WIN32 AND BUILD_SHARED_LIBS )
+    target_compile_definitions( kwxFFI PRIVATE SHARED_LIBRARY )
+endif()
+
 target_include_directories( kwxFFI PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${wxWidgets_SOURCE_DIR}/include
