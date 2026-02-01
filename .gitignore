@@ -5,6 +5,9 @@ lib/
 .serena
 .vscode
 
+src/version.h
+src/version.rc
+
 # cmake
 CMakeFiles/
 build/
