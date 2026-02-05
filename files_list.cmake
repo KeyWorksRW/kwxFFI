@@ -3,6 +3,7 @@ set( FFI_SRC_FILES
     src/wrapper.cpp
 
     src/apppath.cpp
+    src/defs.cpp
     src/dragimage.cpp
     src/extra.cpp
 

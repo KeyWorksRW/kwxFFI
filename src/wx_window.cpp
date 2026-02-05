@@ -480,6 +480,11 @@ extern "C"
         return pt;
     }
 
+    EXPORT void wxWindow_Update(wxWindow* self)
+    {
+        self->Update();
+    }
+
     EXPORT void wxWindow_UpdateWindowUI(wxWindow* self)
     {
         self->UpdateWindowUI();

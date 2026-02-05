@@ -7320,6 +7320,7 @@ void wxWindow_Thaw(TSelf(wxWindow) _obj);
 TBool wxWindow_TransferDataFromWindow(TSelf(wxWindow) _obj);
 TBool wxWindow_TransferDataToWindow(TSelf(wxWindow) _obj);
 void wxWindow_UnsetConstraints(TSelf(wxWindow) _obj, void* c);
+void wxWindow_Update(TSelf(wxWindow) _obj);
 void wxWindow_UpdateWindowUI(TSelf(wxWindow) _obj);
 TBool wxWindow_Validate(TSelf(wxWindow) _obj);
 void wxWindow_SetVirtualSize(TSelf(wxWindow) _obj, TSize(w, h));
