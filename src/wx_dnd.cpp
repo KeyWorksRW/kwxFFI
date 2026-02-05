@@ -1,6 +1,6 @@
 #include "wrapper.h"
 
-wxDragResult ELJTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_data_func)
         return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
@@ -8,7 +8,7 @@ wxDragResult ELJTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
         return wxTextDropTarget::OnData(x, y, def);
 }
 
-bool ELJTextDropTarget::OnDrop(wxCoord x, wxCoord y)
+bool kwxTextDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
     if (on_drop_func)
         return (bool) on_drop_func(obj, (long) x, (long) y);
@@ -16,7 +16,7 @@ bool ELJTextDropTarget::OnDrop(wxCoord x, wxCoord y)
         return wxTextDropTarget::OnDrop(x, y);
 }
 
-wxDragResult ELJTextDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxTextDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_enter_func)
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
@@ -24,7 +24,7 @@ wxDragResult ELJTextDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
         return wxTextDropTarget::OnEnter(x, y, def);
 }
 
-wxDragResult ELJTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_drag_func)
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
@@ -32,7 +32,7 @@ wxDragResult ELJTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult de
         return wxTextDropTarget::OnDragOver(x, y, def);
 }
 
-void ELJTextDropTarget::OnLeave()
+void kwxTextDropTarget::OnLeave()
 {
     if (on_leave_func)
         on_leave_func(obj);
@@ -40,7 +40,7 @@ void ELJTextDropTarget::OnLeave()
         wxTextDropTarget::OnLeave();
 }
 
-wxDragResult ELJFileDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxFileDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_data_func)
         return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
@@ -48,7 +48,7 @@ wxDragResult ELJFileDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
         return wxFileDropTarget::OnData(x, y, def);
 }
 
-bool ELJFileDropTarget::OnDrop(wxCoord x, wxCoord y)
+bool kwxFileDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
     if (on_drop_func)
         return (bool) on_drop_func(obj, (long) x, (long) y);
@@ -56,7 +56,7 @@ bool ELJFileDropTarget::OnDrop(wxCoord x, wxCoord y)
         return wxFileDropTarget::OnDrop(x, y);
 }
 
-wxDragResult ELJFileDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxFileDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_enter_func)
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
@@ -64,7 +64,7 @@ wxDragResult ELJFileDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
         return wxFileDropTarget::OnEnter(x, y, def);
 }
 
-wxDragResult ELJFileDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxFileDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_drag_func)
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
@@ -72,7 +72,7 @@ wxDragResult ELJFileDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult de
         return wxFileDropTarget::OnDragOver(x, y, def);
 }
 
-void ELJFileDropTarget::OnLeave()
+void kwxFileDropTarget::OnLeave()
 {
     if (on_leave_func)
         on_leave_func(obj);
@@ -80,7 +80,7 @@ void ELJFileDropTarget::OnLeave()
         wxFileDropTarget::OnLeave();
 }
 
-wxDragResult ELJDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_data_func)
         return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
@@ -91,7 +91,7 @@ wxDragResult ELJDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
     }
 }
 
-bool ELJDropTarget::OnDrop(wxCoord x, wxCoord y)
+bool kwxDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
     if (on_drop_func)
         return (bool) on_drop_func(obj, (long) x, (long) y);
@@ -99,7 +99,7 @@ bool ELJDropTarget::OnDrop(wxCoord x, wxCoord y)
         return wxDropTarget::OnDrop(x, y);
 }
 
-wxDragResult ELJDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_enter_func)
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
@@ -107,7 +107,7 @@ wxDragResult ELJDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
         return wxDropTarget::OnEnter(x, y, def);
 }
 
-wxDragResult ELJDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+wxDragResult kwxDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_drag_func)
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
@@ -115,7 +115,7 @@ wxDragResult ELJDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
         return wxDropTarget::OnDragOver(x, y, def);
 }
 
-void ELJDropTarget::OnLeave()
+void kwxDropTarget::OnLeave()
 {
     if (on_leave_func)
         on_leave_func(obj);
@@ -123,7 +123,7 @@ void ELJDropTarget::OnLeave()
         wxDropTarget::OnLeave();
 }
 
-bool ELJFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
+bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
 {
     bool result = false;
     const char** arr = (const char**) malloc(sizeof(char*) * filenames.GetCount());
@@ -137,29 +137,29 @@ bool ELJFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& f
     return result;
 }
 
-bool ELJTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
+bool kwxTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
 {
     return func(obj, (long) x, (long) y, (void*) text.utf8_str().data()) != 0;
 }
 
 extern "C"
 {
-    EXPORT void* ELJFileDropTarget_Create(void* self, void* _func)
+    EXPORT void* kwxFileDropTarget_Create(void* self, void* _func)
     {
-        return (void*) new ELJFileDropTarget(self, (FileDropFunc) _func);
+        return (void*) new kwxFileDropTarget(self, (FileDropFunc) _func);
     }
 
-    EXPORT void ELJFileDropTarget_Delete(ELJFileDropTarget* self)
+    EXPORT void kwxFileDropTarget_Delete(kwxFileDropTarget* self)
     {
         delete self;
     }
 
-    EXPORT void* ELJTextDropTarget_Create(void* self, void* _func)
+    EXPORT void* kwxTextDropTarget_Create(void* self, void* _func)
     {
-        return (void*) new ELJTextDropTarget(self, (TextDropFunc) _func);
+        return (void*) new kwxTextDropTarget(self, (TextDropFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_Delete(ELJTextDropTarget* self)
+    EXPORT void kwxTextDropTarget_Delete(kwxTextDropTarget* self)
     {
         delete self;
     }
@@ -270,89 +270,89 @@ extern "C"
         return (int) ((wxDropSource*) self)->DoDragDrop(_move);
     }
 
-    EXPORT void* ELJDropTarget_Create(void* self)
+    EXPORT void* kwxDropTarget_Create(void* self)
     {
-        return (void*) new ELJDropTarget(self);
+        return (void*) new kwxDropTarget(self);
     }
 
-    EXPORT void ELJDropTarget_Delete(void* self)
+    EXPORT void kwxDropTarget_Delete(void* self)
     {
-        delete (ELJDropTarget*) self;
+        delete (kwxDropTarget*) self;
     }
 
-    EXPORT void ELJFileDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnData(void* self, void* _func)
     {
-        ((ELJFileDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnData((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJFileDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnDrop(void* self, void* _func)
     {
-        ((ELJFileDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
     }
 
-    EXPORT void ELJFileDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnEnter(void* self, void* _func)
     {
-        ((ELJFileDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJFileDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnDragOver(void* self, void* _func)
     {
-        ((ELJFileDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJFileDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnLeave(void* self, void* _func)
     {
-        ((ELJFileDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnData(void* self, void* _func)
     {
-        ((ELJTextDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnData((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnDrop(void* self, void* _func)
     {
-        ((ELJTextDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnEnter(void* self, void* _func)
     {
-        ((ELJTextDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnDragOver(void* self, void* _func)
     {
-        ((ELJTextDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJTextDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnLeave(void* self, void* _func)
     {
-        ((ELJTextDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
     }
 
-    EXPORT void ELJDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnData(void* self, void* _func)
     {
-        ((ELJDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnData((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnDrop(void* self, void* _func)
     {
-        ((ELJDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
     }
 
-    EXPORT void ELJDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnEnter(void* self, void* _func)
     {
-        ((ELJDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnDragOver(void* self, void* _func)
     {
-        ((ELJDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
     }
 
-    EXPORT void ELJDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnLeave(void* self, void* _func)
     {
-        ((ELJDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
     }
 
     EXPORT void wxDropTarget_GetData(void* self)
@@ -365,16 +365,16 @@ extern "C"
         ((wxDropTarget*) self)->SetDataObject((wxDataObject*) _dat);
     }
 
-    EXPORT void* ELJDragDataObject_Create(void* self, wxString* _fmt, void* _func1, void* _func2,
+    EXPORT void* kwxDragDataObject_Create(void* self, wxString* _fmt, void* _func1, void* _func2,
                                           void* _func3)
     {
-        return (void*) new ELJDragDataObject(self, *(_fmt), (DataGetDataSize) _func1,
+        return (void*) new kwxDragDataObject(self, *(_fmt), (DataGetDataSize) _func1,
                                              (DataGetDataHere) _func2, (DataSetData) _func3);
     }
 
-    EXPORT void ELJDragDataObject_Delete(void* self)
+    EXPORT void kwxDragDataObject_Delete(void* self)
     {
-        delete (ELJDragDataObject*) self;
+        delete (kwxDragDataObject*) self;
     }
 
     EXPORT void* wxDataObjectComposite_Create()

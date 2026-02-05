@@ -263,7 +263,7 @@ int expEVT_DATAVIEW_ITEM_EDITING_STARTED();
 int expEVT_DATAVIEW_ITEM_EDITING_DONE();
 int expEVT_DATAVIEW_ITEM_VALUE_CHANGED();
 
-/* eljfindrepldlg.h */
+/* kwxfindrepldlg.h */
 int expEVT_COMMAND_FIND();
 int expEVT_COMMAND_FIND_NEXT();
 int expEVT_COMMAND_FIND_REPLACE();
@@ -572,8 +572,8 @@ int expK_NUMPAD_DECIMAL();
 int expK_NUMPAD_DIVIDE();
 
 /* Misc. */
-int ELJSysErrorCode();
-void* ELJSysErrorMsg(int nErrCode);
+int kwxSysErrorCode();
+void* kwxSysErrorMsg(int nErrCode);
 void LogErrorMsg(TClass(wxString) _msg);
 void LogFatalErrorMsg(TClass(wxString) _msg);
 void LogMessageMsg(TClass(wxString) _msg);
@@ -583,220 +583,173 @@ TBool Quantize(TClass(wxImage) src, TClass(wxImage) dest, int desiredNoColours, 
 TBool QuantizePalette(TClass(wxImage) src, TClass(wxImage) dest, void* pPalette,
                       int desiredNoColours, void* eightBitData, int flags);
 void wxCFree(void* _ptr);
-TClass(ELJLocale) wxGetELJLocale();
-void* wxGetELJTranslation(TStringVoid sz);
+TClass(kwxLocale) wxGetkwxLocale();
+void* wxGetkwxTranslation(TStringVoid sz);
 void wxMutexGui_Enter();
 void wxMutexGui_Leave();
 
-/* ELJApp */
-TClassDefExtend(ELJApp, wxApp) void ELJApp_Bell();
-TClass(ELJLog) ELJApp_CreateLogTarget();
-void ELJApp_Dispatch();
-TClass(wxSize) ELJApp_DisplaySize();
-void ELJApp_EnableTooltips(TBool _enable);
-void ELJApp_EnableTopLevelWindows(int _enb);
-int ELJApp_ExecuteProcess(TClass(wxString) _cmd, int _snc, TClass(wxProcess) _prc);
-void ELJApp_Exit();
-void ELJApp_ExitMainLoop();
-void* ELJApp_FindWindowById(int _id, TClass(wxWindow) _prt);
-TClass(wxWindow) ELJApp_FindWindowByLabel(TClass(wxString) _lbl, TClass(wxWindow) _prt);
-TClass(wxWindow) ELJApp_FindWindowByName(TClass(wxString) _lbl, TClass(wxWindow) _prt);
-TClass(wxApp) ELJApp_GetApp();
-TClass(wxString) ELJApp_GetAppName();
-TClass(wxString) ELJApp_GetClassName();
-int ELJApp_GetExitOnFrameDelete();
-TClass(wxString) ELJApp_GetOsDescription();
-int ELJApp_GetOsVersion(void* _maj, void* _min);
-TClass(wxWindow) ELJApp_GetTopWindow();
-int ELJApp_GetUseBestVisual();
-TClass(wxString) ELJApp_GetUserHome(void* _usr);
-TClass(wxString) ELJApp_GetUserId();
-TClass(wxString) ELJApp_GetUserName();
-TClass(wxString) ELJApp_GetVendorName();
-/* int        ELJApp_GetWantDebugOutput(  ); */
-void ELJApp_InitAllImageHandlers();
-TBool ELJApp_Initialized();
-int ELJApp_MainLoop();
-TClass(wxPoint) ELJApp_MousePosition();
-int ELJApp_Pending();
-int ELJApp_SafeYield(TClass(wxWindow) _win);
-/* int        ELJApp_SendIdleEvents(  ); */
-/* int        ELJApp_SendIdleEventsToWindow( TClass(wxWindow) win ); */
-void ELJApp_SetAppName(TClass(wxString) name);
-void ELJApp_SetClassName(TClass(wxString) name);
-void ELJApp_SetExitOnFrameDelete(int flag);
-void ELJApp_SetPrintMode(int mode);
-void ELJApp_SetTooltipDelay(int _ms);
-void ELJApp_SetTopWindow(TClass(wxWindow) _wnd);
-void ELJApp_SetUseBestVisual(int flag);
-void ELJApp_SetVendorName(TClass(wxString) name);
-void ELJApp_Sleep(int _scs);
-void ELJApp_MilliSleep(int _mscs);
-int ELJApp_Yield();
-TBoolInt ELJApp_IsTerminating();
+/* kwxArtProv */
+TClassDefExtend(kwxArtProv, wxArtProvider) TClass(kwxArtProv)
+    kwxArtProv_Create(void* _obj, void* _clb);
+void kwxArtProv_Release(TSelf(kwxArtProv) _obj);
 
-/* ELJArtProv */
-TClassDefExtend(ELJArtProv, wxArtProvider) TClass(ELJArtProv)
-    ELJArtProv_Create(void* _obj, void* _clb);
-void ELJArtProv_Release(TSelf(ELJArtProv) _obj);
-
-/* ELJClient */
-TClassDefExtend(ELJClient, wxClient) TClass(ELJClient) ELJClient_Create(void* _eobj, void* _cnct);
-void ELJClient_Delete(TSelf(ELJClient) _obj);
-void ELJClient_MakeConnection(TSelf(ELJClient) _obj, TClass(wxString) host, TClass(wxServer) server,
+/* kwxClient */
+TClassDefExtend(kwxClient, wxClient) TClass(kwxClient) kwxClient_Create(void* _eobj, void* _cnct);
+void kwxClient_Delete(TSelf(kwxClient) _obj);
+void kwxClient_MakeConnection(TSelf(kwxClient) _obj, TClass(wxString) host, TClass(wxServer) server,
                               TClass(wxString) topic);
 
-/* ELJCommand */
-TClassDefExtend(ELJCommand, wxCommand) TBool ELJCommand_CanUndo(TSelf(ELJCommand) _obj);
-TClass(ELJCommand) ELJCommand_Create(int _und, TClass(wxString) _nme, void* _obj, void* _clb);
-void ELJCommand_Delete(TSelf(ELJCommand) _obj);
-TClass(wxString) ELJCommand_GetName(TSelf(ELJCommand) _obj);
+/* kwxCommand */
+TClassDefExtend(kwxCommand, wxCommand) TBool kwxCommand_CanUndo(TSelf(kwxCommand) _obj);
+TClass(kwxCommand) kwxCommand_Create(int _und, TClass(wxString) _nme, void* _obj, void* _clb);
+void kwxCommand_Delete(TSelf(kwxCommand) _obj);
+TClass(wxString) kwxCommand_GetName(TSelf(kwxCommand) _obj);
 
-/* ELJConnection */
-TClassDefExtend(ELJConnection, wxConnection) int ELJConnection_Advise(TSelf(ELJConnection) _obj,
+/* kwxConnection */
+TClassDefExtend(kwxConnection, wxConnection) int kwxConnection_Advise(TSelf(kwxConnection) _obj,
                                                                       TClass(wxString) item,
                                                                       void* data, int size,
                                                                       int format);
-void ELJConnection_Compress(TSelf(ELJConnection) _obj, int on);
-TClass(ELJConnection) ELJConnection_Create(void* _obj, void* buffer, int size);
-TClass(ELJConnection) ELJConnection_CreateDefault(TSelf(ELJConnection) _obj);
-void ELJConnection_Delete(TSelf(ELJConnection) _obj);
-TBool ELJConnection_Disconnect(TSelf(ELJConnection) _obj);
-TBool ELJConnection_Execute(TSelf(ELJConnection) _obj, TClass(wxString) data, int size, int format);
-TBool ELJConnection_Poke(TSelf(ELJConnection) _obj, TClass(wxString) item, void* data, int size,
+void kwxConnection_Compress(TSelf(kwxConnection) _obj, int on);
+TClass(kwxConnection) kwxConnection_Create(void* _obj, void* buffer, int size);
+TClass(kwxConnection) kwxConnection_CreateDefault(TSelf(kwxConnection) _obj);
+void kwxConnection_Delete(TSelf(kwxConnection) _obj);
+TBool kwxConnection_Disconnect(TSelf(kwxConnection) _obj);
+TBool kwxConnection_Execute(TSelf(kwxConnection) _obj, TClass(wxString) data, int size, int format);
+TBool kwxConnection_Poke(TSelf(kwxConnection) _obj, TClass(wxString) item, void* data, int size,
                          int format);
-void* ELJConnection_Request(TSelf(ELJConnection) _obj, TClass(wxString) item, TClass(wxSize) size,
+void* kwxConnection_Request(TSelf(kwxConnection) _obj, TClass(wxString) item, TClass(wxSize) size,
                             int format);
-void ELJConnection_SetOnAdvise(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnDisconnect(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnExecute(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnPoke(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnRequest(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnStartAdvise(TSelf(ELJConnection) _obj, void* _fnc);
-void ELJConnection_SetOnStopAdvise(TSelf(ELJConnection) _obj, void* _fnc);
-TBool ELJConnection_StartAdvise(TSelf(ELJConnection) _obj, TClass(wxString) item);
-TBool ELJConnection_StopAdvise(TSelf(ELJConnection) _obj, TClass(wxString) item);
+void kwxConnection_SetOnAdvise(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnDisconnect(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnExecute(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnPoke(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnRequest(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnStartAdvise(TSelf(kwxConnection) _obj, void* _fnc);
+void kwxConnection_SetOnStopAdvise(TSelf(kwxConnection) _obj, void* _fnc);
+TBool kwxConnection_StartAdvise(TSelf(kwxConnection) _obj, TClass(wxString) item);
+TBool kwxConnection_StopAdvise(TSelf(kwxConnection) _obj, TClass(wxString) item);
 
-/* ELJDragDataObject */
-TClassDef(ELJDragDataObject) TClass(ELJDragDataObject)
-    ELJDragDataObject_Create(void* _obj, TClass(wxString) _fmt, void* _func1, void* _func2,
+/* kwxDragDataObject */
+TClassDef(kwxDragDataObject) TClass(kwxDragDataObject)
+    kwxDragDataObject_Create(void* _obj, TClass(wxString) _fmt, void* _func1, void* _func2,
                              void* _func3);
-void ELJDragDataObject_Delete(TSelf(ELJDragDataObject) _obj);
+void kwxDragDataObject_Delete(TSelf(kwxDragDataObject) _obj);
 
-/* ELJDropTarget */
-TClassDefExtend(ELJDropTarget, wxDropTarget) TClass(ELJDropTarget) ELJDropTarget_Create(void* _obj);
-void ELJDropTarget_Delete(TSelf(ELJDropTarget) _obj);
-void ELJDropTarget_SetOnData(TSelf(ELJDropTarget) _obj, void* _func);
-void ELJDropTarget_SetOnDragOver(TSelf(ELJDropTarget) _obj, void* _func);
-void ELJDropTarget_SetOnDrop(TSelf(ELJDropTarget) _obj, void* _func);
-void ELJDropTarget_SetOnEnter(TSelf(ELJDropTarget) _obj, void* _func);
-void ELJDropTarget_SetOnLeave(TSelf(ELJDropTarget) _obj, void* _func);
+/* kwxDropTarget */
+TClassDefExtend(kwxDropTarget, wxDropTarget) TClass(kwxDropTarget) kwxDropTarget_Create(void* _obj);
+void kwxDropTarget_Delete(TSelf(kwxDropTarget) _obj);
+void kwxDropTarget_SetOnData(TSelf(kwxDropTarget) _obj, void* _func);
+void kwxDropTarget_SetOnDragOver(TSelf(kwxDropTarget) _obj, void* _func);
+void kwxDropTarget_SetOnDrop(TSelf(kwxDropTarget) _obj, void* _func);
+void kwxDropTarget_SetOnEnter(TSelf(kwxDropTarget) _obj, void* _func);
+void kwxDropTarget_SetOnLeave(TSelf(kwxDropTarget) _obj, void* _func);
 
-/* ELJFileDropTarget */
-TClassDefExtend(ELJFileDropTarget, wxFileDropTarget) TClass(ELJFileDropTarget)
-    ELJFileDropTarget_Create(void* _obj, void* _func);
-void ELJFileDropTarget_Delete(TSelf(ELJFileDropTarget) _obj);
-void ELJFileDropTarget_SetOnData(TSelf(ELJFileDropTarget) _obj, void* _func);
-void ELJFileDropTarget_SetOnDragOver(TSelf(ELJFileDropTarget) _obj, void* _func);
-void ELJFileDropTarget_SetOnDrop(TSelf(ELJFileDropTarget) _obj, void* _func);
-void ELJFileDropTarget_SetOnEnter(TSelf(ELJFileDropTarget) _obj, void* _func);
-void ELJFileDropTarget_SetOnLeave(TSelf(ELJFileDropTarget) _obj, void* _func);
+/* kwxFileDropTarget */
+TClassDefExtend(kwxFileDropTarget, wxFileDropTarget) TClass(kwxFileDropTarget)
+    kwxFileDropTarget_Create(void* _obj, void* _func);
+void kwxFileDropTarget_Delete(TSelf(kwxFileDropTarget) _obj);
+void kwxFileDropTarget_SetOnData(TSelf(kwxFileDropTarget) _obj, void* _func);
+void kwxFileDropTarget_SetOnDragOver(TSelf(kwxFileDropTarget) _obj, void* _func);
+void kwxFileDropTarget_SetOnDrop(TSelf(kwxFileDropTarget) _obj, void* _func);
+void kwxFileDropTarget_SetOnEnter(TSelf(kwxFileDropTarget) _obj, void* _func);
+void kwxFileDropTarget_SetOnLeave(TSelf(kwxFileDropTarget) _obj, void* _func);
 
-/* ELJGridTable */
-TClassDefExtend(ELJGridTable, wxGridTableBase) TClass(ELJGridTable)
-    ELJGridTable_Create(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols,
+/* kwxGridTable */
+TClassDefExtend(kwxGridTable, wxGridTableBase) TClass(kwxGridTable)
+    kwxGridTable_Create(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols,
                         void* _EifGetValue, void* _EifSetValue, void* _EifIsEmptyCell,
                         void* _EifClear, void* _EifInsertRows, void* _EifAppendRows,
                         void* _EifDeleteRows, void* _EifInsertCols, void* _EifAppendCols,
                         void* _EifDeleteCols, void* _EifSetRowLabelValue,
                         void* _EifSetColLabelValue, void* _EifGetRowLabelValue,
                         void* _EifGetColLabelValue);
-void ELJGridTable_Delete(TSelf(ELJGridTable) _obj);
-TClass(wxView) ELJGridTable_GetView(TSelf(ELJGridTable) _obj);
-void* ELJGridTable_SendTableMessage(TSelf(ELJGridTable) _obj, int id, int val1, int val2);
+void kwxGridTable_Delete(TSelf(kwxGridTable) _obj);
+TClass(wxView) kwxGridTable_GetView(TSelf(kwxGridTable) _obj);
+void* kwxGridTable_SendTableMessage(TSelf(kwxGridTable) _obj, int id, int val1, int val2);
 
-/* ELJLocale */
-TClassDefExtend(ELJLocale, wxLocale)
+/* kwxLocale */
+TClassDefExtend(kwxLocale, wxLocale)
 
-    /* ELJLog */
-    TClassDefExtend(ELJLog, wxLog) void ELJLog_AddTraceMask(TSelf(ELJLog) _obj, TStringVoid str);
-TClass(ELJLog) ELJLog_Create(void* _obj, void* _fnc);
-void ELJLog_Delete(TSelf(ELJLog) _obj);
-void ELJLog_DontCreateOnDemand(TSelf(ELJLog) _obj);
-int ELJLog_EnableLogging(TSelf(ELJLog) _obj, TBool doIt);
-void ELJLog_Flush(TSelf(ELJLog) _obj);
-void ELJLog_FlushActive(TSelf(ELJLog) _obj);
-void* ELJLog_GetActiveTarget();
-void* ELJLog_GetTimestamp(TSelf(ELJLog) _obj);
-int ELJLog_GetVerbose(TSelf(ELJLog) _obj);
-TBool ELJLog_HasPendingMessages(TSelf(ELJLog) _obj);
-TBool ELJLog_IsAllowedTraceMask(TSelf(ELJLog) _obj, TClass(wxMask) mask);
-TBool ELJLog_IsEnabled(TSelf(ELJLog) _obj);
-void ELJLog_OnLog(TSelf(ELJLog) _obj, int level, void* szString, int t);
-void ELJLog_RemoveTraceMask(TSelf(ELJLog) _obj, TStringVoid str);
-void ELJLog_Resume(TSelf(ELJLog) _obj);
-void* ELJLog_SetActiveTarget(TSelf(ELJLog) pLogger);
-void ELJLog_SetTimestamp(TSelf(ELJLog) _obj, void* ts);
+    /* kwxLog */
+    TClassDefExtend(kwxLog, wxLog) void kwxLog_AddTraceMask(TSelf(kwxLog) _obj, TStringVoid str);
+TClass(kwxLog) kwxLog_Create(void* _obj, void* _fnc);
+void kwxLog_Delete(TSelf(kwxLog) _obj);
+void kwxLog_DontCreateOnDemand(TSelf(kwxLog) _obj);
+int kwxLog_EnableLogging(TSelf(kwxLog) _obj, TBool doIt);
+void kwxLog_Flush(TSelf(kwxLog) _obj);
+void kwxLog_FlushActive(TSelf(kwxLog) _obj);
+void* kwxLog_GetActiveTarget();
+void* kwxLog_GetTimestamp(TSelf(kwxLog) _obj);
+int kwxLog_GetVerbose(TSelf(kwxLog) _obj);
+TBool kwxLog_HasPendingMessages(TSelf(kwxLog) _obj);
+TBool kwxLog_IsAllowedTraceMask(TSelf(kwxLog) _obj, TClass(wxMask) mask);
+TBool kwxLog_IsEnabled(TSelf(kwxLog) _obj);
+void kwxLog_OnLog(TSelf(kwxLog) _obj, int level, void* szString, int t);
+void kwxLog_RemoveTraceMask(TSelf(kwxLog) _obj, TStringVoid str);
+void kwxLog_Resume(TSelf(kwxLog) _obj);
+void* kwxLog_SetActiveTarget(TSelf(kwxLog) pLogger);
+void kwxLog_SetTimestamp(TSelf(kwxLog) _obj, void* ts);
 // Deprecated:
-// void       ELJLog_SetTraceMask( TSelf(ELJLog) _obj, int ulMask );
-void ELJLog_SetVerbose(TSelf(ELJLog) _obj, int bVerbose);
-void ELJLog_Suspend(TSelf(ELJLog) _obj);
+// void       kwxLog_SetTraceMask( TSelf(kwxLog) _obj, int ulMask );
+void kwxLog_SetVerbose(TSelf(kwxLog) _obj, int bVerbose);
+void kwxLog_Suspend(TSelf(kwxLog) _obj);
 
-/* ELJMessageParameters */
-TClassDef(ELJMessageParameters) TClass(ELJMessageParameters)
+/* kwxMessageParameters */
+TClassDef(kwxMessageParameters) TClass(kwxMessageParameters)
     wxMessageParameters_Create(TStringVoid _file, TStringVoid _type, void* _object, void* _func);
-void wxMessageParameters_Delete(TSelf(ELJMessageParameters) _obj);
+void wxMessageParameters_Delete(TSelf(kwxMessageParameters) _obj);
 
-/* ELJPlotCurve */
-TClassDefExtend(ELJPlotCurve, wxPlotCurve) TClass(ELJPlotCurve)
-    ELJPlotCurve_Create(void* _obj, void* _str, void* _end, void* _y, int offsetY, double startY,
+/* kwxPlotCurve */
+TClassDefExtend(kwxPlotCurve, wxPlotCurve) TClass(kwxPlotCurve)
+    kwxPlotCurve_Create(void* _obj, void* _str, void* _end, void* _y, int offsetY, double startY,
                         double endY);
-void ELJPlotCurve_Delete(TSelf(ELJPlotCurve) _obj);
-double ELJPlotCurve_GetEndY(TSelf(ELJPlotCurve) _obj);
-int ELJPlotCurve_GetOffsetY(TSelf(ELJPlotCurve) _obj);
-double ELJPlotCurve_GetStartY(TSelf(ELJPlotCurve) _obj);
-void ELJPlotCurve_SetEndY(TSelf(ELJPlotCurve) _obj, double endY);
-void ELJPlotCurve_SetOffsetY(TSelf(ELJPlotCurve) _obj, int offsetY);
-void ELJPlotCurve_SetPenNormal(TSelf(ELJPlotCurve) _obj, TClass(wxPen) pen);
-void ELJPlotCurve_SetPenSelected(TSelf(ELJPlotCurve) _obj, TClass(wxPen) pen);
-void ELJPlotCurve_SetStartY(TSelf(ELJPlotCurve) _obj, double startY);
+void kwxPlotCurve_Delete(TSelf(kwxPlotCurve) _obj);
+double kwxPlotCurve_GetEndY(TSelf(kwxPlotCurve) _obj);
+int kwxPlotCurve_GetOffsetY(TSelf(kwxPlotCurve) _obj);
+double kwxPlotCurve_GetStartY(TSelf(kwxPlotCurve) _obj);
+void kwxPlotCurve_SetEndY(TSelf(kwxPlotCurve) _obj, double endY);
+void kwxPlotCurve_SetOffsetY(TSelf(kwxPlotCurve) _obj, int offsetY);
+void kwxPlotCurve_SetPenNormal(TSelf(kwxPlotCurve) _obj, TClass(wxPen) pen);
+void kwxPlotCurve_SetPenSelected(TSelf(kwxPlotCurve) _obj, TClass(wxPen) pen);
+void kwxPlotCurve_SetStartY(TSelf(kwxPlotCurve) _obj, double startY);
 
-/* ELJPreviewControlBar */
-TClassDefExtend(ELJPreviewControlBar, wxPreviewControlBar) TClass(ELJPreviewControlBar)
-    ELJPreviewControlBar_Create(void* preview, int buttons, TClass(wxWindow) parent, void* title,
+/* kwxPreviewControlBar */
+TClassDefExtend(kwxPreviewControlBar, wxPreviewControlBar) TClass(kwxPreviewControlBar)
+    kwxPreviewControlBar_Create(void* preview, int buttons, TClass(wxWindow) parent, void* title,
                                 TRect(x, y, w, h), int style);
 
-/* ELJPreviewFrame */
-TClassDefExtend(ELJPreviewFrame, wxPreviewFrame) TClass(ELJPreviewFrame)
-    ELJPreviewFrame_Create(void* _obj, void* _init, void* _create_canvas, void* _create_toolbar,
+/* kwxPreviewFrame */
+TClassDefExtend(kwxPreviewFrame, wxPreviewFrame) TClass(kwxPreviewFrame)
+    kwxPreviewFrame_Create(void* _obj, void* _init, void* _create_canvas, void* _create_toolbar,
                            void* preview, TClass(wxWindow) parent, void* title, TRect(x, y, w, h),
                            int style);
-void* ELJPreviewFrame_GetControlBar(TSelf(ELJPreviewFrame) _obj);
-TClass(wxPreviewCanvas) ELJPreviewFrame_GetPreviewCanvas(TSelf(ELJPreviewFrame) _obj);
-TClass(wxPrintPreview) ELJPreviewFrame_GetPrintPreview(TSelf(ELJPreviewFrame) _obj);
-void ELJPreviewFrame_Initialize(TSelf(ELJPreviewFrame) _obj);
-void ELJPreviewFrame_SetControlBar(TSelf(ELJPreviewFrame) _obj, void* obj);
-void ELJPreviewFrame_SetPreviewCanvas(TSelf(ELJPreviewFrame) _obj, TClass(wxPreviewCanvas) obj);
-void ELJPreviewFrame_SetPrintPreview(TSelf(ELJPreviewFrame) _obj, TClass(wxPrintPreview) obj);
+void* kwxPreviewFrame_GetControlBar(TSelf(kwxPreviewFrame) _obj);
+TClass(wxPreviewCanvas) kwxPreviewFrame_GetPreviewCanvas(TSelf(kwxPreviewFrame) _obj);
+TClass(wxPrintPreview) kwxPreviewFrame_GetPrintPreview(TSelf(kwxPreviewFrame) _obj);
+void kwxPreviewFrame_Initialize(TSelf(kwxPreviewFrame) _obj);
+void kwxPreviewFrame_SetControlBar(TSelf(kwxPreviewFrame) _obj, void* obj);
+void kwxPreviewFrame_SetPreviewCanvas(TSelf(kwxPreviewFrame) _obj, TClass(wxPreviewCanvas) obj);
+void kwxPreviewFrame_SetPrintPreview(TSelf(kwxPreviewFrame) _obj, TClass(wxPrintPreview) obj);
 
-/* ELJServer */
-TClassDefExtend(ELJServer, wxServer) TClass(ELJServer) ELJServer_Create(void* _eobj, void* _cnct);
-void ELJServer_Delete(TSelf(ELJServer) _obj);
-int ELJServer_Initialize(TSelf(ELJServer) _obj, TClass(wxString) name);
+/* kwxServer */
+TClassDefExtend(kwxServer, wxServer) TClass(kwxServer) kwxServer_Create(void* _eobj, void* _cnct);
+void kwxServer_Delete(TSelf(kwxServer) _obj);
+int kwxServer_Initialize(TSelf(kwxServer) _obj, TClass(wxString) name);
 
-/* ELJTextDropTarget */
-TClassDefExtend(ELJTextDropTarget, wxTextDropTarget) TClass(ELJTextDropTarget)
-    ELJTextDropTarget_Create(void* _obj, void* _func);
-void ELJTextDropTarget_Delete(TSelf(ELJTextDropTarget) _obj);
-void ELJTextDropTarget_SetOnData(TSelf(ELJTextDropTarget) _obj, void* _func);
-void ELJTextDropTarget_SetOnDragOver(TSelf(ELJTextDropTarget) _obj, void* _func);
-void ELJTextDropTarget_SetOnDrop(TSelf(ELJTextDropTarget) _obj, void* _func);
-void ELJTextDropTarget_SetOnEnter(TSelf(ELJTextDropTarget) _obj, void* _func);
-void ELJTextDropTarget_SetOnLeave(TSelf(ELJTextDropTarget) _obj, void* _func);
+/* kwxTextDropTarget */
+TClassDefExtend(kwxTextDropTarget, wxTextDropTarget) TClass(kwxTextDropTarget)
+    kwxTextDropTarget_Create(void* _obj, void* _func);
+void kwxTextDropTarget_Delete(TSelf(kwxTextDropTarget) _obj);
+void kwxTextDropTarget_SetOnData(TSelf(kwxTextDropTarget) _obj, void* _func);
+void kwxTextDropTarget_SetOnDragOver(TSelf(kwxTextDropTarget) _obj, void* _func);
+void kwxTextDropTarget_SetOnDrop(TSelf(kwxTextDropTarget) _obj, void* _func);
+void kwxTextDropTarget_SetOnEnter(TSelf(kwxTextDropTarget) _obj, void* _func);
+void kwxTextDropTarget_SetOnLeave(TSelf(kwxTextDropTarget) _obj, void* _func);
 
-/* ELJTextValidator */
-TClassDefExtend(ELJTextValidator, wxTextValidator) TClass(ELJTextValidator)
-    ELJTextValidator_Create(void* _obj, void* _fnc, TStringVoid _txt, int _stl);
+/* kwxTextValidator */
+TClassDefExtend(kwxTextValidator, wxTextValidator) TClass(kwxTextValidator)
+    kwxTextValidator_Create(void* _obj, void* _fnc, TStringVoid _txt, int _stl);
 
 /* cbAntiflickerPlugin */
 TClassDefExtend(cbAntiflickerPlugin, cbPluginBase) TClass(cbAntiflickerPlugin)

@@ -202,14 +202,14 @@ public:
     wxClosure* GetClosure();
 };
 
-class ELJDataObject : public wxObject
+class kwxDataObject : public wxObject
 {
 public:
-    ELJDataObject(void* _data) : wxObject() { data = _data; };
+    kwxDataObject(void* _data) : wxObject() { data = _data; };
     void* data;
 };
 
-class ELJDropTarget : public wxDropTarget
+class kwxDropTarget : public wxDropTarget
 {
 private:
     DragThreeFunc on_data_func;
@@ -220,7 +220,7 @@ private:
     void* obj;
 
 public:
-    ELJDropTarget(void* _obj) : wxDropTarget()
+    kwxDropTarget(void* _obj) : wxDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
@@ -242,7 +242,7 @@ public:
     void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
 };
 
-class ELJDragDataObject : public wxDataObjectSimple
+class kwxDragDataObject : public wxDataObjectSimple
 {
 private:
     void* obj;
@@ -251,7 +251,7 @@ private:
     DataSetData OnSetData;
 
 public:
-    ELJDragDataObject(void* _obj, const wxString& _fmt, DataGetDataSize _func1,
+    kwxDragDataObject(void* _obj, const wxString& _fmt, DataGetDataSize _func1,
                       DataGetDataHere _func2, DataSetData _func3) : wxDataObjectSimple(_fmt)
     {
         obj = _obj;
@@ -264,7 +264,7 @@ public:
     bool SetData(size_t len, const void* buf) { return OnSetData(obj, (int) len, buf) != 0; }
 };
 
-class ELJTextDropTarget : public wxTextDropTarget
+class kwxTextDropTarget : public wxTextDropTarget
 {
 private:
     DragThreeFunc on_data_func;
@@ -276,7 +276,7 @@ private:
     void* obj;
 
 public:
-    ELJTextDropTarget(void* _obj, TextDropFunc _func) : wxTextDropTarget()
+    kwxTextDropTarget(void* _obj, TextDropFunc _func) : wxTextDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
@@ -302,7 +302,7 @@ public:
     void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
 };
 
-class ELJFileDropTarget : public wxFileDropTarget
+class kwxFileDropTarget : public wxFileDropTarget
 {
 private:
     DragThreeFunc on_data_func;
@@ -314,7 +314,7 @@ private:
     void* obj;
 
 public:
-    ELJFileDropTarget(void* _obj, FileDropFunc _func) : wxFileDropTarget()
+    kwxFileDropTarget(void* _obj, FileDropFunc _func) : wxFileDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
@@ -340,17 +340,17 @@ public:
     void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
 };
 
-class ELJTextValidator : public wxTextValidator
+class kwxTextValidator : public wxTextValidator
 {
 public:
-    ELJTextValidator(void* _obj, void* _fnc, void* _txt, long _stl) : wxTextValidator(_stl, &buf)
+    kwxTextValidator(void* _obj, void* _fnc, void* _txt, long _stl) : wxTextValidator(_stl, &buf)
     {
         obj = _obj;
         fnc = (ValidateFunc) _fnc;
         buf = (const char*) _txt;
     };
 
-    ELJTextValidator(const ELJTextValidator& other)
+    kwxTextValidator(const kwxTextValidator& other)
     {
         Copy(other);
         obj = other.obj;
@@ -358,7 +358,7 @@ public:
         buf = other.buf;
     };
 
-    virtual wxObject* Clone(void) const { return new ELJTextValidator(*this); }
+    virtual wxObject* Clone(void) const { return new kwxTextValidator(*this); }
     virtual bool Validate(wxWindow* _prt);
 
 private:
@@ -367,7 +367,7 @@ private:
     ValidateFunc fnc;
 };
 
-class ELJConnection : public wxTCPConnection
+class kwxConnection : public wxTCPConnection
 {
 private:
     TCPAdviseFunc DoOnAdvise;
@@ -380,7 +380,7 @@ private:
     void* EiffelObject;
 
 public:
-    ELJConnection() : wxTCPConnection()
+    kwxConnection() : wxTCPConnection()
     {
         DoOnAdvise = nullptr;
         DoOnExecute = nullptr;
@@ -392,7 +392,7 @@ public:
         EiffelObject = nullptr;
     }
 
-    ELJConnection(char* _buf, int _sze) : wxTCPConnection(_buf, _sze)
+    kwxConnection(char* _buf, int _sze) : wxTCPConnection(_buf, _sze)
     {
         DoOnAdvise = nullptr;
         DoOnExecute = nullptr;
@@ -465,14 +465,14 @@ public:
     };
 };
 
-class ELJServer : public wxTCPServer
+class kwxServer : public wxTCPServer
 {
 private:
     void* EiffelObject;
     TCPOnConnection DoOnConnect;
 
 public:
-    ELJServer(void* _obj, void* _fnc) : wxTCPServer()
+    kwxServer(void* _obj, void* _fnc) : wxTCPServer()
     {
         EiffelObject = _obj;
         DoOnConnect = (TCPOnConnection) _fnc;
@@ -480,20 +480,20 @@ public:
 
     virtual wxConnectionBase* OnAcceptConnection(const wxString& topic)
     {
-        ELJConnection* result = new ELJConnection();
+        kwxConnection* result = new kwxConnection();
         result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
         return result;
     };
 };
 
-class ELJClient : public wxTCPClient
+class kwxClient : public wxTCPClient
 {
 private:
     void* EiffelObject;
     TCPOnConnection DoOnConnect;
 
 public:
-    ELJClient(void* _obj, void* _fnc) : wxTCPClient()
+    kwxClient(void* _obj, void* _fnc) : wxTCPClient()
     {
         EiffelObject = _obj;
         DoOnConnect = (TCPOnConnection) _fnc;
@@ -501,13 +501,13 @@ public:
 
     virtual wxConnectionBase* OnMakeConnection()
     {
-        ELJConnection* result = new ELJConnection();
+        kwxConnection* result = new kwxConnection();
         result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
         return result;
     };
 };
 
-class ELJPrintout : public wxPrintout
+class kwxPrintout : public wxPrintout
 {
 private:
     void* EiffelObject;
@@ -521,7 +521,7 @@ private:
     PrintPageInfo DoOnPageInfo;
 
 public:
-    ELJPrintout(void* title, void* _obj, void* _DoOnBeginDocument, void* _DoOnEndDocument,
+    kwxPrintout(void* title, void* _obj, void* _DoOnBeginDocument, void* _DoOnEndDocument,
                 void* _DoOnBeginPrinting, void* _DoOnEndPrinting, void* _DoOnPreparePrinting,
                 void* _DoOnPrintPage, void* _DoOnHasPage, void* _DoOnPageInfo) :
         wxPrintout((const char*) title)
@@ -565,7 +565,7 @@ public:
     }
 };
 
-class ELJPreviewFrame : public wxPreviewFrame
+class kwxPreviewFrame : public wxPreviewFrame
 {
 private:
     void* EiffelObject;
@@ -574,7 +574,7 @@ private:
     PreviewFrameFunc DoCreateControlBar;
 
 public:
-    ELJPreviewFrame(void* _obj, void* _init, void* _create_canvas, void* _create_toolbar,
+    kwxPreviewFrame(void* _obj, void* _init, void* _create_canvas, void* _create_toolbar,
                     void* preview, void* parent, void* title, int x, int y, int w, int h,
                     int style) :
         wxPreviewFrame((wxPrintPreviewBase*) preview, (wxFrame*) parent, (const char*) title,
@@ -620,22 +620,22 @@ public:
     void* GetPrintPreview() { return (void*) m_printPreview; }
 };
 
-class ELJTreeControl : public wxTreeCtrl
+class kwxTreeControl : public wxTreeCtrl
 {
-    DECLARE_DYNAMIC_CLASS(ELJTreeControl)
+    DECLARE_DYNAMIC_CLASS(kwxTreeControl)
 
 private:
     TreeCompareFunc compare_func;
     void* EiffelObject;
 
 public:
-    ELJTreeControl() : wxTreeCtrl()
+    kwxTreeControl() : wxTreeCtrl()
     {
         EiffelObject = nullptr;
         compare_func = nullptr;
     };
 
-    ELJTreeControl(void* _obj, void* _cmp, wxWindow* parent, wxWindowID id = -1,
+    kwxTreeControl(void* _obj, void* _cmp, wxWindow* parent, wxWindowID id = -1,
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                    long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT,
                    const wxValidator& validator = wxDefaultValidator,

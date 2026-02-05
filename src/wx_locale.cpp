@@ -52,12 +52,12 @@ extern "C"
         return result;
     }
 
-    EXPORT void* wxGetELJLocale()
+    EXPORT void* wxGetkwxLocale()
     {
         return (void*) wxGetLocale();
     }
 
-    EXPORT void* wxGetELJTranslation(void* sz)
+    EXPORT void* wxGetkwxTranslation(void* sz)
     {
         wxString retVal = wxGetTranslation((const char*) sz);
         return (void*) strdup(retVal.utf8_str().data());

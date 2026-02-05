@@ -137,13 +137,13 @@ extern "C"
         ((wxTextValidator*) self)->OnChar(*event);
     }
 
-    EXPORT void* ELJTextValidator_Create(void* self, void* func, void* text, long style)
+    EXPORT void* kwxTextValidator_Create(void* self, void* func, void* text, long style)
     {
-        return new ELJTextValidator(self, func, text, style);
+        return new kwxTextValidator(self, func, text, style);
     }
 }
 
-bool ELJTextValidator::Validate(wxWindow* parent)
+bool kwxTextValidator::Validate(wxWindow* parent)
 {
     if (obj && fnc)
         return fnc(obj) != 0;

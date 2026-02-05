@@ -7,14 +7,14 @@
 #include <wx/gizmos/multicell.h>
 #include <wx/gizmos/splittree.h>
 
-class ELJSCTreeControl : public wxRemotelyScrolledTreeCtrl
+class kwxSCTreeControl : public wxRemotelyScrolledTreeCtrl
 {
 private:
     TreeCompareFunc compare_func;
     void* EiffelObject;
 
 public:
-    ELJSCTreeControl(void* _obj, void* _cmp, wxWindow* parent, wxWindowID id = -1,
+    kwxSCTreeControl(void* _obj, void* _cmp, wxWindow* parent, wxWindowID id = -1,
                      const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                      long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT) :
         wxRemotelyScrolledTreeCtrl(parent, id, pos, size, style)
@@ -354,13 +354,13 @@ extern "C"
     EXPORT void* wxRemotelyScrolledTreeCtrl_Create(void* _obj, void* _cmp, void* parent, int id,
                                                    int x, int y, int w, int h, int style)
     {
-        return (void*) new ELJSCTreeControl(_obj, _cmp, (wxWindow*) parent, (wxWindowID) id,
+        return (void*) new kwxSCTreeControl(_obj, _cmp, (wxWindow*) parent, (wxWindowID) id,
                                             wxPoint(x, y), wxSize(w, h), (long) style);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_Delete(void* _obj)
     {
-        delete (ELJSCTreeControl*) _obj;
+        delete (kwxSCTreeControl*) _obj;
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_SetScrollbars(void* _obj, int pixelsPerUnitX,
@@ -368,36 +368,36 @@ extern "C"
                                                          int noUnitsY, int xPos, int yPos,
                                                          int noRefresh)
     {
-        ((ELJSCTreeControl*) _obj)
+        ((kwxSCTreeControl*) _obj)
             ->SetScrollbars(pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY, xPos, yPos,
                             noRefresh != 0);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_GetViewStart(void* _obj, void* x, void* y)
     {
-        ((ELJSCTreeControl*) _obj)->GetViewStart((int*) x, (int*) y);
+        ((kwxSCTreeControl*) _obj)->GetViewStart((int*) x, (int*) y);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_PrepareDC(void* _obj, void* dc)
     {
-        ((ELJSCTreeControl*) _obj)->PrepareDC(*((wxDC*) dc));
+        ((kwxSCTreeControl*) _obj)->PrepareDC(*((wxDC*) dc));
     }
 
     EXPORT int wxRemotelyScrolledTreeCtrl_GetScrollPos(void* _obj, int orient)
     {
-        return ((ELJSCTreeControl*) _obj)->GetScrollPos(orient);
+        return ((kwxSCTreeControl*) _obj)->GetScrollPos(orient);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_HideVScrollbar(void* _obj)
     {
-        ((ELJSCTreeControl*) _obj)->HideVScrollbar();
+        ((kwxSCTreeControl*) _obj)->HideVScrollbar();
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_CalcTreeSize(void* _obj, void* x, void* y, void* w,
                                                         void* h)
     {
         wxRect rect;
-        ((ELJSCTreeControl*) _obj)->CalcTreeSize(rect);
+        ((kwxSCTreeControl*) _obj)->CalcTreeSize(rect);
         *((int*) x) = rect.x;
         *((int*) y) = rect.y;
         *((int*) w) = rect.width;
@@ -408,7 +408,7 @@ extern "C"
                                                             void* w, void* h)
     {
         wxRect rect;
-        ((ELJSCTreeControl*) _obj)->CalcTreeSize(*((wxTreeItemId*) id), rect);
+        ((kwxSCTreeControl*) _obj)->CalcTreeSize(*((wxTreeItemId*) id), rect);
         *((int*) x) = rect.x;
         *((int*) y) = rect.y;
         *((int*) w) = rect.width;
@@ -417,26 +417,26 @@ extern "C"
 
     EXPORT void wxRemotelyScrolledTreeCtrl_AdjustRemoteScrollbars(void* _obj)
     {
-        ((ELJSCTreeControl*) _obj)->AdjustRemoteScrollbars();
+        ((kwxSCTreeControl*) _obj)->AdjustRemoteScrollbars();
     }
 
     EXPORT void* wxRemotelyScrolledTreeCtrl_GetScrolledWindow(void* _obj)
     {
-        return (void*) ((ELJSCTreeControl*) _obj)->GetScrolledWindow();
+        return (void*) ((kwxSCTreeControl*) _obj)->GetScrolledWindow();
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_ScrollToLine(void* _obj, int posHoriz, int posVert)
     {
-        ((ELJSCTreeControl*) _obj)->ScrollToLine(posHoriz, posVert);
+        ((kwxSCTreeControl*) _obj)->ScrollToLine(posHoriz, posVert);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_SetCompanionWindow(void* _obj, void* companion)
     {
-        ((ELJSCTreeControl*) _obj)->SetCompanionWindow((wxWindow*) companion);
+        ((kwxSCTreeControl*) _obj)->SetCompanionWindow((wxWindow*) companion);
     }
 
     EXPORT void* wxRemotelyScrolledTreeCtrl_GetCompanionWindow(void* _obj)
     {
-        return (void*) ((ELJSCTreeControl*) _obj)->GetCompanionWindow();
+        return (void*) ((kwxSCTreeControl*) _obj)->GetCompanionWindow();
     }
 }

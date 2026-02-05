@@ -6,19 +6,19 @@ extern "C"
                                     void* userData)
     {
         return (void*) new wxSizerItem(width, height, option, flag, border,
-                                       new ELJDataObject(userData));
+                                       new kwxDataObject(userData));
     }
 
     EXPORT void* wxSizerItem_CreateInWindow(wxWindow* window, int option, int flag, int border,
                                             void* userData)
     {
-        return (void*) new wxSizerItem(window, option, flag, border, new ELJDataObject(userData));
+        return (void*) new wxSizerItem(window, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void* wxSizerItem_CreateInSizer(wxSizer* sizer, int option, int flag, int border,
                                            void* userData)
     {
-        return (void*) new wxSizerItem(sizer, option, flag, border, new ELJDataObject(userData));
+        return (void*) new wxSizerItem(sizer, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT wxSize* wxSizerItem_GetSize(wxSizerItem* self)
@@ -126,7 +126,7 @@ extern "C"
 
     EXPORT void* wxSizerItem_GetUserData(wxSizerItem* self)
     {
-        return ((ELJDataObject*) self->GetUserData())->data;
+        return ((kwxDataObject*) self->GetUserData())->data;
     }
 
     EXPORT wxPoint* wxSizerItem_GetPosition(wxSizerItem* self)
@@ -198,55 +198,55 @@ extern "C"
     EXPORT void wxSizer_AddWindow(wxSizer* self, wxWindow* window, int option, int flag, int border,
                                   void* userData)
     {
-        self->Add(window, option, flag, border, new ELJDataObject(userData));
+        self->Add(window, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_AddSizer(wxSizer* self, wxSizer* sizer, int option, int flag, int border,
                                  void* userData)
     {
-        self->Add(sizer, option, flag, border, new ELJDataObject(userData));
+        self->Add(sizer, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_Add(wxSizer* self, int width, int height, int option, int flag, int border,
                             void* userData)
     {
-        self->Add(width, height, option, flag, border, new ELJDataObject(userData));
+        self->Add(width, height, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_InsertWindow(wxSizer* self, int before, wxWindow* window, int option,
                                      int flag, int border, void* userData)
     {
-        self->Insert(before, window, option, flag, border, new ELJDataObject(userData));
+        self->Insert(before, window, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_InsertSizer(wxSizer* self, int before, wxSizer* sizer, int option, int flag,
                                     int border, void* userData)
     {
-        self->Insert(before, sizer, option, flag, border, new ELJDataObject(userData));
+        self->Insert(before, sizer, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_Insert(wxSizer* self, int before, int width, int height, int option,
                                int flag, int border, void* userData)
     {
-        self->Insert(before, width, height, option, flag, border, new ELJDataObject(userData));
+        self->Insert(before, width, height, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_PrependWindow(wxSizer* self, wxWindow* window, int option, int flag,
                                       int border, void* userData)
     {
-        self->Prepend(window, option, flag, border, new ELJDataObject(userData));
+        self->Prepend(window, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_PrependSizer(wxSizer* self, wxSizer* sizer, int option, int flag,
                                      int border, void* userData)
     {
-        self->Prepend(sizer, option, flag, border, new ELJDataObject(userData));
+        self->Prepend(sizer, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_Prepend(wxSizer* self, int width, int height, int option, int flag,
                                 int border, void* userData)
     {
-        self->Prepend(width, height, option, flag, border, new ELJDataObject(userData));
+        self->Prepend(width, height, option, flag, border, new kwxDataObject(userData));
     }
 
     EXPORT void wxSizer_SetMinSize(wxSizer* self, int width, int height)

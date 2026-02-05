@@ -8,14 +8,14 @@ extern "C"
     typedef int (*TTextEnum)(void* self, void* _txt);
 }
 
-class ELJFontEnumerator : public wxFontEnumerator
+class kwxFontEnumerator : public wxFontEnumerator
 {
 private:
     TTextEnum func;
     void* EiffelObject;
 
 public:
-    ELJFontEnumerator(void* self, void* _fnc) : wxFontEnumerator()
+    kwxFontEnumerator(void* self, void* _fnc) : wxFontEnumerator()
     {
         func = (TTextEnum) _fnc;
         EiffelObject = self;
@@ -177,21 +177,21 @@ extern "C"
 
     EXPORT void* wxFontEnumerator_Create(void* self, void* _fnc)
     {
-        return (void*) new ELJFontEnumerator(self, _fnc);
+        return (void*) new kwxFontEnumerator(self, _fnc);
     }
 
-    EXPORT void wxFontEnumerator_Delete(ELJFontEnumerator* self)
+    EXPORT void wxFontEnumerator_Delete(kwxFontEnumerator* self)
     {
         delete self;
     }
 
-    EXPORT bool wxFontEnumerator_EnumerateFacenames(ELJFontEnumerator* self, int encoding,
+    EXPORT bool wxFontEnumerator_EnumerateFacenames(kwxFontEnumerator* self, int encoding,
                                                     bool fixedWidthOnly)
     {
         return self->EnumerateFacenames((wxFontEncoding) encoding, fixedWidthOnly);
     }
 
-    EXPORT bool wxFontEnumerator_EnumerateEncodings(ELJFontEnumerator* self, wxString* facename)
+    EXPORT bool wxFontEnumerator_EnumerateEncodings(kwxFontEnumerator* self, wxString* facename)
     {
         return self->EnumerateEncodings(*facename);
     }

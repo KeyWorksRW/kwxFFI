@@ -72,76 +72,76 @@ extern "C"
         return (void*) self->PrintDialog(parent);
     }
 
-    EXPORT void* ELJPrintout_Create(void* title, void* self, void* _DoOnBeginDocument,
+    EXPORT void* kwxPrintout_Create(void* title, void* self, void* _DoOnBeginDocument,
                                     void* _DoOnEndDocument, void* _DoOnBeginPrinting,
                                     void* _DoOnEndPrinting, void* _DoOnPreparePrinting,
                                     void* _DoOnPrintPage, void* _DoOnHasPage, void* DoOnPageInfo)
     {
-        return (void*) new ELJPrintout(title, self, _DoOnBeginDocument, _DoOnEndDocument,
+        return (void*) new kwxPrintout(title, self, _DoOnBeginDocument, _DoOnEndDocument,
                                        _DoOnBeginPrinting, _DoOnEndPrinting, _DoOnPreparePrinting,
                                        _DoOnPrintPage, _DoOnHasPage, DoOnPageInfo);
     }
-    EXPORT void ELJPrintout_Delete(ELJPrintout* self)
+    EXPORT void kwxPrintout_Delete(kwxPrintout* self)
     {
         delete self;
     }
 
-    EXPORT wxString* ELJPrintout_GetTitle(ELJPrintout* self)
+    EXPORT wxString* kwxPrintout_GetTitle(kwxPrintout* self)
     {
         return new wxString(self->GetTitle());
     }
 
-    EXPORT void* ELJPrintout_GetDC(ELJPrintout* self)
+    EXPORT void* kwxPrintout_GetDC(kwxPrintout* self)
     {
         return (void*) self->GetDC();
     }
 
-    EXPORT void ELJPrintout_SetDC(ELJPrintout* self, wxDC* dc)
+    EXPORT void kwxPrintout_SetDC(kwxPrintout* self, wxDC* dc)
     {
         self->SetDC(dc);
     }
 
-    EXPORT void ELJPrintout_SetPageSizePixels(void* _obj, int w, int h)
+    EXPORT void kwxPrintout_SetPageSizePixels(void* _obj, int w, int h)
     {
-        ((ELJPrintout*) _obj)->SetPageSizePixels(w, h);
+        ((kwxPrintout*) _obj)->SetPageSizePixels(w, h);
     }
 
-    EXPORT void ELJPrintout_GetPageSizePixels(void* _obj, int* w, int* h)
+    EXPORT void kwxPrintout_GetPageSizePixels(void* _obj, int* w, int* h)
     {
-        ((ELJPrintout*) _obj)->GetPageSizePixels(w, h);
+        ((kwxPrintout*) _obj)->GetPageSizePixels(w, h);
     }
 
-    EXPORT void ELJPrintout_SetPageSizeMM(void* _obj, int w, int h)
+    EXPORT void kwxPrintout_SetPageSizeMM(void* _obj, int w, int h)
     {
-        ((ELJPrintout*) _obj)->SetPageSizeMM(w, h);
+        ((kwxPrintout*) _obj)->SetPageSizeMM(w, h);
     }
 
-    EXPORT void ELJPrintout_GetPageSizeMM(void* _obj, int* w, int* h)
+    EXPORT void kwxPrintout_GetPageSizeMM(void* _obj, int* w, int* h)
     {
-        ((ELJPrintout*) _obj)->GetPageSizeMM(w, h);
+        ((kwxPrintout*) _obj)->GetPageSizeMM(w, h);
     }
 
-    EXPORT void ELJPrintout_SetPPIScreen(void* _obj, int x, int y)
+    EXPORT void kwxPrintout_SetPPIScreen(void* _obj, int x, int y)
     {
-        ((ELJPrintout*) _obj)->SetPPIScreen(x, y);
+        ((kwxPrintout*) _obj)->SetPPIScreen(x, y);
     }
 
-    EXPORT void ELJPrintout_GetPPIScreen(void* _obj, int* x, int* y)
+    EXPORT void kwxPrintout_GetPPIScreen(void* _obj, int* x, int* y)
     {
-        ((ELJPrintout*) _obj)->GetPPIScreen(x, y);
+        ((kwxPrintout*) _obj)->GetPPIScreen(x, y);
     }
 
-    EXPORT void ELJPrintout_SetPPIPrinter(void* _obj, int x, int y)
+    EXPORT void kwxPrintout_SetPPIPrinter(void* _obj, int x, int y)
     {
-        ((ELJPrintout*) _obj)->SetPPIPrinter(x, y);
+        ((kwxPrintout*) _obj)->SetPPIPrinter(x, y);
     }
 
-    EXPORT void ELJPrintout_GetPPIPrinter(void* _obj, int* x, int* y)
+    EXPORT void kwxPrintout_GetPPIPrinter(void* _obj, int* x, int* y)
     {
-        ((ELJPrintout*) _obj)->GetPPIPrinter(x, y);
+        ((kwxPrintout*) _obj)->GetPPIPrinter(x, y);
     }
 
-    EXPORT bool ELJPrintout_IsPreview(ELJPrintout* self)
+    EXPORT bool kwxPrintout_IsPreview(kwxPrintout* self)
     {
         return self->IsPreview();
     }
@@ -153,50 +153,50 @@ extern "C"
                                            wxSize(w, h), (long) style);
     }
 
-    EXPORT void* ELJPreviewFrame_Create(void* _obj, void* _init, void* _create_canvas,
+    EXPORT void* kwxPreviewFrame_Create(void* _obj, void* _init, void* _create_canvas,
                                         void* _create_toolbar, void* preview, void* parent,
                                         void* title, int x, int y, int w, int h, int style)
     {
-        return (void*) new ELJPreviewFrame(_obj, _init, _create_canvas, _create_toolbar, preview,
+        return (void*) new kwxPreviewFrame(_obj, _init, _create_canvas, _create_toolbar, preview,
                                            parent, title, x, y, w, h, style);
     }
 
-    EXPORT void ELJPreviewFrame_Initialize(ELJPreviewFrame* self)
+    EXPORT void kwxPreviewFrame_Initialize(kwxPreviewFrame* self)
     {
         self->Initialize();
     }
 
-    EXPORT void ELJPreviewFrame_SetPreviewCanvas(ELJPreviewFrame* self, void* obj)
+    EXPORT void kwxPreviewFrame_SetPreviewCanvas(kwxPreviewFrame* self, void* obj)
     {
         self->SetPreviewCanvas(obj);
     }
 
-    EXPORT void ELJPreviewFrame_SetControlBar(ELJPreviewFrame* self, void* obj)
+    EXPORT void kwxPreviewFrame_SetControlBar(kwxPreviewFrame* self, void* obj)
     {
         self->SetControlBar(obj);
     }
 
-    EXPORT void ELJPreviewFrame_SetPrintPreview(ELJPreviewFrame* self, void* obj)
+    EXPORT void kwxPreviewFrame_SetPrintPreview(kwxPreviewFrame* self, void* obj)
     {
         self->SetPrintPreview(obj);
     }
 
-    EXPORT void* ELJPreviewFrame_GetPreviewCanvas(ELJPreviewFrame* self)
+    EXPORT void* kwxPreviewFrame_GetPreviewCanvas(kwxPreviewFrame* self)
     {
         return (void*) self->GetPreviewCanvas();
     }
 
-    EXPORT void* ELJPreviewFrame_GetControlBar(ELJPreviewFrame* self)
+    EXPORT void* kwxPreviewFrame_GetControlBar(kwxPreviewFrame* self)
     {
         return (void*) self->GetControlBar();
     }
 
-    EXPORT void* ELJPreviewFrame_GetPrintPreview(ELJPreviewFrame* self)
+    EXPORT void* kwxPreviewFrame_GetPrintPreview(kwxPreviewFrame* self)
     {
         return (void*) self->GetPrintPreview();
     }
 
-    EXPORT void* ELJPreviewControlBar_Create(void* preview, int buttons, wxWindow* parent,
+    EXPORT void* kwxPreviewControlBar_Create(void* preview, int buttons, wxWindow* parent,
                                              void* title, int x, int y, int w, int h, int style)
     {
         return (void*) new wxPreviewControlBar((wxPrintPreviewBase*) preview, (long) buttons,

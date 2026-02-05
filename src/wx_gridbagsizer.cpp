@@ -15,7 +15,7 @@ extern "C"
                                                  int border, void* userData)
     {
         return self->Add(window, wxGBPosition(row, col), wxGBSpan(rowspan, colspan), flag, border,
-                         new ELJDataObject(userData));
+                         new kwxDataObject(userData));
     }
 
     // Add sizer with position and span
@@ -24,7 +24,7 @@ extern "C"
                                                 int border, void* userData)
     {
         return self->Add(sizer, wxGBPosition(row, col), wxGBSpan(rowspan, colspan), flag, border,
-                         new ELJDataObject(userData));
+                         new kwxDataObject(userData));
     }
 
     // Add spacer with position and span
@@ -33,7 +33,7 @@ extern "C"
                                                  int flag, int border, void* userData)
     {
         return self->Add(width, height, wxGBPosition(row, col), wxGBSpan(rowspan, colspan), flag,
-                         border, new ELJDataObject(userData));
+                         border, new kwxDataObject(userData));
     }
 
     // Get item position

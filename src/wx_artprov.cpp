@@ -6,7 +6,7 @@ extern "C"
     typedef void* (*TCreateBmp)(void* _obj, void* id, void* clt, int w, int h);
 }
 
-class ELJArtProv : public wxArtProvider
+class kwxArtProv : public wxArtProvider
 {
 private:
     void* EiffelObject;
@@ -29,7 +29,7 @@ protected:
     }
 
 public:
-    ELJArtProv(void* obj, void* clb)
+    kwxArtProv(void* obj, void* clb)
     {
         EiffelObject = obj;
         cb = (TCreateBmp) clb;
@@ -43,12 +43,12 @@ public:
 
 extern "C"
 {
-    EXPORT void* ELJArtProv_Create(void* _obj, void* _clb)
+    EXPORT void* kwxArtProv_Create(void* _obj, void* _clb)
     {
-        return (void*) new ELJArtProv(_obj, _clb);
+        return (void*) new kwxArtProv(_obj, _clb);
     }
 
-    EXPORT void ELJArtProv_Release(ELJArtProv* self)
+    EXPORT void kwxArtProv_Release(kwxArtProv* self)
     {
         self->Release();
         delete self;

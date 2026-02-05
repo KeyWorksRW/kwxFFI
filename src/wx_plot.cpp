@@ -7,7 +7,7 @@ extern "C"
     typedef double (*TGetPlotDouble)(void* _obj, int _x);
 }
 
-class ELJPlotCurve : public wxPlotCurve
+class kwxPlotCurve : public wxPlotCurve
 {
 private:
     void* EiffelObject;
@@ -16,7 +16,7 @@ private:
     TGetPlotDouble EGetY;
 
 public:
-    ELJPlotCurve(void* _obj, void* _str, void* _end, void* _y, int offsetY, double startY,
+    kwxPlotCurve(void* _obj, void* _str, void* _end, void* _y, int offsetY, double startY,
                  double endY) : wxPlotCurve(offsetY, startY, endY)
     {
         EiffelObject = _obj;
@@ -232,55 +232,55 @@ extern "C"
             ->DrawOffLine(*((wxDC*) dc), (wxCoord) y, (wxCoord) start, (wxCoord) end);
     }
 
-    EXPORT void* ELJPlotCurve_Create(void* _obj, void* _str, void* _end, void* _y, int offsetY,
+    EXPORT void* kwxPlotCurve_Create(void* _obj, void* _str, void* _end, void* _y, int offsetY,
                                      double startY, double endY)
     {
-        return (void*) new ELJPlotCurve(_obj, _str, _end, _y, offsetY, startY, endY);
+        return (void*) new kwxPlotCurve(_obj, _str, _end, _y, offsetY, startY, endY);
     }
 
-    EXPORT void ELJPlotCurve_Delete(void* _obj)
+    EXPORT void kwxPlotCurve_Delete(void* _obj)
     {
-        delete (ELJPlotCurve*) _obj;
+        delete (kwxPlotCurve*) _obj;
     }
 
-    EXPORT void ELJPlotCurve_SetStartY(void* _obj, double startY)
+    EXPORT void kwxPlotCurve_SetStartY(void* _obj, double startY)
     {
-        ((ELJPlotCurve*) _obj)->SetStartY(startY);
+        ((kwxPlotCurve*) _obj)->SetStartY(startY);
     }
 
-    EXPORT double ELJPlotCurve_GetStartY(void* _obj)
+    EXPORT double kwxPlotCurve_GetStartY(void* _obj)
     {
-        return ((ELJPlotCurve*) _obj)->GetStartY();
+        return ((kwxPlotCurve*) _obj)->GetStartY();
     }
 
-    EXPORT void ELJPlotCurve_SetEndY(void* _obj, double endY)
+    EXPORT void kwxPlotCurve_SetEndY(void* _obj, double endY)
     {
-        ((ELJPlotCurve*) _obj)->SetEndY(endY);
+        ((kwxPlotCurve*) _obj)->SetEndY(endY);
     }
 
-    EXPORT double ELJPlotCurve_GetEndY(void* _obj)
+    EXPORT double kwxPlotCurve_GetEndY(void* _obj)
     {
-        return ((ELJPlotCurve*) _obj)->GetEndY();
+        return ((kwxPlotCurve*) _obj)->GetEndY();
     }
 
-    EXPORT void ELJPlotCurve_SetOffsetY(void* _obj, int offsetY)
+    EXPORT void kwxPlotCurve_SetOffsetY(void* _obj, int offsetY)
     {
-        ((ELJPlotCurve*) _obj)->SetOffsetY(offsetY);
+        ((kwxPlotCurve*) _obj)->SetOffsetY(offsetY);
     }
 
-    EXPORT int ELJPlotCurve_GetOffsetY(void* _obj)
+    EXPORT int kwxPlotCurve_GetOffsetY(void* _obj)
     {
-        return ((ELJPlotCurve*) _obj)->GetOffsetY();
+        return ((kwxPlotCurve*) _obj)->GetOffsetY();
     }
 
-    EXPORT void ELJPlotCurve_SetPenNormal(void* _obj, void* pen)
+    EXPORT void kwxPlotCurve_SetPenNormal(void* _obj, void* pen)
     {
-        ((ELJPlotCurve*) _obj)->SetPenNormal(*((wxPen*) pen));
+        ((kwxPlotCurve*) _obj)->SetPenNormal(*((wxPen*) pen));
     }
 
-    EXPORT void ELJPlotCurve_SetPenSelected(void* _obj, void* pen)
+    EXPORT void kwxPlotCurve_SetPenSelected(void* _obj, void* pen)
     {
-        ((ELJPlotCurve*) _obj)->SetPenSelected(*((wxPen*) pen));
+        ((kwxPlotCurve*) _obj)->SetPenSelected(*((wxPen*) pen));
     }
 
     EXPORT void* wxPlotEvent_GetCurve(void* _obj)

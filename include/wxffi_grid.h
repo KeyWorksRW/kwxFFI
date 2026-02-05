@@ -15,7 +15,7 @@ extern "C"
     typedef void* (*TGridGetLabel)(void* _obj, int idx);
 }
 
-class ELJGridTable : public wxGridTableBase
+class kwxGridTable : public wxGridTableBase
 {
 private:
     void* EiffelObject;
@@ -37,7 +37,7 @@ private:
     TGridGetLabel EifGetColLabelValue;
 
 public:
-    ELJGridTable(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols, void* _EifGetValue,
+    kwxGridTable(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols, void* _EifGetValue,
                  void* _EifSetValue, void* _EifIsEmptyCell, void* _EifClear, void* _EifInsertRows,
                  void* _EifAppendRows, void* _EifDeleteRows, void* _EifInsertCols,
                  void* _EifAppendCols, void* _EifDeleteCols, void* _EifSetRowLabelValue,

@@ -1176,7 +1176,7 @@ extern "C"
         self->SetCellSize(r, c, sr, sc);
     }
 
-    EXPORT void* ELJGridTable_Create(void* self, void* _EifGetNumberRows, void* _EifGetNumberCols,
+    EXPORT void* kwxGridTable_Create(void* self, void* _EifGetNumberRows, void* _EifGetNumberCols,
                                      void* _EifGetValue, void* _EifSetValue, void* _EifIsEmptyCell,
                                      void* _EifClear, void* _EifInsertRows, void* _EifAppendRows,
                                      void* _EifDeleteRows, void* _EifInsertCols,
@@ -1184,24 +1184,24 @@ extern "C"
                                      void* _EifSetRowLabelValue, void* _EifSetColLabelValue,
                                      void* _EifGetRowLabelValue, void* _EifGetColLabelValue)
     {
-        return (void*) new ELJGridTable(
+        return (void*) new kwxGridTable(
             self, _EifGetNumberRows, _EifGetNumberCols, _EifGetValue, _EifSetValue, _EifIsEmptyCell,
             _EifClear, _EifInsertRows, _EifAppendRows, _EifDeleteRows, _EifInsertCols,
             _EifAppendCols, _EifDeleteCols, _EifSetRowLabelValue, _EifSetColLabelValue,
             _EifGetRowLabelValue, _EifGetColLabelValue);
     }
 
-    EXPORT void ELJGridTable_Delete(ELJGridTable* self)
+    EXPORT void kwxGridTable_Delete(kwxGridTable* self)
     {
         delete self;
     }
 
-    EXPORT void* ELJGridTable_GetView(ELJGridTable* self)
+    EXPORT void* kwxGridTable_GetView(kwxGridTable* self)
     {
         return (void*) self->GetView();
     }
 
-    EXPORT void ELJGridTable_SendTableMessage(ELJGridTable* self, int id, int val1, int val2)
+    EXPORT void kwxGridTable_SendTableMessage(kwxGridTable* self, int id, int val1, int val2)
     {
         wxGridTableMessage msg(self, id, val1, val2);
         self->GetView()->ProcessTableMessage(msg);

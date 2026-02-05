@@ -6,7 +6,7 @@ extern "C"
     typedef void (*TLogFunc)(void*, int, void*, int);
 }
 
-class ELJLog : public wxLog
+class kwxLog : public wxLog
 {
 private:
     TLogFunc func;
@@ -20,7 +20,7 @@ protected:
     }
 
 public:
-    ELJLog(void* _obj, void* _fnc) : wxLog()
+    kwxLog(void* _obj, void* _fnc) : wxLog()
     {
         func = (TLogFunc) _fnc;
         EiffelObject = _obj;
@@ -29,113 +29,113 @@ public:
 
 extern "C"
 {
-    EXPORT void* ELJLog_Create(void* self, void* _fnc)
+    EXPORT void* kwxLog_Create(void* self, void* _fnc)
     {
-        return (void*) new ELJLog(self, _fnc);
+        return (void*) new kwxLog(self, _fnc);
     }
 
-    EXPORT void ELJLog_Delete(ELJLog* self)
+    EXPORT void kwxLog_Delete(kwxLog* self)
     {
         delete self;
     }
 
-    EXPORT bool ELJLog_IsEnabled(ELJLog* self)
+    EXPORT bool kwxLog_IsEnabled(kwxLog* self)
     {
         return self->IsEnabled();
     }
 
-    EXPORT int ELJLog_EnableLogging(ELJLog* self, bool doIt)
+    EXPORT int kwxLog_EnableLogging(kwxLog* self, bool doIt)
     {
         return (int) self->EnableLogging(doIt);
     }
 
-    EXPORT void ELJLog_OnLog(ELJLog* self, int level, void* szString, int t)
+    EXPORT void kwxLog_OnLog(kwxLog* self, int level, void* szString, int t)
     {
         self->OnLog((wxLogLevel) level, (const char*) szString, (time_t) t);
     }
 
-    EXPORT void ELJLog_Flush(ELJLog* self)
+    EXPORT void kwxLog_Flush(kwxLog* self)
     {
         self->Flush();
     }
 
-    EXPORT int ELJLog_HasPendingMessages(ELJLog* self)
+    EXPORT int kwxLog_HasPendingMessages(kwxLog* self)
     {
         return (int) self->HasPendingMessages();
     }
 
-    EXPORT void ELJLog_FlushActive(ELJLog* self)
+    EXPORT void kwxLog_FlushActive(kwxLog* self)
     {
         self->FlushActive();
     }
 
-    EXPORT void* ELJLog_GetActiveTarget()
+    EXPORT void* kwxLog_GetActiveTarget()
     {
-        return (void*) ELJLog::GetActiveTarget();
+        return (void*) kwxLog::GetActiveTarget();
     }
 
-    EXPORT void* ELJLog_SetActiveTarget(wxLog* pLogger)
+    EXPORT void* kwxLog_SetActiveTarget(wxLog* pLogger)
     {
-        return (void*) ELJLog::SetActiveTarget(pLogger);
+        return (void*) kwxLog::SetActiveTarget(pLogger);
     }
 
-    EXPORT void ELJLog_Suspend(ELJLog* self)
+    EXPORT void kwxLog_Suspend(kwxLog* self)
     {
         self->Suspend();
     }
 
-    EXPORT void ELJLog_Resume(ELJLog* self)
+    EXPORT void kwxLog_Resume(kwxLog* self)
     {
         self->Resume();
     }
 
-    EXPORT void ELJLog_SetVerbose(ELJLog* self, bool bVerbose)
+    EXPORT void kwxLog_SetVerbose(kwxLog* self, bool bVerbose)
     {
         self->SetVerbose(bVerbose);
     }
 
-    EXPORT void ELJLog_DontCreateOnDemand(ELJLog* self)
+    EXPORT void kwxLog_DontCreateOnDemand(kwxLog* self)
     {
         self->DontCreateOnDemand();
     }
 
-    EXPORT void ELJLog_AddTraceMask(ELJLog* self, void* str)
+    EXPORT void kwxLog_AddTraceMask(kwxLog* self, void* str)
     {
         self->AddTraceMask((const char*) str);
     }
 
-    EXPORT void ELJLog_RemoveTraceMask(ELJLog* self, void* str)
+    EXPORT void kwxLog_RemoveTraceMask(kwxLog* self, void* str)
     {
         self->RemoveTraceMask((const char*) str);
     }
 
-    EXPORT void ELJLog_SetTimestamp(ELJLog* self, void* ts)
+    EXPORT void kwxLog_SetTimestamp(kwxLog* self, void* ts)
     {
         self->SetTimestamp((const char*) ts);
     }
 
-    EXPORT int ELJLog_GetVerbose(ELJLog* self)
+    EXPORT int kwxLog_GetVerbose(kwxLog* self)
     {
         return (int) self->GetVerbose();
     }
 
-    EXPORT bool ELJLog_IsAllowedTraceMask(ELJLog* self, void* mask)
+    EXPORT bool kwxLog_IsAllowedTraceMask(kwxLog* self, void* mask)
     {
         return self->IsAllowedTraceMask((const char*) mask);
     }
 
-    EXPORT void* ELJLog_GetTimestamp(ELJLog* self)
+    EXPORT void* kwxLog_GetTimestamp(kwxLog* self)
     {
         wxString retVal = self->GetTimestamp();
         return (void*) strdup(retVal.utf8_str().data());
     }
 
-    EXPORT int ELJSysErrorCode()
+    EXPORT int kwxSysErrorCode()
     {
         return (int) wxSysErrorCode();
     }
 
-    EXPORT void* ELJSysErrorMsg(int nErrCode)
+    EXPORT void* kwxSysErrorMsg(int nErrCode)
     {
         return (void*) wxSysErrorMsg((unsigned long) nErrCode);
     }

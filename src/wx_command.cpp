@@ -6,14 +6,14 @@ extern "C"
     typedef int _cdecl (*TGetResp)(void* _obj, int _und);
 }
 
-class ELJCommand : public wxCommand
+class kwxCommand : public wxCommand
 {
 private:
     TGetResp func;
     void* EiffelObject;
 
 public:
-    ELJCommand(bool _und, const wxString& _nme, void* _obj, void* _clb) : wxCommand(_und, _nme)
+    kwxCommand(bool _und, const wxString& _nme, void* _obj, void* _clb) : wxCommand(_und, _nme)
     {
         func = (TGetResp) _clb;
         EiffelObject = _obj;
@@ -26,22 +26,22 @@ public:
 
 extern "C"
 {
-    EXPORT void* ELJCommand_Create(bool _und, wxString* _nme, void* _obj, void* _clb)
+    EXPORT void* kwxCommand_Create(bool _und, wxString* _nme, void* _obj, void* _clb)
     {
-        return (void*) new ELJCommand(_und, *_nme, _obj, _clb);
+        return (void*) new kwxCommand(_und, *_nme, _obj, _clb);
     }
 
-    EXPORT void ELJCommand_Delete(ELJCommand* self)
+    EXPORT void kwxCommand_Delete(kwxCommand* self)
     {
         delete self;
     }
 
-    EXPORT wxString* ELJCommand_GetName(void* _obj)
+    EXPORT wxString* kwxCommand_GetName(void* _obj)
     {
-        return new wxString(((ELJCommand*) _obj)->GetName());
+        return new wxString(((kwxCommand*) _obj)->GetName());
     }
 
-    EXPORT bool ELJCommand_CanUndo(ELJCommand* self)
+    EXPORT bool kwxCommand_CanUndo(kwxCommand* self)
     {
         return self->CanUndo();
     }
