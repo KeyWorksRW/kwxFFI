@@ -2163,129 +2163,129 @@ extern "C"
     {
         return (int) wxSLANT;
     }
-    EXPORT int expwxBLACK()
+    EXPORT const wxColour* expwxBLACK()
     {
-        return (int) wxBLACK;
+        return wxBLACK;
     }
-    EXPORT int expwxWHITE()
+    EXPORT const wxColour* expwxWHITE()
     {
-        return (int) wxWHITE;
+        return wxWHITE;
     }
-    EXPORT int expwxRED()
+    EXPORT const wxColour* expwxRED()
     {
-        return (int) wxRED;
+        return wxRED;
     }
-    EXPORT int expwxBLUE()
+    EXPORT const wxColour* expwxBLUE()
     {
-        return (int) wxBLUE;
+        return wxBLUE;
     }
-    EXPORT int expwxGREEN()
+    EXPORT const wxColour* expwxGREEN()
     {
-        return (int) wxGREEN;
+        return wxGREEN;
     }
-    EXPORT int expwxCYAN()
+    EXPORT const wxColour* expwxCYAN()
     {
-        return (int) wxCYAN;
+        return wxCYAN;
     }
-    EXPORT int expwxLIGHT_GREY()
+    EXPORT const wxColour* expwxLIGHT_GREY()
     {
-        return (int) wxLIGHT_GREY;
+        return wxLIGHT_GREY;
     }
-    EXPORT int expwxBLUE_BRUSH()
+    EXPORT const wxBrush* expwxBLUE_BRUSH()
     {
-        return (int) wxBLUE_BRUSH;
+        return wxBLUE_BRUSH;
     }
-    EXPORT int expwxGREEN_BRUSH()
+    EXPORT const wxBrush* expwxGREEN_BRUSH()
     {
-        return (int) wxGREEN_BRUSH;
+        return wxGREEN_BRUSH;
     }
-    EXPORT int expwxWHITE_BRUSH()
+    EXPORT const wxBrush* expwxWHITE_BRUSH()
     {
-        return (int) wxWHITE_BRUSH;
+        return wxWHITE_BRUSH;
     }
-    EXPORT int expwxBLACK_BRUSH()
+    EXPORT const wxBrush* expwxBLACK_BRUSH()
     {
-        return (int) wxBLACK_BRUSH;
+        return wxBLACK_BRUSH;
     }
-    EXPORT int expwxGREY_BRUSH()
+    EXPORT const wxBrush* expwxGREY_BRUSH()
     {
-        return (int) wxGREY_BRUSH;
+        return wxGREY_BRUSH;
     }
-    EXPORT int expwxMEDIUM_GREY_BRUSH()
+    EXPORT const wxBrush* expwxMEDIUM_GREY_BRUSH()
     {
-        return (int) wxMEDIUM_GREY_BRUSH;
+        return wxMEDIUM_GREY_BRUSH;
     }
-    EXPORT int expwxLIGHT_GREY_BRUSH()
+    EXPORT const wxBrush* expwxLIGHT_GREY_BRUSH()
     {
-        return (int) wxLIGHT_GREY_BRUSH;
+        return wxLIGHT_GREY_BRUSH;
     }
-    EXPORT int expwxTRANSPARENT_BRUSH()
+    EXPORT const wxBrush* expwxTRANSPARENT_BRUSH()
     {
-        return (int) wxTRANSPARENT_BRUSH;
+        return wxTRANSPARENT_BRUSH;
     }
-    EXPORT int expwxCYAN_BRUSH()
+    EXPORT const wxBrush* expwxCYAN_BRUSH()
     {
-        return (int) wxCYAN_BRUSH;
+        return wxCYAN_BRUSH;
     }
-    EXPORT int expwxRED_BRUSH()
+    EXPORT const wxBrush* expwxRED_BRUSH()
     {
-        return (int) wxRED_BRUSH;
+        return wxRED_BRUSH;
     }
-    EXPORT int expwxRED_PEN()
+    EXPORT const wxPen* expwxRED_PEN()
     {
-        return (int) wxRED_PEN;
+        return wxRED_PEN;
     }
-    EXPORT int expwxCYAN_PEN()
+    EXPORT const wxPen* expwxCYAN_PEN()
     {
-        return (int) wxCYAN_PEN;
+        return wxCYAN_PEN;
     }
-    EXPORT int expwxGREEN_PEN()
+    EXPORT const wxPen* expwxGREEN_PEN()
     {
-        return (int) wxGREEN_PEN;
+        return wxGREEN_PEN;
     }
-    EXPORT int expwxBLACK_PEN()
+    EXPORT const wxPen* expwxBLACK_PEN()
     {
-        return (int) wxBLACK_PEN;
+        return wxBLACK_PEN;
     }
-    EXPORT int expwxWHITE_PEN()
+    EXPORT const wxPen* expwxWHITE_PEN()
     {
-        return (int) wxWHITE_PEN;
+        return wxWHITE_PEN;
     }
-    EXPORT int expwxTRANSPARENT_PEN()
+    EXPORT const wxPen* expwxTRANSPARENT_PEN()
     {
-        return (int) wxTRANSPARENT_PEN;
+        return wxTRANSPARENT_PEN;
     }
-    EXPORT int expwxBLACK_DASHED_PEN()
+    EXPORT const wxPen* expwxBLACK_DASHED_PEN()
     {
-        return (int) wxBLACK_DASHED_PEN;
+        return wxBLACK_DASHED_PEN;
     }
-    EXPORT int expwxGREY_PEN()
+    EXPORT const wxPen* expwxGREY_PEN()
     {
-        return (int) wxGREY_PEN;
+        return wxGREY_PEN;
     }
-    EXPORT int expwxMEDIUM_GREY_PEN()
+    EXPORT const wxPen* expwxMEDIUM_GREY_PEN()
     {
-        return (int) wxMEDIUM_GREY_PEN;
+        return wxMEDIUM_GREY_PEN;
     }
-    EXPORT int expwxLIGHT_GREY_PEN()
+    EXPORT const wxPen* expwxLIGHT_GREY_PEN()
     {
-        return (int) wxLIGHT_GREY_PEN;
+        return wxLIGHT_GREY_PEN;
     }
-    EXPORT int expwxITALIC_FONT()
+    EXPORT const wxFont* expwxITALIC_FONT()
     {
-        return (int) wxITALIC_FONT;
+        return wxITALIC_FONT;
     }
-    EXPORT int expwxNORMAL_FONT()
+    EXPORT const wxFont* expwxNORMAL_FONT()
     {
-        return (int) wxNORMAL_FONT;
+        return wxNORMAL_FONT;
     }
-    EXPORT int expwxSMALL_FONT()
+    EXPORT const wxFont* expwxSMALL_FONT()
     {
-        return (int) wxSMALL_FONT;
+        return wxSMALL_FONT;
     }
-    EXPORT int expwxSWISS_FONT()
+    EXPORT const wxFont* expwxSWISS_FONT()
     {
-        return (int) wxSWISS_FONT;
+        return wxSWISS_FONT;
     }
 
     EXPORT int expwxNOT_FOUND()
