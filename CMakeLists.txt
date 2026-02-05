@@ -56,8 +56,9 @@ if( NOT DEFINED ENV{CI} )
     set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 endif()
 
-# kwxFFI is always built as a shared DLL
-set( BUILD_SHARED_LIBS ON CACHE BOOL "kwxFFI is always built as a shared DLL" FORCE )
+# Keep BUILD_SHARED_LIBS OFF so wxWidgets dependencies (libwebp) build as static.
+# kwxFFI is explicitly created as SHARED in add_library().
+set( BUILD_SHARED_LIBS OFF )
 message( NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries" )
 
 # ###################### Version #######################
@@ -247,7 +248,8 @@ endif()
 
 include( files_list.cmake )
 
-add_library( kwxFFI ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
+# Explicitly SHARED since BUILD_SHARED_LIBS is OFF for wxWidgets deps
+add_library( kwxFFI SHARED ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
 
 target_precompile_headers( kwxFFI PRIVATE "include/wrapper.h" )
 
@@ -261,7 +263,8 @@ elseif( UNIX )
     target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
 endif()
 
-if( WIN32 AND BUILD_SHARED_LIBS )
+# kwxFFI is always a shared DLL (explicitly SHARED in add_library)
+if( WIN32 )
     target_compile_definitions( kwxFFI PRIVATE SHARED_LIBRARY )
 endif()
 
