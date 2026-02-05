@@ -71,6 +71,7 @@
 #include <wx/splitter.h>
 #include <wx/srchctrl.h>
 #include <wx/statline.h>
+#include <wx/textdlg.h>
 #include <wx/timectrl.h>
 #include <wx/toolbook.h>
 #include <wx/treebook.h>

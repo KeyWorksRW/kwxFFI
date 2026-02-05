@@ -1,7 +1,5 @@
 #include "wrapper.h"
 
-#include <wx/textdlgg.h>
-
 extern "C"
 {
     EXPORT int expwxACCEL_ALT()
@@ -401,10 +399,6 @@ extern "C"
     {
         return (int) wxTE_NO_VSCROLL;
     }
-    EXPORT int expwxPASSWORD()
-    {
-        return (int) wxPASSWORD;
-    }
     EXPORT int expwxCB_SIMPLE()
     {
         return (int) wxCB_SIMPLE;
@@ -425,17 +419,9 @@ extern "C"
     {
         return (int) wxRB_GROUP;
     }
-    EXPORT int expwxGA_PROGRESSBAR()
-    {
-        return (int) wxGA_PROGRESSBAR;
-    }
     EXPORT int expwxGA_SMOOTH()
     {
         return (int) wxGA_SMOOTH;
-    }
-    EXPORT int expwxSL_NOTIFY_DRAG()
-    {
-        return (int) wxSL_NOTIFY_DRAG;
     }
     EXPORT int expwxSL_AUTOTICKS()
     {
@@ -588,10 +574,6 @@ extern "C"
     EXPORT int expwxSP_3D()
     {
         return (int) wxSP_3D;
-    }
-    EXPORT int expwxSP_FULLSASH()
-    {
-        return (int) wxSP_FULLSASH;
     }
     EXPORT int expwxFRAME_TOOL_WINDOW()
     {
@@ -1197,29 +1179,9 @@ extern "C"
     {
         return (int) wxMM_LOMETRIC;
     }
-    EXPORT int expwxMM_HIMETRIC()
-    {
-        return (int) wxMM_HIMETRIC;
-    }
-    EXPORT int expwxMM_LOENGLISH()
-    {
-        return (int) wxMM_LOENGLISH;
-    }
-    EXPORT int expwxMM_HIENGLISH()
-    {
-        return (int) wxMM_HIENGLISH;
-    }
     EXPORT int expwxMM_TWIPS()
     {
         return (int) wxMM_TWIPS;
-    }
-    EXPORT int expwxMM_ISOTROPIC()
-    {
-        return (int) wxMM_ISOTROPIC;
-    }
-    EXPORT int expwxMM_ANISOTROPIC()
-    {
-        return (int) wxMM_ANISOTROPIC;
     }
     EXPORT int expwxMM_POINTS()
     {
@@ -1709,14 +1671,6 @@ extern "C"
     {
         return (int) wxFONTENCODING_MAX;
     }
-    EXPORT int expwxGRIDTABLE_REQUEST_VIEW_GET_VALUES()
-    {
-        return (int) wxGRIDTABLE_REQUEST_VIEW_GET_VALUES;
-    }
-    EXPORT int expwxGRIDTABLE_REQUEST_VIEW_SEND_VALUES()
-    {
-        return (int) wxGRIDTABLE_REQUEST_VIEW_SEND_VALUES;
-    }
     EXPORT int expwxGRIDTABLE_NOTIFY_ROWS_INSERTED()
     {
         return (int) wxGRIDTABLE_NOTIFY_ROWS_INSERTED;
@@ -2000,30 +1954,6 @@ extern "C"
     EXPORT int expwxCURSOR_BLANK()
     {
         return (int) wxCURSOR_BLANK;
-    }
-    EXPORT int expwxOPEN()
-    {
-        return (int) wxOPEN;
-    }
-    EXPORT int expwxSAVE()
-    {
-        return (int) wxSAVE;
-    }
-    EXPORT int expwxOVERWRITE_PROMPT()
-    {
-        return (int) wxOVERWRITE_PROMPT;
-    }
-    EXPORT int expwxFILE_MUST_EXIST()
-    {
-        return (int) wxFILE_MUST_EXIST;
-    }
-    EXPORT int expwxMULTIPLE()
-    {
-        return (int) wxMULTIPLE;
-    }
-    EXPORT int expwxCHANGE_DIR()
-    {
-        return (int) wxCHANGE_DIR;
     }
     EXPORT int expwxSPLIT_HORIZONTAL()
     {
@@ -2926,10 +2856,6 @@ extern "C"
     {
         return (int) wxPLATFORM_WINDOWS;
     }
-    EXPORT int expwxPLATFORM_OS2()
-    {
-        return (int) wxPLATFORM_OS2;
-    }
     EXPORT int expwxPLATFORM_MAC()
     {
         return (int) wxPLATFORM_MAC;
@@ -3073,54 +2999,6 @@ extern "C"
     EXPORT int expwxEVT_KILL_FOCUS()
     {
         return (int) wxEVT_KILL_FOCUS;
-    }
-    EXPORT int expwxEVT_NC_LEFT_DOWN()
-    {
-        return (int) wxEVT_NC_LEFT_DOWN;
-    }
-    EXPORT int expwxEVT_NC_LEFT_UP()
-    {
-        return (int) wxEVT_NC_LEFT_UP;
-    }
-    EXPORT int expwxEVT_NC_MIDDLE_DOWN()
-    {
-        return (int) wxEVT_NC_MIDDLE_DOWN;
-    }
-    EXPORT int expwxEVT_NC_MIDDLE_UP()
-    {
-        return (int) wxEVT_NC_MIDDLE_UP;
-    }
-    EXPORT int expwxEVT_NC_RIGHT_DOWN()
-    {
-        return (int) wxEVT_NC_RIGHT_DOWN;
-    }
-    EXPORT int expwxEVT_NC_RIGHT_UP()
-    {
-        return (int) wxEVT_NC_RIGHT_UP;
-    }
-    EXPORT int expwxEVT_NC_MOTION()
-    {
-        return (int) wxEVT_NC_MOTION;
-    }
-    EXPORT int expwxEVT_NC_ENTER_WINDOW()
-    {
-        return (int) wxEVT_NC_ENTER_WINDOW;
-    }
-    EXPORT int expwxEVT_NC_LEAVE_WINDOW()
-    {
-        return (int) wxEVT_NC_LEAVE_WINDOW;
-    }
-    EXPORT int expwxEVT_NC_LEFT_DCLICK()
-    {
-        return (int) wxEVT_NC_LEFT_DCLICK;
-    }
-    EXPORT int expwxEVT_NC_MIDDLE_DCLICK()
-    {
-        return (int) wxEVT_NC_MIDDLE_DCLICK;
-    }
-    EXPORT int expwxEVT_NC_RIGHT_DCLICK()
-    {
-        return (int) wxEVT_NC_RIGHT_DCLICK;
     }
     EXPORT int expwxEVT_CHAR()
     {
@@ -3274,10 +3152,6 @@ extern "C"
     {
         return (int) wxEVT_NC_PAINT;
     }
-    EXPORT int expwxEVT_PAINT_ICON()
-    {
-        return (int) wxEVT_PAINT_ICON;
-    }
     EXPORT int expwxEVT_MENU_HIGHLIGHT()
     {
         return (int) wxEVT_MENU_HIGHLIGHT;
@@ -3289,10 +3163,6 @@ extern "C"
     EXPORT int expwxEVT_SYS_COLOUR_CHANGED()
     {
         return (int) wxEVT_SYS_COLOUR_CHANGED;
-    }
-    EXPORT int expwxEVT_SETTING_CHANGED()
-    {
-        return (int) wxEVT_SETTING_CHANGED;
     }
     EXPORT int expwxEVT_QUERY_NEW_PALETTE()
     {
@@ -3321,18 +3191,6 @@ extern "C"
     EXPORT int expwxEVT_DROP_FILES()
     {
         return (int) wxEVT_DROP_FILES;
-    }
-    EXPORT int expwxEVT_DRAW_ITEM()
-    {
-        return (int) wxEVT_DRAW_ITEM;
-    }
-    EXPORT int expwxEVT_MEASURE_ITEM()
-    {
-        return (int) wxEVT_MEASURE_ITEM;
-    }
-    EXPORT int expwxEVT_COMPARE_ITEM()
-    {
-        return (int) wxEVT_COMPARE_ITEM;
     }
     EXPORT int expwxEVT_INIT_DIALOG()
     {
@@ -3570,10 +3428,6 @@ extern "C"
     {
         return (int) wxEVT_USER_FIRST;
     }
-    EXPORT int expwxEVT_COMMAND_TOGGLEBUTTON_CLICKED()
-    {
-        return (int) wxEVT_COMMAND_TOGGLEBUTTON_CLICKED;
-    }
     EXPORT int expwxEVT_HELP()
     {
         return (int) wxEVT_HELP;
@@ -3602,10 +3456,6 @@ extern "C"
     {
         return (int) wxTR_LINES_AT_ROOT;
     }
-    EXPORT int expwxTR_AQUA_BUTTONS()
-    {
-        return (int) wxTR_AQUA_BUTTONS;
-    }
     EXPORT int expwxTR_SINGLE()
     {
         return (int) wxTR_SINGLE;
@@ -3613,10 +3463,6 @@ extern "C"
     EXPORT int expwxTR_MULTIPLE()
     {
         return (int) wxTR_MULTIPLE;
-    }
-    EXPORT int expwxTR_EXTENDED()
-    {
-        return (int) wxTR_EXTENDED;
     }
     EXPORT int expwxTR_FULL_ROW_HIGHLIGHT()
     {
@@ -4598,10 +4444,6 @@ extern "C"
     {
         return (int) wxLOCALE_LOAD_DEFAULT;
     }
-    EXPORT int expwxLOCALE_CONV_ENCODING()
-    {
-        return (int) wxLOCALE_CONV_ENCODING;
-    }
     EXPORT int expwxEVT_GRID_CELL_LEFT_CLICK()
     {
         return (int) wxEVT_GRID_CELL_LEFT_CLICK;
@@ -4702,10 +4544,6 @@ extern "C"
     EXPORT int expwxTE_CENTRE()
     {
         return (int) wxTE_CENTRE;
-    }
-    EXPORT int expwxTE_LINEWRAP()
-    {
-        return (int) wxTE_LINEWRAP;
     }
     EXPORT int expwxTE_WORDWRAP()
     {
@@ -4950,10 +4788,6 @@ extern "C"
     EXPORT int expwxTB_VERTICAL()
     {
         return (int) wxTB_VERTICAL;
-    }
-    EXPORT int expwxADJUST_MINSIZE()
-    {
-        return (int) wxADJUST_MINSIZE;
     }
     EXPORT int expwxSOUND_SYNC()
     {
