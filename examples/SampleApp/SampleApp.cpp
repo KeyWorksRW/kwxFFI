@@ -19,7 +19,8 @@
 /*-----------------------------------------------------------------------------
     The global idle timer
 -----------------------------------------------------------------------------*/
-wxIdleTimer* idleTimer = nullptr;
+constexpr int MIN_IDLE_INTERVAL_MS = 100;  // Minimum 100ms (10 times per second)
+static wxIdleTimer* idleTimer = nullptr;
 
 void initIdleTimer()
 {
@@ -39,15 +40,17 @@ void doneIdleTimer()
 /*-----------------------------------------------------------------------------
     The main application
 -----------------------------------------------------------------------------*/
-wxClosure* initClosure = nullptr;
-int APPTerminating = 0;
+static wxClosure* initClosure = nullptr;
+static int APPTerminating = 0;
 
 IMPLEMENT_APP_NO_MAIN(SampleApp);
 
 bool SampleApp::OnInit()
 {
     if (!wxApp::OnInit())
+    {
         return false;
+    }
 
     initIdleTimer();
     if (initClosure)
@@ -80,9 +83,8 @@ void SampleApp::InitImageHandlers()
     wxInitAllImageHandlers();
 }
 
-/* "getCallback" is a hack to retrieve the callback object for a certain event
-   see also "wxEvtHandler_FindClosure"
-*/
+// "getCallback" is a hack to retrieve the callback object for a certain event
+// see also "wxEvtHandler_FindClosure"
 static wxCallback** getCallback = nullptr;
 
 void SampleApp::HandleEvent(wxEvent& evt)
@@ -105,7 +107,7 @@ void SampleApp::OnInitCmdLine(wxCmdLineParser& parser)
 }
 
 /* override to prevent parent wxApp from further processing of parsed cmdline */
-bool SampleApp::OnCmdLineParsed(wxCmdLineParser& parser)
+bool SampleApp::OnCmdLineParsed([[maybe_unused]] wxCmdLineParser& parser)
 {
     return true;
 }
@@ -118,12 +120,15 @@ extern "C"
     EXPORT int SampleApp_GetIdleInterval()
     {
         if (!idleTimer)
+        {
             return 0;
+        }
 
         if (idleTimer->IsRunning())
+        {
             return idleTimer->GetInterval();
-        else
-            return 0;
+        }
+        return 0;
     }
 
     EXPORT void SampleApp_SetIdleInterval(int interval)
@@ -134,7 +139,7 @@ extern "C"
             {
                 idleTimer->Stop();
             }
-            if (interval >= 5)
+            if (interval >= MIN_IDLE_INTERVAL_MS)
             {
                 idleTimer->Start(interval, false);
             }
@@ -152,11 +157,7 @@ extern "C"
 
     EXPORT bool SampleApp_Initialized()
     {
-#if WXWIN_COMPATIBILITY_2_6
-        return wxGetApp().Initialized();
-#else
         return true;
-#endif
     }
 
     EXPORT int SampleApp_Pending()
@@ -171,7 +172,7 @@ extern "C"
 
     EXPORT wxString* SampleApp_GetAppName()
     {
-        wxString* result = new wxString();
+        auto* result = new wxString();
         *result = wxGetApp().GetAppName();
         return result;
     }
@@ -183,7 +184,7 @@ extern "C"
 
     EXPORT wxString* SampleApp_GetClassName()
     {
-        wxString* result = new wxString();
+        auto* result = new wxString();
         *result = wxGetApp().GetClassName();
         return result;
     }
@@ -195,7 +196,7 @@ extern "C"
 
     EXPORT wxString* SampleApp_GetVendorName()
     {
-        wxString* result = new wxString();
+        auto* result = new wxString();
         *result = wxGetApp().GetVendorName();
         return result;
     }
@@ -256,9 +257,9 @@ extern "C"
         wxToolTip::Enable(enable);
     }
 
-    EXPORT void SampleApp_SetTooltipDelay(int ms)
+    EXPORT void SampleApp_SetTooltipDelay(int milliseconds)
     {
-        wxToolTip::SetDelay(ms);
+        wxToolTip::SetDelay(milliseconds);
     }
 
     EXPORT void SampleApp_InitAllImageHandlers()
@@ -273,9 +274,9 @@ extern "C"
 
     EXPORT wxSize* SampleApp_DisplaySize()
     {
-        wxSize* sz = new wxSize();
-        *sz = wxGetDisplaySize();
-        return sz;
+        wxSize* size = new wxSize();
+        *size = wxGetDisplaySize();
+        return size;
     }
 
     EXPORT void SampleApp_EnableTopLevelWindows(bool enable)
@@ -290,9 +291,9 @@ extern "C"
 
     EXPORT wxPoint* SampleApp_MousePosition()
     {
-        wxPoint* pt = new wxPoint();
-        *pt = wxGetMousePosition();
-        return pt;
+        auto* pos = new wxPoint();
+        *pos = wxGetMousePosition();
+        return pos;
     }
 
     EXPORT void* SampleApp_FindWindowByLabel(wxString* label, wxWindow* parent)
@@ -305,9 +306,9 @@ extern "C"
         return (void*) wxFindWindowByName(*name, parent);
     }
 
-    EXPORT void* SampleApp_FindWindowById(int id, wxWindow* parent)
+    EXPORT void* SampleApp_FindWindowById(int winID, wxWindow* parent)
     {
-        return (void*) wxWindow::FindWindowById((long) id, parent);
+        return (void*) wxWindow::FindWindowById((long) winID, parent);
     }
 
     EXPORT void* SampleApp_GetApp()
@@ -338,7 +339,7 @@ extern "C"
 
     EXPORT int SampleApp_ExecuteProcess(wxString* cmd, bool sync, void* process)
     {
-        return (int) wxExecute(*cmd, sync, (wxProcess*) process);
+        return (int) wxExecute(*cmd, sync, static_cast<wxProcess*>(process));
     }
 
     EXPORT int SampleApp_Yield()
