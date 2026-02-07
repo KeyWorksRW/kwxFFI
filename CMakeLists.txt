@@ -56,10 +56,18 @@ if( NOT DEFINED ENV{CI} )
     set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 endif()
 
+# Control whether kwxFFI is built as static or shared library
+option( KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF )
+
 # Keep BUILD_SHARED_LIBS OFF so wxWidgets dependencies (libwebp) build as static.
-# kwxFFI is explicitly created as SHARED in add_library().
+# kwxFFI library type is controlled by KWXFFI_BUILD_SHARED option.
 set( BUILD_SHARED_LIBS OFF )
-message( NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries" )
+
+if( KWXFFI_BUILD_SHARED )
+    message( NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries" )
+else()
+    message( NOTICE "Building kwxFFI as static library with static wxWidgets libraries" )
+endif()
 
 # ###################### Version #######################
 # Generate C++ header file with version constants for use in source code
@@ -248,12 +256,16 @@ endif()
 
 include( files_list.cmake )
 
-# Explicitly SHARED since BUILD_SHARED_LIBS is OFF for wxWidgets deps
-add_library( kwxFFI SHARED ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
+# Library type controlled by KWXFFI_BUILD_SHARED option
+if( KWXFFI_BUILD_SHARED )
+    add_library( kwxFFI SHARED ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
+else()
+    add_library( kwxFFI STATIC ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
+endif()
 
 target_precompile_headers( kwxFFI PRIVATE "include/wrapper.h" )
 
-# kwxFFI is a shared DLL but wxWidgets is static, so we don't define WXUSINGDLL
+# wxWidgets is static, so we don't define WXUSINGDLL
 # target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
 
 if( MSVC )
@@ -263,8 +275,8 @@ elseif( UNIX )
     target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
 endif()
 
-# kwxFFI is always a shared DLL (explicitly SHARED in add_library)
-if( WIN32 )
+# Define SHARED_LIBRARY when building as shared DLL
+if( WIN32 AND KWXFFI_BUILD_SHARED )
     target_compile_definitions( kwxFFI PRIVATE SHARED_LIBRARY )
 endif()
 
