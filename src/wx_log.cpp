@@ -1,4 +1,5 @@
 #include "wrapper.h"
+#include <wx/debug.h>
 #include <wx/log.h>
 
 extern "C"
@@ -188,5 +189,10 @@ extern "C"
     EXPORT void* wxLogChain_GetOldLog(wxLogChain* self)
     {
         return (void*) self->GetOldLog();
+    }
+
+    EXPORT void expSetDefaultAssertHandler()
+    {
+        ::wxSetDefaultAssertHandler();
     }
 }
