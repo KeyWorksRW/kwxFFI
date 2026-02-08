@@ -1,0 +1,15 @@
+name: "Daily Build"
+
+on:
+  schedule:
+    - cron: '00 19 * * *'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  buildWindows:
+    uses: ./.github/workflows/build-win-reusable.yml
+    with:
+      build-type: Release
