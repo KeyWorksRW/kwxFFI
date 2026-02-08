@@ -2101,6 +2101,9 @@ TClassDefExtend(wxCheckBox, wxControl) TClass(wxCheckBox)
 void wxCheckBox_Delete(TSelf(wxCheckBox) _obj);
 TBool wxCheckBox_GetValue(TSelf(wxCheckBox) _obj);
 void wxCheckBox_SetValue(TSelf(wxCheckBox) _obj, TBoolInt value);
+int wxCheckBox_Get3StateValue(TSelf(wxCheckBox) _obj);
+TBool wxCheckBox_Is3State(TSelf(wxCheckBox) _obj);
+void wxCheckBox_Set3StateValue(TSelf(wxCheckBox) _obj, int state);
 
 /* wxCheckListBox */
 TClassDefExtend(wxCheckListBox, wxListBox) void wxCheckListBox_Check(TSelf(wxCheckListBox) _obj,
@@ -4510,6 +4513,8 @@ TClassDefExtend(wxMessageDialog, wxDialog) TClass(wxMessageDialog)
                            int _stl);
 void wxMessageDialog_Delete(TSelf(wxMessageDialog) _obj);
 int wxMessageDialog_ShowModal(TSelf(wxMessageDialog) _obj);
+int wxcMessageBox(TClass(wxString) _msg, TClass(wxString) _cap, int _stl, TClass(wxWindow) _prt,
+                  int _x, int _y);
 
 /* wxMetafile */
 TClassDefExtend(wxMetafile, wxObject) TClass(wxMetafile) wxMetafile_Create(TClass(wxString) _file);
@@ -6640,10 +6645,15 @@ void TextDataObject_SetText(TSelf(TextDataObject) _obj, TClass(wxString) text);
 TClassDefExtend(wxTextDropTarget, wxDropTarget)
 
     /* wxTextEntryDialog */
-    TClassDefExtend(wxTextEntryDialog, wxDialog)
+    TClassDefExtend(wxTextEntryDialog, wxDialog) TClass(wxTextEntryDialog)
+        wxTextEntryDialog_Create(TClass(wxWindow) _prt, TClass(wxString) _msg,
+                                 TClass(wxString) _cap, TClass(wxString) _val, long _stl, int _x,
+                                 int _y);
+TClass(wxString) wxTextEntryDialog_GetValue(TSelf(wxTextEntryDialog) _obj);
+void wxTextEntryDialog_SetValue(TSelf(wxTextEntryDialog) _obj, TClass(wxString) _val);
 
-    /* wxTextFile */
-    TClassDef(wxTextFile)
+/* wxTextFile */
+TClassDef(wxTextFile)
 
     /* wxTextInputStream */
     TClassDef(wxTextInputStream)
@@ -7308,6 +7318,7 @@ void wxWindow_SetSizeConstraint(TSelf(wxWindow) _obj, TRect(x, y, w, h));
 void wxWindow_SetSizeHints(TSelf(wxWindow) _obj, int minW, int minH, int maxW, int maxH, int incW,
                            int incH);
 void wxWindow_SetSizer(TSelf(wxWindow) _obj, TClass(wxSizer) sizer);
+void wxWindow_SetSizerAndFit(TSelf(wxWindow) _obj, TClass(wxSizer) sizer, TBool deleteOld);
 void wxWindow_SetToolTip(TSelf(wxWindow) _obj, TClass(wxString) tip);
 void wxWindow_SetValidator(TSelf(wxWindow) _obj, TClass(wxValidator) validator);
 void wxWindow_SetWindowStyleFlag(TSelf(wxWindow) _obj, long style);

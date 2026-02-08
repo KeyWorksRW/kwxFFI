@@ -23,4 +23,19 @@ extern "C"
     {
         return self->GetValue();
     }
+
+    EXPORT int wxCheckBox_Get3StateValue(wxCheckBox* self)
+    {
+        return static_cast<int>(self->Get3StateValue());
+    }
+
+    EXPORT bool wxCheckBox_Is3State(wxCheckBox* self)
+    {
+        return self->Is3State();
+    }
+
+    EXPORT void wxCheckBox_Set3StateValue(wxCheckBox* self, int state)
+    {
+        self->Set3StateValue(static_cast<wxCheckBoxState>(state));
+    }
 }
