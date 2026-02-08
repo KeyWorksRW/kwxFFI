@@ -14,7 +14,7 @@ extern "C"
 
     EXPORT wxBrush* wxBrush_CreateFromColour(wxColour* col, int style)
     {
-        return new wxBrush(*col, style);
+        return new wxBrush(*col, (wxBrushStyle) style);
     }
 
     EXPORT void* wxBrush_CreateFromStock(int id)
@@ -63,7 +63,7 @@ extern "C"
 
     EXPORT void wxBrush_SetStyle(wxBrush* self, int style)
     {
-        self->SetStyle(style);
+        self->SetStyle((wxBrushStyle) style);
     }
 
     EXPORT void wxBrush_SetStipple(wxBrush* self, wxBitmap* stipple)

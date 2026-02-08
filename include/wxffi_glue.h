@@ -578,6 +578,7 @@ void LogErrorMsg(TClass(wxString) _msg);
 void LogFatalErrorMsg(TClass(wxString) _msg);
 void LogMessageMsg(TClass(wxString) _msg);
 void LogWarningMsg(TClass(wxString) _msg);
+void expSetDefaultAssertHandler();
 TBool Quantize(TClass(wxImage) src, TClass(wxImage) dest, int desiredNoColours, void* eightBitData,
                int flags);
 TBool QuantizePalette(TClass(wxImage) src, TClass(wxImage) dest, void* pPalette,
@@ -3283,13 +3284,9 @@ TClassDefExtend(wxGDIObject, wxObject)
     TClassDefExtend(wxGauge, wxControl) TClass(wxGauge)
         wxGauge_Create(TClass(wxWindow) _prt, int _id, int _rng, TRect(_lft, _top, _wdt, _hgt),
                        int _stl);
-int wxGauge_GetBezelFace(TSelf(wxGauge) _obj);
 int wxGauge_GetRange(TSelf(wxGauge) _obj);
-int wxGauge_GetShadowWidth(TSelf(wxGauge) _obj);
 int wxGauge_GetValue(TSelf(wxGauge) _obj);
-void wxGauge_SetBezelFace(TSelf(wxGauge) _obj, int w);
 void wxGauge_SetRange(TSelf(wxGauge) _obj, int r);
-void wxGauge_SetShadowWidth(TSelf(wxGauge) _obj, int w);
 void wxGauge_SetValue(TSelf(wxGauge) _obj, int pos);
 
 /* wxGenericDirCtrl */
@@ -6636,7 +6633,6 @@ long wxTextCtrl_XYToPosition(TSelf(wxTextCtrl) _obj, TPointLong(x, y));
 TClassDefExtend(wxTextDataObject, wxDataObjectSimple) TClass(TextDataObject)
     TextDataObject_Create(TClass(wxString) _txt);
 void TextDataObject_Delete(TSelf(TextDataObject) _obj);
-size_t TextDataObject_GetTextLength(TSelf(TextDataObject) _obj);
 TClass(wxString) TextDataObject_GetText(TSelf(TextDataObject) _obj);
 void TextDataObject_SetText(TSelf(TextDataObject) _obj, TClass(wxString) text);
 

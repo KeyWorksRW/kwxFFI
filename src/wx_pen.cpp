@@ -9,7 +9,7 @@ extern "C"
 
     EXPORT void* wxPen_CreateFromColour(wxColour* col, int width, int style)
     {
-        return new wxPen(*col, width, style);
+        return new wxPen(*col, width, (wxPenStyle) style);
     }
 
     EXPORT void* wxPen_CreateFromBitmap(wxBitmap* stipple, int width)
@@ -87,7 +87,7 @@ extern "C"
 
     EXPORT void wxPen_SetStyle(void* self, int style)
     {
-        ((wxPen*) self)->SetStyle(style);
+        ((wxPen*) self)->SetStyle((wxPenStyle) style);
     }
 
     EXPORT void wxPen_SetStipple(void* self, wxBitmap* stipple)

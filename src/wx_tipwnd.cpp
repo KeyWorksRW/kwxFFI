@@ -5,7 +5,8 @@ extern "C"
 {
     EXPORT void* wxTipWindow_Create(wxWindow* parent, wxString* text, int maxLength)
     {
-        return (void*) new wxTipWindow(parent, *text, (wxCoord) maxLength);
+        auto ref = wxTipWindow::New(parent, *text, (wxCoord) maxLength);
+        return ref ? (void*) ref.operator->() : nullptr;
     }
 
     EXPORT void wxTipWindow_SetTipWindowPtr(void* _obj, void* windowPtr)

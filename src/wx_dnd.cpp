@@ -174,11 +174,6 @@ extern "C"
         delete (wxTextDataObject*) self;
     }
 
-    EXPORT size_t TextDataObject_GetTextLength(void* self)
-    {
-        return ((wxTextDataObject*) self)->GetTextLength();
-    }
-
     EXPORT wxString* TextDataObject_GetText(void* self)
     {
         wxString* result = new wxString();

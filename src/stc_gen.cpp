@@ -361,14 +361,6 @@ extern "C" EXPORT void wxStyledTextCtrl_SetWhitespaceBackground(void* _obj, bool
     ((wxStyledTextCtrl*) _obj)
         ->SetWhitespaceBackground(useSetting, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetStyleBits(void* _obj, int bits)
-{
-    ((wxStyledTextCtrl*) _obj)->SetStyleBits(bits);
-}
-extern "C" EXPORT int wxStyledTextCtrl_GetStyleBits(void* _obj)
-{
-    return ((wxStyledTextCtrl*) _obj)->GetStyleBits();
-}
 extern "C" EXPORT void wxStyledTextCtrl_SetLineState(void* _obj, int line, int state)
 {
     ((wxStyledTextCtrl*) _obj)->SetLineState(line, state);
@@ -941,14 +933,6 @@ extern "C" EXPORT bool wxStyledTextCtrl_GetUseVerticalScrollBar(void* _obj)
 extern "C" EXPORT void wxStyledTextCtrl_AppendText(void* _obj, wxString* text)
 {
     ((wxStyledTextCtrl*) _obj)->AppendText(*text);
-}
-extern "C" EXPORT bool wxStyledTextCtrl_GetTwoPhaseDraw(void* _obj)
-{
-    return ((wxStyledTextCtrl*) _obj)->GetTwoPhaseDraw();
-}
-extern "C" EXPORT void wxStyledTextCtrl_SetTwoPhaseDraw(void* _obj, bool twoPhase)
-{
-    ((wxStyledTextCtrl*) _obj)->SetTwoPhaseDraw(twoPhase);
 }
 extern "C" EXPORT void wxStyledTextCtrl_TargetFromSelection(void* _obj)
 {

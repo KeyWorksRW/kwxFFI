@@ -36,8 +36,8 @@ extern "C"
     EXPORT wxFont* wxFont_Create(int pointSize, int family, int style, int weight, bool underlined,
                                  wxString* face, int enc)
     {
-        return new wxFont(pointSize, family, style, weight, underlined, *face,
-                          (wxFontEncoding) enc);
+        return new wxFont(pointSize, (wxFontFamily) family, (wxFontStyle) style,
+                          (wxFontWeight) weight, underlined, *face, (wxFontEncoding) enc);
     }
 
     EXPORT wxFont* wxFont_CreateDefault()
@@ -116,17 +116,17 @@ extern "C"
 
     EXPORT void wxFont_SetFamily(wxFont* self, int family)
     {
-        self->SetFamily(family);
+        self->SetFamily((wxFontFamily) family);
     }
 
     EXPORT void wxFont_SetStyle(wxFont* self, int style)
     {
-        self->SetStyle(style);
+        self->SetStyle((wxFontStyle) style);
     }
 
     EXPORT void wxFont_SetWeight(wxFont* self, int weight)
     {
-        self->SetWeight(weight);
+        self->SetWeight((wxFontWeight) weight);
     }
 
     EXPORT void wxFont_SetFaceName(wxFont* self, wxString* faceName)
