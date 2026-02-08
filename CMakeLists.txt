@@ -1,5 +1,9 @@
 cmake_minimum_required( VERSION 3.30 )
 
+# Control whether kwxFFI is built as static or shared library
+# Must be defined before project() for runtime library configuration
+option( KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF )
+
 string( TIMESTAMP YEAR "%y" ) # e.g., "25"
 string( TIMESTAMP DOY "%j" ) # e.g., "192"
 string( TIMESTAMP PROJECT_YEAR "%Y" )
@@ -27,6 +31,19 @@ project( kwxFFI
     HOMEPAGE_URL "https://github.com/KeyWorksRW/kwxFFI"
 )
 
+# Force release runtime in Debug builds when building shared DLL
+# Must be AFTER project() so compiler is detected, but BEFORE any targets are created
+if( MSVC AND KWXFFI_BUILD_SHARED )
+    # Explicitly set runtime flags for Debug configuration
+    set( CMAKE_CXX_FLAGS_DEBUG "/MD /Zi /Ob0 /Od /RTC1" CACHE STRING "C++ Debug with release runtime" FORCE )
+    set( CMAKE_C_FLAGS_DEBUG "/MD /Zi /Ob0 /Od /RTC1" CACHE STRING "C Debug with release runtime" FORCE )
+    # Also set for Release to ensure consistency
+    string( REPLACE "/MT" "/MD" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+    string( REPLACE "/MT" "/MD" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" )
+    set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "C++ Release flags" FORCE )
+    set( CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "C Release flags" FORCE )
+endif()
+
 # ###################### Check for Multi-Config Generator #######################
 get_property( isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG )
 
@@ -45,7 +62,7 @@ if( NOT isMultiConfig )
 endif()
 
 # ###################### General Settings #######################
-set( CMAKE_CXX_STANDARD 23 )
+set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED True )
 set( CMAKE_CXX_EXTENSIONS OFF )
 
@@ -56,15 +73,15 @@ if( NOT DEFINED ENV{CI} )
     set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 endif()
 
-# Control whether kwxFFI is built as static or shared library
-option( KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF )
-
 # Keep BUILD_SHARED_LIBS OFF so wxWidgets dependencies (libwebp) build as static.
 # kwxFFI library type is controlled by KWXFFI_BUILD_SHARED option.
 set( BUILD_SHARED_LIBS OFF )
 
 if( KWXFFI_BUILD_SHARED )
     message( NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries" )
+    if( MSVC )
+        message( NOTICE "  Using release runtime library (/MD) for DLL compatibility" )
+    endif()
 else()
     message( NOTICE "Building kwxFFI as static library with static wxWidgets libraries" )
 endif()
@@ -187,6 +204,7 @@ set(FETCHCONTENT_QUIET ON)
 set( wxBUILD_SHARED OFF CACHE BOOL "Build wxWidgets as static libraries" FORCE )
 # REVIEW: [Randalphwa - 01-31-2026] Rust will insist on static release for Windows
 set( wxBUILD_USE_STATIC_RUNTIME OFF CACHE BOOL "Use dynamic runtime library" )
+
 set( wxUSE_UNICODE_UTF8 1 CACHE BOOL "Use UTF-8 internally in wxWidgets" )
 set( wxUSE_UTF8_LOCALE_ONLY 1 CACHE BOOL "Use UTF-8 locale only in wxWidgets" )
 set( wxUSE_GUI ON CACHE BOOL "This is a GUI application" FORCE )
@@ -229,6 +247,14 @@ endif()
 
 message( STATUS "Fetching wxWidgets (this may take awhile) ..." )
 
+# Force wxWidgets to build in Release mode even if parent is Debug
+# This ensures wx libraries use release runtime (/MD) instead of debug (/MDd)
+if( MSVC AND KWXFFI_BUILD_SHARED )
+    set( CMAKE_TRY_COMPILE_CONFIGURATION Release )
+    # Tell wxWidgets CMakeLists to build Release
+    set( CMAKE_BUILD_TYPE_INIT Release )
+endif()
+
 FetchContent_Declare(
     wxWidgets
     GIT_REPOSITORY https://github.com/KeyWorksRW/kwxFetch.git
@@ -264,6 +290,13 @@ else()
 endif()
 
 target_precompile_headers( kwxFFI PRIVATE "include/wrapper.h" )
+
+# Force release runtime in Debug builds for shared DLL via target options
+if( MSVC AND KWXFFI_BUILD_SHARED )
+    target_compile_options( kwxFFI PRIVATE
+        $<$<CONFIG:Debug>:/MD>  # Use release runtime in Debug builds
+    )
+endif()
 
 # wxWidgets is static, so we don't define WXUSINGDLL
 # target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
