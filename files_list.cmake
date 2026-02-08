@@ -150,6 +150,7 @@ set( FFI_SRC_FILES
     src/wx_stddialogbuttonsizer.cpp
     src/wx_systemsettings.cpp
     src/wx_textctrl.cpp
+    src/wx_textdlg.cpp
     src/wx_tglbtn.cpp
     src/wx_timepickerctrl.cpp
     src/wx_timer.cpp
