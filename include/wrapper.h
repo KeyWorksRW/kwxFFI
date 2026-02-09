@@ -203,6 +203,19 @@ public:
     wxClosure* GetClosure();
 };
 
+/*
+    kwxEventHandler provides a generic event routing mechanism for all
+    language ports. Its HandleEvent method extracts the wxCallback from
+    the event's user data and invokes the associated closure. This is
+    used by wxEvtHandler_Connect/Disconnect so that language ports never
+    need direct access to wxClosure/wxCallback classes.
+*/
+class kwxEventHandler : public wxEvtHandler
+{
+public:
+    void HandleEvent(wxEvent& evt);
+};
+
 class kwxDataObject : public wxObject
 {
 public:

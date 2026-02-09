@@ -84,6 +84,18 @@ wxClosure* wxCallback::GetClosure()
 }
 
 /*-----------------------------------------------------------------------------
+    Generic event handler for all language ports
+-----------------------------------------------------------------------------*/
+void kwxEventHandler::HandleEvent(wxEvent& evt)
+{
+    wxCallback* callback = (wxCallback*) (evt.m_callbackUserData);
+    if (callback)
+    {
+        callback->Invoke(&evt);
+    }
+}
+
+/*-----------------------------------------------------------------------------
     wrapper for objectRefData
 -----------------------------------------------------------------------------*/
 class wxcClosureRefData : public wxObjectRefData
@@ -232,6 +244,27 @@ extern "C"
     EXPORT void wxEvtHandler_ProcessPendingEvents(wxEvtHandler* self)
     {
         self->ProcessPendingEvents();
+    }
+
+    /*-------------------------------------------------------------------------
+        Generic event connection — used by all language ports.
+        Creates a wxCallback wrapping the closure and connects it using
+        kwxEventHandler::HandleEvent as the event handler function.
+    -------------------------------------------------------------------------*/
+    EXPORT int wxEvtHandler_Connect(wxEvtHandler* obj, int first, int last, int type,
+                                    wxClosure* closure)
+    {
+        wxCallback* callback = new wxCallback(closure);
+        obj->Connect(first, last, type, (wxObjectEventFunction) &kwxEventHandler::HandleEvent,
+                     callback);
+        return 0;
+    }
+
+    EXPORT int wxEvtHandler_Disconnect(wxEvtHandler* self, int first, int last, int type,
+                                       wxObject* data)
+    {
+        return (int) self->Disconnect(first, last, type,
+                                      (wxObjectEventFunction) &kwxEventHandler::HandleEvent, data);
     }
 
     EXPORT void* Null_AcceleratorTable()
