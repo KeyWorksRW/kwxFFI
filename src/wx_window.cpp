@@ -660,6 +660,11 @@ extern "C"
         self->SetSizer(sizer);
     }
 
+    EXPORT void wxWindow_SetSizerAndFit(wxWindow* self, wxSizer* sizer, bool deleteOld)
+    {
+        self->SetSizerAndFit(sizer, deleteOld);
+    }
+
     EXPORT void* wxWindow_GetSizer(wxWindow* self)
     {
         return (void*) self->GetSizer();

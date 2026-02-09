@@ -211,37 +211,37 @@ extern "C"
     {
         return (int) wxCAPTION;
     }
-    EXPORT int expwxDOUBLE_BORDER()
+    EXPORT int expwxBORDER_THEME()
     {
-        return (int) wxDOUBLE_BORDER;
+        return (int) wxBORDER_THEME;
     }
-    EXPORT int expwxSUNKEN_BORDER()
+    EXPORT int expwxBORDER_SUNKEN()
     {
-        return (int) wxSUNKEN_BORDER;
+        return (int) wxBORDER_SUNKEN;
     }
-    EXPORT int expwxRAISED_BORDER()
+    EXPORT int expwxBORDER_RAISED()
     {
-        return (int) wxRAISED_BORDER;
+        return (int) wxBORDER_RAISED;
     }
-    EXPORT int expwxSTATIC_BORDER()
+    EXPORT int expwxBORDER_STATIC()
     {
-        return (int) wxSTATIC_BORDER;
+        return (int) wxBORDER_STATIC;
     }
-    EXPORT int expwxBORDER()
+    EXPORT int expwxBORDER_SIMPLE()
     {
-        return (int) wxBORDER;
-    }
-    EXPORT int expwxSIMPLE_BORDER()
-    {
-        return (int) wxSIMPLE_BORDER;
+        return (int) wxBORDER_SIMPLE;
     }
     EXPORT int expwxTRANSPARENT_WINDOW()
     {
         return (int) wxTRANSPARENT_WINDOW;
     }
-    EXPORT int expwxNO_BORDER()
+    EXPORT int expwxBORDER_NONE()
     {
-        return (int) wxNO_BORDER;
+        return (int) wxBORDER_NONE;
+    }
+    EXPORT int expwxBORDER_DEFAULT()
+    {
+        return (int) wxBORDER_DEFAULT;
     }
     EXPORT int expwxALWAYS_SHOW_SB()
     {
@@ -647,13 +647,13 @@ extern "C"
     {
         return (int) wxCAL_NO_MONTH_CHANGE;
     }
-    EXPORT int expwxICON_EXCLAMATION()
+    EXPORT int expwxICON_WARNING()
     {
-        return (int) wxICON_EXCLAMATION;
+        return (int) wxICON_WARNING;
     }
-    EXPORT int expwxICON_HAND()
+    EXPORT int expwxICON_ERROR()
     {
-        return (int) wxICON_HAND;
+        return (int) wxICON_ERROR;
     }
     EXPORT int expwxICON_QUESTION()
     {
@@ -911,69 +911,77 @@ extern "C"
     {
         return (int) wxSIZE_NO_ADJUSTMENTS;
     }
-    EXPORT int expwxSOLID()
+    EXPORT int expwxPENSTYLE_SOLID()
     {
-        return (int) wxSOLID;
+        return (int) wxPENSTYLE_SOLID;
     }
-    EXPORT int expwxDOT()
+    EXPORT int expwxPENSTYLE_DOT()
     {
-        return (int) wxDOT;
+        return (int) wxPENSTYLE_DOT;
     }
-    EXPORT int expwxLONG_DASH()
+    EXPORT int expwxPENSTYLE_LONG_DASH()
     {
-        return (int) wxLONG_DASH;
+        return (int) wxPENSTYLE_LONG_DASH;
     }
-    EXPORT int expwxSHORT_DASH()
+    EXPORT int expwxPENSTYLE_SHORT_DASH()
     {
-        return (int) wxSHORT_DASH;
+        return (int) wxPENSTYLE_SHORT_DASH;
     }
-    EXPORT int expwxDOT_DASH()
+    EXPORT int expwxPENSTYLE_DOT_DASH()
     {
-        return (int) wxDOT_DASH;
+        return (int) wxPENSTYLE_DOT_DASH;
     }
-    EXPORT int expwxUSER_DASH()
+    EXPORT int expwxPENSTYLE_USER_DASH()
     {
-        return (int) wxUSER_DASH;
+        return (int) wxPENSTYLE_USER_DASH;
     }
-    EXPORT int expwxTRANSPARENT()
+    EXPORT int expwxPENSTYLE_TRANSPARENT()
     {
-        return (int) wxTRANSPARENT;
+        return (int) wxPENSTYLE_TRANSPARENT;
     }
-    EXPORT int expwxSTIPPLE_MASK_OPAQUE()
+    EXPORT int expwxBRUSHSTYLE_TRANSPARENT()
     {
-        return (int) wxSTIPPLE_MASK_OPAQUE;
+        return (int) wxBRUSHSTYLE_TRANSPARENT;
     }
-    EXPORT int expwxSTIPPLE_MASK()
+    EXPORT int expwxPENSTYLE_STIPPLE_MASK_OPAQUE()
     {
-        return (int) wxSTIPPLE_MASK;
+        return (int) wxPENSTYLE_STIPPLE_MASK_OPAQUE;
     }
-    EXPORT int expwxSTIPPLE()
+    EXPORT int expwxPENSTYLE_STIPPLE_MASK()
     {
-        return (int) wxSTIPPLE;
+        return (int) wxPENSTYLE_STIPPLE_MASK;
     }
-    EXPORT int expwxBDIAGONAL_HATCH()
+    EXPORT int expwxPENSTYLE_STIPPLE()
     {
-        return (int) wxBDIAGONAL_HATCH;
+        return (int) wxPENSTYLE_STIPPLE;
     }
-    EXPORT int expwxCROSSDIAG_HATCH()
+    EXPORT int expwxBRUSHSTYLE_STIPPLE()
     {
-        return (int) wxCROSSDIAG_HATCH;
+        return (int) wxBRUSHSTYLE_STIPPLE;
     }
-    EXPORT int expwxFDIAGONAL_HATCH()
+    EXPORT int expwxHATCHSTYLE_BDIAGONAL()
     {
-        return (int) wxFDIAGONAL_HATCH;
+        return (int) wxHATCHSTYLE_BDIAGONAL;
     }
-    EXPORT int expwxCROSS_HATCH()
+    EXPORT int expwxHATCHSTYLE_CROSSDIAG()
     {
-        return (int) wxCROSS_HATCH;
+        return (int) wxHATCHSTYLE_CROSSDIAG;
     }
-    EXPORT int expwxHORIZONTAL_HATCH()
+    EXPORT int expwxHATCHSTYLE_FDIAGONAL()
     {
-        return (int) wxHORIZONTAL_HATCH;
+        return (int) wxHATCHSTYLE_FDIAGONAL;
     }
-    EXPORT int expwxVERTICAL_HATCH()
+    EXPORT int expwxHATCHSTYLE_CROSS()
     {
-        return (int) wxVERTICAL_HATCH;
+        return (int) wxHATCHSTYLE_CROSS;
+    }
+    EXPORT int expwxHATCHSTYLE_HORIZONTAL()
+    {
+        return (int) wxHATCHSTYLE_HORIZONTAL;
+    }
+    EXPORT int expwxHATCHSTYLE_VERTICAL()
+    {
+        return (int) wxHATCHSTYLE_VERTICAL;
     }
     EXPORT int expwxJOIN_BEVEL()
     {
@@ -2107,61 +2115,57 @@ extern "C"
     {
         return (int) wxTREE_HITTEST_ONITEM;
     }
-    EXPORT int expwxDEFAULT()
+    EXPORT int expwxFONTFAMILY_DEFAULT()
     {
-        return (int) wxDEFAULT;
+        return (int) wxFONTFAMILY_DEFAULT;
     }
-    EXPORT int expwxDECORATIVE()
+    EXPORT int expwxFONTFAMILY_DECORATIVE()
     {
-        return (int) wxDECORATIVE;
+        return (int) wxFONTFAMILY_DECORATIVE;
     }
-    EXPORT int expwxROMAN()
+    EXPORT int expwxFONTFAMILY_ROMAN()
     {
-        return (int) wxROMAN;
+        return (int) wxFONTFAMILY_ROMAN;
     }
-    EXPORT int expwxSCRIPT()
+    EXPORT int expwxFONTFAMILY_SCRIPT()
     {
-        return (int) wxSCRIPT;
+        return (int) wxFONTFAMILY_SCRIPT;
     }
-    EXPORT int expwxSWISS()
+    EXPORT int expwxFONTFAMILY_SWISS()
     {
-        return (int) wxSWISS;
+        return (int) wxFONTFAMILY_SWISS;
     }
-    EXPORT int expwxMODERN()
+    EXPORT int expwxFONTFAMILY_MODERN()
     {
-        return (int) wxMODERN;
+        return (int) wxFONTFAMILY_MODERN;
     }
-    EXPORT int expwxTELETYPE()
+    EXPORT int expwxFONTFAMILY_TELETYPE()
     {
-        return (int) wxTELETYPE;
+        return (int) wxFONTFAMILY_TELETYPE;
     }
-    EXPORT int expwxVARIABLE()
+    EXPORT int expwxFONTWEIGHT_NORMAL()
     {
-        return (int) wxVARIABLE;
+        return (int) wxFONTWEIGHT_NORMAL;
     }
-    EXPORT int expwxFIXED()
+    EXPORT int expwxFONTSTYLE_NORMAL()
     {
-        return (int) wxFIXED;
+        return (int) wxFONTSTYLE_NORMAL;
     }
-    EXPORT int expwxNORMAL()
+    EXPORT int expwxFONTWEIGHT_LIGHT()
     {
-        return (int) wxNORMAL;
+        return (int) wxFONTWEIGHT_LIGHT;
     }
-    EXPORT int expwxLIGHT()
+    EXPORT int expwxFONTWEIGHT_BOLD()
     {
-        return (int) wxLIGHT;
+        return (int) wxFONTWEIGHT_BOLD;
     }
-    EXPORT int expwxBOLD()
+    EXPORT int expwxFONTSTYLE_ITALIC()
     {
-        return (int) wxBOLD;
+        return (int) wxFONTSTYLE_ITALIC;
     }
-    EXPORT int expwxITALIC()
+    EXPORT int expwxFONTSTYLE_SLANT()
     {
-        return (int) wxITALIC;
-    }
-    EXPORT int expwxSLANT()
-    {
-        return (int) wxSLANT;
+        return (int) wxFONTSTYLE_SLANT;
     }
     EXPORT const wxColour* expwxBLACK()
     {
@@ -2860,81 +2864,81 @@ extern "C"
     {
         return (int) wxPLATFORM_MAC;
     }
-    EXPORT int expwxEVT_COMMAND_BUTTON_CLICKED()
+    EXPORT int expwxEVT_BUTTON()
     {
-        return (int) wxEVT_COMMAND_BUTTON_CLICKED;
+        return (int) wxEVT_BUTTON;
     }
-    EXPORT int expwxEVT_COMMAND_CHECKBOX_CLICKED()
+    EXPORT int expwxEVT_CHECKBOX()
     {
-        return (int) wxEVT_COMMAND_CHECKBOX_CLICKED;
+        return (int) wxEVT_CHECKBOX;
     }
-    EXPORT int expwxEVT_COMMAND_CHOICE_SELECTED()
+    EXPORT int expwxEVT_CHOICE()
     {
-        return (int) wxEVT_COMMAND_CHOICE_SELECTED;
+        return (int) wxEVT_CHOICE;
     }
-    EXPORT int expwxEVT_COMMAND_LISTBOX_SELECTED()
+    EXPORT int expwxEVT_LISTBOX()
     {
-        return (int) wxEVT_COMMAND_LISTBOX_SELECTED;
+        return (int) wxEVT_LISTBOX;
     }
-    EXPORT int expwxEVT_COMMAND_LISTBOX_DOUBLECLICKED()
+    EXPORT int expwxEVT_LISTBOX_DCLICK()
     {
-        return (int) wxEVT_COMMAND_LISTBOX_DOUBLECLICKED;
+        return (int) wxEVT_LISTBOX_DCLICK;
     }
-    EXPORT int expwxEVT_COMMAND_CHECKLISTBOX_TOGGLED()
+    EXPORT int expwxEVT_CHECKLISTBOX()
     {
-        return (int) wxEVT_COMMAND_CHECKLISTBOX_TOGGLED;
+        return (int) wxEVT_CHECKLISTBOX;
     }
-    EXPORT int expwxEVT_COMMAND_TEXT_UPDATED()
+    EXPORT int expwxEVT_TEXT()
     {
-        return (int) wxEVT_COMMAND_TEXT_UPDATED;
+        return (int) wxEVT_TEXT;
     }
-    EXPORT int expwxEVT_COMMAND_TEXT_ENTER()
+    EXPORT int expwxEVT_TEXT_ENTER()
     {
-        return (int) wxEVT_COMMAND_TEXT_ENTER;
+        return (int) wxEVT_TEXT_ENTER;
     }
-    EXPORT int expwxEVT_COMMAND_MENU_SELECTED()
+    EXPORT int expwxEVT_MENU()
     {
-        return (int) wxEVT_COMMAND_MENU_SELECTED;
+        return (int) wxEVT_MENU;
     }
-    EXPORT int expwxEVT_COMMAND_TOOL_CLICKED()
+    EXPORT int expwxEVT_TOOL()
     {
-        return (int) wxEVT_COMMAND_TOOL_CLICKED;
+        return (int) wxEVT_TOOL;
     }
-    EXPORT int expwxEVT_COMMAND_SLIDER_UPDATED()
+    EXPORT int expwxEVT_SLIDER()
     {
-        return (int) wxEVT_COMMAND_SLIDER_UPDATED;
+        return (int) wxEVT_SLIDER;
     }
-    EXPORT int expwxEVT_COMMAND_RADIOBOX_SELECTED()
+    EXPORT int expwxEVT_RADIOBOX()
     {
-        return (int) wxEVT_COMMAND_RADIOBOX_SELECTED;
+        return (int) wxEVT_RADIOBOX;
     }
-    EXPORT int expwxEVT_COMMAND_RADIOBUTTON_SELECTED()
+    EXPORT int expwxEVT_RADIOBUTTON()
     {
-        return (int) wxEVT_COMMAND_RADIOBUTTON_SELECTED;
+        return (int) wxEVT_RADIOBUTTON;
     }
-    EXPORT int expwxEVT_COMMAND_SCROLLBAR_UPDATED()
+    EXPORT int expwxEVT_SCROLLBAR()
     {
-        return (int) wxEVT_COMMAND_SCROLLBAR_UPDATED;
+        return (int) wxEVT_SCROLLBAR;
     }
-    EXPORT int expwxEVT_COMMAND_VLBOX_SELECTED()
+    EXPORT int expwxEVT_VLBOX()
     {
-        return (int) wxEVT_COMMAND_VLBOX_SELECTED;
+        return (int) wxEVT_VLBOX;
     }
-    EXPORT int expwxEVT_COMMAND_COMBOBOX_SELECTED()
+    EXPORT int expwxEVT_COMBOBOX()
     {
-        return (int) wxEVT_COMMAND_COMBOBOX_SELECTED;
+        return (int) wxEVT_COMBOBOX;
     }
-    EXPORT int expwxEVT_COMMAND_TOOL_RCLICKED()
+    EXPORT int expwxEVT_TOOL_RCLICKED()
     {
-        return (int) wxEVT_COMMAND_TOOL_RCLICKED;
+        return (int) wxEVT_TOOL_RCLICKED;
     }
-    EXPORT int expwxEVT_COMMAND_TOOL_ENTER()
+    EXPORT int expwxEVT_TOOL_ENTER()
     {
-        return (int) wxEVT_COMMAND_TOOL_ENTER;
+        return (int) wxEVT_TOOL_ENTER;
     }
-    EXPORT int expwxEVT_COMMAND_SPINCTRL_UPDATED()
+    EXPORT int expwxEVT_SPINCTRL()
     {
-        return (int) wxEVT_COMMAND_SPINCTRL_UPDATED;
+        return (int) wxEVT_SPINCTRL;
     }
     EXPORT int expwxEVT_SOCKET()
     {
@@ -3232,161 +3236,161 @@ extern "C"
     {
         return (int) wxEVT_COMMAND_ENTER;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_BEGIN_DRAG()
+    EXPORT int expwxEVT_TREE_BEGIN_DRAG()
     {
-        return (int) wxEVT_COMMAND_TREE_BEGIN_DRAG;
+        return (int) wxEVT_TREE_BEGIN_DRAG;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_BEGIN_RDRAG()
+    EXPORT int expwxEVT_TREE_BEGIN_RDRAG()
     {
-        return (int) wxEVT_COMMAND_TREE_BEGIN_RDRAG;
+        return (int) wxEVT_TREE_BEGIN_RDRAG;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT()
+    EXPORT int expwxEVT_TREE_BEGIN_LABEL_EDIT()
     {
-        return (int) wxEVT_COMMAND_TREE_BEGIN_LABEL_EDIT;
+        return (int) wxEVT_TREE_BEGIN_LABEL_EDIT;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_END_LABEL_EDIT()
+    EXPORT int expwxEVT_TREE_END_LABEL_EDIT()
     {
-        return (int) wxEVT_COMMAND_TREE_END_LABEL_EDIT;
+        return (int) wxEVT_TREE_END_LABEL_EDIT;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_DELETE_ITEM()
+    EXPORT int expwxEVT_TREE_DELETE_ITEM()
     {
-        return (int) wxEVT_COMMAND_TREE_DELETE_ITEM;
+        return (int) wxEVT_TREE_DELETE_ITEM;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_GET_INFO()
+    EXPORT int expwxEVT_TREE_GET_INFO()
     {
-        return (int) wxEVT_COMMAND_TREE_GET_INFO;
+        return (int) wxEVT_TREE_GET_INFO;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_SET_INFO()
+    EXPORT int expwxEVT_TREE_SET_INFO()
     {
-        return (int) wxEVT_COMMAND_TREE_SET_INFO;
+        return (int) wxEVT_TREE_SET_INFO;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_EXPANDED()
+    EXPORT int expwxEVT_TREE_ITEM_EXPANDED()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_EXPANDED;
+        return (int) wxEVT_TREE_ITEM_EXPANDED;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_EXPANDING()
+    EXPORT int expwxEVT_TREE_ITEM_EXPANDING()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_EXPANDING;
+        return (int) wxEVT_TREE_ITEM_EXPANDING;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_COLLAPSED()
+    EXPORT int expwxEVT_TREE_ITEM_COLLAPSED()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_COLLAPSED;
+        return (int) wxEVT_TREE_ITEM_COLLAPSED;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_COLLAPSING()
+    EXPORT int expwxEVT_TREE_ITEM_COLLAPSING()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_COLLAPSING;
+        return (int) wxEVT_TREE_ITEM_COLLAPSING;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_SEL_CHANGED()
+    EXPORT int expwxEVT_TREE_SEL_CHANGED()
     {
-        return (int) wxEVT_COMMAND_TREE_SEL_CHANGED;
+        return (int) wxEVT_TREE_SEL_CHANGED;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_SEL_CHANGING()
+    EXPORT int expwxEVT_TREE_SEL_CHANGING()
     {
-        return (int) wxEVT_COMMAND_TREE_SEL_CHANGING;
+        return (int) wxEVT_TREE_SEL_CHANGING;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_KEY_DOWN()
+    EXPORT int expwxEVT_TREE_KEY_DOWN()
     {
-        return (int) wxEVT_COMMAND_TREE_KEY_DOWN;
+        return (int) wxEVT_TREE_KEY_DOWN;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_ACTIVATED()
+    EXPORT int expwxEVT_TREE_ITEM_ACTIVATED()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_ACTIVATED;
+        return (int) wxEVT_TREE_ITEM_ACTIVATED;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK()
+    EXPORT int expwxEVT_TREE_ITEM_RIGHT_CLICK()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_RIGHT_CLICK;
+        return (int) wxEVT_TREE_ITEM_RIGHT_CLICK;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_ITEM_MIDDLE_CLICK()
+    EXPORT int expwxEVT_TREE_ITEM_MIDDLE_CLICK()
     {
-        return (int) wxEVT_COMMAND_TREE_ITEM_MIDDLE_CLICK;
+        return (int) wxEVT_TREE_ITEM_MIDDLE_CLICK;
     }
-    EXPORT int expwxEVT_COMMAND_TREE_END_DRAG()
+    EXPORT int expwxEVT_TREE_END_DRAG()
     {
-        return (int) wxEVT_COMMAND_TREE_END_DRAG;
+        return (int) wxEVT_TREE_END_DRAG;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_BEGIN_DRAG()
+    EXPORT int expwxEVT_LIST_BEGIN_DRAG()
     {
-        return (int) wxEVT_COMMAND_LIST_BEGIN_DRAG;
+        return (int) wxEVT_LIST_BEGIN_DRAG;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_BEGIN_RDRAG()
+    EXPORT int expwxEVT_LIST_BEGIN_RDRAG()
     {
-        return (int) wxEVT_COMMAND_LIST_BEGIN_RDRAG;
+        return (int) wxEVT_LIST_BEGIN_RDRAG;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT()
+    EXPORT int expwxEVT_LIST_BEGIN_LABEL_EDIT()
     {
-        return (int) wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT;
+        return (int) wxEVT_LIST_BEGIN_LABEL_EDIT;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_END_LABEL_EDIT()
+    EXPORT int expwxEVT_LIST_END_LABEL_EDIT()
     {
-        return (int) wxEVT_COMMAND_LIST_END_LABEL_EDIT;
+        return (int) wxEVT_LIST_END_LABEL_EDIT;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_DELETE_ITEM()
+    EXPORT int expwxEVT_LIST_DELETE_ITEM()
     {
-        return (int) wxEVT_COMMAND_LIST_DELETE_ITEM;
+        return (int) wxEVT_LIST_DELETE_ITEM;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_DELETE_ALL_ITEMS()
+    EXPORT int expwxEVT_LIST_DELETE_ALL_ITEMS()
     {
-        return (int) wxEVT_COMMAND_LIST_DELETE_ALL_ITEMS;
+        return (int) wxEVT_LIST_DELETE_ALL_ITEMS;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_SELECTED()
+    EXPORT int expwxEVT_LIST_ITEM_SELECTED()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_SELECTED;
+        return (int) wxEVT_LIST_ITEM_SELECTED;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_DESELECTED()
+    EXPORT int expwxEVT_LIST_ITEM_DESELECTED()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_DESELECTED;
+        return (int) wxEVT_LIST_ITEM_DESELECTED;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_KEY_DOWN()
+    EXPORT int expwxEVT_LIST_KEY_DOWN()
     {
-        return (int) wxEVT_COMMAND_LIST_KEY_DOWN;
+        return (int) wxEVT_LIST_KEY_DOWN;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_INSERT_ITEM()
+    EXPORT int expwxEVT_LIST_INSERT_ITEM()
     {
-        return (int) wxEVT_COMMAND_LIST_INSERT_ITEM;
+        return (int) wxEVT_LIST_INSERT_ITEM;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_COL_CLICK()
+    EXPORT int expwxEVT_LIST_COL_CLICK()
     {
-        return (int) wxEVT_COMMAND_LIST_COL_CLICK;
+        return (int) wxEVT_LIST_COL_CLICK;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK()
+    EXPORT int expwxEVT_LIST_ITEM_RIGHT_CLICK()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_RIGHT_CLICK;
+        return (int) wxEVT_LIST_ITEM_RIGHT_CLICK;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK()
+    EXPORT int expwxEVT_LIST_ITEM_MIDDLE_CLICK()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_MIDDLE_CLICK;
+        return (int) wxEVT_LIST_ITEM_MIDDLE_CLICK;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_ACTIVATED()
+    EXPORT int expwxEVT_LIST_ITEM_ACTIVATED()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_ACTIVATED;
+        return (int) wxEVT_LIST_ITEM_ACTIVATED;
     }
-    EXPORT int expwxEVT_COMMAND_LIST_ITEM_FOCUSED()
+    EXPORT int expwxEVT_LIST_ITEM_FOCUSED()
     {
-        return (int) wxEVT_COMMAND_LIST_ITEM_FOCUSED;
+        return (int) wxEVT_LIST_ITEM_FOCUSED;
     }
-    EXPORT int expwxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED()
+    EXPORT int expwxEVT_NOTEBOOK_PAGE_CHANGED()
     {
-        return (int) wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED;
+        return (int) wxEVT_NOTEBOOK_PAGE_CHANGED;
     }
-    EXPORT int expwxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING()
+    EXPORT int expwxEVT_NOTEBOOK_PAGE_CHANGING()
     {
-        return (int) wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING;
+        return (int) wxEVT_NOTEBOOK_PAGE_CHANGING;
     }
-    EXPORT int expwxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED()
+    EXPORT int expwxEVT_SPLITTER_SASH_POS_CHANGED()
     {
-        return (int) wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED;
+        return (int) wxEVT_SPLITTER_SASH_POS_CHANGED;
     }
-    EXPORT int expwxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING()
+    EXPORT int expwxEVT_SPLITTER_SASH_POS_CHANGING()
     {
-        return (int) wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGING;
+        return (int) wxEVT_SPLITTER_SASH_POS_CHANGING;
     }
-    EXPORT int expwxEVT_COMMAND_SPLITTER_DOUBLECLICKED()
+    EXPORT int expwxEVT_SPLITTER_DOUBLECLICKED()
     {
-        return (int) wxEVT_COMMAND_SPLITTER_DOUBLECLICKED;
+        return (int) wxEVT_SPLITTER_DOUBLECLICKED;
     }
-    EXPORT int expwxEVT_COMMAND_SPLITTER_UNSPLIT()
+    EXPORT int expwxEVT_SPLITTER_UNSPLIT()
     {
-        return (int) wxEVT_COMMAND_SPLITTER_UNSPLIT;
+        return (int) wxEVT_SPLITTER_UNSPLIT;
     }
     EXPORT int expwxEVT_WIZARD_PAGE_CHANGED()
     {
@@ -5554,5 +5558,202 @@ extern "C"
     EXPORT wxString* expwxART_FIND_AND_REPLACE()
     {
         return new wxString((const char*) wxART_FIND_AND_REPLACE);
+    }
+
+    // ---- Checkbox styles and states ----
+
+    EXPORT int expwxCHK_2STATE()
+    {
+        return (int) wxCHK_2STATE;
+    }
+    EXPORT int expwxCHK_3STATE()
+    {
+        return (int) wxCHK_3STATE;
+    }
+    EXPORT int expwxCHK_ALLOW_3RD_STATE_FOR_USER()
+    {
+        return (int) wxCHK_ALLOW_3RD_STATE_FOR_USER;
+    }
+    EXPORT int expwxCHK_UNCHECKED()
+    {
+        return (int) wxCHK_UNCHECKED;
+    }
+    EXPORT int expwxCHK_CHECKED()
+    {
+        return (int) wxCHK_CHECKED;
+    }
+    EXPORT int expwxCHK_UNDETERMINED()
+    {
+        return (int) wxCHK_UNDETERMINED;
+    }
+
+    // ---- FileDialog styles ----
+
+    EXPORT int expwxFD_OPEN()
+    {
+        return (int) wxFD_OPEN;
+    }
+    EXPORT int expwxFD_SAVE()
+    {
+        return (int) wxFD_SAVE;
+    }
+    EXPORT int expwxFD_OVERWRITE_PROMPT()
+    {
+        return (int) wxFD_OVERWRITE_PROMPT;
+    }
+    EXPORT int expwxFD_NO_FOLLOW()
+    {
+        return (int) wxFD_NO_FOLLOW;
+    }
+    EXPORT int expwxFD_FILE_MUST_EXIST()
+    {
+        return (int) wxFD_FILE_MUST_EXIST;
+    }
+    EXPORT int expwxFD_CHANGE_DIR()
+    {
+        return (int) wxFD_CHANGE_DIR;
+    }
+    EXPORT int expwxFD_PREVIEW()
+    {
+        return (int) wxFD_PREVIEW;
+    }
+    EXPORT int expwxFD_MULTIPLE()
+    {
+        return (int) wxFD_MULTIPLE;
+    }
+    EXPORT int expwxFD_SHOW_HIDDEN()
+    {
+        return (int) wxFD_SHOW_HIDDEN;
+    }
+    EXPORT int expwxFD_DEFAULT_STYLE()
+    {
+        return (int) wxFD_DEFAULT_STYLE;
+    }
+
+    // ---- DirDialog styles ----
+
+    EXPORT int expwxDD_DEFAULT_STYLE()
+    {
+        return (int) wxDD_DEFAULT_STYLE;
+    }
+    EXPORT int expwxDD_CHANGE_DIR()
+    {
+        return (int) wxDD_CHANGE_DIR;
+    }
+    EXPORT int expwxDD_DIR_MUST_EXIST()
+    {
+        return (int) wxDD_DIR_MUST_EXIST;
+    }
+    EXPORT int expwxDD_MULTIPLE()
+    {
+        return (int) wxDD_MULTIPLE;
+    }
+    EXPORT int expwxDD_SHOW_HIDDEN()
+    {
+        return (int) wxDD_SHOW_HIDDEN;
+    }
+
+    // ---- Frame/TopLevel styles ----
+
+    EXPORT int expwxFRAME_NO_TASKBAR()
+    {
+        return (int) wxFRAME_NO_TASKBAR;
+    }
+
+    // ---- Extended font weights (new in 3.x) ----
+
+    EXPORT int expwxFONTWEIGHT_INVALID()
+    {
+        return (int) wxFONTWEIGHT_INVALID;
+    }
+    EXPORT int expwxFONTWEIGHT_THIN()
+    {
+        return (int) wxFONTWEIGHT_THIN;
+    }
+    EXPORT int expwxFONTWEIGHT_EXTRALIGHT()
+    {
+        return (int) wxFONTWEIGHT_EXTRALIGHT;
+    }
+    EXPORT int expwxFONTWEIGHT_MEDIUM()
+    {
+        return (int) wxFONTWEIGHT_MEDIUM;
+    }
+    EXPORT int expwxFONTWEIGHT_SEMIBOLD()
+    {
+        return (int) wxFONTWEIGHT_SEMIBOLD;
+    }
+    EXPORT int expwxFONTWEIGHT_EXTRABOLD()
+    {
+        return (int) wxFONTWEIGHT_EXTRABOLD;
+    }
+    EXPORT int expwxFONTWEIGHT_HEAVY()
+    {
+        return (int) wxFONTWEIGHT_HEAVY;
+    }
+    EXPORT int expwxFONTWEIGHT_EXTRAHEAVY()
+    {
+        return (int) wxFONTWEIGHT_EXTRAHEAVY;
+    }
+    EXPORT int expwxFONTWEIGHT_MAX()
+    {
+        return (int) wxFONTWEIGHT_MAX;
+    }
+
+    // ---- Brush styles ----
+
+    EXPORT int expwxBRUSHSTYLE_INVALID()
+    {
+        return (int) wxBRUSHSTYLE_INVALID;
+    }
+    EXPORT int expwxBRUSHSTYLE_SOLID()
+    {
+        return (int) wxBRUSHSTYLE_SOLID;
+    }
+    EXPORT int expwxBRUSHSTYLE_STIPPLE_MASK_OPAQUE()
+    {
+        return (int) wxBRUSHSTYLE_STIPPLE_MASK_OPAQUE;
+    }
+    EXPORT int expwxBRUSHSTYLE_STIPPLE_MASK()
+    {
+        return (int) wxBRUSHSTYLE_STIPPLE_MASK;
+    }
+    EXPORT int expwxBRUSHSTYLE_BDIAGONAL_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_BDIAGONAL_HATCH;
+    }
+    EXPORT int expwxBRUSHSTYLE_CROSSDIAG_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_CROSSDIAG_HATCH;
+    }
+    EXPORT int expwxBRUSHSTYLE_FDIAGONAL_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_FDIAGONAL_HATCH;
+    }
+    EXPORT int expwxBRUSHSTYLE_CROSS_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_CROSS_HATCH;
+    }
+    EXPORT int expwxBRUSHSTYLE_HORIZONTAL_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_HORIZONTAL_HATCH;
+    }
+    EXPORT int expwxBRUSHSTYLE_VERTICAL_HATCH()
+    {
+        return (int) wxBRUSHSTYLE_VERTICAL_HATCH;
+    }
+
+    // ---- Pen style additions ----
+
+    EXPORT int expwxPENSTYLE_INVALID()
+    {
+        return (int) wxPENSTYLE_INVALID;
+    }
+    EXPORT int expwxPENSTYLE_FIRST_HATCH()
+    {
+        return (int) wxPENSTYLE_FIRST_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_LAST_HATCH()
+    {
+        return (int) wxPENSTYLE_LAST_HATCH;
     }
 }
