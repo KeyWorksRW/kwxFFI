@@ -2,10 +2,10 @@
 
 extern "C"
 {
-    EXPORT wxSimplebook* wxSimplebook_Create(wxWindow* parent, int id, int x, int y, int w, int h,
+    EXPORT wxSimplebook* wxSimplebook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
                                              int style)
     {
-        return new wxSimplebook(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxSimplebook(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT int wxSimplebook_GetPageCount(wxSimplebook* self)

@@ -3,10 +3,11 @@
 extern "C"
 {
     EXPORT void* wxTextEntryDialog_Create(wxWindow* parent, wxString* message, wxString* caption,
-                                          wxString* defaultValue, long style, int x, int y)
+                                          wxString* defaultValue, long style, int x, int y,
+                                          int sz_w, int sz_h)
     {
         return new wxTextEntryDialog(parent, *message, *caption, *defaultValue, style,
-                                     wxPoint(x, y));
+                                     wxPoint(x, y), wxSize(sz_w, sz_h));
     }
 
     EXPORT wxString* wxTextEntryDialog_GetValue(wxTextEntryDialog* self)

@@ -3,12 +3,12 @@
 extern "C"
 {
     EXPORT void* wxWizard_Create(wxWindow* parent, int id, wxString* title, wxBitmap* bitmap, int x,
-                                 int y, int width, int height)
+                                 int y, int width, int height, long style)
     {
         wxBitmap bmp = wxNullBitmap;
         if (bitmap)
             bmp = *bitmap;
-        return (void*) new wxWizard(parent, id, *title, bmp, wxPoint(x, y));
+        return (void*) new wxWizard(parent, id, *title, bmp, wxPoint(x, y), style);
     }
 
     EXPORT bool wxWizard_RunWizard(wxWizard* self, wxWizardPage* firstPage)
@@ -21,26 +21,30 @@ extern "C"
         return (void*) self->GetCurrentPage();
     }
 
-    EXPORT void wxWizard_Chain(void* f, void* s)
+    EXPORT void wxWizard_Chain(void* first, void* second)
     {
-        wxWizardPageSimple::Chain((wxWizardPageSimple*) f, (wxWizardPageSimple*) s);
+        wxWizardPageSimple::Chain((wxWizardPageSimple*) first, (wxWizardPageSimple*) second);
     }
 
-    EXPORT void wxWizard_SetPageSize(wxWizard* self, int w, int h)
+    EXPORT void wxWizard_SetPageSize(wxWizard* self, int width, int height)
     {
-        self->SetPageSize(wxSize(w, h));
+        self->SetPageSize(wxSize(width, height));
     }
 
     EXPORT wxSize* wxWizard_GetPageSize(wxWizard* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetPageSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetPageSize();
+        return text;
     }
 
-    EXPORT void* wxWizardPageSimple_Create(wxWizard* _prt)
+    EXPORT void* wxWizardPageSimple_Create(wxWizard* parent, wxWizardPage* prev, wxWizardPage* next,
+                                           wxBitmap* bitmap)
     {
-        return (void*) new wxWizardPageSimple(_prt);
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return (void*) new wxWizardPageSimple(parent, prev, next, bmp);
     }
 
     EXPORT void* wxWizardPageSimple_GetPrev(void* self)

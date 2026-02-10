@@ -3,21 +3,21 @@
 
 extern "C"
 {
-    typedef void* (*TCreateBmp)(void* _obj, void* id, void* clt, int w, int h);
+    typedef void* (*TCreateBmp)(void* pObject, void* id, void* clt, int width, int height);
 }
 
 class kwxArtProv : public wxArtProvider
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCreateBmp cb;
 
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client, const wxSize& size)
     {
-        if (EiffelObject)
+        if (kwxObject)
         {
-            void* res = cb(EiffelObject, (void*) id.wchar_str(), (void*) client.wchar_str(),
+            void* res = cb(kwxObject, (void*) id.wchar_str(), (void*) client.wchar_str(),
                            size.GetWidth(), size.GetHeight());
 
             if (res)
@@ -31,21 +31,21 @@ protected:
 public:
     kwxArtProv(void* obj, void* clb)
     {
-        EiffelObject = obj;
+        kwxObject = obj;
         cb = (TCreateBmp) clb;
     };
     void Release()
     {
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
         cb = nullptr;
     };
 };
 
 extern "C"
 {
-    EXPORT void* kwxArtProv_Create(void* _obj, void* _clb)
+    EXPORT void* kwxArtProv_Create(void* pObject, void* callback)
     {
-        return (void*) new kwxArtProv(_obj, _clb);
+        return (void*) new kwxArtProv(pObject, callback);
     }
 
     EXPORT void kwxArtProv_Release(kwxArtProv* self)

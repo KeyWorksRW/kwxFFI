@@ -25,12 +25,12 @@ extern "C"
       GLCanvas
     -----------------------------------------------------------------------------*/
     EXPORT wxGLCanvas* wxGLCanvas_Create(wxWindow* parent, int windowID, int* attributes, int x,
-                                         int y, int w,
-                                         int h,  // TRect
+                                         int y, int width,
+                                         int height,  // TRect
                                          int style, wxString* title, wxPalette* palette)
     {
 #ifdef wxUSE_GLCANVAS
-        return new wxGLCanvas(parent, windowID, attributes, wxPoint(x, y), wxSize(w, h), style,
+        return new wxGLCanvas(parent, windowID, attributes, wxPoint(x, y), wxSize(width, height), style,
                               (title ? *title : wxString("GLCanvas")),
                               (palette ? *palette : wxNullPalette));
 #else

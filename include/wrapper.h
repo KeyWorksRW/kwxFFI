@@ -118,45 +118,47 @@
 
 extern "C"
 {
-    typedef void(_cdecl* ClosureFun)(void* _fun, void* _data, void* _evt);
+    typedef void(_cdecl* ClosureFun)(void* closureFun, void* data, void* event);
 
     typedef bool(_cdecl* AppInitFunc)(void);
 
-    typedef void(_cdecl* EiffelFunc)(void* _obj, void* _evt);
-    typedef int(_cdecl* TextDropFunc)(void* _obj, long x, long y, void* _txt);
-    typedef int(_cdecl* FileDropFunc)(void* _obj, long x, long y, void* _fle, int _cnt);
-    typedef void(_cdecl* DragZeroFunc)(void* _obj);
-    typedef int(_cdecl* DragTwoFunc)(void* _obj, long x, long y);
-    typedef int(_cdecl* DragThreeFunc)(void* _obj, long x, long y, int def);
+    typedef void(_cdecl* kwxFunc)(void* pObject, void* event);
+    typedef int(_cdecl* TextDropFunc)(void* pObject, long x, long y, void* text);
+    typedef int(_cdecl* FileDropFunc)(void* pObject, long x, long y, void* files, int count);
+    typedef void(_cdecl* DragZeroFunc)(void* pObject);
+    typedef int(_cdecl* DragTwoFunc)(void* pObject, long x, long y);
+    typedef int(_cdecl* DragThreeFunc)(void* pObject, long x, long y, int def);
 
-    typedef void*(_cdecl* TGetText)(void* _obj, void* _txt);
+    typedef void*(_cdecl* TGetText)(void* pObject, void* text);
 
-    typedef int(_cdecl* DataGetDataSize)(void* _obj);
-    typedef int(_cdecl* DataGetDataHere)(void* _obj, void* _buf);
-    typedef int(_cdecl* DataSetData)(void* _obj, int _size, const void* _buf);
+    typedef int(_cdecl* DataGetDataSize)(void* pObject);
+    typedef int(_cdecl* DataGetDataHere)(void* pObject, void* buffer);
+    typedef int(_cdecl* DataSetData)(void* pObject, int size, const void* buffer);
 
-    typedef int(_cdecl* ValidateFunc)(void* _obj);
+    typedef int(_cdecl* ValidateFunc)(void* pObject);
 
-    typedef int(_cdecl* TCPAdviseFunc)(void* _obj, void* _topic, void* _item, void* _data,
-                                       int _size, int _fmt);
-    typedef int(_cdecl* TCPExecuteFunc)(void* _obj, void* _topic, void* _data, int _size, int _fmt);
-    typedef char*(_cdecl* TCPRequestFunc)(void* _obj, void* _topic, void* _item, void* _size,
-                                          int _fmt);
-    typedef int(_cdecl* TCPPokeFunc)(void* _obj, void* _topic, void* _item, void* _data, int _size,
-                                     int _fmt);
-    typedef int(_cdecl* TCPStartAdviseFunc)(void* _obj, void* _topic, void* _item);
-    typedef int(_cdecl* TCPStopAdviseFunc)(void* _obj, void* _topic, void* _item);
-    typedef void*(_cdecl* TCPOnConnection)(void* _obj, void* _cnt);
-    typedef int(_cdecl* TCPOnDisconnect)(void* _obj);
+    typedef int(_cdecl* TCPAdviseFunc)(void* pObject, void* topic, void* item, void* data, int size,
+                                       int format);
+    typedef int(_cdecl* TCPExecuteFunc)(void* pObject, void* topic, void* data, int size,
+                                        int format);
+    typedef char*(_cdecl* TCPRequestFunc)(void* pObject, void* topic, void* item, void* size,
+                                          int format);
+    typedef int(_cdecl* TCPPokeFunc)(void* pObject, void* topic, void* item, void* data, int size,
+                                     int format);
+    typedef int(_cdecl* TCPStartAdviseFunc)(void* pObject, void* topic, void* item);
+    typedef int(_cdecl* TCPStopAdviseFunc)(void* pObject, void* topic, void* item);
+    typedef void*(_cdecl* TCPOnConnection)(void* pObject, void* count);
+    typedef int(_cdecl* TCPOnDisconnect)(void* pObject);
 
-    typedef int(_cdecl* PrintBeginDocument)(void* _obj, int _start, int _end);
-    typedef void(_cdecl* PrintCommon)(void* _obj);
-    typedef int(_cdecl* PrintBeginPage)(void* _obj, int _page);
-    typedef void(_cdecl* PrintPageInfo)(void* _obj, int* _min, int* _max, int* _from, int* _to);
+    typedef int(_cdecl* PrintBeginDocument)(void* pObject, int start, int endVal);
+    typedef void(_cdecl* PrintCommon)(void* pObject);
+    typedef int(_cdecl* PrintBeginPage)(void* pObject, int page);
+    typedef void(_cdecl* PrintPageInfo)(void* pObject, int* minVal, int* maxVal, int* from,
+                                        int* to);
 
-    typedef int(_cdecl* PreviewFrameFunc)(void* _obj);
+    typedef int(_cdecl* PreviewFrameFunc)(void* pObject);
 
-    typedef int(_cdecl* TreeCompareFunc)(void* _obj, void* _itm1, void* _itm2);
+    typedef int(_cdecl* TreeCompareFunc)(void* pObject, void* item1, void* item2);
 }
 
 // Miscellaneous helper functions
@@ -219,7 +221,7 @@ public:
 class kwxDataObject : public wxObject
 {
 public:
-    kwxDataObject(void* _data) : wxObject() { data = _data; };
+    kwxDataObject(void* data) : wxObject() { data = data; };
     void* data;
 };
 
@@ -234,14 +236,14 @@ private:
     void* obj;
 
 public:
-    kwxDropTarget(void* _obj) : wxDropTarget()
+    kwxDropTarget(void* pObject) : wxDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
         on_enter_func = nullptr;
         on_drag_func = nullptr;
         on_leave_func = nullptr;
-        obj = _obj;
+        obj = pObject;
     };
     wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def);
     bool OnDrop(wxCoord x, wxCoord y);
@@ -249,11 +251,11 @@ public:
     wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def);
     void OnLeave();
 
-    void SetOnData(DragThreeFunc _func) { on_data_func = _func; };
-    void SetOnDrop(DragTwoFunc _func) { on_drop_func = _func; };
-    void SetOnEnter(DragThreeFunc _func) { on_enter_func = _func; };
-    void SetOnDragOver(DragThreeFunc _func) { on_drag_func = _func; };
-    void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
+    void SetOnData(DragThreeFunc pFunction) { on_data_func = pFunction; };
+    void SetOnDrop(DragTwoFunc pFunction) { on_drop_func = pFunction; };
+    void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
+    void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
+    void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
 };
 
 class kwxDragDataObject : public wxDataObjectSimple
@@ -265,13 +267,14 @@ private:
     DataSetData OnSetData;
 
 public:
-    kwxDragDataObject(void* _obj, const wxString& _fmt, DataGetDataSize _func1,
-                      DataGetDataHere _func2, DataSetData _func3) : wxDataObjectSimple(_fmt)
+    kwxDragDataObject(void* pObject, const wxString& format, DataGetDataSize fnGetDataSize,
+                      DataGetDataHere fnGetDataHere, DataSetData fnSetData) :
+        wxDataObjectSimple(format)
     {
-        obj = _obj;
-        OnGetDataSize = _func1;
-        OnGetDataHere = _func2;
-        OnSetData = _func3;
+        obj = pObject;
+        OnGetDataSize = fnGetDataSize;
+        OnGetDataHere = fnGetDataHere;
+        OnSetData = fnSetData;
     }
     size_t GetDataSize() const { return (size_t) OnGetDataSize(obj); }
     bool GetDataHere(void* buf) const { return OnGetDataHere(obj, buf) != 0; }
@@ -290,15 +293,15 @@ private:
     void* obj;
 
 public:
-    kwxTextDropTarget(void* _obj, TextDropFunc _func) : wxTextDropTarget()
+    kwxTextDropTarget(void* pObject, TextDropFunc pFunction) : wxTextDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
         on_enter_func = nullptr;
         on_drag_func = nullptr;
         on_leave_func = nullptr;
-        func = _func;
-        obj = _obj;
+        func = pFunction;
+        obj = pObject;
     };
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& text);
@@ -309,11 +312,11 @@ public:
     wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def);
     void OnLeave();
 
-    void SetOnData(DragThreeFunc _func) { on_data_func = _func; };
-    void SetOnDrop(DragTwoFunc _func) { on_drop_func = _func; };
-    void SetOnEnter(DragThreeFunc _func) { on_enter_func = _func; };
-    void SetOnDragOver(DragThreeFunc _func) { on_drag_func = _func; };
-    void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
+    void SetOnData(DragThreeFunc pFunction) { on_data_func = pFunction; };
+    void SetOnDrop(DragTwoFunc pFunction) { on_drop_func = pFunction; };
+    void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
+    void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
+    void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
 };
 
 class kwxFileDropTarget : public wxFileDropTarget
@@ -328,15 +331,15 @@ private:
     void* obj;
 
 public:
-    kwxFileDropTarget(void* _obj, FileDropFunc _func) : wxFileDropTarget()
+    kwxFileDropTarget(void* pObject, FileDropFunc pFunction) : wxFileDropTarget()
     {
         on_data_func = nullptr;
         on_drop_func = nullptr;
         on_enter_func = nullptr;
         on_drag_func = nullptr;
         on_leave_func = nullptr;
-        func = _func;
-        obj = _obj;
+        func = pFunction;
+        obj = pObject;
     };
 
     virtual bool OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames);
@@ -347,21 +350,22 @@ public:
     wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def);
     void OnLeave();
 
-    void SetOnData(DragThreeFunc _func) { on_data_func = _func; };
-    void SetOnDrop(DragTwoFunc _func) { on_drop_func = _func; };
-    void SetOnEnter(DragThreeFunc _func) { on_enter_func = _func; };
-    void SetOnDragOver(DragThreeFunc _func) { on_drag_func = _func; };
-    void SetOnLeave(DragZeroFunc _func) { on_leave_func = _func; };
+    void SetOnData(DragThreeFunc pFunction) { on_data_func = pFunction; };
+    void SetOnDrop(DragTwoFunc pFunction) { on_drop_func = pFunction; };
+    void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
+    void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
+    void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
 };
 
 class kwxTextValidator : public wxTextValidator
 {
 public:
-    kwxTextValidator(void* _obj, void* _fnc, void* _txt, long _stl) : wxTextValidator(_stl, &buf)
+    kwxTextValidator(void* pObject, void* pFunction, void* text, long style) :
+        wxTextValidator(style, &buf)
     {
-        obj = _obj;
-        fnc = (ValidateFunc) _fnc;
-        buf = (const char*) _txt;
+        obj = pObject;
+        fnc = (ValidateFunc) pFunction;
+        buf = (const char*) text;
     };
 
     kwxTextValidator(const kwxTextValidator& other)
@@ -373,7 +377,7 @@ public:
     };
 
     virtual wxObject* Clone(void) const { return new kwxTextValidator(*this); }
-    virtual bool Validate(wxWindow* _prt);
+    virtual bool Validate(wxWindow* parent);
 
 private:
     wxString buf;
@@ -391,7 +395,7 @@ private:
     TCPStartAdviseFunc DoOnStartAdvise;
     TCPStopAdviseFunc DoOnStopAdvise;
     TCPOnDisconnect DoOnDisconnect;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxConnection() : wxTCPConnection()
@@ -403,10 +407,10 @@ public:
         DoOnStartAdvise = nullptr;
         DoOnStopAdvise = nullptr;
         DoOnDisconnect = nullptr;
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
     }
 
-    kwxConnection(char* _buf, int _sze) : wxTCPConnection(_buf, _sze)
+    kwxConnection(char* buffer, int size) : wxTCPConnection(buffer, size)
     {
         DoOnAdvise = nullptr;
         DoOnExecute = nullptr;
@@ -415,21 +419,21 @@ public:
         DoOnStartAdvise = nullptr;
         DoOnStopAdvise = nullptr;
         DoOnDisconnect = nullptr;
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
     }
 
-    void SetOnAdvise(void* _fnc) { DoOnAdvise = (TCPAdviseFunc) _fnc; };
-    void SetOnExecute(void* _fnc) { DoOnExecute = (TCPExecuteFunc) _fnc; };
-    void SetOnRequest(void* _fnc) { DoOnRequest = (TCPRequestFunc) _fnc; };
-    void SetOnPoke(void* _fnc) { DoOnPoke = (TCPPokeFunc) _fnc; };
-    void SetOnStartAdvise(void* _fnc) { DoOnStartAdvise = (TCPStartAdviseFunc) _fnc; };
-    void SetOnStopAdvise(void* _fnc) { DoOnStopAdvise = (TCPStopAdviseFunc) _fnc; };
-    void SetOnDisconnect(void* _fnc) { DoOnDisconnect = (TCPOnDisconnect) _fnc; };
-    void SetEiffelObject(void* _obj) { EiffelObject = _obj; };
+    void SetOnAdvise(void* pFunction) { DoOnAdvise = (TCPAdviseFunc) pFunction; };
+    void SetOnExecute(void* pFunction) { DoOnExecute = (TCPExecuteFunc) pFunction; };
+    void SetOnRequest(void* pFunction) { DoOnRequest = (TCPRequestFunc) pFunction; };
+    void SetOnPoke(void* pFunction) { DoOnPoke = (TCPPokeFunc) pFunction; };
+    void SetOnStartAdvise(void* pFunction) { DoOnStartAdvise = (TCPStartAdviseFunc) pFunction; };
+    void SetOnStopAdvise(void* pFunction) { DoOnStopAdvise = (TCPStopAdviseFunc) pFunction; };
+    void SetOnDisconnect(void* pFunction) { DoOnDisconnect = (TCPOnDisconnect) pFunction; };
+    void SetEiffelObject(void* pObject) { kwxObject = pObject; };
 
     virtual bool OnExecute(const wxString& topic, char* data, int size, wxIPCFormat format)
     {
-        return DoOnExecute ? DoOnExecute(EiffelObject, (void*) topic.utf8_str().data(), data, size,
+        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_str().data(), data, size,
                                          (int) format) != 0 :
                              FALSE;
     };
@@ -438,7 +442,7 @@ public:
                             wxIPCFormat format)
     {
         return DoOnRequest ?
-                   DoOnRequest(EiffelObject, (void*) topic.utf8_str().data(),
+                   DoOnRequest(kwxObject, (void*) topic.utf8_str().data(),
                                (void*) item.utf8_str().data(), (void*) size, (int) format) :
                    (char*) nullptr;
     };
@@ -446,21 +450,21 @@ public:
     virtual bool OnPoke(const wxString& topic, const wxString& item, char* data, int size,
                         wxIPCFormat format)
     {
-        return DoOnPoke ? DoOnPoke(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnPoke ? DoOnPoke(kwxObject, (void*) topic.utf8_str().data(),
                                    (void*) item.utf8_str().data(), data, size, (int) format) :
                           FALSE;
     };
 
     virtual bool OnStartAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStartAdvise ? DoOnStartAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnStartAdvise ? DoOnStartAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                                  (void*) item.utf8_str().data()) :
                                  FALSE;
     };
 
     virtual bool OnStopAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStopAdvise ? DoOnStopAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnStopAdvise ? DoOnStopAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                                (void*) item.utf8_str().data()) :
                                 FALSE;
     };
@@ -468,34 +472,34 @@ public:
     virtual bool OnAdvise(const wxString& topic, const wxString& item, char* data, int size,
                           wxIPCFormat format)
     {
-        return DoOnAdvise ? DoOnAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnAdvise ? DoOnAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                        (void*) item.utf8_str().data(), data, size, (int) format) :
                             FALSE;
     };
 
     virtual bool OnDisconnect()
     {
-        return DoOnDisconnect ? DoOnDisconnect(EiffelObject) : wxTCPConnection::OnDisconnect();
+        return DoOnDisconnect ? DoOnDisconnect(kwxObject) : wxTCPConnection::OnDisconnect();
     };
 };
 
 class kwxServer : public wxTCPServer
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCPOnConnection DoOnConnect;
 
 public:
-    kwxServer(void* _obj, void* _fnc) : wxTCPServer()
+    kwxServer(void* pObject, void* pFunction) : wxTCPServer()
     {
-        EiffelObject = _obj;
-        DoOnConnect = (TCPOnConnection) _fnc;
+        kwxObject = pObject;
+        DoOnConnect = (TCPOnConnection) pFunction;
     };
 
     virtual wxConnectionBase* OnAcceptConnection(const wxString& topic)
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
+        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -503,20 +507,20 @@ public:
 class kwxClient : public wxTCPClient
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCPOnConnection DoOnConnect;
 
 public:
-    kwxClient(void* _obj, void* _fnc) : wxTCPClient()
+    kwxClient(void* pObject, void* pFunction) : wxTCPClient()
     {
-        EiffelObject = _obj;
-        DoOnConnect = (TCPOnConnection) _fnc;
+        kwxObject = pObject;
+        DoOnConnect = (TCPOnConnection) pFunction;
     };
 
     virtual wxConnectionBase* OnMakeConnection()
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
+        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -524,7 +528,7 @@ public:
 class kwxPrintout : public wxPrintout
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     PrintBeginDocument DoOnBeginDocument;
     PrintCommon DoOnEndDocument;
     PrintCommon DoOnBeginPrinting;
@@ -535,97 +539,97 @@ private:
     PrintPageInfo DoOnPageInfo;
 
 public:
-    kwxPrintout(void* title, void* _obj, void* _DoOnBeginDocument, void* _DoOnEndDocument,
-                void* _DoOnBeginPrinting, void* _DoOnEndPrinting, void* _DoOnPreparePrinting,
-                void* _DoOnPrintPage, void* _DoOnHasPage, void* _DoOnPageInfo) :
+    kwxPrintout(void* title, void* pObject, void* fnBeginDocument, void* fnEndDocument,
+                void* fnBeginPrinting, void* fnEndPrinting, void* fnPreparePrinting,
+                void* fnPrintPage, void* fnHasPage, void* fnPageInfo) :
         wxPrintout((const char*) title)
     {
-        EiffelObject = _obj;
-        DoOnBeginDocument = (PrintBeginDocument) _DoOnBeginDocument;
-        DoOnEndDocument = (PrintCommon) _DoOnEndDocument;
-        DoOnBeginPrinting = (PrintCommon) _DoOnBeginPrinting;
-        DoOnEndPrinting = (PrintCommon) _DoOnEndPrinting;
-        DoOnPreparePrinting = (PrintCommon) _DoOnPreparePrinting;
-        DoOnPrintPage = (PrintBeginPage) _DoOnPrintPage;
-        DoOnHasPage = (PrintBeginPage) _DoOnHasPage;
-        DoOnPageInfo = (PrintPageInfo) _DoOnPageInfo;
+        kwxObject = pObject;
+        DoOnBeginDocument = (PrintBeginDocument) fnBeginDocument;
+        DoOnEndDocument = (PrintCommon) fnEndDocument;
+        DoOnBeginPrinting = (PrintCommon) fnBeginPrinting;
+        DoOnEndPrinting = (PrintCommon) fnEndPrinting;
+        DoOnPreparePrinting = (PrintCommon) fnPreparePrinting;
+        DoOnPrintPage = (PrintBeginPage) fnPrintPage;
+        DoOnHasPage = (PrintBeginPage) fnHasPage;
+        DoOnPageInfo = (PrintPageInfo) fnPageInfo;
     }
 
     virtual bool OnBeginDocument(int startPage, int endPage)
     {
         return wxPrintout::OnBeginDocument(startPage, endPage) &&
-               (DoOnBeginDocument(EiffelObject, startPage, endPage) != 0);
+               (DoOnBeginDocument(kwxObject, startPage, endPage) != 0);
     }
 
     virtual void OnEndDocument()
     {
         wxPrintout::OnEndDocument();
-        DoOnEndDocument(EiffelObject);
+        DoOnEndDocument(kwxObject);
     }
 
-    virtual void OnBeginPrinting() { DoOnBeginPrinting(EiffelObject); }
+    virtual void OnBeginPrinting() { DoOnBeginPrinting(kwxObject); }
 
-    virtual void OnEndPrinting() { DoOnEndPrinting(EiffelObject); }
+    virtual void OnEndPrinting() { DoOnEndPrinting(kwxObject); }
 
-    virtual void OnPreparePrinting() { DoOnPreparePrinting(EiffelObject); }
+    virtual void OnPreparePrinting() { DoOnPreparePrinting(kwxObject); }
 
-    virtual bool OnPrintPage(int page) { return DoOnPrintPage(EiffelObject, page) != 0; }
+    virtual bool OnPrintPage(int page) { return DoOnPrintPage(kwxObject, page) != 0; }
 
-    virtual bool HasPage(int page) { return DoOnHasPage(EiffelObject, page) != 0; }
+    virtual bool HasPage(int page) { return DoOnHasPage(kwxObject, page) != 0; }
 
     virtual void GetPageInfo(int* minPage, int* maxPage, int* pageFrom, int* pageTo)
     {
-        DoOnPageInfo(EiffelObject, minPage, maxPage, pageFrom, pageTo);
+        DoOnPageInfo(kwxObject, minPage, maxPage, pageFrom, pageTo);
     }
 };
 
 class kwxPreviewFrame : public wxPreviewFrame
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     PreviewFrameFunc DoInitialize;
     PreviewFrameFunc DoCreateCanvas;
     PreviewFrameFunc DoCreateControlBar;
 
 public:
-    kwxPreviewFrame(void* _obj, void* _init, void* _create_canvas, void* _create_toolbar,
-                    void* preview, void* parent, void* title, int x, int y, int w, int h,
+    kwxPreviewFrame(void* pObject, void* init, void* createCanvas, void* createToolbar,
+                    void* preview, void* parent, void* title, int x, int y, int width, int height,
                     int style) :
         wxPreviewFrame((wxPrintPreviewBase*) preview, (wxFrame*) parent, (const char*) title,
-                       wxPoint(x, y), wxSize(w, h), (long) style)
+                       wxPoint(x, y), wxSize(width, height), (long) style)
     {
-        EiffelObject = _obj;
-        DoInitialize = (PreviewFrameFunc) _init;
-        DoCreateCanvas = (PreviewFrameFunc) _create_canvas;
-        DoCreateControlBar = (PreviewFrameFunc) _create_toolbar;
+        kwxObject = pObject;
+        DoInitialize = (PreviewFrameFunc) init;
+        DoCreateCanvas = (PreviewFrameFunc) createCanvas;
+        DoCreateControlBar = (PreviewFrameFunc) createToolbar;
     }
 
     virtual void Initialize()
     {
-        if ((DoInitialize) && DoInitialize(EiffelObject))
+        if ((DoInitialize) && DoInitialize(kwxObject))
             return;
         wxPreviewFrame::Initialize();
     }
 
     virtual void CreateCanvas()
     {
-        if ((DoCreateCanvas) && DoCreateCanvas(EiffelObject))
+        if ((DoCreateCanvas) && DoCreateCanvas(kwxObject))
             return;
         wxPreviewFrame::CreateCanvas();
     }
 
     virtual void CreateControlBar()
     {
-        if ((DoCreateControlBar) && DoCreateControlBar(EiffelObject))
+        if ((DoCreateControlBar) && DoCreateControlBar(kwxObject))
             return;
         wxPreviewFrame::CreateControlBar();
     }
 
-    void SetPreviewCanvas(void* _obj) { m_previewCanvas = (wxPreviewCanvas*) _obj; }
+    void SetPreviewCanvas(void* pObject) { m_previewCanvas = (wxPreviewCanvas*) pObject; }
 
-    void SetControlBar(void* _obj) { m_controlBar = (wxPreviewControlBar*) _obj; }
+    void SetControlBar(void* pObject) { m_controlBar = (wxPreviewControlBar*) pObject; }
 
-    void SetPrintPreview(void* _obj) { m_printPreview = (wxPrintPreviewBase*) _obj; }
+    void SetPrintPreview(void* pObject) { m_printPreview = (wxPrintPreviewBase*) pObject; }
 
     void* GetPreviewCanvas() { return (void*) m_previewCanvas; }
 
@@ -640,29 +644,29 @@ class kwxTreeControl : public wxTreeCtrl
 
 private:
     TreeCompareFunc compare_func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxTreeControl() : wxTreeCtrl()
     {
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
         compare_func = nullptr;
     };
 
-    kwxTreeControl(void* _obj, void* _cmp, wxWindow* parent, wxWindowID id = -1,
+    kwxTreeControl(void* pObject, void* compareFunc, wxWindow* parent, wxWindowID id = -1,
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                    long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT,
                    const wxValidator& validator = wxDefaultValidator,
                    const wxString& name = wxT("wxTreeCtrl")) :
         wxTreeCtrl(parent, id, pos, size, style, validator, name)
     {
-        EiffelObject = _obj;
-        compare_func = (TreeCompareFunc) _cmp;
+        kwxObject = pObject;
+        compare_func = (TreeCompareFunc) compareFunc;
     };
 
     virtual int OnCompareItems(const wxTreeItemId& item1, const wxTreeItemId& item2)
     {
-        return EiffelObject ? compare_func(EiffelObject, (void*) &item1, (void*) &item2) :
+        return kwxObject ? compare_func(kwxObject, (void*) &item1, (void*) &item2) :
                               wxTreeCtrl::OnCompareItems(item1, item2);
     }
 };

@@ -8,23 +8,23 @@ extern "C"
         return new wxPanel(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT void wxPanel_InitDialog(void* _obj)
+    EXPORT void wxPanel_InitDialog(void* pObject)
     {
-        ((wxPanel*) _obj)->InitDialog();
+        ((wxPanel*) pObject)->InitDialog();
     }
 
-    EXPORT void* wxPanel_GetDefaultItem(void* _obj)
+    EXPORT void* wxPanel_GetDefaultItem(void* pObject)
     {
-        return (void*) ((wxTopLevelWindow*) _obj)->GetDefaultItem();
+        return (void*) ((wxTopLevelWindow*) pObject)->GetDefaultItem();
     }
 
-    EXPORT void wxPanel_SetDefaultItem(void* _obj, void* btn)
+    EXPORT void wxPanel_SetDefaultItem(void* pObject, void* btn)
     {
-        ((wxTopLevelWindow*) _obj)->SetDefaultItem((wxButton*) btn);
+        ((wxTopLevelWindow*) pObject)->SetDefaultItem((wxButton*) btn);
     }
 
-    EXPORT void wxPanel_SetFocus(void* _obj)
+    EXPORT void wxPanel_SetFocus(void* pObject)
     {
-        ((wxPanel*) _obj)->SetFocus();
+        ((wxPanel*) pObject)->SetFocus();
     }
 }

@@ -3,9 +3,9 @@
 
 extern "C"
 {
-    EXPORT void* wxLocale_Create(int _lang, int _flags)
+    EXPORT void* wxLocale_Create(int language, int flags)
     {
-        return (void*) new wxLocale(_lang, _flags);
+        return (void*) new wxLocale(language, flags);
     }
 
     EXPORT void wxLocale_Delete(wxLocale* self)
@@ -29,9 +29,9 @@ extern "C"
         self->AddCatalogLookupPathPrefix((const char*) prefix);
     }
 
-    EXPORT bool wxLocale_AddCatalog(wxLocale* self, void* szDomain)
+    EXPORT bool wxLocale_AddCatalog(wxLocale* self, void* szDomain, int msgIdLanguage)
     {
-        return self->AddCatalog((const char*) szDomain);
+        return self->AddCatalog((const char*) szDomain, (wxLanguage) msgIdLanguage);
     }
 
     EXPORT bool wxLocale_IsLoaded(wxLocale* self, void* szDomain)
@@ -45,10 +45,10 @@ extern "C"
         return (void*) strdup(retVal.utf8_str().data());
     }
 
-    EXPORT wxString* wxLocale_GetName(void* _obj)
+    EXPORT wxString* wxLocale_GetName(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxLocale*) _obj)->GetName();
+        *result = ((wxLocale*) pObject)->GetName();
         return result;
     }
 
@@ -57,9 +57,9 @@ extern "C"
         return (void*) wxGetLocale();
     }
 
-    EXPORT void* wxGetkwxTranslation(void* sz)
+    EXPORT void* wxGetkwxTranslation(void* text)
     {
-        wxString retVal = wxGetTranslation((const char*) sz);
+        wxString retVal = wxGetTranslation((const char*) text);
         return (void*) strdup(retVal.utf8_str().data());
     }
 }

@@ -12,8 +12,7 @@ extern "C"
 
     EXPORT void wxDC_FloodFill(wxDC* self, int x, int y, wxColour* col, int style)
     {
-        wxFloodFillStyle _style = (wxFloodFillStyle) style;
-        self->FloodFill((wxCoord) x, (wxCoord) y, *col, _style);
+        self->FloodFill((wxCoord) x, (wxCoord) y, *col, (wxFloodFillStyle) style);
     }
 
     EXPORT int wxDC_GetPixel(wxDC* self, int x, int y, wxColour* col)
@@ -42,9 +41,11 @@ extern "C"
         self->DrawCheckMark((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT void wxDC_DrawEllipticArc(wxDC* self, int x, int y, int w, int h, double sa, double ea)
+    EXPORT void wxDC_DrawEllipticArc(wxDC* self, int x, int y, int width, int height,
+                                     double startAngle, double endAngle)
     {
-        self->DrawEllipticArc((wxCoord) x, (wxCoord) y, (wxCoord) w, (wxCoord) h, sa, ea);
+        self->DrawEllipticArc((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height,
+                              startAngle, endAngle);
     }
 
     EXPORT void wxDC_DrawPoint(wxDC* self, int x, int y)
@@ -67,13 +68,13 @@ extern "C"
     EXPORT void wxDC_DrawPolygon(wxDC* self, int count, void* x, void* y, int xoffset, int yoffset,
                                  int fillStyle)
     {
-        wxPolygonFillMode _style = (wxPolygonFillMode) fillStyle;
+        wxPolygonFillMode style = (wxPolygonFillMode) fillStyle;
         wxPoint* lst = (wxPoint*) malloc(count * sizeof(wxPoint));
 
         for (int i = 0; i < count; i++)
             lst[i] = wxPoint(((intptr_t*) x)[i], ((intptr_t*) y)[i]);
 
-        self->DrawPolygon(count, lst, (wxCoord) xoffset, (wxCoord) yoffset, _style);
+        self->DrawPolygon(count, lst, (wxCoord) xoffset, (wxCoord) yoffset, style);
 
         free(lst);
     }
@@ -121,11 +122,12 @@ extern "C"
     }
 
     EXPORT bool wxDC_Blit(wxDC* self, int xdest, int ydest, int width, int height, wxDC* source,
-                          int xsrc, int ysrc, int rop, bool useMask)
+                          int xsrc, int ysrc, int rop, bool useMask, int xsrcMask, int ysrcMask)
     {
-        wxRasterOperationMode _rop = (wxRasterOperationMode) rop;
+        wxRasterOperationMode rasterOp = (wxRasterOperationMode) rop;
         return self->Blit((wxCoord) xdest, (wxCoord) ydest, (wxCoord) width, (wxCoord) height,
-                          source, (wxCoord) xsrc, (wxCoord) ysrc, _rop, useMask);
+                          source, (wxCoord) xsrc, (wxCoord) ysrc, rasterOp, useMask,
+                          (wxCoord) xsrcMask, (wxCoord) ysrcMask);
     }
 
     EXPORT void wxDC_Clear(wxDC* self)
@@ -208,9 +210,10 @@ extern "C"
         self->DestroyClippingRegion();
     }
 
-    EXPORT void wxDC_GetClippingBox(wxDC* self, wxCoord* x, wxCoord* y, wxCoord* w, wxCoord* h)
+    EXPORT void wxDC_GetClippingBox(wxDC* self, wxCoord* x, wxCoord* y, wxCoord* width,
+                                    wxCoord* height)
     {
-        self->GetClippingBox(x, y, w, h);
+        self->GetClippingBox(x, y, width, height);
     }
 
     EXPORT wxCoord wxDC_GetCharHeight(wxDC* self)
@@ -223,16 +226,16 @@ extern "C"
         return self->GetCharWidth();
     }
 
-    EXPORT void wxDC_GetTextExtent(wxDC* self, wxString* string, wxCoord* w, wxCoord* h,
+    EXPORT void wxDC_GetTextExtent(wxDC* self, wxString* string, wxCoord* width, wxCoord* height,
                                    wxCoord* descent, wxCoord* externalLeading, wxFont* theFont)
     {
-        self->GetTextExtent(*string, w, h, descent, externalLeading, theFont);
+        self->GetTextExtent(*string, width, height, descent, externalLeading, theFont);
     }
 
-    EXPORT void wxDC_GetMultiLineTextExtent(wxDC* self, wxString* string, wxCoord* w, wxCoord* h,
-                                            wxCoord* heightLine, wxFont* theFont)
+    EXPORT void wxDC_GetMultiLineTextExtent(wxDC* self, wxString* string, wxCoord* width,
+                                            wxCoord* height, wxCoord* heightLine, wxFont* theFont)
     {
-        self->GetMultiLineTextExtent(*string, w, h, heightLine, theFont);
+        self->GetMultiLineTextExtent(*string, width, height, heightLine, theFont);
     }
 
     EXPORT wxSize* wxDC_GetSize(wxDC* self)
@@ -321,34 +324,34 @@ extern "C"
         return self->GetBackgroundMode();
     }
 
-    EXPORT void wxDC_GetBackground(wxDC* self, wxBrush* _ref)
+    EXPORT void wxDC_GetBackground(wxDC* self, wxBrush* ref)
     {
-        *_ref = self->GetBackground();
+        *ref = self->GetBackground();
     }
 
-    EXPORT void wxDC_GetBrush(wxDC* self, wxBrush* _ref)
+    EXPORT void wxDC_GetBrush(wxDC* self, wxBrush* ref)
     {
-        *_ref = self->GetBrush();
+        *ref = self->GetBrush();
     }
 
-    EXPORT void wxDC_GetFont(wxDC* self, wxFont* _ref)
+    EXPORT void wxDC_GetFont(wxDC* self, wxFont* ref)
     {
-        *_ref = self->GetFont();
+        *ref = self->GetFont();
     }
 
-    EXPORT void wxDC_GetPen(wxDC* self, wxPen* _ref)
+    EXPORT void wxDC_GetPen(wxDC* self, wxPen* ref)
     {
-        *_ref = self->GetPen();
+        *ref = self->GetPen();
     }
 
-    EXPORT void wxDC_GetTextBackground(wxDC* self, wxColour* _ref)
+    EXPORT void wxDC_GetTextBackground(wxDC* self, wxColour* ref)
     {
-        *_ref = self->GetTextBackground();
+        *ref = self->GetTextBackground();
     }
 
-    EXPORT void wxDC_GetTextForeground(wxDC* self, wxColour* _ref)
+    EXPORT void wxDC_GetTextForeground(wxDC* self, wxColour* ref)
     {
-        *_ref = self->GetTextForeground();
+        *ref = self->GetTextForeground();
     }
 
     EXPORT void wxDC_SetTextForeground(wxDC* self, wxColour* colour)
@@ -368,8 +371,7 @@ extern "C"
 
     EXPORT void wxDC_SetMapMode(wxDC* self, int mode)
     {
-        wxMappingMode _mode = (wxMappingMode) mode;
-        self->SetMapMode(_mode);
+        self->SetMapMode((wxMappingMode) mode);
     }
 
     EXPORT void wxDC_GetUserScale(wxDC* self, double* x, double* y)
@@ -424,8 +426,7 @@ extern "C"
 
     EXPORT void wxDC_SetLogicalFunction(wxDC* self, int function)
     {
-        wxRasterOperationMode _function = (wxRasterOperationMode) function;
-        self->SetLogicalFunction(_function);
+        self->SetLogicalFunction((wxRasterOperationMode) function);
     }
 
     EXPORT void wxDC_CalcBoundingBox(wxDC* self, int x, int y)
@@ -539,9 +540,9 @@ extern "C"
         return self->StartDrawingOnTop(win);
     }
 
-    EXPORT bool wxScreenDC_StartDrawingOnTop(wxScreenDC* self, int l, int t, int w, int h)
+    EXPORT bool wxScreenDC_StartDrawingOnTop(wxScreenDC* self, int x, int y, int width, int height)
     {
-        wxRect rect(l, t, w, h);
+        wxRect rect(x, y, width, height);
         return self->StartDrawingOnTop(&rect);
     }
 
@@ -594,15 +595,15 @@ extern "C"
             delete self;
     }
 
-    EXPORT void* wxMetafileDC_Create(wxString* _file)
+    EXPORT void* wxMetafileDC_Create(wxString* filePath)
     {
 #if defined(__WXGTK__)
         return nullptr;
 #else
         wxString file;
 
-        if (_file)
-            file = (char*) _file;
+        if (filePath)
+            file = (char*) filePath;
 
         return (void*) new wxMetafileDC(file);
 #endif
@@ -624,15 +625,15 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxMetafile_Create(wxString* _file)
+    EXPORT void* wxMetafile_Create(wxString* filePath)
     {
 #if defined(__WXGTK__)
         return nullptr;
 #else
         wxString file;
 
-        if (_file)
-            file = (char*) _file;
+        if (filePath)
+            file = (char*) filePath;
 
         return (void*) new wxMetafile(file);
 #endif
@@ -647,12 +648,12 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMetafile_Play(void* self, wxDC* _dc)
+    EXPORT bool wxMetafile_Play(void* self, wxDC* dc)
     {
 #if defined(__WXGTK__)
         return false;
 #else
-        return ((wxMetafile*) self)->Play(_dc);
+        return ((wxMetafile*) self)->Play(dc);
 #endif
     }
 
@@ -672,17 +673,17 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxDC_DrawLabel(wxDC* self, wxString* str, int x, int y, int w, int h, int align,
-                               int indexAccel)
+    EXPORT void wxDC_DrawLabel(wxDC* self, wxString* str, int x, int y, int width, int height,
+                               int align, int indexAccel)
     {
-        wxRect rect(x, y, w, h);
+        wxRect rect(x, y, width, height);
         self->DrawLabel(*str, rect, align, indexAccel);
     }
 
     EXPORT wxRect* wxDC_DrawLabelBitmap(wxDC* self, wxString* str, wxBitmap* bmp, int x, int y,
-                                        int w, int h, int align, int indexAccel)
+                                        int width, int height, int align, int indexAccel)
     {
-        wxRect rect(x, y, w, h);
+        wxRect rect(x, y, width, height);
         wxRect* r = new wxRect();
         self->DrawLabel(*str, *bmp, rect, align, indexAccel, r);
         return r;
@@ -691,7 +692,6 @@ extern "C"
     EXPORT void wxDC_DrawPolyPolygon(wxDC* self, int numPolygons, int* count, void* x, void* y,
                                      int xoffset, int yoffset, int fillStyle)
     {
-        wxPolygonFillMode _fillStyle = (wxPolygonFillMode) fillStyle;
         int* tmp = count;
         int* cnt = new int[numPolygons];
         int i, j;
@@ -716,7 +716,7 @@ extern "C"
         }
 
         self->DrawPolyPolygon(numPolygons, cnt, lst, (wxCoord) xoffset, (wxCoord) yoffset,
-                              _fillStyle);
+                              (wxPolygonFillMode) fillStyle);
 
         free(lst);
         delete cnt;

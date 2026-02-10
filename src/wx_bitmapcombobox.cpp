@@ -3,7 +3,7 @@
 extern "C"
 {
     EXPORT wxBitmapComboBox* wxBitmapComboBox_Create(wxWindow* parent, int id, wxString* value,
-                                                     int x, int y, int w, int h, int count,
+                                                     int x, int y, int width, int height, int count,
                                                      void* str, int style)
     {
         wxString* list = new wxString[count];
@@ -12,7 +12,7 @@ extern "C"
             list[i] = ((char**) str)[i];
 
         wxBitmapComboBox* result = new wxBitmapComboBox(parent, id, *value, wxPoint(x, y),
-                                                        wxSize(w, h), count, list, style);
+                                                        wxSize(width, height), count, list, style);
 
         delete[] list;
 

@@ -7,19 +7,19 @@ extern "C"
         return new wxColour();
     }
 
-    EXPORT wxColour* wxColour_CreateRGB(wxUint8 _red, wxUint8 _green, wxUint8 _blue, wxUint8 _alpha)
+    EXPORT wxColour* wxColour_CreateRGB(wxUint8 red, wxUint8 green, wxUint8 blue, wxUint8 alpha)
     {
-        return new wxColour(_red, _green, _blue, _alpha);
+        return new wxColour(red, green, blue, alpha);
     }
 
-    EXPORT wxColour* wxColour_CreateByName(wxString* _name)
+    EXPORT wxColour* wxColour_CreateByName(wxString* name)
     {
-        return new wxColour(*_name);
+        return new wxColour(*name);
     }
 
-    EXPORT void* wxColour_CreateFromStock(int _id)
+    EXPORT void* wxColour_CreateFromStock(int id)
     {
-        switch (_id)
+        switch (id)
         {
             case 0:
                 return (void*) wxBLACK;
@@ -45,10 +45,10 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxColour_Set(wxColour* self, wxUint8 _red, wxUint8 _green, wxUint8 _blue,
-                             wxUint8 _alpha)
+    EXPORT void wxColour_Set(wxColour* self, wxUint8 red, wxUint8 green, wxUint8 blue,
+                             wxUint8 alpha)
     {
-        self->Set(_red, _green, _blue);
+        self->Set(red, green, blue, alpha);
     }
 
     EXPORT void wxColour_Assign(wxColour* self, wxColour* other)
@@ -97,18 +97,18 @@ extern "C"
     // 	return self->GetPixel();
     // }
 
-    EXPORT void wxColour_Copy(wxColour* self, wxColour* _other)
+    EXPORT void wxColour_Copy(wxColour* self, wxColour* other)
     {
-        *self = *_other;
+        *self = *other;
     }
 
-    EXPORT void wxColour_SetByName(wxColour* self, wxString* _name)
+    EXPORT void wxColour_SetByName(wxColour* self, wxString* name)
     {
-        *self = *_name;
+        *self = *name;
     }
 
-    EXPORT bool wxColour_ValidName(wxString* _name)
+    EXPORT bool wxColour_ValidName(wxString* name)
     {
-        return wxTheColourDatabase->Find(*_name).IsOk();
+        return wxTheColourDatabase->Find(*name).IsOk();
     }
 }

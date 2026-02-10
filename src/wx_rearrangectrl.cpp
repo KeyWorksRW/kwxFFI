@@ -2,11 +2,11 @@
 
 extern "C"
 {
-    EXPORT wxRearrangeCtrl* wxRearrangeCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                   int h, wxArrayInt* order, wxArrayString* items,
+    EXPORT wxRearrangeCtrl* wxRearrangeCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                   int height, wxArrayInt* order, wxArrayString* items,
                                                    int style)
     {
-        return new wxRearrangeCtrl(parent, id, wxPoint(x, y), wxSize(w, h), *order, *items, style);
+        return new wxRearrangeCtrl(parent, id, wxPoint(x, y), wxSize(width, height), *order, *items, style);
     }
 
     EXPORT wxArrayInt* wxRearrangeCtrl_GetCurrentOrder(wxRearrangeCtrl* self)

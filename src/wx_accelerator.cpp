@@ -7,29 +7,29 @@ extern "C"
         return (void*) new wxAcceleratorEntry(flags, keyCode, cmd);
     }
 
-    EXPORT void wxAcceleratorEntry_Delete(void* _obj)
+    EXPORT void wxAcceleratorEntry_Delete(void* pObject)
     {
-        delete (wxAcceleratorEntry*) _obj;
+        delete (wxAcceleratorEntry*) pObject;
     }
 
-    EXPORT void wxAcceleratorEntry_Set(void* _obj, int flags, int keyCode, int cmd)
+    EXPORT void wxAcceleratorEntry_Set(void* pObject, int flags, int keyCode, int cmd, void* item)
     {
-        ((wxAcceleratorEntry*) _obj)->Set(flags, keyCode, cmd);
+        ((wxAcceleratorEntry*) pObject)->Set(flags, keyCode, cmd, (wxMenuItem*) item);
     }
 
-    EXPORT int wxAcceleratorEntry_GetFlags(void* _obj)
+    EXPORT int wxAcceleratorEntry_GetFlags(void* pObject)
     {
-        return ((wxAcceleratorEntry*) _obj)->GetFlags();
+        return ((wxAcceleratorEntry*) pObject)->GetFlags();
     }
 
-    EXPORT int wxAcceleratorEntry_GetKeyCode(void* _obj)
+    EXPORT int wxAcceleratorEntry_GetKeyCode(void* pObject)
     {
-        return ((wxAcceleratorEntry*) _obj)->GetKeyCode();
+        return ((wxAcceleratorEntry*) pObject)->GetKeyCode();
     }
 
-    EXPORT int wxAcceleratorEntry_GetCommand(void* _obj)
+    EXPORT int wxAcceleratorEntry_GetCommand(void* pObject)
     {
-        return ((wxAcceleratorEntry*) _obj)->GetCommand();
+        return ((wxAcceleratorEntry*) pObject)->GetCommand();
     }
 
     EXPORT void* wxAcceleratorTable_Create(int count, void* entries)
@@ -46,8 +46,8 @@ extern "C"
         return (void*) result;
     }
 
-    EXPORT void wxAcceleratorTable_Delete(void* _obj)
+    EXPORT void wxAcceleratorTable_Delete(void* pObject)
     {
-        delete (wxAcceleratorEntry*) _obj;
+        delete (wxAcceleratorEntry*) pObject;
     }
 }

@@ -58,24 +58,24 @@ extern "C"
         ((wxScrolledWindow*) self)->EnableScrolling(x_scrolling, y_scrolling);
     }
 
-    EXPORT void wxScrolledWindow_GetViewStart(void* _obj, void* x, void* y)
+    EXPORT void wxScrolledWindow_GetViewStart(void* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) _obj)->GetViewStart((int*) x, (int*) y);
+        ((wxScrolledWindow*) pObject)->GetViewStart((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_ViewStart(void* _obj, void* x, void* y)
+    EXPORT void wxScrolledWindow_ViewStart(void* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) _obj)->GetViewStart((int*) x, (int*) y);
+        ((wxScrolledWindow*) pObject)->GetViewStart((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_GetVirtualSize(void* _obj, void* x, void* y)
+    EXPORT void wxScrolledWindow_GetVirtualSize(void* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) _obj)->GetVirtualSize((int*) x, (int*) y);
+        ((wxScrolledWindow*) pObject)->GetVirtualSize((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_SetScale(void* self, double xs, double ys)
+    EXPORT void wxScrolledWindow_SetScale(void* self, double xScale, double yScale)
     {
-        ((wxScrolledWindow*) self)->SetScale(xs, ys);
+        ((wxScrolledWindow*) self)->SetScale(xScale, yScale);
     }
 
     EXPORT double wxScrolledWindow_GetScaleX(void* self)

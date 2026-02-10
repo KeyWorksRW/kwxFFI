@@ -55,21 +55,21 @@ extern "C"
         return self->GetLastPosition();
     }
 
-    EXPORT void wxComboBox_Replace(wxComboBox* self, int from, int to, wxString* value)
+    EXPORT void wxComboBox_Replace(wxComboBox* self, int from, int toPos, wxString* value)
     {
-        self->Replace(from, to, *value);
+        self->Replace(from, toPos, *value);
     }
 
-    EXPORT void wxComboBox_Remove(wxComboBox* self, int from, int to)
+    EXPORT void wxComboBox_Remove(wxComboBox* self, int from, int toPos)
     {
-        self->Remove(from, to);
+        self->Remove(from, toPos);
         if ((self->GetCount()) && (self->GetSelection() == -1))
             self->SetSelection(0);
     }
 
-    EXPORT void wxComboBox_SetTextSelection(wxComboBox* self, int from, int to)
+    EXPORT void wxComboBox_SetTextSelection(wxComboBox* self, int from, int toPos)
     {
-        self->SetSelection(from, to);
+        self->SetSelection(from, toPos);
     }
 
     EXPORT void wxComboBox_SetEditable(wxComboBox* self, bool editable)
@@ -99,12 +99,12 @@ extern "C"
             self->SetSelection(0);
     }
 
-    EXPORT void wxComboBox_AppendData(wxComboBox* self, wxString* item, void* d)
+    EXPORT void wxComboBox_AppendData(wxComboBox* self, wxString* item, void* clientData)
     {
 #if defined(__WXMAC__)
         self->Append(*item);
 #else
-        self->Append(*item, d);
+        self->Append(*item, clientData);
 #endif
 
         if ((self->GetCount()) && (self->GetSelection() == -1))
@@ -138,9 +138,9 @@ extern "C"
         self->SetSelection(index);
     }
 
-    EXPORT int wxComboBox_FindString(wxComboBox* self, wxString* s)
+    EXPORT int wxComboBox_FindString(wxComboBox* self, wxString* str)
     {
-        return self->FindString(*s);
+        return self->FindString(*str);
     }
 
     EXPORT wxString* wxComboBox_GetString(wxComboBox* self, int index)
@@ -148,9 +148,9 @@ extern "C"
         return new wxString(self->GetString(index));
     }
 
-    EXPORT void wxComboBox_SetString(wxComboBox* self, int index, wxString* s)
+    EXPORT void wxComboBox_SetString(wxComboBox* self, int index, wxString* str)
     {
-        self->SetString(index, *s);
+        self->SetString(index, *str);
     }
 
     EXPORT void wxComboBox_SetClientData(wxComboBox* self, int index, void* clientData)

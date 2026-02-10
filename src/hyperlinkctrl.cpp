@@ -4,10 +4,10 @@
 extern "C"
 {
     EXPORT wxHyperlinkCtrl* wxHyperlinkCtrl_Create(wxWindow* parent, int id, const wxString& label,
-                                                   const wxString& url, int x, int y, int w, int h,
+                                                   const wxString& url, int x, int y, int width, int height,
                                                    int style)
     {
-        return new wxHyperlinkCtrl(parent, id, label, url, wxPoint(x, y), wxSize(w, h), style);
+        return new wxHyperlinkCtrl(parent, id, label, url, wxPoint(x, y), wxSize(width, height), style);
     }
 
 // BUGBUG: [Randalphwa - 10-13-2024] C functions cannot return wxColour which is a class.

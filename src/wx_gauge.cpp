@@ -8,23 +8,23 @@ extern "C"
         return new wxGauge(parent, id, range, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT void wxGauge_SetRange(void* _obj, int r)
+    EXPORT void wxGauge_SetRange(void* pObject, int range)
     {
-        ((wxGauge*) _obj)->SetRange(r);
+        ((wxGauge*) pObject)->SetRange(range);
     }
 
-    EXPORT void wxGauge_SetValue(void* _obj, int pos)
+    EXPORT void wxGauge_SetValue(void* pObject, int pos)
     {
-        ((wxGauge*) _obj)->SetValue(pos);
+        ((wxGauge*) pObject)->SetValue(pos);
     }
 
-    EXPORT int wxGauge_GetRange(void* _obj)
+    EXPORT int wxGauge_GetRange(void* pObject)
     {
-        return ((wxGauge*) _obj)->GetRange();
+        return ((wxGauge*) pObject)->GetRange();
     }
 
-    EXPORT int wxGauge_GetValue(void* _obj)
+    EXPORT int wxGauge_GetValue(void* pObject)
     {
-        return ((wxGauge*) _obj)->GetValue();
+        return ((wxGauge*) pObject)->GetValue();
     }
 }

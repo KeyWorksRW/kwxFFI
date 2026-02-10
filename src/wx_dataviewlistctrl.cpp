@@ -4,9 +4,9 @@ extern "C"
 {
     // Constructor
     EXPORT wxDataViewListCtrl* wxDataViewListCtrl_Create(wxWindow* parent, int id, int x, int y,
-                                                         int w, int h, int style)
+                                                         int width, int height, int style)
     {
-        return new wxDataViewListCtrl(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxDataViewListCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Store access

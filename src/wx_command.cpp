@@ -3,32 +3,32 @@
 #include <wx/docview.h>
 extern "C"
 {
-    typedef int _cdecl (*TGetResp)(void* _obj, int _und);
+    typedef int _cdecl (*TGetResp)(void* pObject, int canUndo);
 }
 
 class kwxCommand : public wxCommand
 {
 private:
     TGetResp func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
-    kwxCommand(bool _und, const wxString& _nme, void* _obj, void* _clb) : wxCommand(_und, _nme)
+    kwxCommand(bool canUndo, const wxString& name, void* pObject, void* callback) : wxCommand(canUndo, name)
     {
-        func = (TGetResp) _clb;
-        EiffelObject = _obj;
+        func = (TGetResp) callback;
+        kwxObject = pObject;
     }
 
-    bool Do() { return func(EiffelObject, 0) != 0; }
+    bool Do() { return func(kwxObject, 0) != 0; }
 
-    bool Undo() { return func(EiffelObject, 1) != 0; }
+    bool Undo() { return func(kwxObject, 1) != 0; }
 };
 
 extern "C"
 {
-    EXPORT void* kwxCommand_Create(bool _und, wxString* _nme, void* _obj, void* _clb)
+    EXPORT void* kwxCommand_Create(bool canUndo, wxString* name, void* pObject, void* callback)
     {
-        return (void*) new kwxCommand(_und, *_nme, _obj, _clb);
+        return (void*) new kwxCommand(canUndo, *name, pObject, callback);
     }
 
     EXPORT void kwxCommand_Delete(kwxCommand* self)
@@ -36,9 +36,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT wxString* kwxCommand_GetName(void* _obj)
+    EXPORT wxString* kwxCommand_GetName(void* pObject)
     {
-        return new wxString(((kwxCommand*) _obj)->GetName());
+        return new wxString(((kwxCommand*) pObject)->GetName());
     }
 
     EXPORT bool kwxCommand_CanUndo(kwxCommand* self)
@@ -102,13 +102,13 @@ extern "C"
         self->Initialize();
     }
 
-    EXPORT int wxCommandProcessor_GetCommands(wxCommandProcessor* self, void* _ref)
+    EXPORT int wxCommandProcessor_GetCommands(wxCommandProcessor* self, void* ref)
     {
         wxList lst = self->GetCommands();
-        if (_ref)
+        if (ref)
         {
             for (unsigned int i = 0; i < lst.GetCount(); i++)
-                ((void**) _ref)[i] = (void*) lst.Item(i);
+                ((void**) ref)[i] = (void*) lst.Item(i);
         }
 
         return lst.GetCount();

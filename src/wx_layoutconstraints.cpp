@@ -80,10 +80,10 @@ extern "C"
         ((wxIndividualLayoutConstraint*) self)->SameAs(otherW, (wxEdge) edge, (wxEdge) marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_PercentOf(void* self, wxWindowBase* otherW, int wh,
+    EXPORT void wxIndividualLayoutConstraint_PercentOf(void* self, wxWindowBase* otherW, int which,
                                                        int per)
     {
-        ((wxIndividualLayoutConstraint*) self)->PercentOf(otherW, (wxEdge) wh, per);
+        ((wxIndividualLayoutConstraint*) self)->PercentOf(otherW, (wxEdge) which, per);
     }
 
     EXPORT void wxIndividualLayoutConstraint_Absolute(void* self, int val)
@@ -116,9 +116,9 @@ extern "C"
         ((wxIndividualLayoutConstraint*) self)->SetEdge((wxEdge) which);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetValue(void* self, int v)
+    EXPORT void wxIndividualLayoutConstraint_SetValue(void* self, int value)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetValue(v);
+        ((wxIndividualLayoutConstraint*) self)->SetValue(value);
     }
 
     EXPORT int wxIndividualLayoutConstraint_GetMargin(void* self)
@@ -126,9 +126,9 @@ extern "C"
         return ((wxIndividualLayoutConstraint*) self)->GetMargin();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetMargin(void* self, int m)
+    EXPORT void wxIndividualLayoutConstraint_SetMargin(void* self, int margin)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetMargin(m);
+        ((wxIndividualLayoutConstraint*) self)->SetMargin(margin);
     }
 
     EXPORT int wxIndividualLayoutConstraint_GetValue(void* self)
@@ -151,9 +151,9 @@ extern "C"
         return self->GetDone();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetDone(void* self, bool d)
+    EXPORT void wxIndividualLayoutConstraint_SetDone(void* self, bool done)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetDone(d);
+        ((wxIndividualLayoutConstraint*) self)->SetDone(done);
     }
 
     EXPORT int wxIndividualLayoutConstraint_GetRelationship(void* self)
@@ -161,9 +161,9 @@ extern "C"
         return ((wxIndividualLayoutConstraint*) self)->GetRelationship();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetRelationship(void* self, int r)
+    EXPORT void wxIndividualLayoutConstraint_SetRelationship(void* self, int relationship)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetRelationship((wxRelationship) r);
+        ((wxIndividualLayoutConstraint*) self)->SetRelationship((wxRelationship) relationship);
     }
 
     EXPORT bool wxIndividualLayoutConstraint_ResetIfWin(wxIndividualLayoutConstraint* self,

@@ -2,1308 +2,1308 @@
 
 #include <wx/stc/stc.h>
 
-extern "C" EXPORT void wxStyledTextCtrl_AddText(void* _obj, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_AddText(void* pObject, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->AddText(*text);
+    ((wxStyledTextCtrl*) pObject)->AddText(*text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AddStyledText(void* _obj, void* data)
+extern "C" EXPORT void wxStyledTextCtrl_AddStyledText(void* pObject, void* data)
 {
-    ((wxStyledTextCtrl*) _obj)->AddStyledText(*(wxMemoryBuffer*) data);
+    ((wxStyledTextCtrl*) pObject)->AddStyledText(*(wxMemoryBuffer*) data);
 }
-extern "C" EXPORT void wxStyledTextCtrl_InsertText(void* _obj, int pos, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_InsertText(void* pObject, int pos, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->InsertText(pos, *text);
+    ((wxStyledTextCtrl*) pObject)->InsertText(pos, *text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ClearAll(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_ClearAll(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->ClearAll();
+    ((wxStyledTextCtrl*) pObject)->ClearAll();
 }
-extern "C" EXPORT void wxStyledTextCtrl_ClearDocumentStyle(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_ClearDocumentStyle(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->ClearDocumentStyle();
+    ((wxStyledTextCtrl*) pObject)->ClearDocumentStyle();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLength(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetLength(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLength();
+    return ((wxStyledTextCtrl*) pObject)->GetLength();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCharAt(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_GetCharAt(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCharAt(pos);
+    return ((wxStyledTextCtrl*) pObject)->GetCharAt(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCurrentPos(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetCurrentPos(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCurrentPos();
+    return ((wxStyledTextCtrl*) pObject)->GetCurrentPos();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetAnchor(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetAnchor(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetAnchor();
+    return ((wxStyledTextCtrl*) pObject)->GetAnchor();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetStyleAt(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_GetStyleAt(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetStyleAt(pos);
+    return ((wxStyledTextCtrl*) pObject)->GetStyleAt(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_Redo(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Redo(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Redo();
+    ((wxStyledTextCtrl*) pObject)->Redo();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetUndoCollection(void* _obj, bool collectUndo)
+extern "C" EXPORT void wxStyledTextCtrl_SetUndoCollection(void* pObject, bool collectUndo)
 {
-    ((wxStyledTextCtrl*) _obj)->SetUndoCollection(collectUndo);
+    ((wxStyledTextCtrl*) pObject)->SetUndoCollection(collectUndo);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SelectAll(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_SelectAll(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->SelectAll();
+    ((wxStyledTextCtrl*) pObject)->SelectAll();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSavePoint(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_SetSavePoint(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSavePoint();
+    ((wxStyledTextCtrl*) pObject)->SetSavePoint();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_CanRedo(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_CanRedo(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->CanRedo();
+    return ((wxStyledTextCtrl*) pObject)->CanRedo();
 }
-extern "C" EXPORT int wxStyledTextCtrl_MarkerLineFromHandle(void* _obj, int handle)
+extern "C" EXPORT int wxStyledTextCtrl_MarkerLineFromHandle(void* pObject, int handle)
 {
-    return ((wxStyledTextCtrl*) _obj)->MarkerLineFromHandle(handle);
+    return ((wxStyledTextCtrl*) pObject)->MarkerLineFromHandle(handle);
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerDeleteHandle(void* _obj, int handle)
+extern "C" EXPORT void wxStyledTextCtrl_MarkerDeleteHandle(void* pObject, int handle)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerDeleteHandle(handle);
+    ((wxStyledTextCtrl*) pObject)->MarkerDeleteHandle(handle);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetUndoCollection(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetUndoCollection(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetUndoCollection();
+    return ((wxStyledTextCtrl*) pObject)->GetUndoCollection();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetViewWhiteSpace(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetViewWhiteSpace(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetViewWhiteSpace();
+    return ((wxStyledTextCtrl*) pObject)->GetViewWhiteSpace();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetViewWhiteSpace(void* _obj, int viewWS)
+extern "C" EXPORT void wxStyledTextCtrl_SetViewWhiteSpace(void* pObject, int viewWS)
 {
-    ((wxStyledTextCtrl*) _obj)->SetViewWhiteSpace(viewWS);
+    ((wxStyledTextCtrl*) pObject)->SetViewWhiteSpace(viewWS);
 }
-extern "C" EXPORT int wxStyledTextCtrl_PositionFromPoint(void* _obj, int pt_x, int pt_y)
+extern "C" EXPORT int wxStyledTextCtrl_PositionFromPoint(void* pObject, int pt_x, int pt_y)
 {
-    return ((wxStyledTextCtrl*) _obj)->PositionFromPoint(wxPoint(pt_x, pt_y));
+    return ((wxStyledTextCtrl*) pObject)->PositionFromPoint(wxPoint(pt_x, pt_y));
 }
-extern "C" EXPORT int wxStyledTextCtrl_PositionFromPointClose(void* _obj, int x, int y)
+extern "C" EXPORT int wxStyledTextCtrl_PositionFromPointClose(void* pObject, int x, int y)
 {
-    return ((wxStyledTextCtrl*) _obj)->PositionFromPointClose(x, y);
+    return ((wxStyledTextCtrl*) pObject)->PositionFromPointClose(x, y);
 }
-extern "C" EXPORT void wxStyledTextCtrl_GotoLine(void* _obj, int line)
+extern "C" EXPORT void wxStyledTextCtrl_GotoLine(void* pObject, int line)
 {
-    ((wxStyledTextCtrl*) _obj)->GotoLine(line);
+    ((wxStyledTextCtrl*) pObject)->GotoLine(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_GotoPos(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_GotoPos(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->GotoPos(pos);
+    ((wxStyledTextCtrl*) pObject)->GotoPos(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetAnchor(void* _obj, int posAnchor)
+extern "C" EXPORT void wxStyledTextCtrl_SetAnchor(void* pObject, int posAnchor)
 {
-    ((wxStyledTextCtrl*) _obj)->SetAnchor(posAnchor);
+    ((wxStyledTextCtrl*) pObject)->SetAnchor(posAnchor);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetEndStyled(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetEndStyled(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetEndStyled();
+    return ((wxStyledTextCtrl*) pObject)->GetEndStyled();
 }
-extern "C" EXPORT void wxStyledTextCtrl_ConvertEOLs(void* _obj, int eolMode)
+extern "C" EXPORT void wxStyledTextCtrl_ConvertEOLs(void* pObject, int eolMode)
 {
-    ((wxStyledTextCtrl*) _obj)->ConvertEOLs(eolMode);
+    ((wxStyledTextCtrl*) pObject)->ConvertEOLs(eolMode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetEOLMode(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetEOLMode(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetEOLMode();
+    return ((wxStyledTextCtrl*) pObject)->GetEOLMode();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetEOLMode(void* _obj, int eolMode)
+extern "C" EXPORT void wxStyledTextCtrl_SetEOLMode(void* pObject, int eolMode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetEOLMode(eolMode);
+    ((wxStyledTextCtrl*) pObject)->SetEOLMode(eolMode);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StartStyling(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_StartStyling(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->StartStyling(pos);
+    ((wxStyledTextCtrl*) pObject)->StartStyling(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetStyling(void* _obj, int length, int style)
+extern "C" EXPORT void wxStyledTextCtrl_SetStyling(void* pObject, int length, int style)
 {
-    ((wxStyledTextCtrl*) _obj)->SetStyling(length, style);
+    ((wxStyledTextCtrl*) pObject)->SetStyling(length, style);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetBufferedDraw(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetBufferedDraw(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetBufferedDraw();
+    return ((wxStyledTextCtrl*) pObject)->GetBufferedDraw();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetBufferedDraw(void* _obj, bool buffered)
+extern "C" EXPORT void wxStyledTextCtrl_SetBufferedDraw(void* pObject, bool buffered)
 {
-    ((wxStyledTextCtrl*) _obj)->SetBufferedDraw(buffered);
+    ((wxStyledTextCtrl*) pObject)->SetBufferedDraw(buffered);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetTabWidth(void* _obj, int tabWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetTabWidth(void* pObject, int tabWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetTabWidth(tabWidth);
+    ((wxStyledTextCtrl*) pObject)->SetTabWidth(tabWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetTabWidth(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetTabWidth(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetTabWidth();
+    return ((wxStyledTextCtrl*) pObject)->GetTabWidth();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCodePage(void* _obj, int codePage)
+extern "C" EXPORT void wxStyledTextCtrl_SetCodePage(void* pObject, int codePage)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCodePage(codePage);
+    ((wxStyledTextCtrl*) pObject)->SetCodePage(codePage);
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerDefine(void* _obj, int markerNumber, int markerSymbol,
+extern "C" EXPORT void wxStyledTextCtrl_MarkerDefine(void* pObject, int markerNumber, int markerSymbol,
                                                      int foreground_r, int foreground_g,
                                                      int foreground_b, int background_r,
                                                      int background_g, int background_b)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->MarkerDefine(markerNumber, markerSymbol,
                        wxColour(foreground_r, foreground_g, foreground_b),
                        wxColour(background_r, background_g, background_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerSetForeground(void* _obj, int markerNumber,
+extern "C" EXPORT void wxStyledTextCtrl_MarkerSetForeground(void* pObject, int markerNumber,
                                                             int fore_r, int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerSetForeground(markerNumber, wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->MarkerSetForeground(markerNumber, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerSetBackground(void* _obj, int markerNumber,
+extern "C" EXPORT void wxStyledTextCtrl_MarkerSetBackground(void* pObject, int markerNumber,
                                                             int back_r, int back_g, int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerSetBackground(markerNumber, wxColour(back_r, back_g, back_b));
+    ((wxStyledTextCtrl*) pObject)->MarkerSetBackground(markerNumber, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT int wxStyledTextCtrl_MarkerAdd(void* _obj, int line, int markerNumber)
+extern "C" EXPORT int wxStyledTextCtrl_MarkerAdd(void* pObject, int line, int markerNumber)
 {
-    return ((wxStyledTextCtrl*) _obj)->MarkerAdd(line, markerNumber);
+    return ((wxStyledTextCtrl*) pObject)->MarkerAdd(line, markerNumber);
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerDelete(void* _obj, int line, int markerNumber)
+extern "C" EXPORT void wxStyledTextCtrl_MarkerDelete(void* pObject, int line, int markerNumber)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerDelete(line, markerNumber);
+    ((wxStyledTextCtrl*) pObject)->MarkerDelete(line, markerNumber);
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerDeleteAll(void* _obj, int markerNumber)
+extern "C" EXPORT void wxStyledTextCtrl_MarkerDeleteAll(void* pObject, int markerNumber)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerDeleteAll(markerNumber);
+    ((wxStyledTextCtrl*) pObject)->MarkerDeleteAll(markerNumber);
 }
-extern "C" EXPORT int wxStyledTextCtrl_MarkerGet(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_MarkerGet(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->MarkerGet(line);
+    return ((wxStyledTextCtrl*) pObject)->MarkerGet(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_MarkerNext(void* _obj, int lineStart, int markerMask)
+extern "C" EXPORT int wxStyledTextCtrl_MarkerNext(void* pObject, int lineStart, int markerMask)
 {
-    return ((wxStyledTextCtrl*) _obj)->MarkerNext(lineStart, markerMask);
+    return ((wxStyledTextCtrl*) pObject)->MarkerNext(lineStart, markerMask);
 }
-extern "C" EXPORT int wxStyledTextCtrl_MarkerPrevious(void* _obj, int lineStart, int markerMask)
+extern "C" EXPORT int wxStyledTextCtrl_MarkerPrevious(void* pObject, int lineStart, int markerMask)
 {
-    return ((wxStyledTextCtrl*) _obj)->MarkerPrevious(lineStart, markerMask);
+    return ((wxStyledTextCtrl*) pObject)->MarkerPrevious(lineStart, markerMask);
 }
-extern "C" EXPORT void wxStyledTextCtrl_MarkerDefineBitmap(void* _obj, int markerNumber, void* bmp)
+extern "C" EXPORT void wxStyledTextCtrl_MarkerDefineBitmap(void* pObject, int markerNumber, void* bmp)
 {
-    ((wxStyledTextCtrl*) _obj)->MarkerDefineBitmap(markerNumber, *(wxBitmap*) bmp);
+    ((wxStyledTextCtrl*) pObject)->MarkerDefineBitmap(markerNumber, *(wxBitmap*) bmp);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginType(void* _obj, int margin, int marginType)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginType(void* pObject, int margin, int marginType)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginType(margin, marginType);
+    ((wxStyledTextCtrl*) pObject)->SetMarginType(margin, marginType);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMarginType(void* _obj, int margin)
+extern "C" EXPORT int wxStyledTextCtrl_GetMarginType(void* pObject, int margin)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginType(margin);
+    return ((wxStyledTextCtrl*) pObject)->GetMarginType(margin);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginWidth(void* _obj, int margin, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginWidth(void* pObject, int margin, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginWidth(margin, pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->SetMarginWidth(margin, pixelWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMarginWidth(void* _obj, int margin)
+extern "C" EXPORT int wxStyledTextCtrl_GetMarginWidth(void* pObject, int margin)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginWidth(margin);
+    return ((wxStyledTextCtrl*) pObject)->GetMarginWidth(margin);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginMask(void* _obj, int margin, int mask)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginMask(void* pObject, int margin, int mask)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginMask(margin, mask);
+    ((wxStyledTextCtrl*) pObject)->SetMarginMask(margin, mask);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMarginMask(void* _obj, int margin)
+extern "C" EXPORT int wxStyledTextCtrl_GetMarginMask(void* pObject, int margin)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginMask(margin);
+    return ((wxStyledTextCtrl*) pObject)->GetMarginMask(margin);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginSensitive(void* _obj, int margin, bool sensitive)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginSensitive(void* pObject, int margin, bool sensitive)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginSensitive(margin, sensitive);
+    ((wxStyledTextCtrl*) pObject)->SetMarginSensitive(margin, sensitive);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetMarginSensitive(void* _obj, int margin)
+extern "C" EXPORT bool wxStyledTextCtrl_GetMarginSensitive(void* pObject, int margin)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginSensitive(margin);
+    return ((wxStyledTextCtrl*) pObject)->GetMarginSensitive(margin);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleClearAll(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_StyleClearAll(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleClearAll();
+    ((wxStyledTextCtrl*) pObject)->StyleClearAll();
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetForeground(void* _obj, int style, int fore_r,
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetForeground(void* pObject, int style, int fore_r,
                                                            int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetForeground(style, wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->StyleSetForeground(style, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetBackground(void* _obj, int style, int back_r,
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetBackground(void* pObject, int style, int back_r,
                                                            int back_g, int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetBackground(style, wxColour(back_r, back_g, back_b));
+    ((wxStyledTextCtrl*) pObject)->StyleSetBackground(style, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetBold(void* _obj, int style, bool bold)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetBold(void* pObject, int style, bool bold)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetBold(style, bold);
+    ((wxStyledTextCtrl*) pObject)->StyleSetBold(style, bold);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetItalic(void* _obj, int style, bool italic)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetItalic(void* pObject, int style, bool italic)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetItalic(style, italic);
+    ((wxStyledTextCtrl*) pObject)->StyleSetItalic(style, italic);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetSize(void* _obj, int style, int sizePoints)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetSize(void* pObject, int style, int sizePoints)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetSize(style, sizePoints);
+    ((wxStyledTextCtrl*) pObject)->StyleSetSize(style, sizePoints);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetFaceName(void* _obj, int style, wxString* fontName)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetFaceName(void* pObject, int style, wxString* fontName)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetFaceName(style, *fontName);
+    ((wxStyledTextCtrl*) pObject)->StyleSetFaceName(style, *fontName);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetEOLFilled(void* _obj, int style, bool filled)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetEOLFilled(void* pObject, int style, bool filled)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetEOLFilled(style, filled);
+    ((wxStyledTextCtrl*) pObject)->StyleSetEOLFilled(style, filled);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleResetDefault(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_StyleResetDefault(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleResetDefault();
+    ((wxStyledTextCtrl*) pObject)->StyleResetDefault();
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetUnderline(void* _obj, int style, bool underline)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetUnderline(void* pObject, int style, bool underline)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetUnderline(style, underline);
+    ((wxStyledTextCtrl*) pObject)->StyleSetUnderline(style, underline);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetCase(void* _obj, int style, int caseForce)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetCase(void* pObject, int style, int caseForce)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetCase(style, caseForce);
+    ((wxStyledTextCtrl*) pObject)->StyleSetCase(style, caseForce);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetCharacterSet(void* _obj, int style,
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetCharacterSet(void* pObject, int style,
                                                              int characterSet)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetCharacterSet(style, characterSet);
+    ((wxStyledTextCtrl*) pObject)->StyleSetCharacterSet(style, characterSet);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetHotSpot(void* _obj, int style, bool hotspot)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetHotSpot(void* pObject, int style, bool hotspot)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetHotSpot(style, hotspot);
+    ((wxStyledTextCtrl*) pObject)->StyleSetHotSpot(style, hotspot);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSelForeground(void* _obj, bool useSetting, int fore_r,
+extern "C" EXPORT void wxStyledTextCtrl_SetSelForeground(void* pObject, bool useSetting, int fore_r,
                                                          int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSelForeground(useSetting, wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->SetSelForeground(useSetting, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSelBackground(void* _obj, bool useSetting, int back_r,
+extern "C" EXPORT void wxStyledTextCtrl_SetSelBackground(void* pObject, bool useSetting, int back_r,
                                                          int back_g, int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSelBackground(useSetting, wxColour(back_r, back_g, back_b));
+    ((wxStyledTextCtrl*) pObject)->SetSelBackground(useSetting, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCaretForeground(void* _obj, int fore_r, int fore_g,
+extern "C" EXPORT void wxStyledTextCtrl_SetCaretForeground(void* pObject, int fore_r, int fore_g,
                                                            int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCaretForeground(wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->SetCaretForeground(wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_CmdKeyAssign(void* _obj, int key, int modifiers, int cmd)
+extern "C" EXPORT void wxStyledTextCtrl_CmdKeyAssign(void* pObject, int key, int modifiers, int cmd)
 {
-    ((wxStyledTextCtrl*) _obj)->CmdKeyAssign(key, modifiers, cmd);
+    ((wxStyledTextCtrl*) pObject)->CmdKeyAssign(key, modifiers, cmd);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CmdKeyClear(void* _obj, int key, int modifiers)
+extern "C" EXPORT void wxStyledTextCtrl_CmdKeyClear(void* pObject, int key, int modifiers)
 {
-    ((wxStyledTextCtrl*) _obj)->CmdKeyClear(key, modifiers);
+    ((wxStyledTextCtrl*) pObject)->CmdKeyClear(key, modifiers);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CmdKeyClearAll(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_CmdKeyClearAll(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->CmdKeyClearAll();
+    ((wxStyledTextCtrl*) pObject)->CmdKeyClearAll();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetStyleBytes(void* _obj, int length, void* styleBytes)
+extern "C" EXPORT void wxStyledTextCtrl_SetStyleBytes(void* pObject, int length, void* styleBytes)
 {
-    ((wxStyledTextCtrl*) _obj)->SetStyleBytes(length, *(char**) styleBytes);
+    ((wxStyledTextCtrl*) pObject)->SetStyleBytes(length, *(char**) styleBytes);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetVisible(void* _obj, int style, bool visible)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetVisible(void* pObject, int style, bool visible)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetVisible(style, visible);
+    ((wxStyledTextCtrl*) pObject)->StyleSetVisible(style, visible);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCaretPeriod(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetCaretPeriod(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCaretPeriod();
+    return ((wxStyledTextCtrl*) pObject)->GetCaretPeriod();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCaretPeriod(void* _obj, int periodMilliseconds)
+extern "C" EXPORT void wxStyledTextCtrl_SetCaretPeriod(void* pObject, int periodMilliseconds)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCaretPeriod(periodMilliseconds);
+    ((wxStyledTextCtrl*) pObject)->SetCaretPeriod(periodMilliseconds);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetWordChars(void* _obj, wxString* characters)
+extern "C" EXPORT void wxStyledTextCtrl_SetWordChars(void* pObject, wxString* characters)
 {
-    ((wxStyledTextCtrl*) _obj)->SetWordChars(*characters);
+    ((wxStyledTextCtrl*) pObject)->SetWordChars(*characters);
 }
-extern "C" EXPORT void wxStyledTextCtrl_BeginUndoAction(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_BeginUndoAction(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->BeginUndoAction();
+    ((wxStyledTextCtrl*) pObject)->BeginUndoAction();
 }
-extern "C" EXPORT void wxStyledTextCtrl_EndUndoAction(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_EndUndoAction(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->EndUndoAction();
+    ((wxStyledTextCtrl*) pObject)->EndUndoAction();
 }
-extern "C" EXPORT void wxStyledTextCtrl_IndicatorSetStyle(void* _obj, int indic, int style)
+extern "C" EXPORT void wxStyledTextCtrl_IndicatorSetStyle(void* pObject, int indic, int style)
 {
-    ((wxStyledTextCtrl*) _obj)->IndicatorSetStyle(indic, style);
+    ((wxStyledTextCtrl*) pObject)->IndicatorSetStyle(indic, style);
 }
-extern "C" EXPORT int wxStyledTextCtrl_IndicatorGetStyle(void* _obj, int indic)
+extern "C" EXPORT int wxStyledTextCtrl_IndicatorGetStyle(void* pObject, int indic)
 {
-    return ((wxStyledTextCtrl*) _obj)->IndicatorGetStyle(indic);
+    return ((wxStyledTextCtrl*) pObject)->IndicatorGetStyle(indic);
 }
-extern "C" EXPORT void wxStyledTextCtrl_IndicatorSetForeground(void* _obj, int indic, int fore_r,
+extern "C" EXPORT void wxStyledTextCtrl_IndicatorSetForeground(void* pObject, int indic, int fore_r,
                                                                int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->IndicatorSetForeground(indic, wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->IndicatorSetForeground(indic, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetWhitespaceForeground(void* _obj, bool useSetting,
+extern "C" EXPORT void wxStyledTextCtrl_SetWhitespaceForeground(void* pObject, bool useSetting,
                                                                 int fore_r, int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->SetWhitespaceForeground(useSetting, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetWhitespaceBackground(void* _obj, bool useSetting,
+extern "C" EXPORT void wxStyledTextCtrl_SetWhitespaceBackground(void* pObject, bool useSetting,
                                                                 int back_r, int back_g, int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->SetWhitespaceBackground(useSetting, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLineState(void* _obj, int line, int state)
+extern "C" EXPORT void wxStyledTextCtrl_SetLineState(void* pObject, int line, int state)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLineState(line, state);
+    ((wxStyledTextCtrl*) pObject)->SetLineState(line, state);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLineState(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetLineState(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineState(line);
+    return ((wxStyledTextCtrl*) pObject)->GetLineState(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMaxLineState(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetMaxLineState(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMaxLineState();
+    return ((wxStyledTextCtrl*) pObject)->GetMaxLineState();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetCaretLineVisible(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetCaretLineVisible(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCaretLineVisible();
+    return ((wxStyledTextCtrl*) pObject)->GetCaretLineVisible();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCaretLineVisible(void* _obj, bool show)
+extern "C" EXPORT void wxStyledTextCtrl_SetCaretLineVisible(void* pObject, bool show)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCaretLineVisible(show);
+    ((wxStyledTextCtrl*) pObject)->SetCaretLineVisible(show);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetChangeable(void* _obj, int style, bool changeable)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetChangeable(void* pObject, int style, bool changeable)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetChangeable(style, changeable);
+    ((wxStyledTextCtrl*) pObject)->StyleSetChangeable(style, changeable);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompShow(void* _obj, int lenEntered, wxString* itemList)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompShow(void* pObject, int lenEntered, wxString* itemList)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompShow(lenEntered, *itemList);
+    ((wxStyledTextCtrl*) pObject)->AutoCompShow(lenEntered, *itemList);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompCancel(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompCancel(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompCancel();
+    ((wxStyledTextCtrl*) pObject)->AutoCompCancel();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompActive(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompActive(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompActive();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompActive();
 }
-extern "C" EXPORT int wxStyledTextCtrl_AutoCompPosStart(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_AutoCompPosStart(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompPosStart();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompPosStart();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompComplete(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompComplete(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompComplete();
+    ((wxStyledTextCtrl*) pObject)->AutoCompComplete();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompStops(void* _obj, wxString* characterSet)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompStops(void* pObject, wxString* characterSet)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompStops(*characterSet);
+    ((wxStyledTextCtrl*) pObject)->AutoCompStops(*characterSet);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetSeparator(void* _obj, int separatorCharacter)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetSeparator(void* pObject, int separatorCharacter)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetSeparator(separatorCharacter);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetSeparator(separatorCharacter);
 }
-extern "C" EXPORT int wxStyledTextCtrl_AutoCompGetSeparator(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_AutoCompGetSeparator(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetSeparator();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetSeparator();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSelect(void* _obj, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSelect(void* pObject, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSelect(*text);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSelect(*text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetCancelAtStart(void* _obj, bool cancel)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetCancelAtStart(void* pObject, bool cancel)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetCancelAtStart(cancel);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetCancelAtStart(cancel);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetCancelAtStart(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetCancelAtStart(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetCancelAtStart();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetCancelAtStart();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetFillUps(void* _obj, wxString* characterSet)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetFillUps(void* pObject, wxString* characterSet)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetFillUps(*characterSet);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetFillUps(*characterSet);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetChooseSingle(void* _obj, bool chooseSingle)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetChooseSingle(void* pObject, bool chooseSingle)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetChooseSingle(chooseSingle);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetChooseSingle(chooseSingle);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetChooseSingle(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetChooseSingle(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetChooseSingle();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetChooseSingle();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetIgnoreCase(void* _obj, bool ignoreCase)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetIgnoreCase(void* pObject, bool ignoreCase)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetIgnoreCase(ignoreCase);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetIgnoreCase(ignoreCase);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetIgnoreCase(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetIgnoreCase(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetIgnoreCase();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetIgnoreCase();
 }
-extern "C" EXPORT void wxStyledTextCtrl_UserListShow(void* _obj, int listType, wxString* itemList)
+extern "C" EXPORT void wxStyledTextCtrl_UserListShow(void* pObject, int listType, wxString* itemList)
 {
-    ((wxStyledTextCtrl*) _obj)->UserListShow(listType, *itemList);
+    ((wxStyledTextCtrl*) pObject)->UserListShow(listType, *itemList);
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetAutoHide(void* _obj, bool autoHide)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetAutoHide(void* pObject, bool autoHide)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetAutoHide(autoHide);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetAutoHide(autoHide);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetAutoHide(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetAutoHide(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetAutoHide();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetAutoHide();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetDropRestOfWord(void* _obj, bool dropRestOfWord)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetDropRestOfWord(void* pObject, bool dropRestOfWord)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetDropRestOfWord(dropRestOfWord);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetDropRestOfWord(dropRestOfWord);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetDropRestOfWord(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_AutoCompGetDropRestOfWord(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetDropRestOfWord();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetDropRestOfWord();
 }
-extern "C" EXPORT void wxStyledTextCtrl_RegisterImage(void* _obj, int type, void* bmp)
+extern "C" EXPORT void wxStyledTextCtrl_RegisterImage(void* pObject, int type, void* bmp)
 {
-    ((wxStyledTextCtrl*) _obj)->RegisterImage(type, *(wxBitmap*) bmp);
+    ((wxStyledTextCtrl*) pObject)->RegisterImage(type, *(wxBitmap*) bmp);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ClearRegisteredImages(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_ClearRegisteredImages(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->ClearRegisteredImages();
+    ((wxStyledTextCtrl*) pObject)->ClearRegisteredImages();
 }
-extern "C" EXPORT int wxStyledTextCtrl_AutoCompGetTypeSeparator(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_AutoCompGetTypeSeparator(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->AutoCompGetTypeSeparator();
+    return ((wxStyledTextCtrl*) pObject)->AutoCompGetTypeSeparator();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetTypeSeparator(void* _obj, int separatorCharacter)
+extern "C" EXPORT void wxStyledTextCtrl_AutoCompSetTypeSeparator(void* pObject, int separatorCharacter)
 {
-    ((wxStyledTextCtrl*) _obj)->AutoCompSetTypeSeparator(separatorCharacter);
+    ((wxStyledTextCtrl*) pObject)->AutoCompSetTypeSeparator(separatorCharacter);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetIndent(void* _obj, int indentSize)
+extern "C" EXPORT void wxStyledTextCtrl_SetIndent(void* pObject, int indentSize)
 {
-    ((wxStyledTextCtrl*) _obj)->SetIndent(indentSize);
+    ((wxStyledTextCtrl*) pObject)->SetIndent(indentSize);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetIndent(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetIndent(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetIndent();
+    return ((wxStyledTextCtrl*) pObject)->GetIndent();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetUseTabs(void* _obj, bool useTabs)
+extern "C" EXPORT void wxStyledTextCtrl_SetUseTabs(void* pObject, bool useTabs)
 {
-    ((wxStyledTextCtrl*) _obj)->SetUseTabs(useTabs);
+    ((wxStyledTextCtrl*) pObject)->SetUseTabs(useTabs);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetUseTabs(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetUseTabs(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetUseTabs();
+    return ((wxStyledTextCtrl*) pObject)->GetUseTabs();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLineIndentation(void* _obj, int line, int indentSize)
+extern "C" EXPORT void wxStyledTextCtrl_SetLineIndentation(void* pObject, int line, int indentSize)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLineIndentation(line, indentSize);
+    ((wxStyledTextCtrl*) pObject)->SetLineIndentation(line, indentSize);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLineIndentation(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetLineIndentation(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineIndentation(line);
+    return ((wxStyledTextCtrl*) pObject)->GetLineIndentation(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLineIndentPosition(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetLineIndentPosition(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineIndentPosition(line);
+    return ((wxStyledTextCtrl*) pObject)->GetLineIndentPosition(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetColumn(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_GetColumn(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetColumn(pos);
+    return ((wxStyledTextCtrl*) pObject)->GetColumn(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetUseHorizontalScrollBar(void* _obj, bool show)
+extern "C" EXPORT void wxStyledTextCtrl_SetUseHorizontalScrollBar(void* pObject, bool show)
 {
-    ((wxStyledTextCtrl*) _obj)->SetUseHorizontalScrollBar(show);
+    ((wxStyledTextCtrl*) pObject)->SetUseHorizontalScrollBar(show);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetUseHorizontalScrollBar(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetUseHorizontalScrollBar(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetUseHorizontalScrollBar();
+    return ((wxStyledTextCtrl*) pObject)->GetUseHorizontalScrollBar();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetIndentationGuides(void* _obj, bool show)
+extern "C" EXPORT void wxStyledTextCtrl_SetIndentationGuides(void* pObject, bool show)
 {
-    ((wxStyledTextCtrl*) _obj)->SetIndentationGuides(show);
+    ((wxStyledTextCtrl*) pObject)->SetIndentationGuides(show);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetIndentationGuides(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetIndentationGuides(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetIndentationGuides();
+    return ((wxStyledTextCtrl*) pObject)->GetIndentationGuides();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetHighlightGuide(void* _obj, int column)
+extern "C" EXPORT void wxStyledTextCtrl_SetHighlightGuide(void* pObject, int column)
 {
-    ((wxStyledTextCtrl*) _obj)->SetHighlightGuide(column);
+    ((wxStyledTextCtrl*) pObject)->SetHighlightGuide(column);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetHighlightGuide(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetHighlightGuide(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetHighlightGuide();
+    return ((wxStyledTextCtrl*) pObject)->GetHighlightGuide();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLineEndPosition(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetLineEndPosition(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineEndPosition(line);
+    return ((wxStyledTextCtrl*) pObject)->GetLineEndPosition(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCodePage(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetCodePage(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCodePage();
+    return ((wxStyledTextCtrl*) pObject)->GetCodePage();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetReadOnly(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetReadOnly(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetReadOnly();
+    return ((wxStyledTextCtrl*) pObject)->GetReadOnly();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCurrentPos(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_SetCurrentPos(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCurrentPos(pos);
+    ((wxStyledTextCtrl*) pObject)->SetCurrentPos(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSelectionStart(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_SetSelectionStart(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSelectionStart(pos);
+    ((wxStyledTextCtrl*) pObject)->SetSelectionStart(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetSelectionStart(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetSelectionStart(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetSelectionStart();
+    return ((wxStyledTextCtrl*) pObject)->GetSelectionStart();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSelectionEnd(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_SetSelectionEnd(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSelectionEnd(pos);
+    ((wxStyledTextCtrl*) pObject)->SetSelectionEnd(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetSelectionEnd(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetSelectionEnd(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetSelectionEnd();
+    return ((wxStyledTextCtrl*) pObject)->GetSelectionEnd();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetPrintMagnification(void* _obj, int magnification)
+extern "C" EXPORT void wxStyledTextCtrl_SetPrintMagnification(void* pObject, int magnification)
 {
-    ((wxStyledTextCtrl*) _obj)->SetPrintMagnification(magnification);
+    ((wxStyledTextCtrl*) pObject)->SetPrintMagnification(magnification);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetPrintMagnification(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetPrintMagnification(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetPrintMagnification();
+    return ((wxStyledTextCtrl*) pObject)->GetPrintMagnification();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetPrintColourMode(void* _obj, int mode)
+extern "C" EXPORT void wxStyledTextCtrl_SetPrintColourMode(void* pObject, int mode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetPrintColourMode(mode);
+    ((wxStyledTextCtrl*) pObject)->SetPrintColourMode(mode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetPrintColourMode(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetPrintColourMode(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetPrintColourMode();
+    return ((wxStyledTextCtrl*) pObject)->GetPrintColourMode();
 }
-extern "C" EXPORT int wxStyledTextCtrl_FindText(void* _obj, int minPos, int maxPos, wxString* text,
+extern "C" EXPORT int wxStyledTextCtrl_FindText(void* pObject, int minPos, int maxPos, wxString* text,
                                                 int flags)
 {
-    return ((wxStyledTextCtrl*) _obj)->FindText(minPos, maxPos, *text, flags);
+    return ((wxStyledTextCtrl*) pObject)->FindText(minPos, maxPos, *text, flags);
 }
-extern "C" EXPORT int wxStyledTextCtrl_FormatRange(void* _obj, bool doDraw, int startPos,
+extern "C" EXPORT int wxStyledTextCtrl_FormatRange(void* pObject, bool doDraw, int startPos,
                                                    int endPos, void* draw, void* target,
                                                    void* renderRect, void* pageRect)
 {
-    return ((wxStyledTextCtrl*) _obj)
+    return ((wxStyledTextCtrl*) pObject)
         ->FormatRange(doDraw, startPos, endPos, *(wxDC**) draw, *(wxDC**) target,
                       *(wxRect*) renderRect, *(wxRect*) pageRect);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetFirstVisibleLine(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetFirstVisibleLine(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetFirstVisibleLine();
+    return ((wxStyledTextCtrl*) pObject)->GetFirstVisibleLine();
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLineCount(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetLineCount(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineCount();
+    return ((wxStyledTextCtrl*) pObject)->GetLineCount();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginLeft(void* _obj, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginLeft(void* pObject, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginLeft(pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->SetMarginLeft(pixelWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMarginLeft(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetMarginLeft(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginLeft();
+    return ((wxStyledTextCtrl*) pObject)->GetMarginLeft();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMarginRight(void* _obj, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetMarginRight(void* pObject, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMarginRight(pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->SetMarginRight(pixelWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMarginRight(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetMarginRight(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMarginRight();
+    return ((wxStyledTextCtrl*) pObject)->GetMarginRight();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetModify(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetModify(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetModify();
+    return ((wxStyledTextCtrl*) pObject)->GetModify();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSelection(void* _obj, int start, int end)
+extern "C" EXPORT void wxStyledTextCtrl_SetSelection(void* pObject, int start, int end)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSelection(start, end);
+    ((wxStyledTextCtrl*) pObject)->SetSelection(start, end);
 }
-extern "C" EXPORT void wxStyledTextCtrl_HideSelection(void* _obj, bool normal)
+extern "C" EXPORT void wxStyledTextCtrl_HideSelection(void* pObject, bool normal)
 {
-    ((wxStyledTextCtrl*) _obj)->HideSelection(normal);
+    ((wxStyledTextCtrl*) pObject)->HideSelection(normal);
 }
-extern "C" EXPORT int wxStyledTextCtrl_LineFromPosition(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_LineFromPosition(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->LineFromPosition(pos);
+    return ((wxStyledTextCtrl*) pObject)->LineFromPosition(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_PositionFromLine(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_PositionFromLine(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->PositionFromLine(line);
+    return ((wxStyledTextCtrl*) pObject)->PositionFromLine(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_LineScroll(void* _obj, int columns, int lines)
+extern "C" EXPORT void wxStyledTextCtrl_LineScroll(void* pObject, int columns, int lines)
 {
-    ((wxStyledTextCtrl*) _obj)->LineScroll(columns, lines);
+    ((wxStyledTextCtrl*) pObject)->LineScroll(columns, lines);
 }
-extern "C" EXPORT void wxStyledTextCtrl_EnsureCaretVisible(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_EnsureCaretVisible(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->EnsureCaretVisible();
+    ((wxStyledTextCtrl*) pObject)->EnsureCaretVisible();
 }
-extern "C" EXPORT void wxStyledTextCtrl_ReplaceSelection(void* _obj, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_ReplaceSelection(void* pObject, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->ReplaceSelection(*text);
+    ((wxStyledTextCtrl*) pObject)->ReplaceSelection(*text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetReadOnly(void* _obj, bool readOnly)
+extern "C" EXPORT void wxStyledTextCtrl_SetReadOnly(void* pObject, bool readOnly)
 {
-    ((wxStyledTextCtrl*) _obj)->SetReadOnly(readOnly);
+    ((wxStyledTextCtrl*) pObject)->SetReadOnly(readOnly);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_CanPaste(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_CanPaste(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->CanPaste();
+    return ((wxStyledTextCtrl*) pObject)->CanPaste();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_CanUndo(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_CanUndo(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->CanUndo();
+    return ((wxStyledTextCtrl*) pObject)->CanUndo();
 }
-extern "C" EXPORT void wxStyledTextCtrl_EmptyUndoBuffer(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_EmptyUndoBuffer(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->EmptyUndoBuffer();
+    ((wxStyledTextCtrl*) pObject)->EmptyUndoBuffer();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Undo(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Undo(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Undo();
+    ((wxStyledTextCtrl*) pObject)->Undo();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Cut(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Cut(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Cut();
+    ((wxStyledTextCtrl*) pObject)->Cut();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Copy(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Copy(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Copy();
+    ((wxStyledTextCtrl*) pObject)->Copy();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Paste(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Paste(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Paste();
+    ((wxStyledTextCtrl*) pObject)->Paste();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Clear(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_Clear(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->Clear();
+    ((wxStyledTextCtrl*) pObject)->Clear();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetText(void* _obj, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_SetText(void* pObject, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->SetText(*text);
+    ((wxStyledTextCtrl*) pObject)->SetText(*text);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetTextLength(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetTextLength(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetTextLength();
+    return ((wxStyledTextCtrl*) pObject)->GetTextLength();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetOvertype(void* _obj, bool overtype)
+extern "C" EXPORT void wxStyledTextCtrl_SetOvertype(void* pObject, bool overtype)
 {
-    ((wxStyledTextCtrl*) _obj)->SetOvertype(overtype);
+    ((wxStyledTextCtrl*) pObject)->SetOvertype(overtype);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetOvertype(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetOvertype(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetOvertype();
+    return ((wxStyledTextCtrl*) pObject)->GetOvertype();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetCaretWidth(void* _obj, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetCaretWidth(void* pObject, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetCaretWidth(pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->SetCaretWidth(pixelWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCaretWidth(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetCaretWidth(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCaretWidth();
+    return ((wxStyledTextCtrl*) pObject)->GetCaretWidth();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetTargetStart(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_SetTargetStart(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->SetTargetStart(pos);
+    ((wxStyledTextCtrl*) pObject)->SetTargetStart(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetTargetStart(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetTargetStart(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetTargetStart();
+    return ((wxStyledTextCtrl*) pObject)->GetTargetStart();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetTargetEnd(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_SetTargetEnd(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->SetTargetEnd(pos);
+    ((wxStyledTextCtrl*) pObject)->SetTargetEnd(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetTargetEnd(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetTargetEnd(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetTargetEnd();
+    return ((wxStyledTextCtrl*) pObject)->GetTargetEnd();
 }
-extern "C" EXPORT int wxStyledTextCtrl_ReplaceTarget(void* _obj, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_ReplaceTarget(void* pObject, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->ReplaceTarget(*text);
+    return ((wxStyledTextCtrl*) pObject)->ReplaceTarget(*text);
 }
-extern "C" EXPORT int wxStyledTextCtrl_ReplaceTargetRE(void* _obj, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_ReplaceTargetRE(void* pObject, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->ReplaceTargetRE(*text);
+    return ((wxStyledTextCtrl*) pObject)->ReplaceTargetRE(*text);
 }
-extern "C" EXPORT int wxStyledTextCtrl_SearchInTarget(void* _obj, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_SearchInTarget(void* pObject, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->SearchInTarget(*text);
+    return ((wxStyledTextCtrl*) pObject)->SearchInTarget(*text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSearchFlags(void* _obj, int flags)
+extern "C" EXPORT void wxStyledTextCtrl_SetSearchFlags(void* pObject, int flags)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSearchFlags(flags);
+    ((wxStyledTextCtrl*) pObject)->SetSearchFlags(flags);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetSearchFlags(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetSearchFlags(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetSearchFlags();
+    return ((wxStyledTextCtrl*) pObject)->GetSearchFlags();
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipShow(void* _obj, int pos, wxString* definition)
+extern "C" EXPORT void wxStyledTextCtrl_CallTipShow(void* pObject, int pos, wxString* definition)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipShow(pos, *definition);
+    ((wxStyledTextCtrl*) pObject)->CallTipShow(pos, *definition);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipCancel(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_CallTipCancel(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipCancel();
+    ((wxStyledTextCtrl*) pObject)->CallTipCancel();
 }
-extern "C" EXPORT bool wxStyledTextCtrl_CallTipActive(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_CallTipActive(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->CallTipActive();
+    return ((wxStyledTextCtrl*) pObject)->CallTipActive();
 }
-extern "C" EXPORT int wxStyledTextCtrl_CallTipPosAtStart(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_CallTipPosAtStart(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->CallTipPosAtStart();
+    return ((wxStyledTextCtrl*) pObject)->CallTipPosAtStart();
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipSetHighlight(void* _obj, int start, int end)
+extern "C" EXPORT void wxStyledTextCtrl_CallTipSetHighlight(void* pObject, int start, int end)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipSetHighlight(start, end);
+    ((wxStyledTextCtrl*) pObject)->CallTipSetHighlight(start, end);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipSetBackground(void* _obj, int back_r, int back_g,
+extern "C" EXPORT void wxStyledTextCtrl_CallTipSetBackground(void* pObject, int back_r, int back_g,
                                                              int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipSetBackground(wxColour(back_r, back_g, back_b));
+    ((wxStyledTextCtrl*) pObject)->CallTipSetBackground(wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipSetForeground(void* _obj, int fore_r, int fore_g,
+extern "C" EXPORT void wxStyledTextCtrl_CallTipSetForeground(void* pObject, int fore_r, int fore_g,
                                                              int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipSetForeground(wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->CallTipSetForeground(wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_CallTipSetForegroundHighlight(void* _obj, int fore_r,
+extern "C" EXPORT void wxStyledTextCtrl_CallTipSetForegroundHighlight(void* pObject, int fore_r,
                                                                       int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->CallTipSetForegroundHighlight(wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->CallTipSetForegroundHighlight(wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT int wxStyledTextCtrl_VisibleFromDocLine(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_VisibleFromDocLine(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->VisibleFromDocLine(line);
+    return ((wxStyledTextCtrl*) pObject)->VisibleFromDocLine(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_DocLineFromVisible(void* _obj, int lineDisplay)
+extern "C" EXPORT int wxStyledTextCtrl_DocLineFromVisible(void* pObject, int lineDisplay)
 {
-    return ((wxStyledTextCtrl*) _obj)->DocLineFromVisible(lineDisplay);
+    return ((wxStyledTextCtrl*) pObject)->DocLineFromVisible(lineDisplay);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetFoldLevel(void* _obj, int line, int level)
+extern "C" EXPORT void wxStyledTextCtrl_SetFoldLevel(void* pObject, int line, int level)
 {
-    ((wxStyledTextCtrl*) _obj)->SetFoldLevel(line, level);
+    ((wxStyledTextCtrl*) pObject)->SetFoldLevel(line, level);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetFoldLevel(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetFoldLevel(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetFoldLevel(line);
+    return ((wxStyledTextCtrl*) pObject)->GetFoldLevel(line);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLastChild(void* _obj, int line, int level)
+extern "C" EXPORT int wxStyledTextCtrl_GetLastChild(void* pObject, int line, int level)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLastChild(line, level);
+    return ((wxStyledTextCtrl*) pObject)->GetLastChild(line, level);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetFoldParent(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_GetFoldParent(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetFoldParent(line);
+    return ((wxStyledTextCtrl*) pObject)->GetFoldParent(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ShowLines(void* _obj, int lineStart, int lineEnd)
+extern "C" EXPORT void wxStyledTextCtrl_ShowLines(void* pObject, int lineStart, int lineEnd)
 {
-    ((wxStyledTextCtrl*) _obj)->ShowLines(lineStart, lineEnd);
+    ((wxStyledTextCtrl*) pObject)->ShowLines(lineStart, lineEnd);
 }
-extern "C" EXPORT void wxStyledTextCtrl_HideLines(void* _obj, int lineStart, int lineEnd)
+extern "C" EXPORT void wxStyledTextCtrl_HideLines(void* pObject, int lineStart, int lineEnd)
 {
-    ((wxStyledTextCtrl*) _obj)->HideLines(lineStart, lineEnd);
+    ((wxStyledTextCtrl*) pObject)->HideLines(lineStart, lineEnd);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetLineVisible(void* _obj, int line)
+extern "C" EXPORT bool wxStyledTextCtrl_GetLineVisible(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLineVisible(line);
+    return ((wxStyledTextCtrl*) pObject)->GetLineVisible(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetFoldExpanded(void* _obj, int line, bool expanded)
+extern "C" EXPORT void wxStyledTextCtrl_SetFoldExpanded(void* pObject, int line, bool expanded)
 {
-    ((wxStyledTextCtrl*) _obj)->SetFoldExpanded(line, expanded);
+    ((wxStyledTextCtrl*) pObject)->SetFoldExpanded(line, expanded);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetFoldExpanded(void* _obj, int line)
+extern "C" EXPORT bool wxStyledTextCtrl_GetFoldExpanded(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetFoldExpanded(line);
+    return ((wxStyledTextCtrl*) pObject)->GetFoldExpanded(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ToggleFold(void* _obj, int line)
+extern "C" EXPORT void wxStyledTextCtrl_ToggleFold(void* pObject, int line)
 {
-    ((wxStyledTextCtrl*) _obj)->ToggleFold(line);
+    ((wxStyledTextCtrl*) pObject)->ToggleFold(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_EnsureVisible(void* _obj, int line)
+extern "C" EXPORT void wxStyledTextCtrl_EnsureVisible(void* pObject, int line)
 {
-    ((wxStyledTextCtrl*) _obj)->EnsureVisible(line);
+    ((wxStyledTextCtrl*) pObject)->EnsureVisible(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetFoldFlags(void* _obj, int flags)
+extern "C" EXPORT void wxStyledTextCtrl_SetFoldFlags(void* pObject, int flags)
 {
-    ((wxStyledTextCtrl*) _obj)->SetFoldFlags(flags);
+    ((wxStyledTextCtrl*) pObject)->SetFoldFlags(flags);
 }
-extern "C" EXPORT void wxStyledTextCtrl_EnsureVisibleEnforcePolicy(void* _obj, int line)
+extern "C" EXPORT void wxStyledTextCtrl_EnsureVisibleEnforcePolicy(void* pObject, int line)
 {
-    ((wxStyledTextCtrl*) _obj)->EnsureVisibleEnforcePolicy(line);
+    ((wxStyledTextCtrl*) pObject)->EnsureVisibleEnforcePolicy(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetTabIndents(void* _obj, bool tabIndents)
+extern "C" EXPORT void wxStyledTextCtrl_SetTabIndents(void* pObject, bool tabIndents)
 {
-    ((wxStyledTextCtrl*) _obj)->SetTabIndents(tabIndents);
+    ((wxStyledTextCtrl*) pObject)->SetTabIndents(tabIndents);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetTabIndents(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetTabIndents(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetTabIndents();
+    return ((wxStyledTextCtrl*) pObject)->GetTabIndents();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetBackSpaceUnIndents(void* _obj, bool bsUnIndents)
+extern "C" EXPORT void wxStyledTextCtrl_SetBackSpaceUnIndents(void* pObject, bool bsUnIndents)
 {
-    ((wxStyledTextCtrl*) _obj)->SetBackSpaceUnIndents(bsUnIndents);
+    ((wxStyledTextCtrl*) pObject)->SetBackSpaceUnIndents(bsUnIndents);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetBackSpaceUnIndents(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetBackSpaceUnIndents(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetBackSpaceUnIndents();
+    return ((wxStyledTextCtrl*) pObject)->GetBackSpaceUnIndents();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMouseDwellTime(void* _obj, int periodMilliseconds)
+extern "C" EXPORT void wxStyledTextCtrl_SetMouseDwellTime(void* pObject, int periodMilliseconds)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMouseDwellTime(periodMilliseconds);
+    ((wxStyledTextCtrl*) pObject)->SetMouseDwellTime(periodMilliseconds);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetMouseDwellTime(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetMouseDwellTime(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMouseDwellTime();
+    return ((wxStyledTextCtrl*) pObject)->GetMouseDwellTime();
 }
-extern "C" EXPORT int wxStyledTextCtrl_WordStartPosition(void* _obj, int pos,
+extern "C" EXPORT int wxStyledTextCtrl_WordStartPosition(void* pObject, int pos,
                                                          bool onlyWordCharacters)
 {
-    return ((wxStyledTextCtrl*) _obj)->WordStartPosition(pos, onlyWordCharacters);
+    return ((wxStyledTextCtrl*) pObject)->WordStartPosition(pos, onlyWordCharacters);
 }
-extern "C" EXPORT int wxStyledTextCtrl_WordEndPosition(void* _obj, int pos, bool onlyWordCharacters)
+extern "C" EXPORT int wxStyledTextCtrl_WordEndPosition(void* pObject, int pos, bool onlyWordCharacters)
 {
-    return ((wxStyledTextCtrl*) _obj)->WordEndPosition(pos, onlyWordCharacters);
+    return ((wxStyledTextCtrl*) pObject)->WordEndPosition(pos, onlyWordCharacters);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetWrapMode(void* _obj, int mode)
+extern "C" EXPORT void wxStyledTextCtrl_SetWrapMode(void* pObject, int mode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetWrapMode(mode);
+    ((wxStyledTextCtrl*) pObject)->SetWrapMode(mode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetWrapMode(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetWrapMode(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetWrapMode();
+    return ((wxStyledTextCtrl*) pObject)->GetWrapMode();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLayoutCache(void* _obj, int mode)
+extern "C" EXPORT void wxStyledTextCtrl_SetLayoutCache(void* pObject, int mode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLayoutCache(mode);
+    ((wxStyledTextCtrl*) pObject)->SetLayoutCache(mode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLayoutCache(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetLayoutCache(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLayoutCache();
+    return ((wxStyledTextCtrl*) pObject)->GetLayoutCache();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetScrollWidth(void* _obj, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_SetScrollWidth(void* pObject, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->SetScrollWidth(pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->SetScrollWidth(pixelWidth);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetScrollWidth(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetScrollWidth(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetScrollWidth();
+    return ((wxStyledTextCtrl*) pObject)->GetScrollWidth();
 }
-extern "C" EXPORT int wxStyledTextCtrl_TextWidth(void* _obj, int style, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_TextWidth(void* pObject, int style, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->TextWidth(style, *text);
+    return ((wxStyledTextCtrl*) pObject)->TextWidth(style, *text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetEndAtLastLine(void* _obj, bool endAtLastLine)
+extern "C" EXPORT void wxStyledTextCtrl_SetEndAtLastLine(void* pObject, bool endAtLastLine)
 {
-    ((wxStyledTextCtrl*) _obj)->SetEndAtLastLine(endAtLastLine);
+    ((wxStyledTextCtrl*) pObject)->SetEndAtLastLine(endAtLastLine);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetEndAtLastLine(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetEndAtLastLine(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetEndAtLastLine();
+    return ((wxStyledTextCtrl*) pObject)->GetEndAtLastLine();
 }
-extern "C" EXPORT int wxStyledTextCtrl_TextHeight(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_TextHeight(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->TextHeight(line);
+    return ((wxStyledTextCtrl*) pObject)->TextHeight(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetUseVerticalScrollBar(void* _obj, bool show)
+extern "C" EXPORT void wxStyledTextCtrl_SetUseVerticalScrollBar(void* pObject, bool show)
 {
-    ((wxStyledTextCtrl*) _obj)->SetUseVerticalScrollBar(show);
+    ((wxStyledTextCtrl*) pObject)->SetUseVerticalScrollBar(show);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetUseVerticalScrollBar(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetUseVerticalScrollBar(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetUseVerticalScrollBar();
+    return ((wxStyledTextCtrl*) pObject)->GetUseVerticalScrollBar();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AppendText(void* _obj, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_AppendText(void* pObject, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->AppendText(*text);
+    ((wxStyledTextCtrl*) pObject)->AppendText(*text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_TargetFromSelection(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_TargetFromSelection(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->TargetFromSelection();
+    ((wxStyledTextCtrl*) pObject)->TargetFromSelection();
 }
-extern "C" EXPORT void wxStyledTextCtrl_LinesJoin(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_LinesJoin(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->LinesJoin();
+    ((wxStyledTextCtrl*) pObject)->LinesJoin();
 }
-extern "C" EXPORT void wxStyledTextCtrl_LinesSplit(void* _obj, int pixelWidth)
+extern "C" EXPORT void wxStyledTextCtrl_LinesSplit(void* pObject, int pixelWidth)
 {
-    ((wxStyledTextCtrl*) _obj)->LinesSplit(pixelWidth);
+    ((wxStyledTextCtrl*) pObject)->LinesSplit(pixelWidth);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetFoldMarginColour(void* _obj, bool useSetting, int back_r,
+extern "C" EXPORT void wxStyledTextCtrl_SetFoldMarginColour(void* pObject, bool useSetting, int back_r,
                                                             int back_g, int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetFoldMarginColour(useSetting, wxColour(back_r, back_g, back_b));
+    ((wxStyledTextCtrl*) pObject)->SetFoldMarginColour(useSetting, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetFoldMarginHiColour(void* _obj, bool useSetting,
+extern "C" EXPORT void wxStyledTextCtrl_SetFoldMarginHiColour(void* pObject, bool useSetting,
                                                               int fore_r, int fore_g, int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetFoldMarginHiColour(useSetting, wxColour(fore_r, fore_g, fore_b));
+    ((wxStyledTextCtrl*) pObject)->SetFoldMarginHiColour(useSetting, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_LineDuplicate(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_LineDuplicate(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->LineDuplicate();
+    ((wxStyledTextCtrl*) pObject)->LineDuplicate();
 }
-extern "C" EXPORT void wxStyledTextCtrl_HomeDisplay(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_HomeDisplay(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->HomeDisplay();
+    ((wxStyledTextCtrl*) pObject)->HomeDisplay();
 }
-extern "C" EXPORT void wxStyledTextCtrl_HomeDisplayExtend(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_HomeDisplayExtend(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->HomeDisplayExtend();
+    ((wxStyledTextCtrl*) pObject)->HomeDisplayExtend();
 }
-extern "C" EXPORT void wxStyledTextCtrl_LineEndDisplay(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_LineEndDisplay(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->LineEndDisplay();
+    ((wxStyledTextCtrl*) pObject)->LineEndDisplay();
 }
-extern "C" EXPORT void wxStyledTextCtrl_LineEndDisplayExtend(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_LineEndDisplayExtend(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->LineEndDisplayExtend();
+    ((wxStyledTextCtrl*) pObject)->LineEndDisplayExtend();
 }
-extern "C" EXPORT void wxStyledTextCtrl_LineCopy(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_LineCopy(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->LineCopy();
+    ((wxStyledTextCtrl*) pObject)->LineCopy();
 }
-extern "C" EXPORT void wxStyledTextCtrl_MoveCaretInsideView(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_MoveCaretInsideView(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->MoveCaretInsideView();
+    ((wxStyledTextCtrl*) pObject)->MoveCaretInsideView();
 }
-extern "C" EXPORT int wxStyledTextCtrl_LineLength(void* _obj, int line)
+extern "C" EXPORT int wxStyledTextCtrl_LineLength(void* pObject, int line)
 {
-    return ((wxStyledTextCtrl*) _obj)->LineLength(line);
+    return ((wxStyledTextCtrl*) pObject)->LineLength(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_BraceHighlight(void* _obj, int pos1, int pos2)
+extern "C" EXPORT void wxStyledTextCtrl_BraceHighlight(void* pObject, int pos1, int pos2)
 {
-    ((wxStyledTextCtrl*) _obj)->BraceHighlight(pos1, pos2);
+    ((wxStyledTextCtrl*) pObject)->BraceHighlight(pos1, pos2);
 }
-extern "C" EXPORT void wxStyledTextCtrl_BraceBadLight(void* _obj, int pos)
+extern "C" EXPORT void wxStyledTextCtrl_BraceBadLight(void* pObject, int pos)
 {
-    ((wxStyledTextCtrl*) _obj)->BraceBadLight(pos);
+    ((wxStyledTextCtrl*) pObject)->BraceBadLight(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_BraceMatch(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_BraceMatch(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->BraceMatch(pos);
+    return ((wxStyledTextCtrl*) pObject)->BraceMatch(pos);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetViewEOL(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetViewEOL(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetViewEOL();
+    return ((wxStyledTextCtrl*) pObject)->GetViewEOL();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetViewEOL(void* _obj, bool visible)
+extern "C" EXPORT void wxStyledTextCtrl_SetViewEOL(void* pObject, bool visible)
 {
-    ((wxStyledTextCtrl*) _obj)->SetViewEOL(visible);
+    ((wxStyledTextCtrl*) pObject)->SetViewEOL(visible);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetDocPointer(void* _obj, void* docPointer)
+extern "C" EXPORT void wxStyledTextCtrl_SetDocPointer(void* pObject, void* docPointer)
 {
-    ((wxStyledTextCtrl*) _obj)->SetDocPointer(docPointer);
+    ((wxStyledTextCtrl*) pObject)->SetDocPointer(docPointer);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetModEventMask(void* _obj, int mask)
+extern "C" EXPORT void wxStyledTextCtrl_SetModEventMask(void* pObject, int mask)
 {
-    ((wxStyledTextCtrl*) _obj)->SetModEventMask(mask);
+    ((wxStyledTextCtrl*) pObject)->SetModEventMask(mask);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetEdgeColumn(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetEdgeColumn(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetEdgeColumn();
+    return ((wxStyledTextCtrl*) pObject)->GetEdgeColumn();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetEdgeColumn(void* _obj, int column)
+extern "C" EXPORT void wxStyledTextCtrl_SetEdgeColumn(void* pObject, int column)
 {
-    ((wxStyledTextCtrl*) _obj)->SetEdgeColumn(column);
+    ((wxStyledTextCtrl*) pObject)->SetEdgeColumn(column);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetEdgeMode(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetEdgeMode(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetEdgeMode();
+    return ((wxStyledTextCtrl*) pObject)->GetEdgeMode();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetEdgeMode(void* _obj, int mode)
+extern "C" EXPORT void wxStyledTextCtrl_SetEdgeMode(void* pObject, int mode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetEdgeMode(mode);
+    ((wxStyledTextCtrl*) pObject)->SetEdgeMode(mode);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetEdgeColour(void* _obj, int edgeColour_r,
+extern "C" EXPORT void wxStyledTextCtrl_SetEdgeColour(void* pObject, int edgeColour_r,
                                                       int edgeColour_g, int edgeColour_b)
 {
-    ((wxStyledTextCtrl*) _obj)->SetEdgeColour(wxColour(edgeColour_r, edgeColour_g, edgeColour_b));
+    ((wxStyledTextCtrl*) pObject)->SetEdgeColour(wxColour(edgeColour_r, edgeColour_g, edgeColour_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SearchAnchor(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_SearchAnchor(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->SearchAnchor();
+    ((wxStyledTextCtrl*) pObject)->SearchAnchor();
 }
-extern "C" EXPORT int wxStyledTextCtrl_SearchNext(void* _obj, int flags, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_SearchNext(void* pObject, int flags, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->SearchNext(flags, *text);
+    return ((wxStyledTextCtrl*) pObject)->SearchNext(flags, *text);
 }
-extern "C" EXPORT int wxStyledTextCtrl_SearchPrev(void* _obj, int flags, wxString* text)
+extern "C" EXPORT int wxStyledTextCtrl_SearchPrev(void* pObject, int flags, wxString* text)
 {
-    return ((wxStyledTextCtrl*) _obj)->SearchPrev(flags, *text);
+    return ((wxStyledTextCtrl*) pObject)->SearchPrev(flags, *text);
 }
-extern "C" EXPORT int wxStyledTextCtrl_LinesOnScreen(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_LinesOnScreen(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->LinesOnScreen();
+    return ((wxStyledTextCtrl*) pObject)->LinesOnScreen();
 }
-extern "C" EXPORT void wxStyledTextCtrl_UsePopUp(void* _obj, bool allowPopUp)
+extern "C" EXPORT void wxStyledTextCtrl_UsePopUp(void* pObject, bool allowPopUp)
 {
-    ((wxStyledTextCtrl*) _obj)->UsePopUp(allowPopUp);
+    ((wxStyledTextCtrl*) pObject)->UsePopUp(allowPopUp);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_SelectionIsRectangle(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_SelectionIsRectangle(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->SelectionIsRectangle();
+    return ((wxStyledTextCtrl*) pObject)->SelectionIsRectangle();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetZoom(void* _obj, int zoom)
+extern "C" EXPORT void wxStyledTextCtrl_SetZoom(void* pObject, int zoom)
 {
-    ((wxStyledTextCtrl*) _obj)->SetZoom(zoom);
+    ((wxStyledTextCtrl*) pObject)->SetZoom(zoom);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetZoom(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetZoom(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetZoom();
+    return ((wxStyledTextCtrl*) pObject)->GetZoom();
 }
-extern "C" EXPORT void wxStyledTextCtrl_AddRefDocument(void* _obj, void* docPointer)
+extern "C" EXPORT void wxStyledTextCtrl_AddRefDocument(void* pObject, void* docPointer)
 {
-    ((wxStyledTextCtrl*) _obj)->AddRefDocument(docPointer);
+    ((wxStyledTextCtrl*) pObject)->AddRefDocument(docPointer);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ReleaseDocument(void* _obj, void* docPointer)
+extern "C" EXPORT void wxStyledTextCtrl_ReleaseDocument(void* pObject, void* docPointer)
 {
-    ((wxStyledTextCtrl*) _obj)->ReleaseDocument(docPointer);
+    ((wxStyledTextCtrl*) pObject)->ReleaseDocument(docPointer);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetModEventMask(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetModEventMask(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetModEventMask();
+    return ((wxStyledTextCtrl*) pObject)->GetModEventMask();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSTCFocus(void* _obj, bool focus)
+extern "C" EXPORT void wxStyledTextCtrl_SetSTCFocus(void* pObject, bool focus)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSTCFocus(focus);
+    ((wxStyledTextCtrl*) pObject)->SetSTCFocus(focus);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetSTCFocus(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetSTCFocus(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetSTCFocus();
+    return ((wxStyledTextCtrl*) pObject)->GetSTCFocus();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetStatus(void* _obj, int statusCode)
+extern "C" EXPORT void wxStyledTextCtrl_SetStatus(void* pObject, int statusCode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetStatus(statusCode);
+    ((wxStyledTextCtrl*) pObject)->SetStatus(statusCode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetStatus(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetStatus(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetStatus();
+    return ((wxStyledTextCtrl*) pObject)->GetStatus();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMouseDownCaptures(void* _obj, bool captures)
+extern "C" EXPORT void wxStyledTextCtrl_SetMouseDownCaptures(void* pObject, bool captures)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMouseDownCaptures(captures);
+    ((wxStyledTextCtrl*) pObject)->SetMouseDownCaptures(captures);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetMouseDownCaptures(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetMouseDownCaptures(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetMouseDownCaptures();
+    return ((wxStyledTextCtrl*) pObject)->GetMouseDownCaptures();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetSTCCursor(void* _obj, int cursorType)
+extern "C" EXPORT void wxStyledTextCtrl_SetSTCCursor(void* pObject, int cursorType)
 {
-    ((wxStyledTextCtrl*) _obj)->SetSTCCursor(cursorType);
+    ((wxStyledTextCtrl*) pObject)->SetSTCCursor(cursorType);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetSTCCursor(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetSTCCursor(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetSTCCursor();
+    return ((wxStyledTextCtrl*) pObject)->GetSTCCursor();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetControlCharSymbol(void* _obj, int symbol)
+extern "C" EXPORT void wxStyledTextCtrl_SetControlCharSymbol(void* pObject, int symbol)
 {
-    ((wxStyledTextCtrl*) _obj)->SetControlCharSymbol(symbol);
+    ((wxStyledTextCtrl*) pObject)->SetControlCharSymbol(symbol);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetControlCharSymbol(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetControlCharSymbol(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetControlCharSymbol();
+    return ((wxStyledTextCtrl*) pObject)->GetControlCharSymbol();
 }
-extern "C" EXPORT void wxStyledTextCtrl_WordPartLeft(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_WordPartLeft(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->WordPartLeft();
+    ((wxStyledTextCtrl*) pObject)->WordPartLeft();
 }
-extern "C" EXPORT void wxStyledTextCtrl_WordPartLeftExtend(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_WordPartLeftExtend(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->WordPartLeftExtend();
+    ((wxStyledTextCtrl*) pObject)->WordPartLeftExtend();
 }
-extern "C" EXPORT void wxStyledTextCtrl_WordPartRight(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_WordPartRight(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->WordPartRight();
+    ((wxStyledTextCtrl*) pObject)->WordPartRight();
 }
-extern "C" EXPORT void wxStyledTextCtrl_WordPartRightExtend(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_WordPartRightExtend(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->WordPartRightExtend();
+    ((wxStyledTextCtrl*) pObject)->WordPartRightExtend();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetVisiblePolicy(void* _obj, int visiblePolicy,
+extern "C" EXPORT void wxStyledTextCtrl_SetVisiblePolicy(void* pObject, int visiblePolicy,
                                                          int visibleSlop)
 {
-    ((wxStyledTextCtrl*) _obj)->SetVisiblePolicy(visiblePolicy, visibleSlop);
+    ((wxStyledTextCtrl*) pObject)->SetVisiblePolicy(visiblePolicy, visibleSlop);
 }
-extern "C" EXPORT void wxStyledTextCtrl_DelLineLeft(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_DelLineLeft(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->DelLineLeft();
+    ((wxStyledTextCtrl*) pObject)->DelLineLeft();
 }
-extern "C" EXPORT void wxStyledTextCtrl_DelLineRight(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_DelLineRight(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->DelLineRight();
+    ((wxStyledTextCtrl*) pObject)->DelLineRight();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetXOffset(void* _obj, int newOffset)
+extern "C" EXPORT void wxStyledTextCtrl_SetXOffset(void* pObject, int newOffset)
 {
-    ((wxStyledTextCtrl*) _obj)->SetXOffset(newOffset);
+    ((wxStyledTextCtrl*) pObject)->SetXOffset(newOffset);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetXOffset(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetXOffset(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetXOffset();
+    return ((wxStyledTextCtrl*) pObject)->GetXOffset();
 }
-extern "C" EXPORT void wxStyledTextCtrl_ChooseCaretX(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_ChooseCaretX(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->ChooseCaretX();
+    ((wxStyledTextCtrl*) pObject)->ChooseCaretX();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetXCaretPolicy(void* _obj, int caretPolicy, int caretSlop)
+extern "C" EXPORT void wxStyledTextCtrl_SetXCaretPolicy(void* pObject, int caretPolicy, int caretSlop)
 {
-    ((wxStyledTextCtrl*) _obj)->SetXCaretPolicy(caretPolicy, caretSlop);
+    ((wxStyledTextCtrl*) pObject)->SetXCaretPolicy(caretPolicy, caretSlop);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetYCaretPolicy(void* _obj, int caretPolicy, int caretSlop)
+extern "C" EXPORT void wxStyledTextCtrl_SetYCaretPolicy(void* pObject, int caretPolicy, int caretSlop)
 {
-    ((wxStyledTextCtrl*) _obj)->SetYCaretPolicy(caretPolicy, caretSlop);
+    ((wxStyledTextCtrl*) pObject)->SetYCaretPolicy(caretPolicy, caretSlop);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetPrintWrapMode(void* _obj, int mode)
+extern "C" EXPORT void wxStyledTextCtrl_SetPrintWrapMode(void* pObject, int mode)
 {
-    ((wxStyledTextCtrl*) _obj)->SetPrintWrapMode(mode);
+    ((wxStyledTextCtrl*) pObject)->SetPrintWrapMode(mode);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetPrintWrapMode(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetPrintWrapMode(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetPrintWrapMode();
+    return ((wxStyledTextCtrl*) pObject)->GetPrintWrapMode();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveForeground(void* _obj, bool useSetting,
+extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveForeground(void* pObject, bool useSetting,
                                                                    int fore_r, int fore_g,
                                                                    int fore_b)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->SetHotspotActiveForeground(useSetting, wxColour(fore_r, fore_g, fore_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveBackground(void* _obj, bool useSetting,
+extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveBackground(void* pObject, bool useSetting,
                                                                    int back_r, int back_g,
                                                                    int back_b)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->SetHotspotActiveBackground(useSetting, wxColour(back_r, back_g, back_b));
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveUnderline(void* _obj, bool underline)
+extern "C" EXPORT void wxStyledTextCtrl_SetHotspotActiveUnderline(void* pObject, bool underline)
 {
-    ((wxStyledTextCtrl*) _obj)->SetHotspotActiveUnderline(underline);
+    ((wxStyledTextCtrl*) pObject)->SetHotspotActiveUnderline(underline);
 }
-extern "C" EXPORT int wxStyledTextCtrl_PositionBefore(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_PositionBefore(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->PositionBefore(pos);
+    return ((wxStyledTextCtrl*) pObject)->PositionBefore(pos);
 }
-extern "C" EXPORT int wxStyledTextCtrl_PositionAfter(void* _obj, int pos)
+extern "C" EXPORT int wxStyledTextCtrl_PositionAfter(void* pObject, int pos)
 {
-    return ((wxStyledTextCtrl*) _obj)->PositionAfter(pos);
+    return ((wxStyledTextCtrl*) pObject)->PositionAfter(pos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CopyRange(void* _obj, int start, int end)
+extern "C" EXPORT void wxStyledTextCtrl_CopyRange(void* pObject, int start, int end)
 {
-    ((wxStyledTextCtrl*) _obj)->CopyRange(start, end);
+    ((wxStyledTextCtrl*) pObject)->CopyRange(start, end);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CopyText(void* _obj, int length, wxString* text)
+extern "C" EXPORT void wxStyledTextCtrl_CopyText(void* pObject, int length, wxString* text)
 {
-    ((wxStyledTextCtrl*) _obj)->CopyText(length, *text);
+    ((wxStyledTextCtrl*) pObject)->CopyText(length, *text);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StartRecord(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_StartRecord(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->StartRecord();
+    ((wxStyledTextCtrl*) pObject)->StartRecord();
 }
-extern "C" EXPORT void wxStyledTextCtrl_StopRecord(void* _obj)
+extern "C" EXPORT void wxStyledTextCtrl_StopRecord(void* pObject)
 {
-    ((wxStyledTextCtrl*) _obj)->StopRecord();
+    ((wxStyledTextCtrl*) pObject)->StopRecord();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLexer(void* _obj, int lexer)
+extern "C" EXPORT void wxStyledTextCtrl_SetLexer(void* pObject, int lexer)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLexer(lexer);
+    ((wxStyledTextCtrl*) pObject)->SetLexer(lexer);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetLexer(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetLexer(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLexer();
+    return ((wxStyledTextCtrl*) pObject)->GetLexer();
 }
-extern "C" EXPORT void wxStyledTextCtrl_Colourise(void* _obj, int start, int end)
+extern "C" EXPORT void wxStyledTextCtrl_Colourise(void* pObject, int start, int end)
 {
-    ((wxStyledTextCtrl*) _obj)->Colourise(start, end);
+    ((wxStyledTextCtrl*) pObject)->Colourise(start, end);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetProperty(void* _obj, wxString* key, wxString* value)
+extern "C" EXPORT void wxStyledTextCtrl_SetProperty(void* pObject, wxString* key, wxString* value)
 {
-    ((wxStyledTextCtrl*) _obj)->SetProperty(*key, *value);
+    ((wxStyledTextCtrl*) pObject)->SetProperty(*key, *value);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetKeyWords(void* _obj, int keywordSet, wxString* keyWords)
+extern "C" EXPORT void wxStyledTextCtrl_SetKeyWords(void* pObject, int keywordSet, wxString* keyWords)
 {
-    ((wxStyledTextCtrl*) _obj)->SetKeyWords(keywordSet, *keyWords);
+    ((wxStyledTextCtrl*) pObject)->SetKeyWords(keywordSet, *keyWords);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLexerLanguage(void* _obj, wxString* language)
+extern "C" EXPORT void wxStyledTextCtrl_SetLexerLanguage(void* pObject, wxString* language)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLexerLanguage(*language);
+    ((wxStyledTextCtrl*) pObject)->SetLexerLanguage(*language);
 }
-extern "C" EXPORT int wxStyledTextCtrl_GetCurrentLine(void* _obj)
+extern "C" EXPORT int wxStyledTextCtrl_GetCurrentLine(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetCurrentLine();
+    return ((wxStyledTextCtrl*) pObject)->GetCurrentLine();
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetSpec(void* _obj, int styleNum, wxString* spec)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetSpec(void* pObject, int styleNum, wxString* spec)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetSpec(styleNum, *spec);
+    ((wxStyledTextCtrl*) pObject)->StyleSetSpec(styleNum, *spec);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetFont(void* _obj, int styleNum, void* font)
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetFont(void* pObject, int styleNum, void* font)
 {
-    ((wxStyledTextCtrl*) _obj)->StyleSetFont(styleNum, *(wxFont*) font);
+    ((wxStyledTextCtrl*) pObject)->StyleSetFont(styleNum, *(wxFont*) font);
 }
-extern "C" EXPORT void wxStyledTextCtrl_StyleSetFontAttr(void* _obj, int styleNum, int size,
+extern "C" EXPORT void wxStyledTextCtrl_StyleSetFontAttr(void* pObject, int styleNum, int size,
                                                          wxString* faceName, bool bold, bool italic,
                                                          bool underline)
 {
-    ((wxStyledTextCtrl*) _obj)
+    ((wxStyledTextCtrl*) pObject)
         ->StyleSetFontAttr(styleNum, size, *faceName, bold, italic, underline);
 }
-extern "C" EXPORT void wxStyledTextCtrl_CmdKeyExecute(void* _obj, int cmd)
+extern "C" EXPORT void wxStyledTextCtrl_CmdKeyExecute(void* pObject, int cmd)
 {
-    ((wxStyledTextCtrl*) _obj)->CmdKeyExecute(cmd);
+    ((wxStyledTextCtrl*) pObject)->CmdKeyExecute(cmd);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetMargins(void* _obj, int left, int right)
+extern "C" EXPORT void wxStyledTextCtrl_SetMargins(void* pObject, int left, int right)
 {
-    ((wxStyledTextCtrl*) _obj)->SetMargins(left, right);
+    ((wxStyledTextCtrl*) pObject)->SetMargins(left, right);
 }
-extern "C" EXPORT void wxStyledTextCtrl_GetSelection(void* _obj, void* startPos, void* endPos)
+extern "C" EXPORT void wxStyledTextCtrl_GetSelection(void* pObject, void* startPos, void* endPos)
 {
-    ((wxStyledTextCtrl*) _obj)->GetSelection(*(int**) startPos, *(int**) endPos);
+    ((wxStyledTextCtrl*) pObject)->GetSelection(*(int**) startPos, *(int**) endPos);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ScrollToLine(void* _obj, int line)
+extern "C" EXPORT void wxStyledTextCtrl_ScrollToLine(void* pObject, int line)
 {
-    ((wxStyledTextCtrl*) _obj)->ScrollToLine(line);
+    ((wxStyledTextCtrl*) pObject)->ScrollToLine(line);
 }
-extern "C" EXPORT void wxStyledTextCtrl_ScrollToColumn(void* _obj, int column)
+extern "C" EXPORT void wxStyledTextCtrl_ScrollToColumn(void* pObject, int column)
 {
-    ((wxStyledTextCtrl*) _obj)->ScrollToColumn(column);
+    ((wxStyledTextCtrl*) pObject)->ScrollToColumn(column);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetVScrollBar(void* _obj, void* bar)
+extern "C" EXPORT void wxStyledTextCtrl_SetVScrollBar(void* pObject, void* bar)
 {
-    ((wxStyledTextCtrl*) _obj)->SetVScrollBar(*(wxScrollBar**) bar);
+    ((wxStyledTextCtrl*) pObject)->SetVScrollBar(*(wxScrollBar**) bar);
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetHScrollBar(void* _obj, void* bar)
+extern "C" EXPORT void wxStyledTextCtrl_SetHScrollBar(void* pObject, void* bar)
 {
-    ((wxStyledTextCtrl*) _obj)->SetHScrollBar(*(wxScrollBar**) bar);
+    ((wxStyledTextCtrl*) pObject)->SetHScrollBar(*(wxScrollBar**) bar);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_GetLastKeydownProcessed(void* _obj)
+extern "C" EXPORT bool wxStyledTextCtrl_GetLastKeydownProcessed(void* pObject)
 {
-    return ((wxStyledTextCtrl*) _obj)->GetLastKeydownProcessed();
+    return ((wxStyledTextCtrl*) pObject)->GetLastKeydownProcessed();
 }
-extern "C" EXPORT void wxStyledTextCtrl_SetLastKeydownProcessed(void* _obj, bool val)
+extern "C" EXPORT void wxStyledTextCtrl_SetLastKeydownProcessed(void* pObject, bool val)
 {
-    ((wxStyledTextCtrl*) _obj)->SetLastKeydownProcessed(val);
+    ((wxStyledTextCtrl*) pObject)->SetLastKeydownProcessed(val);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_SaveFile(void* _obj, wxString* filename)
+extern "C" EXPORT bool wxStyledTextCtrl_SaveFile(void* pObject, wxString* filename)
 {
-    return ((wxStyledTextCtrl*) _obj)->SaveFile(*filename);
+    return ((wxStyledTextCtrl*) pObject)->SaveFile(*filename);
 }
-extern "C" EXPORT bool wxStyledTextCtrl_LoadFile(void* _obj, wxString* filename)
+extern "C" EXPORT bool wxStyledTextCtrl_LoadFile(void* pObject, wxString* filename)
 {
-    return ((wxStyledTextCtrl*) _obj)->LoadFile(*filename);
+    return ((wxStyledTextCtrl*) pObject)->LoadFile(*filename);
 }

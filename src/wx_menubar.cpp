@@ -2,9 +2,9 @@
 
 extern "C"
 {
-    EXPORT void* wxMenuBar_Create(int _style)
+    EXPORT void* wxMenuBar_Create(int style)
     {
-        return new wxMenuBar(_style);
+        return new wxMenuBar(style);
     }
 
     EXPORT void wxMenuBar_DeletePointer(wxMenuBar* self)
@@ -66,8 +66,8 @@ extern "C"
 
     EXPORT void* wxMenuBar_FindItem(wxMenuBar* self, int id)
     {
-        wxMenu* _foo = new wxMenu;
-        return (void*) self->FindItem(id, &_foo);
+        wxMenu* foo = new wxMenu;
+        return (void*) self->FindItem(id, &foo);
     }
 
     EXPORT int wxMenuBar_FindMenu(wxMenuBar* self, wxString* title)
@@ -100,10 +100,10 @@ extern "C"
         self->SetLabel(id, *label);
     }
 
-    EXPORT wxString* wxMenuBar_GetLabel(void* _obj, int id)
+    EXPORT wxString* wxMenuBar_GetLabel(void* pObject, int id)
     {
         wxString* result = new wxString();
-        *result = ((wxMenuBar*) _obj)->GetLabel(id);
+        *result = ((wxMenuBar*) pObject)->GetLabel(id);
         return result;
     }
 
@@ -112,10 +112,10 @@ extern "C"
         self->SetHelpString(id, *helpString);
     }
 
-    EXPORT wxString* wxMenuBar_GetHelpString(void* _obj, int id)
+    EXPORT wxString* wxMenuBar_GetHelpString(void* pObject, int id)
     {
         wxString* result = new wxString();
-        *result = ((wxMenuBar*) _obj)->GetHelpString(id);
+        *result = ((wxMenuBar*) pObject)->GetHelpString(id);
         return result;
     }
 
@@ -124,8 +124,8 @@ extern "C"
         self->Enable(enable);
     }
 
-    EXPORT void wxMenuBar_SetLabel(wxMenuBar* self, wxString* s)
+    EXPORT void wxMenuBar_SetLabel(wxMenuBar* self, wxString* str)
     {
-        self->SetLabel(*s);
+        self->SetLabel(*str);
     }
 }

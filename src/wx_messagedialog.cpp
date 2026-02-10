@@ -8,14 +8,14 @@ extern "C"
         return new wxMessageDialog(parent, *message, *caption, style);
     }
 
-    EXPORT void wxMessageDialog_Delete(void* _obj)
+    EXPORT void wxMessageDialog_Delete(void* pObject)
     {
-        delete (wxMessageDialog*) _obj;
+        delete (wxMessageDialog*) pObject;
     }
 
-    EXPORT int wxMessageDialog_ShowModal(void* _obj)
+    EXPORT int wxMessageDialog_ShowModal(void* pObject)
     {
-        return ((wxMessageDialog*) _obj)->ShowModal();
+        return ((wxMessageDialog*) pObject)->ShowModal();
     }
 
     EXPORT int wxcMessageBox(wxString* message, wxString* caption, int style, wxWindow* parent,

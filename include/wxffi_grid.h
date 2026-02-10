@@ -4,21 +4,21 @@
 
 extern "C"
 {
-    typedef int (*TGridGetInt)(void* _obj);
-    typedef int (*TGridIsEmpty)(void* _obj, int row, int col);
-    typedef void* (*TGridGetValue)(void* _obj, int row, int col);
-    typedef void (*TGridSetValue)(void* _obj, int row, int col, void* val);
-    typedef void (*TGridClear)(void* _obj);
-    typedef int (*TGridModify)(void* _obj, int pos, int num);
-    typedef int (*TGridMultiModify)(void* _obj, int num);
-    typedef void (*TGridSetLabel)(void* _obj, int idx, void* val);
-    typedef void* (*TGridGetLabel)(void* _obj, int idx);
+    typedef int (*TGridGetInt)(void* pObject);
+    typedef int (*TGridIsEmpty)(void* pObject, int row, int col);
+    typedef void* (*TGridGetValue)(void* pObject, int row, int col);
+    typedef void (*TGridSetValue)(void* pObject, int row, int col, void* val);
+    typedef void (*TGridClear)(void* pObject);
+    typedef int (*TGridModify)(void* pObject, int pos, int num);
+    typedef int (*TGridMultiModify)(void* pObject, int num);
+    typedef void (*TGridSetLabel)(void* pObject, int idx, void* val);
+    typedef void* (*TGridGetLabel)(void* pObject, int idx);
 }
 
 class kwxGridTable : public wxGridTableBase
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TGridGetInt EifGetNumberRows;
     TGridGetInt EifGetNumberCols;
     TGridGetValue EifGetValue;
@@ -37,78 +37,78 @@ private:
     TGridGetLabel EifGetColLabelValue;
 
 public:
-    kwxGridTable(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols, void* _EifGetValue,
-                 void* _EifSetValue, void* _EifIsEmptyCell, void* _EifClear, void* _EifInsertRows,
-                 void* _EifAppendRows, void* _EifDeleteRows, void* _EifInsertCols,
-                 void* _EifAppendCols, void* _EifDeleteCols, void* _EifSetRowLabelValue,
-                 void* _EifSetColLabelValue, void* _EifGetRowLabelValue,
-                 void* _EifGetColLabelValue) : wxGridTableBase()
+    kwxGridTable(void* pObject, void* fnGetNumberRows, void* fnGetNumberCols, void* fnGetValue,
+                 void* fnSetValue, void* fnIsEmptyCell, void* fnClear, void* fnInsertRows,
+                 void* fnAppendRows, void* fnDeleteRows, void* fnInsertCols,
+                 void* fnAppendCols, void* fnDeleteCols, void* fnSetRowLabelValue,
+                 void* fnSetColLabelValue, void* fnGetRowLabelValue,
+                 void* fnGetColLabelValue) : wxGridTableBase()
     {
-        EiffelObject = _obj;
-        EifGetNumberRows = (TGridGetInt) _EifGetNumberRows;
-        EifGetNumberCols = (TGridGetInt) _EifGetNumberCols;
-        EifGetValue = (TGridGetValue) _EifGetValue;
-        EifSetValue = (TGridSetValue) _EifSetValue;
-        EifIsEmptyCell = (TGridIsEmpty) _EifIsEmptyCell;
-        EifClear = (TGridClear) _EifClear;
-        EifInsertRows = (TGridModify) _EifInsertRows;
-        EifAppendRows = (TGridMultiModify) _EifAppendRows;
-        EifDeleteRows = (TGridModify) _EifDeleteRows;
-        EifInsertCols = (TGridModify) _EifInsertCols;
-        EifAppendCols = (TGridMultiModify) _EifAppendCols;
-        EifDeleteCols = (TGridModify) _EifDeleteCols;
-        EifSetRowLabelValue = (TGridSetLabel) _EifSetRowLabelValue;
-        EifSetColLabelValue = (TGridSetLabel) _EifSetColLabelValue;
-        EifGetRowLabelValue = (TGridGetLabel) _EifGetRowLabelValue;
-        EifGetColLabelValue = (TGridGetLabel) _EifGetColLabelValue;
+        kwxObject = pObject;
+        EifGetNumberRows = (TGridGetInt) fnGetNumberRows;
+        EifGetNumberCols = (TGridGetInt) fnGetNumberCols;
+        EifGetValue = (TGridGetValue) fnGetValue;
+        EifSetValue = (TGridSetValue) fnSetValue;
+        EifIsEmptyCell = (TGridIsEmpty) fnIsEmptyCell;
+        EifClear = (TGridClear) fnClear;
+        EifInsertRows = (TGridModify) fnInsertRows;
+        EifAppendRows = (TGridMultiModify) fnAppendRows;
+        EifDeleteRows = (TGridModify) fnDeleteRows;
+        EifInsertCols = (TGridModify) fnInsertCols;
+        EifAppendCols = (TGridMultiModify) fnAppendCols;
+        EifDeleteCols = (TGridModify) fnDeleteCols;
+        EifSetRowLabelValue = (TGridSetLabel) fnSetRowLabelValue;
+        EifSetColLabelValue = (TGridSetLabel) fnSetColLabelValue;
+        EifGetRowLabelValue = (TGridGetLabel) fnGetRowLabelValue;
+        EifGetColLabelValue = (TGridGetLabel) fnGetColLabelValue;
     };
 
-    int GetNumberRows() { return EifGetNumberRows(EiffelObject); };
-    int GetNumberCols() { return EifGetNumberCols(EiffelObject); };
+    int GetNumberRows() { return EifGetNumberRows(kwxObject); };
+    int GetNumberCols() { return EifGetNumberCols(kwxObject); };
     wxString GetValue(int row, int col)
     {
-        return (const char*) EifGetValue(EiffelObject, row, col);
+        return (const char*) EifGetValue(kwxObject, row, col);
     };
     void SetValue(int row, int col, const wxString& s)
     {
-        EifSetValue(EiffelObject, row, col, (void*) s.utf8_str().data());
+        EifSetValue(kwxObject, row, col, (void*) s.utf8_str().data());
     };
-    bool IsEmptyCell(int row, int col) { return EifIsEmptyCell(EiffelObject, row, col) != 0; };
+    bool IsEmptyCell(int row, int col) { return EifIsEmptyCell(kwxObject, row, col) != 0; };
 
-    void Clear() { EifClear(EiffelObject); };
+    void Clear() { EifClear(kwxObject); };
     bool InsertRows(size_t pos, size_t numRows)
     {
-        return EifInsertRows(EiffelObject, (int) pos, (int) numRows) != 0;
+        return EifInsertRows(kwxObject, (int) pos, (int) numRows) != 0;
     };
-    bool AppendRows(size_t numRows) { return EifAppendRows(EiffelObject, (int) numRows) != 0; };
+    bool AppendRows(size_t numRows) { return EifAppendRows(kwxObject, (int) numRows) != 0; };
     bool DeleteRows(size_t pos, size_t numRows)
     {
-        return EifDeleteRows(EiffelObject, (int) pos, (int) numRows) != 0;
+        return EifDeleteRows(kwxObject, (int) pos, (int) numRows) != 0;
     };
     bool InsertCols(size_t pos, size_t numCols)
     {
-        return EifInsertCols(EiffelObject, (int) pos, (int) numCols) != 0;
+        return EifInsertCols(kwxObject, (int) pos, (int) numCols) != 0;
     };
-    bool AppendCols(size_t numCols) { return EifAppendCols(EiffelObject, (int) numCols) != 0; };
+    bool AppendCols(size_t numCols) { return EifAppendCols(kwxObject, (int) numCols) != 0; };
     bool DeleteCols(size_t pos, size_t numCols)
     {
-        return EifDeleteCols(EiffelObject, (int) pos, (int) numCols) != 0;
+        return EifDeleteCols(kwxObject, (int) pos, (int) numCols) != 0;
     };
 
     void SetRowLabelValue(int row, const wxString& s)
     {
-        EifSetRowLabelValue(EiffelObject, row, (void*) s.utf8_str().data());
+        EifSetRowLabelValue(kwxObject, row, (void*) s.utf8_str().data());
     };
     void SetColLabelValue(int col, const wxString& s)
     {
-        EifSetColLabelValue(EiffelObject, col, (void*) s.utf8_str().data());
+        EifSetColLabelValue(kwxObject, col, (void*) s.utf8_str().data());
     };
     wxString GetRowLabelValue(int row)
     {
-        return (const char*) EifGetRowLabelValue(EiffelObject, row);
+        return (const char*) EifGetRowLabelValue(kwxObject, row);
     };
     wxString GetColLabelValue(int col)
     {
-        return (const char*) EifGetColLabelValue(EiffelObject, col);
+        return (const char*) EifGetColLabelValue(kwxObject, col);
     };
 };

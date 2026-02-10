@@ -3,160 +3,160 @@
 
 extern "C"
 {
-    typedef int (*TGetPlotInt)(void* _obj);
-    typedef double (*TGetPlotDouble)(void* _obj, int _x);
+    typedef int (*TGetPlotInt)(void* pObject);
+    typedef double (*TGetPlotDouble)(void* pObject, int x);
 }
 
 class kwxPlotCurve : public wxPlotCurve
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TGetPlotInt EGetStartX;
     TGetPlotInt EGetEndX;
     TGetPlotDouble EGetY;
 
 public:
-    kwxPlotCurve(void* _obj, void* _str, void* _end, void* _y, int offsetY, double startY,
+    kwxPlotCurve(void* pObject, void* fnGetStartX, void* endVal, void* y, int offsetY, double startY,
                  double endY) : wxPlotCurve(offsetY, startY, endY)
     {
-        EiffelObject = _obj;
-        EGetStartX = (TGetPlotInt) _str;
-        EGetEndX = (TGetPlotInt) _end;
-        EGetY = (TGetPlotDouble) _y;
+        kwxObject = pObject;
+        EGetStartX = (TGetPlotInt) fnGetStartX;
+        EGetEndX = (TGetPlotInt) endVal;
+        EGetY = (TGetPlotDouble) y;
     }
-    virtual wxInt32 GetStartX() { return (wxInt32) EGetStartX(EiffelObject); }
+    virtual wxInt32 GetStartX() { return (wxInt32) EGetStartX(kwxObject); }
 
-    virtual wxInt32 GetEndX() { return (wxInt32) EGetEndX(EiffelObject); }
+    virtual wxInt32 GetEndX() { return (wxInt32) EGetEndX(kwxObject); }
 
-    virtual double GetY(wxInt32 x) { return EGetY(EiffelObject, (int) x); }
+    virtual double GetY(wxInt32 x) { return EGetY(kwxObject, (int) x); }
 };
 
 extern "C"
 {
-    EXPORT void* wxPlotWindow_Create(void* parent, int id, int x, int y, int w, int h, int flags)
+    EXPORT void* wxPlotWindow_Create(void* parent, int id, int x, int y, int width, int height, int flags)
     {
         return (void*) new wxPlotWindow((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
-                                        wxSize(w, h), flags);
+                                        wxSize(width, height), flags);
     }
 
-    EXPORT void wxPlotWindow_Add(void* _obj, void* curve)
+    EXPORT void wxPlotWindow_Add(void* pObject, void* curve)
     {
-        ((wxPlotWindow*) _obj)->Add((wxPlotCurve*) curve);
+        ((wxPlotWindow*) pObject)->Add((wxPlotCurve*) curve);
     }
 
-    EXPORT void wxPlotWindow_Delete(void* _obj, void* curve)
+    EXPORT void wxPlotWindow_Delete(void* pObject, void* curve)
     {
-        ((wxPlotWindow*) _obj)->Delete((wxPlotCurve*) curve);
+        ((wxPlotWindow*) pObject)->Delete((wxPlotCurve*) curve);
     }
 
-    EXPORT int wxPlotWindow_GetCount(void* _obj)
+    EXPORT int wxPlotWindow_GetCount(void* pObject)
     {
-        return (int) ((wxPlotWindow*) _obj)->GetCount();
+        return (int) ((wxPlotWindow*) pObject)->GetCount();
     }
 
-    EXPORT void* wxPlotWindow_GetAt(void* _obj, int index)
+    EXPORT void* wxPlotWindow_GetAt(void* pObject, int index)
     {
-        return (void*) ((wxPlotWindow*) _obj)->GetAt((size_t) index);
+        return (void*) ((wxPlotWindow*) pObject)->GetAt((size_t) index);
     }
 
-    EXPORT void wxPlotWindow_SetCurrentCurve(void* _obj, void* current)
+    EXPORT void wxPlotWindow_SetCurrentCurve(void* pObject, void* current)
     {
-        ((wxPlotWindow*) _obj)->SetCurrentCurve((wxPlotCurve*) current);
+        ((wxPlotWindow*) pObject)->SetCurrentCurve((wxPlotCurve*) current);
     }
 
-    EXPORT void* wxPlotWindow_GetCurrentCurve(void* _obj)
+    EXPORT void* wxPlotWindow_GetCurrentCurve(void* pObject)
     {
-        return (void*) ((wxPlotWindow*) _obj)->GetCurrentCurve();
+        return (void*) ((wxPlotWindow*) pObject)->GetCurrentCurve();
     }
 
-    EXPORT void wxPlotWindow_AddOnOff(void* _obj, void* curve)
+    EXPORT void wxPlotWindow_AddOnOff(void* pObject, void* curve)
     {
-        ((wxPlotWindow*) _obj)->Add((wxPlotOnOffCurve*) curve);
+        ((wxPlotWindow*) pObject)->Add((wxPlotOnOffCurve*) curve);
     }
 
-    EXPORT void wxPlotWindow_DeleteOnOff(void* _obj, void* curve)
+    EXPORT void wxPlotWindow_DeleteOnOff(void* pObject, void* curve)
     {
-        ((wxPlotWindow*) _obj)->Delete((wxPlotOnOffCurve*) curve);
+        ((wxPlotWindow*) pObject)->Delete((wxPlotOnOffCurve*) curve);
     }
 
-    EXPORT int wxPlotWindow_GetOnOffCurveCount(void* _obj)
+    EXPORT int wxPlotWindow_GetOnOffCurveCount(void* pObject)
     {
-        return (int) ((wxPlotWindow*) _obj)->GetOnOffCurveCount();
+        return (int) ((wxPlotWindow*) pObject)->GetOnOffCurveCount();
     }
 
-    EXPORT void* wxPlotWindow_GetOnOffCurveAt(void* _obj, int index)
+    EXPORT void* wxPlotWindow_GetOnOffCurveAt(void* pObject, int index)
     {
-        return (void*) ((wxPlotWindow*) _obj)->GetOnOffCurveAt((size_t) index);
+        return (void*) ((wxPlotWindow*) pObject)->GetOnOffCurveAt((size_t) index);
     }
 
-    EXPORT void wxPlotWindow_Move(void* _obj, void* curve, int pixels_up)
+    EXPORT void wxPlotWindow_Move(void* pObject, void* curve, int pixels_up)
     {
-        ((wxPlotWindow*) _obj)->Move((wxPlotCurve*) curve, pixels_up);
+        ((wxPlotWindow*) pObject)->Move((wxPlotCurve*) curve, pixels_up);
     }
 
-    EXPORT void wxPlotWindow_Enlarge(void* _obj, void* curve, double factor)
+    EXPORT void wxPlotWindow_Enlarge(void* pObject, void* curve, double factor)
     {
-        ((wxPlotWindow*) _obj)->Enlarge((wxPlotCurve*) curve, factor);
+        ((wxPlotWindow*) pObject)->Enlarge((wxPlotCurve*) curve, factor);
     }
 
-    EXPORT void wxPlotWindow_SetUnitsPerValue(void* _obj, double upv)
+    EXPORT void wxPlotWindow_SetUnitsPerValue(void* pObject, double upv)
     {
-        ((wxPlotWindow*) _obj)->SetUnitsPerValue(upv);
+        ((wxPlotWindow*) pObject)->SetUnitsPerValue(upv);
     }
 
-    EXPORT double wxPlotWindow_GetUnitsPerValue(void* _obj)
+    EXPORT double wxPlotWindow_GetUnitsPerValue(void* pObject)
     {
-        return ((wxPlotWindow*) _obj)->GetUnitsPerValue();
+        return ((wxPlotWindow*) pObject)->GetUnitsPerValue();
     }
 
-    EXPORT void wxPlotWindow_SetZoom(void* _obj, double zoom)
+    EXPORT void wxPlotWindow_SetZoom(void* pObject, double zoom)
     {
-        ((wxPlotWindow*) _obj)->SetZoom(zoom);
+        ((wxPlotWindow*) pObject)->SetZoom(zoom);
     }
 
-    EXPORT double wxPlotWindow_GetZoom(void* _obj)
+    EXPORT double wxPlotWindow_GetZoom(void* pObject)
     {
-        return ((wxPlotWindow*) _obj)->GetZoom();
+        return ((wxPlotWindow*) pObject)->GetZoom();
     }
 
-    EXPORT void wxPlotWindow_SetScrollOnThumbRelease(void* _obj, int scrollOnThumbRelease)
+    EXPORT void wxPlotWindow_SetScrollOnThumbRelease(void* pObject, int scrollOnThumbRelease)
     {
-        ((wxPlotWindow*) _obj)->SetScrollOnThumbRelease(scrollOnThumbRelease != 0);
+        ((wxPlotWindow*) pObject)->SetScrollOnThumbRelease(scrollOnThumbRelease != 0);
     }
 
-    EXPORT int wxPlotWindow_GetScrollOnThumbRelease(void* _obj)
+    EXPORT int wxPlotWindow_GetScrollOnThumbRelease(void* pObject)
     {
-        return (int) ((wxPlotWindow*) _obj)->GetScrollOnThumbRelease();
+        return (int) ((wxPlotWindow*) pObject)->GetScrollOnThumbRelease();
     }
 
-    EXPORT void wxPlotWindow_SetEnlargeAroundWindowCentre(void* _obj, int enlargeAroundWindowCentre)
+    EXPORT void wxPlotWindow_SetEnlargeAroundWindowCentre(void* pObject, int enlargeAroundWindowCentre)
     {
-        ((wxPlotWindow*) _obj)->SetEnlargeAroundWindowCentre(enlargeAroundWindowCentre != 0);
+        ((wxPlotWindow*) pObject)->SetEnlargeAroundWindowCentre(enlargeAroundWindowCentre != 0);
     }
 
-    EXPORT int wxPlotWindow_GetEnlargeAroundWindowCentre(void* _obj)
+    EXPORT int wxPlotWindow_GetEnlargeAroundWindowCentre(void* pObject)
     {
-        return (int) ((wxPlotWindow*) _obj)->GetEnlargeAroundWindowCentre();
+        return (int) ((wxPlotWindow*) pObject)->GetEnlargeAroundWindowCentre();
     }
 
-    EXPORT void wxPlotWindow_RedrawEverything(void* _obj)
+    EXPORT void wxPlotWindow_RedrawEverything(void* pObject)
     {
-        ((wxPlotWindow*) _obj)->RedrawEverything();
+        ((wxPlotWindow*) pObject)->RedrawEverything();
     }
 
-    EXPORT void wxPlotWindow_RedrawXAxis(void* _obj)
+    EXPORT void wxPlotWindow_RedrawXAxis(void* pObject)
     {
-        ((wxPlotWindow*) _obj)->RedrawXAxis();
+        ((wxPlotWindow*) pObject)->RedrawXAxis();
     }
 
-    EXPORT void wxPlotWindow_RedrawYAxis(void* _obj)
+    EXPORT void wxPlotWindow_RedrawYAxis(void* pObject)
     {
-        ((wxPlotWindow*) _obj)->RedrawYAxis();
+        ((wxPlotWindow*) pObject)->RedrawYAxis();
     }
 
-    EXPORT void wxPlotWindow_ResetScrollbar(void* _obj)
+    EXPORT void wxPlotWindow_ResetScrollbar(void* pObject)
     {
-        ((wxPlotWindow*) _obj)->ResetScrollbar();
+        ((wxPlotWindow*) pObject)->ResetScrollbar();
     }
 
     EXPORT void* wxPlotOnOffCurve_Create(int offsetY)
@@ -164,147 +164,147 @@ extern "C"
         return (void*) new wxPlotOnOffCurve(offsetY);
     }
 
-    EXPORT void wxPlotOnOffCurve_Delete(void* _obj)
+    EXPORT void wxPlotOnOffCurve_Delete(void* pObject)
     {
-        delete (wxPlotOnOffCurve*) _obj;
+        delete (wxPlotOnOffCurve*) pObject;
     }
 
-    EXPORT int wxPlotOnOffCurve_GetStartX(void* _obj)
+    EXPORT int wxPlotOnOffCurve_GetStartX(void* pObject)
     {
-        return (int) ((wxPlotOnOffCurve*) _obj)->GetStartX();
+        return (int) ((wxPlotOnOffCurve*) pObject)->GetStartX();
     }
 
-    EXPORT int wxPlotOnOffCurve_GetEndX(void* _obj)
+    EXPORT int wxPlotOnOffCurve_GetEndX(void* pObject)
     {
-        return (int) ((wxPlotOnOffCurve*) _obj)->GetEndX();
+        return (int) ((wxPlotOnOffCurve*) pObject)->GetEndX();
     }
 
-    EXPORT void wxPlotOnOffCurve_SetOffsetY(void* _obj, int offsetY)
+    EXPORT void wxPlotOnOffCurve_SetOffsetY(void* pObject, int offsetY)
     {
-        ((wxPlotOnOffCurve*) _obj)->SetOffsetY(offsetY);
+        ((wxPlotOnOffCurve*) pObject)->SetOffsetY(offsetY);
     }
 
-    EXPORT int wxPlotOnOffCurve_GetOffsetY(void* _obj)
+    EXPORT int wxPlotOnOffCurve_GetOffsetY(void* pObject)
     {
-        return ((wxPlotOnOffCurve*) _obj)->GetOffsetY();
+        return ((wxPlotOnOffCurve*) pObject)->GetOffsetY();
     }
 
-    EXPORT void wxPlotOnOffCurve_Add(void* _obj, int on, int off, void* clientData)
+    EXPORT void wxPlotOnOffCurve_Add(void* pObject, int onPos, int offPos, void* clientData)
     {
-        ((wxPlotOnOffCurve*) _obj)->Add((wxInt32) on, (wxInt32) off, clientData);
+        ((wxPlotOnOffCurve*) pObject)->Add((wxInt32) onPos, (wxInt32) offPos, clientData);
     }
 
-    EXPORT int wxPlotOnOffCurve_GetCount(void* _obj)
+    EXPORT int wxPlotOnOffCurve_GetCount(void* pObject)
     {
-        return (int) ((wxPlotOnOffCurve*) _obj)->GetCount();
+        return (int) ((wxPlotOnOffCurve*) pObject)->GetCount();
     }
 
-    EXPORT int wxPlotOnOffCurve_GetOn(void* _obj, int index)
+    EXPORT int wxPlotOnOffCurve_GetOn(void* pObject, int index)
     {
-        return (int) ((wxPlotOnOffCurve*) _obj)->GetOn((size_t) index);
+        return (int) ((wxPlotOnOffCurve*) pObject)->GetOn((size_t) index);
     }
 
-    EXPORT int wxPlotOnOffCurve_GetOff(void* _obj, int index)
+    EXPORT int wxPlotOnOffCurve_GetOff(void* pObject, int index)
     {
-        return (int) ((wxPlotOnOffCurve*) _obj)->GetOff((size_t) index);
+        return (int) ((wxPlotOnOffCurve*) pObject)->GetOff((size_t) index);
     }
 
-    EXPORT void* wxPlotOnOffCurve_GetClientData(void* _obj, int index)
+    EXPORT void* wxPlotOnOffCurve_GetClientData(void* pObject, int index)
     {
-        return (void*) ((wxPlotOnOffCurve*) _obj)->GetClientData((size_t) index);
+        return (void*) ((wxPlotOnOffCurve*) pObject)->GetClientData((size_t) index);
     }
 
-    EXPORT void* wxPlotOnOffCurve_GetAt(void* _obj, int index)
+    EXPORT void* wxPlotOnOffCurve_GetAt(void* pObject, int index)
     {
-        return (void*) ((wxPlotOnOffCurve*) _obj)->GetAt((size_t) index);
+        return (void*) ((wxPlotOnOffCurve*) pObject)->GetAt((size_t) index);
     }
 
-    EXPORT void wxPlotOnOffCurve_DrawOnLine(void* _obj, void* dc, int y, int start, int end,
+    EXPORT void wxPlotOnOffCurve_DrawOnLine(void* pObject, void* dc, int y, int start, int end,
                                             void* clientData)
     {
-        ((wxPlotOnOffCurve*) _obj)
+        ((wxPlotOnOffCurve*) pObject)
             ->DrawOnLine(*((wxDC*) dc), (wxCoord) y, (wxCoord) start, (wxCoord) end, clientData);
     }
 
-    EXPORT void wxPlotOnOffCurve_DrawOffLine(void* _obj, void* dc, int y, int start, int end)
+    EXPORT void wxPlotOnOffCurve_DrawOffLine(void* pObject, void* dc, int y, int start, int end)
     {
-        ((wxPlotOnOffCurve*) _obj)
+        ((wxPlotOnOffCurve*) pObject)
             ->DrawOffLine(*((wxDC*) dc), (wxCoord) y, (wxCoord) start, (wxCoord) end);
     }
 
-    EXPORT void* kwxPlotCurve_Create(void* _obj, void* _str, void* _end, void* _y, int offsetY,
+    EXPORT void* kwxPlotCurve_Create(void* pObject, void* fnGetStartX, void* endVal, void* y, int offsetY,
                                      double startY, double endY)
     {
-        return (void*) new kwxPlotCurve(_obj, _str, _end, _y, offsetY, startY, endY);
+        return (void*) new kwxPlotCurve(pObject, fnGetStartX, endVal, y, offsetY, startY, endY);
     }
 
-    EXPORT void kwxPlotCurve_Delete(void* _obj)
+    EXPORT void kwxPlotCurve_Delete(void* pObject)
     {
-        delete (kwxPlotCurve*) _obj;
+        delete (kwxPlotCurve*) pObject;
     }
 
-    EXPORT void kwxPlotCurve_SetStartY(void* _obj, double startY)
+    EXPORT void kwxPlotCurve_SetStartY(void* pObject, double startY)
     {
-        ((kwxPlotCurve*) _obj)->SetStartY(startY);
+        ((kwxPlotCurve*) pObject)->SetStartY(startY);
     }
 
-    EXPORT double kwxPlotCurve_GetStartY(void* _obj)
+    EXPORT double kwxPlotCurve_GetStartY(void* pObject)
     {
-        return ((kwxPlotCurve*) _obj)->GetStartY();
+        return ((kwxPlotCurve*) pObject)->GetStartY();
     }
 
-    EXPORT void kwxPlotCurve_SetEndY(void* _obj, double endY)
+    EXPORT void kwxPlotCurve_SetEndY(void* pObject, double endY)
     {
-        ((kwxPlotCurve*) _obj)->SetEndY(endY);
+        ((kwxPlotCurve*) pObject)->SetEndY(endY);
     }
 
-    EXPORT double kwxPlotCurve_GetEndY(void* _obj)
+    EXPORT double kwxPlotCurve_GetEndY(void* pObject)
     {
-        return ((kwxPlotCurve*) _obj)->GetEndY();
+        return ((kwxPlotCurve*) pObject)->GetEndY();
     }
 
-    EXPORT void kwxPlotCurve_SetOffsetY(void* _obj, int offsetY)
+    EXPORT void kwxPlotCurve_SetOffsetY(void* pObject, int offsetY)
     {
-        ((kwxPlotCurve*) _obj)->SetOffsetY(offsetY);
+        ((kwxPlotCurve*) pObject)->SetOffsetY(offsetY);
     }
 
-    EXPORT int kwxPlotCurve_GetOffsetY(void* _obj)
+    EXPORT int kwxPlotCurve_GetOffsetY(void* pObject)
     {
-        return ((kwxPlotCurve*) _obj)->GetOffsetY();
+        return ((kwxPlotCurve*) pObject)->GetOffsetY();
     }
 
-    EXPORT void kwxPlotCurve_SetPenNormal(void* _obj, void* pen)
+    EXPORT void kwxPlotCurve_SetPenNormal(void* pObject, void* pen)
     {
-        ((kwxPlotCurve*) _obj)->SetPenNormal(*((wxPen*) pen));
+        ((kwxPlotCurve*) pObject)->SetPenNormal(*((wxPen*) pen));
     }
 
-    EXPORT void kwxPlotCurve_SetPenSelected(void* _obj, void* pen)
+    EXPORT void kwxPlotCurve_SetPenSelected(void* pObject, void* pen)
     {
-        ((kwxPlotCurve*) _obj)->SetPenSelected(*((wxPen*) pen));
+        ((kwxPlotCurve*) pObject)->SetPenSelected(*((wxPen*) pen));
     }
 
-    EXPORT void* wxPlotEvent_GetCurve(void* _obj)
+    EXPORT void* wxPlotEvent_GetCurve(void* pObject)
     {
-        return (void*) ((wxPlotEvent*) _obj)->GetCurve();
+        return (void*) ((wxPlotEvent*) pObject)->GetCurve();
     }
 
-    EXPORT double wxPlotEvent_GetZoom(void* _obj)
+    EXPORT double wxPlotEvent_GetZoom(void* pObject)
     {
-        return ((wxPlotEvent*) _obj)->GetZoom();
+        return ((wxPlotEvent*) pObject)->GetZoom();
     }
 
-    EXPORT void wxPlotEvent_SetZoom(void* _obj, double zoom)
+    EXPORT void wxPlotEvent_SetZoom(void* pObject, double zoom)
     {
-        ((wxPlotEvent*) _obj)->SetZoom(zoom);
+        ((wxPlotEvent*) pObject)->SetZoom(zoom);
     }
 
-    EXPORT int wxPlotEvent_GetPosition(void* _obj)
+    EXPORT int wxPlotEvent_GetPosition(void* pObject)
     {
-        return (int) ((wxPlotEvent*) _obj)->GetPosition();
+        return (int) ((wxPlotEvent*) pObject)->GetPosition();
     }
 
-    EXPORT void wxPlotEvent_SetPosition(void* _obj, int pos)
+    EXPORT void wxPlotEvent_SetPosition(void* pObject, int pos)
     {
-        ((wxPlotEvent*) _obj)->SetPosition((wxInt32) pos);
+        ((wxPlotEvent*) pObject)->SetPosition((wxInt32) pos);
     }
 }

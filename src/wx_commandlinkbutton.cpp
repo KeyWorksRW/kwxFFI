@@ -4,9 +4,9 @@ extern "C"
 {
     EXPORT wxCommandLinkButton* wxCommandLinkButton_Create(wxWindow* parent, int id,
                                                            wxString* mainLabel, wxString* note,
-                                                           int x, int y, int w, int h, int style)
+                                                           int x, int y, int width, int height, int style)
     {
-        return new wxCommandLinkButton(parent, id, *mainLabel, *note, wxPoint(x, y), wxSize(w, h),
+        return new wxCommandLinkButton(parent, id, *mainLabel, *note, wxPoint(x, y), wxSize(width, height),
                                        style);
     }
 

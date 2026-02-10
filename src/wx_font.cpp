@@ -5,29 +5,29 @@
 
 extern "C"
 {
-    typedef int (*TTextEnum)(void* self, void* _txt);
+    typedef int (*TTextEnum)(void* self, void* text);
 }
 
 class kwxFontEnumerator : public wxFontEnumerator
 {
 private:
     TTextEnum func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
-    kwxFontEnumerator(void* self, void* _fnc) : wxFontEnumerator()
+    kwxFontEnumerator(void* self, void* pFunction) : wxFontEnumerator()
     {
-        func = (TTextEnum) _fnc;
-        EiffelObject = self;
+        func = (TTextEnum) pFunction;
+        kwxObject = self;
     }
 
     virtual bool OnFacename(const wxString& facename)
     {
-        return func(EiffelObject, (void*) facename.wchar_str()) != 0;
+        return func(kwxObject, (void*) facename.wchar_str()) != 0;
     }
     virtual bool OnFontEncoding(const wxString& WXUNUSED(facename), const wxString& encoding)
     {
-        return func(EiffelObject, (void*) encoding.wchar_str()) != 0;
+        return func(kwxObject, (void*) encoding.wchar_str()) != 0;
     }
 };
 
@@ -175,9 +175,9 @@ extern "C"
         self->SetDefaultEncoding((wxFontEncoding) encoding);
     }
 
-    EXPORT void* wxFontEnumerator_Create(void* self, void* _fnc)
+    EXPORT void* wxFontEnumerator_Create(void* self, void* pFunction)
     {
-        return (void*) new kwxFontEnumerator(self, _fnc);
+        return (void*) new kwxFontEnumerator(self, pFunction);
     }
 
     EXPORT void wxFontEnumerator_Delete(kwxFontEnumerator* self)
@@ -208,9 +208,9 @@ extern "C"
                                        *facename, false);
     }
 
-    EXPORT bool wxFontMapper_IsEncodingAvailable(wxFontMapper* self, int encoding, wxString* _buf)
+    EXPORT bool wxFontMapper_IsEncodingAvailable(wxFontMapper* self, int encoding, wxString* buffer)
     {
-        return self->IsEncodingAvailable((wxFontEncoding) encoding, *_buf);
+        return self->IsEncodingAvailable((wxFontEncoding) encoding, *buffer);
     }
 
     EXPORT void* wxEncodingConverter_Create()
@@ -235,26 +235,26 @@ extern "C"
     }
 
     EXPORT int wxEncodingConverter_GetPlatformEquivalents(void* self, int enc, int platform,
-                                                          void* _lst)
+                                                          void* list)
     {
         wxFontEncodingArray arr =
             ((wxEncodingConverter*) self)->GetPlatformEquivalents((wxFontEncoding) enc, platform);
-        if (_lst)
+        if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((int*) _lst)[i] = (int) arr.Item(i);
+                ((int*) list)[i] = (int) arr.Item(i);
         }
         return (int) arr.GetCount();
     }
 
-    EXPORT int wxEncodingConverter_GetAllEquivalents(void* self, int enc, void* _lst)
+    EXPORT int wxEncodingConverter_GetAllEquivalents(void* self, int enc, void* list)
     {
         wxFontEncodingArray arr =
             ((wxEncodingConverter*) self)->GetAllEquivalents((wxFontEncoding) enc);
-        if (_lst)
+        if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((int*) _lst)[i] = (int) arr.Item(i);
+                ((int*) list)[i] = (int) arr.Item(i);
         }
         return (int) arr.GetCount();
     }

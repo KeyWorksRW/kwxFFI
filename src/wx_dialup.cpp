@@ -18,15 +18,15 @@ extern "C"
         return self->IsOk();
     }
 
-    EXPORT int wxDialUpManager_GetISPNames(wxDialUpManager* self, void* _lst)
+    EXPORT int wxDialUpManager_GetISPNames(wxDialUpManager* self, void* list)
     {
         wxArrayString arr;
         self->GetISPNames(arr);
 
-        if (_lst)
+        if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((char**) _lst)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
         }
 
         return arr.GetCount();

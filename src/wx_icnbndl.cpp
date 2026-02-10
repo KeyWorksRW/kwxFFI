@@ -18,28 +18,28 @@ extern "C"
         return (void*) new wxIconBundle(*((wxIcon*) icon));
     }
 
-    EXPORT void wxIconBundle_Assign(void* _obj, void* _ref)
+    EXPORT void wxIconBundle_Assign(void* pObject, void* ref)
     {
-        *((wxIconBundle*) _ref) = *((wxIconBundle*) _obj);
+        *((wxIconBundle*) ref) = *((wxIconBundle*) pObject);
     }
 
-    EXPORT void wxIconBundle_Delete(void* _obj)
+    EXPORT void wxIconBundle_Delete(void* pObject)
     {
-        delete (wxIconBundle*) _obj;
+        delete (wxIconBundle*) pObject;
     }
 
-    EXPORT void wxIconBundle_AddIconFromFile(void* _obj, wxString* file, int type)
+    EXPORT void wxIconBundle_AddIconFromFile(void* pObject, wxString* file, int type)
     {
-        ((wxIconBundle*) _obj)->AddIcon(*file, (wxBitmapType) type);
+        ((wxIconBundle*) pObject)->AddIcon(*file, (wxBitmapType) type);
     }
 
-    EXPORT void wxIconBundle_AddIcon(void* _obj, void* icon)
+    EXPORT void wxIconBundle_AddIcon(void* pObject, void* icon)
     {
-        ((wxIconBundle*) _obj)->AddIcon(*((wxIcon*) icon));
+        ((wxIconBundle*) pObject)->AddIcon(*((wxIcon*) icon));
     }
 
-    EXPORT void wxIconBundle_GetIcon(void* _obj, int w, int h, void* _ref)
+    EXPORT void wxIconBundle_GetIcon(void* pObject, int width, int height, int flags, void* ref)
     {
-        *((wxIcon*) _ref) = ((wxIconBundle*) _obj)->GetIcon(wxSize(w, h));
+        *((wxIcon*) ref) = ((wxIconBundle*) pObject)->GetIcon(wxSize(width, height), flags);
     }
 }

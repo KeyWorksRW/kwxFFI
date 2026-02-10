@@ -148,9 +148,9 @@ extern "C"
     // Get empty cell size
     EXPORT void wxGridBagSizer_GetEmptyCellSize(wxGridBagSizer* self, int* width, int* height)
     {
-        wxSize sz = self->GetEmptyCellSize();
-        *width = sz.GetWidth();
-        *height = sz.GetHeight();
+        wxSize text = self->GetEmptyCellSize();
+        *width = text.GetWidth();
+        *height = text.GetHeight();
     }
 
     EXPORT void wxGridBagSizer_SetEmptyCellSize(wxGridBagSizer* self, int width, int height)

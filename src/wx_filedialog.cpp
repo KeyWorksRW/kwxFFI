@@ -4,67 +4,67 @@ extern "C"
 {
     EXPORT void* wxFileDialog_Create(wxWindow* parent, wxString* message, wxString* defaultDir,
                                      wxString* defaultFile, wxString* wildcard, int x, int y,
-                                     int style)
+                                     int style, int sz_w, int sz_h)
     {
         return (void*) new wxFileDialog(parent, *message, *defaultDir, *defaultFile, *wildcard,
-                                        style, wxPoint(x, y));
+                                        style, wxPoint(x, y), wxSize(sz_w, sz_h));
     }
 
-    EXPORT void wxFileDialog_SetMessage(void* _obj, wxString* message)
+    EXPORT void wxFileDialog_SetMessage(void* pObject, wxString* message)
     {
-        ((wxFileDialog*) _obj)->SetMessage(*message);
+        ((wxFileDialog*) pObject)->SetMessage(*message);
     }
 
-    EXPORT void wxFileDialog_SetPath(void* _obj, wxString* path)
+    EXPORT void wxFileDialog_SetPath(void* pObject, wxString* path)
     {
-        ((wxFileDialog*) _obj)->SetPath(*path);
+        ((wxFileDialog*) pObject)->SetPath(*path);
     }
 
-    EXPORT void wxFileDialog_SetDirectory(void* _obj, wxString* dir)
+    EXPORT void wxFileDialog_SetDirectory(void* pObject, wxString* dir)
     {
-        ((wxFileDialog*) _obj)->SetDirectory(*dir);
+        ((wxFileDialog*) pObject)->SetDirectory(*dir);
     }
 
-    EXPORT void wxFileDialog_SetFilename(void* _obj, wxString* name)
+    EXPORT void wxFileDialog_SetFilename(void* pObject, wxString* name)
     {
-        ((wxFileDialog*) _obj)->SetFilename(*name);
+        ((wxFileDialog*) pObject)->SetFilename(*name);
     }
 
-    EXPORT void wxFileDialog_SetWildcard(void* _obj, wxString* wildCard)
+    EXPORT void wxFileDialog_SetWildcard(void* pObject, wxString* wildCard)
     {
-        ((wxFileDialog*) _obj)->SetWildcard(*wildCard);
+        ((wxFileDialog*) pObject)->SetWildcard(*wildCard);
     }
 
-    EXPORT void wxFileDialog_SetStyle(void* _obj, int style)
+    EXPORT void wxFileDialog_SetStyle(void* pObject, int style)
     {
 #if WXWIN_COMPATIBILITY_2_6
-        ((wxFileDialog*) _obj)->SetStyle((long) style);
+        ((wxFileDialog*) pObject)->SetStyle((long) style);
 #endif
     }
 
-    EXPORT void wxFileDialog_SetFilterIndex(void* _obj, int filterIndex)
+    EXPORT void wxFileDialog_SetFilterIndex(void* pObject, int filterIndex)
     {
-        ((wxFileDialog*) _obj)->SetFilterIndex(filterIndex);
+        ((wxFileDialog*) pObject)->SetFilterIndex(filterIndex);
     }
 
-    EXPORT wxString* wxFileDialog_GetMessage(void* _obj)
+    EXPORT wxString* wxFileDialog_GetMessage(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFileDialog*) _obj)->GetMessage();
+        *result = ((wxFileDialog*) pObject)->GetMessage();
         return result;
     }
 
-    EXPORT wxString* wxFileDialog_GetPath(void* _obj)
+    EXPORT wxString* wxFileDialog_GetPath(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFileDialog*) _obj)->GetPath();
+        *result = ((wxFileDialog*) pObject)->GetPath();
         return result;
     }
 
-    EXPORT int wxFileDialog_GetPaths(void* _obj, void* paths)
+    EXPORT int wxFileDialog_GetPaths(void* pObject, void* paths)
     {
         wxArrayString arr;
-        ((wxFileDialog*) _obj)->GetPaths(arr);
+        ((wxFileDialog*) pObject)->GetPaths(arr);
         if (paths)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
@@ -73,24 +73,24 @@ extern "C"
         return arr.GetCount();
     }
 
-    EXPORT wxString* wxFileDialog_GetDirectory(void* _obj)
+    EXPORT wxString* wxFileDialog_GetDirectory(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFileDialog*) _obj)->GetDirectory();
+        *result = ((wxFileDialog*) pObject)->GetDirectory();
         return result;
     }
 
-    EXPORT wxString* wxFileDialog_GetFilename(void* _obj)
+    EXPORT wxString* wxFileDialog_GetFilename(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFileDialog*) _obj)->GetFilename();
+        *result = ((wxFileDialog*) pObject)->GetFilename();
         return result;
     }
 
-    EXPORT int wxFileDialog_GetFilenames(void* _obj, void* paths)
+    EXPORT int wxFileDialog_GetFilenames(void* pObject, void* paths)
     {
         wxArrayString arr;
-        ((wxFileDialog*) _obj)->GetFilenames(arr);
+        ((wxFileDialog*) pObject)->GetFilenames(arr);
         if (paths)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
@@ -99,24 +99,24 @@ extern "C"
         return arr.GetCount();
     }
 
-    EXPORT wxString* wxFileDialog_GetWildcard(void* _obj)
+    EXPORT wxString* wxFileDialog_GetWildcard(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFileDialog*) _obj)->GetWildcard();
+        *result = ((wxFileDialog*) pObject)->GetWildcard();
         return result;
     }
 
-    EXPORT int wxFileDialog_GetStyle(void* _obj)
+    EXPORT int wxFileDialog_GetStyle(void* pObject)
     {
 #if WXWIN_COMPATIBILITY_2_6
-        return (int) ((wxFileDialog*) _obj)->GetStyle();
+        return (int) ((wxFileDialog*) pObject)->GetStyle();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxFileDialog_GetFilterIndex(void* _obj)
+    EXPORT int wxFileDialog_GetFilterIndex(void* pObject)
     {
-        return ((wxFileDialog*) _obj)->GetFilterIndex();
+        return ((wxFileDialog*) pObject)->GetFilterIndex();
     }
 }

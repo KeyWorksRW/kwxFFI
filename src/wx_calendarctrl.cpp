@@ -97,15 +97,15 @@ extern "C"
     }
 
     EXPORT int wxCalendarCtrl_HitTest(wxCalendarCtrl* self, int x, int y, wxDateTime* date,
-                                      void* wd)
+                                      void* weekday)
     {
-        return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) wd);
+        return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) weekday);
     }
 
-    EXPORT wxCalendarDateAttr* wxCalendarDateAttr_Create(wxColour* _ctxt, wxColour* _cbck,
-                                                         wxColour* _cbrd, wxFont* _fnt, int _brd)
+    EXPORT wxCalendarDateAttr* wxCalendarDateAttr_Create(wxColour* textColour, wxColour* backColour,
+                                                         wxColour* borderColour, wxFont* font, int border)
     {
-        return new wxCalendarDateAttr(*_ctxt, *_cbck, *_cbrd, *_fnt, (wxCalendarDateBorder) _brd);
+        return new wxCalendarDateAttr(*textColour, *backColour, *borderColour, *font, (wxCalendarDateBorder) border);
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_CreateDefault()
@@ -178,24 +178,24 @@ extern "C"
         return self->IsHoliday();
     }
 
-    EXPORT void wxCalendarDateAttr_GetTextColour(wxCalendarDateAttr* self, wxColour* _ref)
+    EXPORT void wxCalendarDateAttr_GetTextColour(wxCalendarDateAttr* self, wxColour* ref)
     {
-        *_ref = self->GetTextColour();
+        *ref = self->GetTextColour();
     }
 
-    EXPORT void wxCalendarDateAttr_GetBackgroundColour(wxCalendarDateAttr* self, wxColour* _ref)
+    EXPORT void wxCalendarDateAttr_GetBackgroundColour(wxCalendarDateAttr* self, wxColour* ref)
     {
-        *_ref = self->GetBackgroundColour();
+        *ref = self->GetBackgroundColour();
     }
 
-    EXPORT void wxCalendarDateAttr_GetBorderColour(wxCalendarDateAttr* self, wxColour* _ref)
+    EXPORT void wxCalendarDateAttr_GetBorderColour(wxCalendarDateAttr* self, wxColour* ref)
     {
-        *_ref = self->GetBorderColour();
+        *ref = self->GetBorderColour();
     }
 
-    EXPORT void wxCalendarDateAttr_GetFont(wxCalendarDateAttr* self, wxFont* _ref)
+    EXPORT void wxCalendarDateAttr_GetFont(wxCalendarDateAttr* self, wxFont* ref)
     {
-        *_ref = self->GetFont();
+        *ref = self->GetFont();
     }
 
     EXPORT int wxCalendarDateAttr_GetBorder(wxCalendarDateAttr* self)

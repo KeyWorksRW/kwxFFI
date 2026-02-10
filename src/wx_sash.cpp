@@ -114,9 +114,9 @@ extern "C"
         return (int) self->GetEdge();
     }
 
-    EXPORT void wxSashEvent_SetDragRect(wxSashEvent* self, int x, int y, int w, int h)
+    EXPORT void wxSashEvent_SetDragRect(wxSashEvent* self, int x, int y, int width, int height)
     {
-        self->SetDragRect(wxRect(x, y, w, h));
+        self->SetDragRect(wxRect(x, y, width, height));
     }
 
     EXPORT wxRect* wxSashEvent_GetDragRect(wxSashEvent* self)
@@ -161,9 +161,9 @@ extern "C"
         self->SetOrientation((wxLayoutOrientation) orient);
     }
 
-    EXPORT void wxSashLayoutWindow_SetDefaultSize(wxSashLayoutWindow* self, int w, int h)
+    EXPORT void wxSashLayoutWindow_SetDefaultSize(wxSashLayoutWindow* self, int width, int height)
     {
-        self->SetDefaultSize(wxSize(w, h));
+        self->SetDefaultSize(wxSize(width, height));
     }
 
     EXPORT void* wxQueryLayoutInfoEvent_Create(int id)
@@ -191,16 +191,16 @@ extern "C"
         return self->GetFlags();
     }
 
-    EXPORT void wxQueryLayoutInfoEvent_SetSize(wxQueryLayoutInfoEvent* self, int w, int h)
+    EXPORT void wxQueryLayoutInfoEvent_SetSize(wxQueryLayoutInfoEvent* self, int width, int height)
     {
-        self->SetSize(wxSize(w, h));
+        self->SetSize(wxSize(width, height));
     }
 
     EXPORT wxSize* wxQueryLayoutInfoEvent_GetSize(wxQueryLayoutInfoEvent* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetSize();
+        return text;
     }
 
     EXPORT void wxQueryLayoutInfoEvent_SetOrientation(wxQueryLayoutInfoEvent* self, int orient)
@@ -238,10 +238,10 @@ extern "C"
         return self->GetFlags();
     }
 
-    EXPORT void wxCalculateLayoutEvent_SetRect(wxCalculateLayoutEvent* self, int x, int y, int w,
-                                               int h)
+    EXPORT void wxCalculateLayoutEvent_SetRect(wxCalculateLayoutEvent* self, int x, int y, int width,
+                                               int height)
     {
-        self->SetRect(wxRect(x, y, w, h));
+        self->SetRect(wxRect(x, y, width, height));
     }
 
     EXPORT wxRect* wxCalculateLayoutEvent_GetRect(wxCalculateLayoutEvent* self)
@@ -262,11 +262,11 @@ extern "C"
     }
 
     EXPORT bool wxLayoutAlgorithm_LayoutMDIFrame(wxLayoutAlgorithm* self, wxMDIParentFrame* frame,
-                                                 int x, int y, int w, int h, int use)
+                                                 int x, int y, int width, int height, int use)
     {
         wxRect* r = nullptr;
         if (use)
-            r = new wxRect(x, y, w, h);
+            r = new wxRect(x, y, width, height);
 
         bool result = self->LayoutMDIFrame(frame, r);
 

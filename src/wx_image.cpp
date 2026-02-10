@@ -17,14 +17,14 @@ extern "C"
         return new wxImage(width, height);
     }
 
-    EXPORT wxImage* wxImage_CreateFromByteString(const wxSize& sz, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromByteString(const wxSize& text, unsigned char* data)
     {
-        return new wxImage(sz, data);
+        return new wxImage(text, data);
     }
 
-    EXPORT wxImage* wxImage_CreateFromLazyByteString(const wxSize& sz, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromLazyByteString(const wxSize& text, unsigned char* data)
     {
-        return new wxImage(sz, data);
+        return new wxImage(text, data);
     }
 
     EXPORT size_t wxImage_ConvertToByteString(wxImage* self, wxBitmapType type, char* data)
@@ -68,9 +68,9 @@ extern "C"
         *bitmap = tmp;
     }
 
-    EXPORT void wxImage_Initialize(wxImage* self, int width, int height)
+    EXPORT void wxImage_Initialize(wxImage* self, int width, int height, bool clear)
     {
-        self->Create(width, height);
+        self->Create(width, height, clear);
     }
 
     EXPORT void wxImage_InitializeFromData(wxImage* self, int width, int height, void* data)
@@ -83,9 +83,9 @@ extern "C"
         self->Destroy();
     }
 
-    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int w, int h, wxImage* image)
+    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int width, int height, wxImage* image)
     {
-        *image = self->GetSubImage(wxRect(x, y, w, h));
+        *image = self->GetSubImage(wxRect(x, y, width, height));
     }
 
     EXPORT int wxImage_GetType(wxImage* self)
@@ -98,9 +98,9 @@ extern "C"
         self->SetType((wxBitmapType) type);
     }
 
-    EXPORT void wxImage_Paste(wxImage* self, wxImage* image, int x, int y)
+    EXPORT void wxImage_Paste(wxImage* self, wxImage* image, int x, int y, int alphaBlend)
     {
-        self->Paste(*image, x, y);
+        self->Paste(*image, x, y, (wxImageAlphaBlendMode) alphaBlend);
     }
 
     EXPORT void wxImage_Scale(wxImage* self, int width, int height, wxImage* image)
@@ -171,9 +171,9 @@ extern "C"
         return wxImage::CanRead(*name);
     }
 
-    EXPORT bool wxImage_LoadFile(wxImage* self, wxString* name, wxBitmapType type)
+    EXPORT bool wxImage_LoadFile(wxImage* self, wxString* name, wxBitmapType type, int index)
     {
-        return self->LoadFile(*name, type);
+        return self->LoadFile(*name, type, index);
     }
 
     EXPORT bool wxImage_LoadStream(wxImage* self, wxInputStream* stream, wxBitmapType type,
@@ -212,14 +212,15 @@ extern "C"
         return (void*) self->GetData();
     }
 
-    EXPORT void wxImage_SetData(wxImage* self, void* data)
+    EXPORT void wxImage_SetData(wxImage* self, void* data, bool static_data)
     {
-        self->SetData((unsigned char*) data);
+        self->SetData((unsigned char*) data, static_data);
     }
 
-    EXPORT void wxImage_SetDataAndSize(wxImage* self, char* data, int new_width, int new_height)
+    EXPORT void wxImage_SetDataAndSize(wxImage* self, char* data, int new_width, int new_height,
+                                       bool static_data)
     {
-        self->SetData((unsigned char*) data, new_width, new_height);
+        self->SetData((unsigned char*) data, new_width, new_height, static_data);
     }
 
     EXPORT void wxImage_SetMaskColour(wxImage* self, wxUint8 r, wxUint8 g, wxUint8 b)

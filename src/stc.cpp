@@ -69,49 +69,49 @@ extern "C"
 
     /* tricky handwritten functions */
 
-    EXPORT void* wxStyledTextCtrl_IndicatorGetForeground(void* _obj, int indic)
+    EXPORT void* wxStyledTextCtrl_IndicatorGetForeground(void* pObject, int indic)
     {
 #ifdef wxUSE_STC
-        wxColour c = ((wxStyledTextCtrl*) _obj)->IndicatorGetForeground(indic);
+        wxColour c = ((wxStyledTextCtrl*) pObject)->IndicatorGetForeground(indic);
         wxColour* cc = new wxColour(c);
         return cc;
 #else
         return nullptr;
 #endif
     }
-    EXPORT void* wxStyledTextCtrl_GetCaretLineBackground(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetCaretLineBackground(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxColour c = ((wxStyledTextCtrl*) _obj)->GetCaretLineBackground();
+        wxColour c = ((wxStyledTextCtrl*) pObject)->GetCaretLineBackground();
         wxColour* cc = new wxColour(c);
         return cc;
 #else
         return nullptr;
 #endif
     }
-    EXPORT void wxStyledTextCtrl_SetCaretLineBackground(void* _obj, int back_r, int back_g,
+    EXPORT void wxStyledTextCtrl_SetCaretLineBackground(void* pObject, int back_r, int back_g,
                                                         int back_b)
     {
 #ifdef wxUSE_STC
         /* SetCaretLineBack is changed name to SetCaretLineBackground.
            So I avoid to use stc_gen.cpp for backward compatibility. */
-        ((wxStyledTextCtrl*) _obj)->SetCaretLineBackground(wxColour(back_r, back_g, back_b));
+        ((wxStyledTextCtrl*) pObject)->SetCaretLineBackground(wxColour(back_r, back_g, back_b));
 #endif
     }
-    EXPORT void* wxStyledTextCtrl_GetCaretForeground(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetCaretForeground(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxColour c = ((wxStyledTextCtrl*) _obj)->GetCaretForeground();
+        wxColour c = ((wxStyledTextCtrl*) pObject)->GetCaretForeground();
         wxColour* cc = new wxColour(c);
         return cc;
 #else
         return nullptr;
 #endif
     }
-    EXPORT void* wxStyledTextCtrl_GetLine(void* _obj, int line)
+    EXPORT void* wxStyledTextCtrl_GetLine(void* pObject, int line)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextCtrl*) _obj)->GetLine(line);
+        wxString s = ((wxStyledTextCtrl*) pObject)->GetLine(line);
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -119,10 +119,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_GetText(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetText(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextCtrl*) _obj)->GetText();
+        wxString s = ((wxStyledTextCtrl*) pObject)->GetText();
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -130,10 +130,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_GetSelectedText(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetSelectedText(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextCtrl*) _obj)->GetSelectedText();
+        wxString s = ((wxStyledTextCtrl*) pObject)->GetSelectedText();
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -141,10 +141,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_GetTextRange(void* _obj, int startPos, int endPos)
+    EXPORT void* wxStyledTextCtrl_GetTextRange(void* pObject, int startPos, int endPos)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextCtrl*) _obj)->GetTextRange(startPos, endPos);
+        wxString s = ((wxStyledTextCtrl*) pObject)->GetTextRange(startPos, endPos);
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -152,19 +152,19 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_CreateDocument(void* _obj)
+    EXPORT void* wxStyledTextCtrl_CreateDocument(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextCtrl*) _obj)->CreateDocument();
+        return ((wxStyledTextCtrl*) pObject)->CreateDocument();
 #else
         return nullptr;
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_GetEdgeColour(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetEdgeColour(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxColour c = ((wxStyledTextCtrl*) _obj)->GetEdgeColour();
+        wxColour c = ((wxStyledTextCtrl*) pObject)->GetEdgeColour();
         wxColour* cc = new wxColour(c);
         return cc;
 #else
@@ -172,19 +172,19 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_GetDocPointer(void* _obj)
+    EXPORT void* wxStyledTextCtrl_GetDocPointer(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextCtrl*) _obj)->GetDocPointer();
+        return ((wxStyledTextCtrl*) pObject)->GetDocPointer();
 #else
         return nullptr;
 #endif
     }
 
-    EXPORT void* wxStyledTextCtrl_PointFromPosition(void* _obj, int pos)
+    EXPORT void* wxStyledTextCtrl_PointFromPosition(void* pObject, int pos)
     {
 #ifdef wxUSE_STC
-        wxPoint p = ((wxStyledTextCtrl*) _obj)->PointFromPosition(pos);
+        wxPoint p = ((wxStyledTextCtrl*) pObject)->PointFromPosition(pos);
         wxPoint* pp = new wxPoint(p);
         return pp;
 #else
@@ -196,154 +196,154 @@ extern "C"
     /* wxStyledTextEvent's get functions */
     /*************************************/
 
-    EXPORT int wxStyledTextEvent_GetPosition(void* _obj)
+    EXPORT int wxStyledTextEvent_GetPosition(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetPosition();
+        return ((wxStyledTextEvent*) pObject)->GetPosition();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetKey(void* _obj)
+    EXPORT int wxStyledTextEvent_GetKey(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetKey();
+        return ((wxStyledTextEvent*) pObject)->GetKey();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetModifiers(void* _obj)
+    EXPORT int wxStyledTextEvent_GetModifiers(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetModifiers();
+        return ((wxStyledTextEvent*) pObject)->GetModifiers();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetModificationType(void* _obj)
+    EXPORT int wxStyledTextEvent_GetModificationType(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetModificationType();
+        return ((wxStyledTextEvent*) pObject)->GetModificationType();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetLength(void* _obj)
+    EXPORT int wxStyledTextEvent_GetLength(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetLength();
+        return ((wxStyledTextEvent*) pObject)->GetLength();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetLinesAdded(void* _obj)
+    EXPORT int wxStyledTextEvent_GetLinesAdded(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetLinesAdded();
+        return ((wxStyledTextEvent*) pObject)->GetLinesAdded();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetLine(void* _obj)
+    EXPORT int wxStyledTextEvent_GetLine(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetLine();
+        return ((wxStyledTextEvent*) pObject)->GetLine();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetFoldLevelNow(void* _obj)
+    EXPORT int wxStyledTextEvent_GetFoldLevelNow(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetFoldLevelNow();
+        return ((wxStyledTextEvent*) pObject)->GetFoldLevelNow();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetFoldLevelPrev(void* _obj)
+    EXPORT int wxStyledTextEvent_GetFoldLevelPrev(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetFoldLevelPrev();
+        return ((wxStyledTextEvent*) pObject)->GetFoldLevelPrev();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetMargin(void* _obj)
+    EXPORT int wxStyledTextEvent_GetMargin(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetMargin();
+        return ((wxStyledTextEvent*) pObject)->GetMargin();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetMessage(void* _obj)
+    EXPORT int wxStyledTextEvent_GetMessage(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetMessage();
+        return ((wxStyledTextEvent*) pObject)->GetMessage();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetWParam(void* _obj)
+    EXPORT int wxStyledTextEvent_GetWParam(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetWParam();
+        return ((wxStyledTextEvent*) pObject)->GetWParam();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetLParam(void* _obj)
+    EXPORT int wxStyledTextEvent_GetLParam(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetLParam();
+        return ((wxStyledTextEvent*) pObject)->GetLParam();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetListType(void* _obj)
+    EXPORT int wxStyledTextEvent_GetListType(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetListType();
+        return ((wxStyledTextEvent*) pObject)->GetListType();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetX(void* _obj)
+    EXPORT int wxStyledTextEvent_GetX(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetX();
+        return ((wxStyledTextEvent*) pObject)->GetX();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetY(void* _obj)
+    EXPORT int wxStyledTextEvent_GetY(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetY();
+        return ((wxStyledTextEvent*) pObject)->GetY();
 #else
         return 0;
 #endif
     }
 
-    EXPORT void* wxStyledTextEvent_GetDragText(void* _obj)
+    EXPORT void* wxStyledTextEvent_GetDragText(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextEvent*) _obj)->GetDragText();
+        wxString s = ((wxStyledTextEvent*) pObject)->GetDragText();
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -351,55 +351,55 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetDragAllowMove(void* _obj)
+    EXPORT bool wxStyledTextEvent_GetDragAllowMove(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetDragAllowMove();
+        return ((wxStyledTextEvent*) pObject)->GetDragAllowMove();
 #else
         return false;
 #endif
     }
 
-    EXPORT int wxStyledTextEvent_GetDragResult(void* _obj)
+    EXPORT int wxStyledTextEvent_GetDragResult(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetDragResult();
+        return ((wxStyledTextEvent*) pObject)->GetDragResult();
 #else
         return false;
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetShift(void* _obj)
+    EXPORT bool wxStyledTextEvent_GetShift(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetShift();
+        return ((wxStyledTextEvent*) pObject)->GetShift();
 #else
         return false;
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetControl(void* _obj)
+    EXPORT bool wxStyledTextEvent_GetControl(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetControl();
+        return ((wxStyledTextEvent*) pObject)->GetControl();
 #else
         return false;
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetAlt(void* _obj)
+    EXPORT bool wxStyledTextEvent_GetAlt(void* pObject)
     {
 #ifdef wxUSE_STC
-        return ((wxStyledTextEvent*) _obj)->GetAlt();
+        return ((wxStyledTextEvent*) pObject)->GetAlt();
 #else
         return false;
 #endif
     }
 
-    EXPORT void* wxStyledTextEvent_GetText(void* _obj)
+    EXPORT void* wxStyledTextEvent_GetText(void* pObject)
     {
 #ifdef wxUSE_STC
-        wxString s = ((wxStyledTextEvent*) _obj)->GetText();
+        wxString s = ((wxStyledTextEvent*) pObject)->GetText();
         wxString* ss = new wxString(s);
         return ss;
 #else
@@ -407,10 +407,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxStyledTextEvent_Clone(void* _obj)
+    EXPORT void* wxStyledTextEvent_Clone(void* pObject)
     {
 #ifdef wxUSE_STC
-        return (void*) ((wxStyledTextEvent*) _obj)->Clone();
+        return (void*) ((wxStyledTextEvent*) pObject)->Clone();
 #else
         return nullptr;
 #endif
@@ -420,143 +420,143 @@ extern "C"
     /* wxStyledTextEvent's set functions */
     /*************************************/
 
-    EXPORT void wxStyledTextEvent_SetPosition(void* _obj, int pos)
+    EXPORT void wxStyledTextEvent_SetPosition(void* pObject, int pos)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetPosition(pos);
+        ((wxStyledTextEvent*) pObject)->SetPosition(pos);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetKey(void* _obj, int k)
+    EXPORT void wxStyledTextEvent_SetKey(void* pObject, int keyCode)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetKey(k);
+        ((wxStyledTextEvent*) pObject)->SetKey(keyCode);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetModifiers(void* _obj, int m)
+    EXPORT void wxStyledTextEvent_SetModifiers(void* pObject, int modifiers)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetModifiers(m);
+        ((wxStyledTextEvent*) pObject)->SetModifiers(modifiers);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetModificationType(void* _obj, int t)
+    EXPORT void wxStyledTextEvent_SetModificationType(void* pObject, int modType)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetModificationType(t);
+        ((wxStyledTextEvent*) pObject)->SetModificationType(modType);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetText(void* _obj, void* t)
+    EXPORT void wxStyledTextEvent_SetText(void* pObject, void* text)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetText(*(wxString*) t);
+        ((wxStyledTextEvent*) pObject)->SetText(*(wxString*) text);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetLength(void* _obj, int len)
+    EXPORT void wxStyledTextEvent_SetLength(void* pObject, int len)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetLength(len);
+        ((wxStyledTextEvent*) pObject)->SetLength(len);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetLinesAdded(void* _obj, int num)
+    EXPORT void wxStyledTextEvent_SetLinesAdded(void* pObject, int num)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetLinesAdded(num);
+        ((wxStyledTextEvent*) pObject)->SetLinesAdded(num);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetLine(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetLine(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetLine(val);
+        ((wxStyledTextEvent*) pObject)->SetLine(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetFoldLevelNow(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetFoldLevelNow(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetFoldLevelNow(val);
+        ((wxStyledTextEvent*) pObject)->SetFoldLevelNow(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetFoldLevelPrev(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetFoldLevelPrev(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetFoldLevelPrev(val);
+        ((wxStyledTextEvent*) pObject)->SetFoldLevelPrev(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetMargin(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetMargin(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetMargin(val);
+        ((wxStyledTextEvent*) pObject)->SetMargin(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetMessage(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetMessage(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetMessage(val);
+        ((wxStyledTextEvent*) pObject)->SetMessage(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetWParam(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetWParam(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetWParam(val);
+        ((wxStyledTextEvent*) pObject)->SetWParam(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetLParam(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetLParam(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetLParam(val);
+        ((wxStyledTextEvent*) pObject)->SetLParam(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetListType(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetListType(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetListType(val);
+        ((wxStyledTextEvent*) pObject)->SetListType(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetX(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetX(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetX(val);
+        ((wxStyledTextEvent*) pObject)->SetX(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetY(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetY(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetY(val);
+        ((wxStyledTextEvent*) pObject)->SetY(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetDragText(void* _obj, void* val)
+    EXPORT void wxStyledTextEvent_SetDragText(void* pObject, void* val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetDragText(*(wxString*) val);
+        ((wxStyledTextEvent*) pObject)->SetDragText(*(wxString*) val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetDragAllowMove(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetDragAllowMove(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetDragAllowMove(val);
+        ((wxStyledTextEvent*) pObject)->SetDragAllowMove(val);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetDragResult(void* _obj, int val)
+    EXPORT void wxStyledTextEvent_SetDragResult(void* pObject, int val)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) _obj)->SetDragResult(static_cast<wxDragResult>(val));
+        ((wxStyledTextEvent*) pObject)->SetDragResult(static_cast<wxDragResult>(val));
 #endif
     }
 }

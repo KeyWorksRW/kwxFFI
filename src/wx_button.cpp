@@ -26,24 +26,24 @@ extern "C"
                                   wxDefaultValidator);
     }
 
-    EXPORT void wxBitmapButton_GetBitmapLabel(wxBitmapButton* self, wxBitmap* _ref)
+    EXPORT void wxBitmapButton_GetBitmapLabel(wxBitmapButton* self, wxBitmap* ref)
     {
-        *_ref = self->GetBitmapLabel();
+        *ref = self->GetBitmapLabel();
     }
 
-    EXPORT void wxBitmapButton_GetBitmapSelected(wxBitmapButton* self, wxBitmap* _ref)
+    EXPORT void wxBitmapButton_GetBitmapSelected(wxBitmapButton* self, wxBitmap* ref)
     {
-        *_ref = self->GetBitmapSelected();
+        *ref = self->GetBitmapSelected();
     }
 
-    EXPORT void wxBitmapButton_GetBitmapFocus(wxBitmapButton* self, wxBitmap* _ref)
+    EXPORT void wxBitmapButton_GetBitmapFocus(wxBitmapButton* self, wxBitmap* ref)
     {
-        *_ref = self->GetBitmapFocus();
+        *ref = self->GetBitmapFocus();
     }
 
-    EXPORT void wxBitmapButton_GetBitmapDisabled(wxBitmapButton* self, wxBitmap* _ref)
+    EXPORT void wxBitmapButton_GetBitmapDisabled(wxBitmapButton* self, wxBitmap* ref)
     {
-        *_ref = self->GetBitmapDisabled();
+        *ref = self->GetBitmapDisabled();
     }
 
     EXPORT void wxBitmapButton_SetBitmapSelected(wxBitmapButton* self, wxBitmap* sel)

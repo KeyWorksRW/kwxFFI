@@ -53,9 +53,9 @@ extern "C"
         return false;
     }
 
-    EXPORT void* wxCondition_Create(void* _mutex)
+    EXPORT void* wxCondition_Create(void* mutex)
     {
-        return (void*) new wxCondition(*((wxMutex*) _mutex));
+        return (void*) new wxCondition(*((wxMutex*) mutex));
     }
 
     EXPORT void wxCondition_Delete(void* self)

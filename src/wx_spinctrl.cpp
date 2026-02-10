@@ -9,29 +9,29 @@ extern "C"
                               max, initial);
     }
 
-    EXPORT void wxSpinCtrl_SetValue(void* _obj, int val)
+    EXPORT void wxSpinCtrl_SetValue(void* pObject, int val)
     {
-        ((wxSpinCtrl*) _obj)->SetValue(val);
+        ((wxSpinCtrl*) pObject)->SetValue(val);
     }
 
-    EXPORT int wxSpinCtrl_GetValue(void* _obj)
+    EXPORT int wxSpinCtrl_GetValue(void* pObject)
     {
-        return ((wxSpinCtrl*) _obj)->GetValue();
+        return ((wxSpinCtrl*) pObject)->GetValue();
     }
 
-    EXPORT void wxSpinCtrl_SetRange(void* _obj, int min_val, int max_val)
+    EXPORT void wxSpinCtrl_SetRange(void* pObject, int min_val, int max_val)
     {
-        ((wxSpinCtrl*) _obj)->SetRange(min_val, max_val);
+        ((wxSpinCtrl*) pObject)->SetRange(min_val, max_val);
     }
 
-    EXPORT int wxSpinCtrl_GetMin(void* _obj)
+    EXPORT int wxSpinCtrl_GetMin(void* pObject)
     {
-        return ((wxSpinCtrl*) _obj)->GetMin();
+        return ((wxSpinCtrl*) pObject)->GetMin();
     }
 
-    EXPORT int wxSpinCtrl_GetMax(void* _obj)
+    EXPORT int wxSpinCtrl_GetMax(void* pObject)
     {
-        return ((wxSpinCtrl*) _obj)->GetMax();
+        return ((wxSpinCtrl*) pObject)->GetMax();
     }
 
     EXPORT void* wxSpinButton_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -40,28 +40,28 @@ extern "C"
         return new wxSpinButton(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT int wxSpinButton_GetValue(void* _obj)
+    EXPORT int wxSpinButton_GetValue(void* pObject)
     {
-        return ((wxSpinButton*) _obj)->GetValue();
+        return ((wxSpinButton*) pObject)->GetValue();
     }
 
-    EXPORT int wxSpinButton_GetMin(void* _obj)
+    EXPORT int wxSpinButton_GetMin(void* pObject)
     {
-        return ((wxSpinButton*) _obj)->GetMin();
+        return ((wxSpinButton*) pObject)->GetMin();
     }
 
-    EXPORT int wxSpinButton_GetMax(void* _obj)
+    EXPORT int wxSpinButton_GetMax(void* pObject)
     {
-        return ((wxSpinButton*) _obj)->GetMax();
+        return ((wxSpinButton*) pObject)->GetMax();
     }
 
-    EXPORT void wxSpinButton_SetValue(void* _obj, int val)
+    EXPORT void wxSpinButton_SetValue(void* pObject, int val)
     {
-        ((wxSpinButton*) _obj)->SetValue(val);
+        ((wxSpinButton*) pObject)->SetValue(val);
     }
 
-    EXPORT void wxSpinButton_SetRange(void* _obj, int minVal, int maxVal)
+    EXPORT void wxSpinButton_SetRange(void* pObject, int minVal, int maxVal)
     {
-        ((wxSpinButton*) _obj)->SetRange(minVal, maxVal);
+        ((wxSpinButton*) pObject)->SetRange(minVal, maxVal);
     }
 }

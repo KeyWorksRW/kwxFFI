@@ -5,11 +5,11 @@ extern "C"
 {
     // Constructor
     EXPORT wxRibbonPanel* wxRibbonPanel_Create(wxWindow* parent, int id, wxString* label,
-                                               wxBitmap* icon, int x, int y, int w, int h,
+                                               wxBitmap* icon, int x, int y, int width, int height,
                                                int style)
     {
         return new wxRibbonPanel(parent, id, *label, icon ? *icon : wxNullBitmap, wxPoint(x, y),
-                                 wxSize(w, h), style);
+                                 wxSize(width, height), style);
     }
 
     // Properties
@@ -26,9 +26,9 @@ extern "C"
         return self->IsMinimised();
     }
 
-    EXPORT bool wxRibbonPanel_IsMinimised_AtSize(wxRibbonPanel* self, int w, int h)
+    EXPORT bool wxRibbonPanel_IsMinimised_AtSize(wxRibbonPanel* self, int width, int height)
     {
-        return self->IsMinimised(wxSize(w, h));
+        return self->IsMinimised(wxSize(width, height));
     }
 
     EXPORT bool wxRibbonPanel_IsHovered(wxRibbonPanel* self)

@@ -2,18 +2,18 @@
 
 extern "C"
 {
-    typedef int (*EiffelSortFunc)(void* obj, int data1, int data2);
+    typedef int (*kwxSortFunc)(void* obj, int data1, int data2);
 
-    typedef struct _EiffelSort
+    typedef struct fnSort
     {
         void* obj;
-        EiffelSortFunc fnc;
-    } EiffelSort;
+        kwxSortFunc fnc;
+    } kwxSort;
 
     int wxCALLBACK ListCmp(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
     {
-        return ((EiffelSort*) sortData)
-            ->fnc(((EiffelSort*) sortData)->obj, (int) item1, (int) item2);
+        return ((kwxSort*) sortData)
+            ->fnc(((kwxSort*) sortData)->obj, (int) item1, (int) item2);
     }
 
     EXPORT wxListItem* wxListItem_Create()
@@ -259,10 +259,10 @@ extern "C"
         return self->SetItemImage((long) item, image, selImage);
     }
 
-    EXPORT wxString* wxListCtrl_GetItemText(wxListCtrl* self, int item)
+    EXPORT wxString* wxListCtrl_GetItemText(wxListCtrl* self, int item, int col)
     {
         wxString* result = new wxString();
-        *result = self->GetItemText((long) item);
+        *result = self->GetItemText((long) item, col);
         return result;
     }
 
@@ -320,9 +320,9 @@ extern "C"
 
     EXPORT wxSize* wxListCtrl_GetItemSpacing(wxListCtrl* self, bool isSmall)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetItemSpacing();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetItemSpacing();
+        return text;
     }
 
     EXPORT int wxListCtrl_GetSelectedItemCount(wxListCtrl* self)
@@ -435,9 +435,9 @@ extern "C"
         return (int) self->FindItem((long) start, wxPoint(x, y), direction);
     }
 
-    EXPORT int wxListCtrl_HitTest(wxListCtrl* self, int x, int y, void* flags)
+    EXPORT int wxListCtrl_HitTest(wxListCtrl* self, int x, int y, void* flags, long* pSubItem)
     {
-        return self->HitTest(wxPoint(x, y), *((int*) flags));
+        return self->HitTest(wxPoint(x, y), *((int*) flags), pSubItem);
     }
 
     EXPORT int wxListCtrl_InsertItem(wxListCtrl* self, wxListItem* info)
@@ -479,7 +479,7 @@ extern "C"
 
     EXPORT bool wxListCtrl_SortItems(wxListCtrl* self, void* fnc, void* obj)
     {
-        EiffelSort srt = { obj, (EiffelSortFunc) fnc };
+        kwxSort srt = { obj, (kwxSortFunc) fnc };
         return self->SortItems(ListCmp, (wxIntPtr) &srt);
     }
 
@@ -500,8 +500,8 @@ extern "C"
         self->RefreshItem(item);
     }
 
-    EXPORT void wxListCtrl_RefreshItems(wxListCtrl* self, long from, long to)
+    EXPORT void wxListCtrl_RefreshItems(wxListCtrl* self, long from, long toPos)
     {
-        self->RefreshItems(from, to);
+        self->RefreshItems(from, toPos);
     }
 }

@@ -23,28 +23,28 @@ extern "C"
 
     EXPORT wxSize* wxSizerItem_GetSize(wxSizerItem* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetSize();
+        return text;
     }
 
     EXPORT wxSize* wxSizerItem_CalcMin(wxSizerItem* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
-    EXPORT void wxSizerItem_SetDimension(wxSizerItem* self, int _x, int _y, int _w, int _h)
+    EXPORT void wxSizerItem_SetDimension(wxSizerItem* self, int x, int y, int width, int height)
     {
-        self->SetDimension(wxPoint(_x, _y), wxSize(_w, _h));
+        self->SetDimension(wxPoint(x, y), wxSize(width, height));
     }
 
     EXPORT wxSize* wxSizerItem_GetMinSize(wxSizerItem* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetMinSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetMinSize();
+        return text;
     }
 
     EXPORT void wxSizerItem_SetRatio(wxSizerItem* self, int width, int height)
@@ -163,15 +163,15 @@ extern "C"
         return rct;
     }
 
-    EXPORT wxSize* wxSizerItem_GetSpacer(wxSizerItem* self, void* _w, void* _h)
+    EXPORT wxSize* wxSizerItem_GetSpacer(wxSizerItem* self, void* width, void* height)
     {
-        wxSize* sz = new wxSize(0, 0);
+        wxSize* text = new wxSize(0, 0);
 
         if (self->IsSpacer())
         {
-            *sz = self->GetSpacer();
+            *text = self->GetSpacer();
         }
-        return sz;
+        return text;
     }
 
     EXPORT bool wxSizerItem_IsShown(wxSizerItem* self)
@@ -285,9 +285,9 @@ extern "C"
 
     EXPORT wxSize* wxSizer_GetMinSize(wxSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetMinSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetMinSize();
+        return text;
     }
 
     EXPORT void wxSizer_RecalcSizes(wxSizer* self)
@@ -297,9 +297,9 @@ extern "C"
 
     EXPORT wxSize* wxSizer_CalcMin(wxSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
     EXPORT void wxSizer_Layout(wxSizer* self)
@@ -317,15 +317,15 @@ extern "C"
         self->SetSizeHints(window);
     }
 
-    EXPORT int wxSizer_GetChildren(wxSizer* self, void* _res, int _cnt)
+    EXPORT int wxSizer_GetChildren(wxSizer* self, void* result, int count)
     {
-        if (_res && (unsigned int) _cnt == self->GetChildren().GetCount())
+        if (result && (unsigned int) count == self->GetChildren().GetCount())
         {
             int i = 0;
             wxSizerItemList::compatibility_iterator node = self->GetChildren().GetFirst();
             while (node)
             {
-                ((void**) _res)[i] = node->GetData();
+                ((void**) result)[i] = node->GetData();
                 node = node->GetNext();
                 ++i;
             }
@@ -492,9 +492,9 @@ extern "C"
 
     EXPORT wxSize* wxGridSizer_CalcMin(wxGridSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
     EXPORT void wxGridSizer_SetCols(wxGridSizer* self, int cols)
@@ -549,14 +549,14 @@ extern "C"
 
     EXPORT wxSize* wxFlexGridSizer_CalcMin(wxFlexGridSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
-    EXPORT void wxFlexGridSizer_AddGrowableRow(wxFlexGridSizer* self, size_t idx)
+    EXPORT void wxFlexGridSizer_AddGrowableRow(wxFlexGridSizer* self, size_t idx, int proportion)
     {
-        self->AddGrowableRow(idx);
+        self->AddGrowableRow(idx, proportion);
     }
 
     EXPORT void wxFlexGridSizer_RemoveGrowableRow(wxFlexGridSizer* self, size_t idx)
@@ -564,9 +564,9 @@ extern "C"
         self->RemoveGrowableRow(idx);
     }
 
-    EXPORT void wxFlexGridSizer_AddGrowableCol(wxFlexGridSizer* self, size_t idx)
+    EXPORT void wxFlexGridSizer_AddGrowableCol(wxFlexGridSizer* self, size_t idx, int proportion)
     {
-        self->AddGrowableCol(idx);
+        self->AddGrowableCol(idx, proportion);
     }
 
     EXPORT void wxFlexGridSizer_RemoveGrowableCol(wxFlexGridSizer* self, size_t idx)
@@ -586,9 +586,9 @@ extern "C"
 
     EXPORT wxSize* wxBoxSizer_CalcMin(wxBoxSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
     EXPORT int wxBoxSizer_GetOrientation(wxBoxSizer* self)
@@ -608,9 +608,9 @@ extern "C"
 
     EXPORT wxSize* wxStaticBoxSizer_CalcMin(wxStaticBoxSizer* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->CalcMin();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->CalcMin();
+        return text;
     }
 
     EXPORT void* wxStaticBoxSizer_GetStaticBox(wxStaticBoxSizer* self)

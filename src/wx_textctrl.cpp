@@ -53,9 +53,9 @@ extern "C"
         return self->IsEditable();
     }
 
-    EXPORT void wxTextCtrl_GetSelection(wxTextCtrl* self, void* from, void* to)
+    EXPORT void wxTextCtrl_GetSelection(wxTextCtrl* self, void* from, void* toPos)
     {
-        self->GetSelection((long*) from, (long*) to);
+        self->GetSelection((long*) from, (long*) toPos);
     }
 
     EXPORT void wxTextCtrl_Clear(wxTextCtrl* self)
@@ -63,24 +63,24 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT void wxTextCtrl_Replace(wxTextCtrl* self, long from, long to, wxString* value)
+    EXPORT void wxTextCtrl_Replace(wxTextCtrl* self, long from, long toPos, wxString* value)
     {
-        self->Replace(from, to, *value);
+        self->Replace(from, toPos, *value);
     }
 
-    EXPORT void wxTextCtrl_Remove(wxTextCtrl* self, long from, long to)
+    EXPORT void wxTextCtrl_Remove(wxTextCtrl* self, long from, long toPos)
     {
-        self->Remove(from, to);
+        self->Remove(from, toPos);
     }
 
-    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file)
+    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file, int fileType)
     {
-        return self->LoadFile(*file);
+        return self->LoadFile(*file, fileType);
     }
 
-    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file)
+    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file, int fileType)
     {
-        return self->SaveFile(*file);
+        return self->SaveFile(*file, fileType);
     }
 
     EXPORT void wxTextCtrl_DiscardEdits(wxTextCtrl* self)
@@ -183,9 +183,9 @@ extern "C"
         return self->GetLastPosition();
     }
 
-    EXPORT void wxTextCtrl_SetSelection(wxTextCtrl* self, long from, long to)
+    EXPORT void wxTextCtrl_SetSelection(wxTextCtrl* self, long from, long toPos)
     {
-        self->SetSelection(from, to);
+        self->SetSelection(from, toPos);
     }
 
     EXPORT void wxTextCtrl_SetEditable(wxTextCtrl* self, bool editable)

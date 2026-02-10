@@ -4,10 +4,10 @@
 extern "C"
 {
     EXPORT void* wxToggleButton_Create(wxWindow* parent, int id, wxString* label, int x, int y,
-                                       int w, int h, int style)
+                                       int width, int height, int style)
     {
         return (void*) new wxToggleButton(parent, (wxWindowID) id, *label, wxPoint(x, y),
-                                          wxSize(w, h), (long) style);
+                                          wxSize(width, height), (long) style);
     }
 
     EXPORT void wxToggleButton_SetValue(wxToggleButton* self, bool state)

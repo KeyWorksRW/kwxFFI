@@ -147,33 +147,33 @@ extern "C"
     }
 
     /* client data */
-    EXPORT void* wxEvtHandler_GetClientClosure(void* _obj)
+    EXPORT void* wxEvtHandler_GetClientClosure(void* pObject)
     {
-        return (void*) ((wxEvtHandler*) _obj)->GetClientObject();
+        return (void*) ((wxEvtHandler*) pObject)->GetClientObject();
     }
 
-    EXPORT void wxEvtHandler_SetClientClosure(void* _obj, wxClosure* closure)
+    EXPORT void wxEvtHandler_SetClientClosure(void* pObject, wxClosure* closure)
     {
-        ((wxEvtHandler*) _obj)->SetClientObject(closure);
+        ((wxEvtHandler*) pObject)->SetClientObject(closure);
     }
 
-    EXPORT wxClosure* wxObject_GetClientClosure(wxObject* _obj)
+    EXPORT wxClosure* wxObject_GetClientClosure(wxObject* pObject)
     {
-        wxcClosureRefData* refData = (wxcClosureRefData*) _obj->GetRefData();
+        wxcClosureRefData* refData = (wxcClosureRefData*) pObject->GetRefData();
         if (refData)
             return refData->GetClosure();
         else
             return nullptr;
     }
 
-    EXPORT void wxObject_SetClientClosure(wxObject* _obj, wxClosure* closure)
+    EXPORT void wxObject_SetClientClosure(wxObject* pObject, wxClosure* closure)
     {
         wxcClosureRefData* refData;
-        /* wxASSERT(_obj->GetRefData() == nullptr); */
-        _obj->UnRef();
-        wxASSERT(_obj->GetRefData() == nullptr);
+        /* wxASSERT(pObject->GetRefData() == nullptr); */
+        pObject->UnRef();
+        wxASSERT(pObject->GetRefData() == nullptr);
         refData = new wxcClosureRefData(closure);
-        _obj->SetRefData(
+        pObject->SetRefData(
             refData);  // set new data -- ref count must be 1 as setRefData doesn't increase it.
     }
 
@@ -312,14 +312,14 @@ extern "C"
         return (void*) &wxNullColour;
     }
 
-    EXPORT void wxCFree(void* _ptr)
+    EXPORT void wxCFree(void* pointer)
     {
-        free(_ptr);
+        free(pointer);
     }
 
-    EXPORT void* wxClassInfo_CreateClassByName(wxString* _inf)
+    EXPORT void* wxClassInfo_CreateClassByName(wxString* info)
     {
-        wxClassInfo* inf = wxClassInfo::FindClass(*_inf);
+        wxClassInfo* inf = wxClassInfo::FindClass(*info);
         if (inf)
             return inf->CreateObject();
         return nullptr;
@@ -333,9 +333,9 @@ extern "C"
         return nullptr;
     }
 
-    EXPORT bool wxClassInfo_IsKindOf(wxObject* self, wxString* _name)
+    EXPORT bool wxClassInfo_IsKindOf(wxObject* self, wxString* name)
     {
-        wxClassInfo* inf = wxClassInfo::FindClass(*_name);
+        wxClassInfo* inf = wxClassInfo::FindClass(*name);
         if (inf)
             return self->IsKindOf(inf);
         return false;

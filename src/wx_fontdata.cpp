@@ -27,9 +27,9 @@ extern "C"
         ((wxFontData*) self)->SetColour(*colour);
     }
 
-    EXPORT void wxFontData_GetColour(void* self, wxColour* _ref)
+    EXPORT void wxFontData_GetColour(void* self, wxColour* ref)
     {
-        *_ref = ((wxFontData*) self)->GetColour();
+        *ref = ((wxFontData*) self)->GetColour();
     }
 
     EXPORT void wxFontData_SetShowHelp(void* self, bool flag)

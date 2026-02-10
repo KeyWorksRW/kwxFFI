@@ -2,10 +2,10 @@
 
 extern "C"
 {
-    EXPORT wxToolbook* wxToolbook_Create(wxWindow* parent, int id, int x, int y, int w, int h,
+    EXPORT wxToolbook* wxToolbook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
                                          int style)
     {
-        return new wxToolbook(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxToolbook(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT int wxToolbook_GetPageCount(wxToolbook* self)
