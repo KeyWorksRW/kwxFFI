@@ -7,11 +7,12 @@ kwxFFI provides C-language wrapper functions around wxWidgets C++ classes, enabl
 ### Target Languages
 
 This FFI is designed to support the following language ports:
-- wxFortran
-- wxGO
-- wxJulia
-- wxLuaJit
-- wxRust3
+- kwxFortran
+- kwxGO
+- kwxJulia
+- kwxLuaJit
+- kwxPerl
+- kwxRust
 
 ### Key Design Decisions
 
