@@ -47,9 +47,10 @@ extern "C"
         self->Create(parent, (wxWindowID) id, evtHandler);
     }
 
-    EXPORT void wxGridCellEditor_SetSize(wxGridCellEditor* self, int x, int y, int w, int h)
+    EXPORT void wxGridCellEditor_SetSize(wxGridCellEditor* self, int x, int y, int width,
+                                         int height)
     {
-        self->SetSize(wxRect(x, y, w, h));
+        self->SetSize(wxRect(x, y, width, height));
     }
 
     EXPORT void wxGridCellEditor_Show(wxGridCellEditor* self, bool show, void* attr)
@@ -58,9 +59,9 @@ extern "C"
     }
 
     EXPORT void wxGridCellEditor_PaintBackground(wxGridCellEditor* self, wxDC* dc, int x, int y,
-                                                 int w, int h, wxGridCellAttr* attr)
+                                                 int width, int height, wxGridCellAttr* attr)
     {
-        self->PaintBackground(*dc, wxRect(x, y, w, h), *attr);
+        self->PaintBackground(*dc, wxRect(x, y, width, height), *attr);
     }
 
     EXPORT void wxGridCellEditor_BeginEdit(wxGridCellEditor* self, int row, int col, void* grid)
@@ -393,10 +394,11 @@ extern "C"
         self->DrawColLabel(*dc, col);
     }
 
-    EXPORT void wxGrid_DrawTextRectangle(wxGrid* self, wxDC* dc, wxString* txt, int x, int y, int w,
-                                         int h, int horizontalAlignment, int verticalAlignment)
+    EXPORT void wxGrid_DrawTextRectangle(wxGrid* self, wxDC* dc, wxString* txt, int x, int y,
+                                         int width, int height, int horizontalAlignment,
+                                         int verticalAlignment)
     {
-        self->DrawTextRectangle(*dc, *txt, wxRect(x, y, w, h), horizontalAlignment,
+        self->DrawTextRectangle(*dc, *txt, wxRect(x, y, width, height), horizontalAlignment,
                                 verticalAlignment);
     }
 
@@ -1020,9 +1022,9 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxGrid_SetCellValue(wxGrid* self, int row, int col, wxString* s)
+    EXPORT void wxGrid_SetCellValue(wxGrid* self, int row, int col, wxString* str)
     {
-        self->SetCellValue(row, col, *s);
+        self->SetCellValue(row, col, *str);
     }
 
     EXPORT bool wxGrid_IsReadOnly(wxGrid* self, int row, int col)
@@ -1089,14 +1091,14 @@ extern "C"
         *colour = self->GetSelectionForeground();
     }
 
-    EXPORT void wxGrid_SetSelectionBackground(wxGrid* self, wxColour* c)
+    EXPORT void wxGrid_SetSelectionBackground(wxGrid* self, wxColour* colour)
     {
-        self->SetSelectionBackground(*c);
+        self->SetSelectionBackground(*colour);
     }
 
-    EXPORT void wxGrid_SetSelectionForeground(wxGrid* self, wxColour* c)
+    EXPORT void wxGrid_SetSelectionForeground(wxGrid* self, wxColour* colour)
     {
-        self->SetSelectionForeground(*c);
+        self->SetSelectionForeground(*colour);
     }
 
     EXPORT void wxGrid_RegisterDataType(wxGrid* self, wxString* typeName, void* renderer,
@@ -1167,28 +1169,27 @@ extern "C"
         return arr.GetCount();
     }
 
-    EXPORT void wxGrid_GetCellSize(wxGrid* self, int r, int c, int* sr, int* sc)
+    EXPORT void wxGrid_GetCellSize(wxGrid* self, int row, int col, int* srow, int* scol)
     {
-        self->GetCellSize(r, c, sr, sc);
+        self->GetCellSize(row, col, srow, scol);
     }
-    EXPORT void wxGrid_SetCellSize(wxGrid* self, int r, int c, int sr, int sc)
+    EXPORT void wxGrid_SetCellSize(wxGrid* self, int row, int col, int srow, int scol)
     {
-        self->SetCellSize(r, c, sr, sc);
+        self->SetCellSize(row, col, srow, scol);
     }
 
     EXPORT void* kwxGridTable_Create(void* self, void* fnGetNumberRows, void* fnGetNumberCols,
                                      void* fnGetValue, void* fnSetValue, void* fnIsEmptyCell,
                                      void* fnClear, void* fnInsertRows, void* fnAppendRows,
-                                     void* fnDeleteRows, void* fnInsertCols,
-                                     void* fnAppendCols, void* fnDeleteCols,
-                                     void* fnSetRowLabelValue, void* fnSetColLabelValue,
-                                     void* fnGetRowLabelValue, void* fnGetColLabelValue)
+                                     void* fnDeleteRows, void* fnInsertCols, void* fnAppendCols,
+                                     void* fnDeleteCols, void* fnSetRowLabelValue,
+                                     void* fnSetColLabelValue, void* fnGetRowLabelValue,
+                                     void* fnGetColLabelValue)
     {
         return (void*) new kwxGridTable(
-            self, fnGetNumberRows, fnGetNumberCols, fnGetValue, fnSetValue, fnIsEmptyCell,
-            fnClear, fnInsertRows, fnAppendRows, fnDeleteRows, fnInsertCols,
-            fnAppendCols, fnDeleteCols, fnSetRowLabelValue, fnSetColLabelValue,
-            fnGetRowLabelValue, fnGetColLabelValue);
+            self, fnGetNumberRows, fnGetNumberCols, fnGetValue, fnSetValue, fnIsEmptyCell, fnClear,
+            fnInsertRows, fnAppendRows, fnDeleteRows, fnInsertCols, fnAppendCols, fnDeleteCols,
+            fnSetRowLabelValue, fnSetColLabelValue, fnGetRowLabelValue, fnGetColLabelValue);
     }
 
     EXPORT void kwxGridTable_Delete(kwxGridTable* self)

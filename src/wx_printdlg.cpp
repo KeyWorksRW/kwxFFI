@@ -122,9 +122,9 @@ extern "C"
         return (int) self->GetEnableHelp();
     }
 
-    EXPORT void wxPageSetupDialogData_SetPaperSize(wxPageSetupDialogData* self, int w, int h)
+    EXPORT void wxPageSetupDialogData_SetPaperSize(wxPageSetupDialogData* self, int width, int height)
     {
-        self->SetPaperSize(wxSize(w, h));
+        self->SetPaperSize(wxSize(width, height));
     }
 
     EXPORT void wxPageSetupDialogData_SetPaperId(wxPageSetupDialogData* self, void* id)

@@ -122,7 +122,7 @@ extern "C"
 
     typedef bool(_cdecl* AppInitFunc)(void);
 
-    typedef void(_cdecl* EiffelFunc)(void* pObject, void* event);
+    typedef void(_cdecl* kwxFunc)(void* pObject, void* event);
     typedef int(_cdecl* TextDropFunc)(void* pObject, long x, long y, void* text);
     typedef int(_cdecl* FileDropFunc)(void* pObject, long x, long y, void* files, int count);
     typedef void(_cdecl* DragZeroFunc)(void* pObject);
@@ -395,7 +395,7 @@ private:
     TCPStartAdviseFunc DoOnStartAdvise;
     TCPStopAdviseFunc DoOnStopAdvise;
     TCPOnDisconnect DoOnDisconnect;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxConnection() : wxTCPConnection()
@@ -407,7 +407,7 @@ public:
         DoOnStartAdvise = nullptr;
         DoOnStopAdvise = nullptr;
         DoOnDisconnect = nullptr;
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
     }
 
     kwxConnection(char* buffer, int size) : wxTCPConnection(buffer, size)
@@ -419,7 +419,7 @@ public:
         DoOnStartAdvise = nullptr;
         DoOnStopAdvise = nullptr;
         DoOnDisconnect = nullptr;
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
     }
 
     void SetOnAdvise(void* pFunction) { DoOnAdvise = (TCPAdviseFunc) pFunction; };
@@ -429,11 +429,11 @@ public:
     void SetOnStartAdvise(void* pFunction) { DoOnStartAdvise = (TCPStartAdviseFunc) pFunction; };
     void SetOnStopAdvise(void* pFunction) { DoOnStopAdvise = (TCPStopAdviseFunc) pFunction; };
     void SetOnDisconnect(void* pFunction) { DoOnDisconnect = (TCPOnDisconnect) pFunction; };
-    void SetEiffelObject(void* pObject) { EiffelObject = pObject; };
+    void SetEiffelObject(void* pObject) { kwxObject = pObject; };
 
     virtual bool OnExecute(const wxString& topic, char* data, int size, wxIPCFormat format)
     {
-        return DoOnExecute ? DoOnExecute(EiffelObject, (void*) topic.utf8_str().data(), data, size,
+        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_str().data(), data, size,
                                          (int) format) != 0 :
                              FALSE;
     };
@@ -442,7 +442,7 @@ public:
                             wxIPCFormat format)
     {
         return DoOnRequest ?
-                   DoOnRequest(EiffelObject, (void*) topic.utf8_str().data(),
+                   DoOnRequest(kwxObject, (void*) topic.utf8_str().data(),
                                (void*) item.utf8_str().data(), (void*) size, (int) format) :
                    (char*) nullptr;
     };
@@ -450,21 +450,21 @@ public:
     virtual bool OnPoke(const wxString& topic, const wxString& item, char* data, int size,
                         wxIPCFormat format)
     {
-        return DoOnPoke ? DoOnPoke(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnPoke ? DoOnPoke(kwxObject, (void*) topic.utf8_str().data(),
                                    (void*) item.utf8_str().data(), data, size, (int) format) :
                           FALSE;
     };
 
     virtual bool OnStartAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStartAdvise ? DoOnStartAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnStartAdvise ? DoOnStartAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                                  (void*) item.utf8_str().data()) :
                                  FALSE;
     };
 
     virtual bool OnStopAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStopAdvise ? DoOnStopAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnStopAdvise ? DoOnStopAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                                (void*) item.utf8_str().data()) :
                                 FALSE;
     };
@@ -472,34 +472,34 @@ public:
     virtual bool OnAdvise(const wxString& topic, const wxString& item, char* data, int size,
                           wxIPCFormat format)
     {
-        return DoOnAdvise ? DoOnAdvise(EiffelObject, (void*) topic.utf8_str().data(),
+        return DoOnAdvise ? DoOnAdvise(kwxObject, (void*) topic.utf8_str().data(),
                                        (void*) item.utf8_str().data(), data, size, (int) format) :
                             FALSE;
     };
 
     virtual bool OnDisconnect()
     {
-        return DoOnDisconnect ? DoOnDisconnect(EiffelObject) : wxTCPConnection::OnDisconnect();
+        return DoOnDisconnect ? DoOnDisconnect(kwxObject) : wxTCPConnection::OnDisconnect();
     };
 };
 
 class kwxServer : public wxTCPServer
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCPOnConnection DoOnConnect;
 
 public:
     kwxServer(void* pObject, void* pFunction) : wxTCPServer()
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         DoOnConnect = (TCPOnConnection) pFunction;
     };
 
     virtual wxConnectionBase* OnAcceptConnection(const wxString& topic)
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
+        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -507,20 +507,20 @@ public:
 class kwxClient : public wxTCPClient
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCPOnConnection DoOnConnect;
 
 public:
     kwxClient(void* pObject, void* pFunction) : wxTCPClient()
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         DoOnConnect = (TCPOnConnection) pFunction;
     };
 
     virtual wxConnectionBase* OnMakeConnection()
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(EiffelObject, (void*) result));
+        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -528,7 +528,7 @@ public:
 class kwxPrintout : public wxPrintout
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     PrintBeginDocument DoOnBeginDocument;
     PrintCommon DoOnEndDocument;
     PrintCommon DoOnBeginPrinting;
@@ -544,7 +544,7 @@ public:
                 void* fnPrintPage, void* fnHasPage, void* fnPageInfo) :
         wxPrintout((const char*) title)
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         DoOnBeginDocument = (PrintBeginDocument) fnBeginDocument;
         DoOnEndDocument = (PrintCommon) fnEndDocument;
         DoOnBeginPrinting = (PrintCommon) fnBeginPrinting;
@@ -558,47 +558,47 @@ public:
     virtual bool OnBeginDocument(int startPage, int endPage)
     {
         return wxPrintout::OnBeginDocument(startPage, endPage) &&
-               (DoOnBeginDocument(EiffelObject, startPage, endPage) != 0);
+               (DoOnBeginDocument(kwxObject, startPage, endPage) != 0);
     }
 
     virtual void OnEndDocument()
     {
         wxPrintout::OnEndDocument();
-        DoOnEndDocument(EiffelObject);
+        DoOnEndDocument(kwxObject);
     }
 
-    virtual void OnBeginPrinting() { DoOnBeginPrinting(EiffelObject); }
+    virtual void OnBeginPrinting() { DoOnBeginPrinting(kwxObject); }
 
-    virtual void OnEndPrinting() { DoOnEndPrinting(EiffelObject); }
+    virtual void OnEndPrinting() { DoOnEndPrinting(kwxObject); }
 
-    virtual void OnPreparePrinting() { DoOnPreparePrinting(EiffelObject); }
+    virtual void OnPreparePrinting() { DoOnPreparePrinting(kwxObject); }
 
-    virtual bool OnPrintPage(int page) { return DoOnPrintPage(EiffelObject, page) != 0; }
+    virtual bool OnPrintPage(int page) { return DoOnPrintPage(kwxObject, page) != 0; }
 
-    virtual bool HasPage(int page) { return DoOnHasPage(EiffelObject, page) != 0; }
+    virtual bool HasPage(int page) { return DoOnHasPage(kwxObject, page) != 0; }
 
     virtual void GetPageInfo(int* minPage, int* maxPage, int* pageFrom, int* pageTo)
     {
-        DoOnPageInfo(EiffelObject, minPage, maxPage, pageFrom, pageTo);
+        DoOnPageInfo(kwxObject, minPage, maxPage, pageFrom, pageTo);
     }
 };
 
 class kwxPreviewFrame : public wxPreviewFrame
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     PreviewFrameFunc DoInitialize;
     PreviewFrameFunc DoCreateCanvas;
     PreviewFrameFunc DoCreateControlBar;
 
 public:
     kwxPreviewFrame(void* pObject, void* init, void* createCanvas, void* createToolbar,
-                    void* preview, void* parent, void* title, int x, int y, int w, int h,
+                    void* preview, void* parent, void* title, int x, int y, int width, int height,
                     int style) :
         wxPreviewFrame((wxPrintPreviewBase*) preview, (wxFrame*) parent, (const char*) title,
-                       wxPoint(x, y), wxSize(w, h), (long) style)
+                       wxPoint(x, y), wxSize(width, height), (long) style)
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         DoInitialize = (PreviewFrameFunc) init;
         DoCreateCanvas = (PreviewFrameFunc) createCanvas;
         DoCreateControlBar = (PreviewFrameFunc) createToolbar;
@@ -606,21 +606,21 @@ public:
 
     virtual void Initialize()
     {
-        if ((DoInitialize) && DoInitialize(EiffelObject))
+        if ((DoInitialize) && DoInitialize(kwxObject))
             return;
         wxPreviewFrame::Initialize();
     }
 
     virtual void CreateCanvas()
     {
-        if ((DoCreateCanvas) && DoCreateCanvas(EiffelObject))
+        if ((DoCreateCanvas) && DoCreateCanvas(kwxObject))
             return;
         wxPreviewFrame::CreateCanvas();
     }
 
     virtual void CreateControlBar()
     {
-        if ((DoCreateControlBar) && DoCreateControlBar(EiffelObject))
+        if ((DoCreateControlBar) && DoCreateControlBar(kwxObject))
             return;
         wxPreviewFrame::CreateControlBar();
     }
@@ -644,12 +644,12 @@ class kwxTreeControl : public wxTreeCtrl
 
 private:
     TreeCompareFunc compare_func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxTreeControl() : wxTreeCtrl()
     {
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
         compare_func = nullptr;
     };
 
@@ -660,13 +660,13 @@ public:
                    const wxString& name = wxT("wxTreeCtrl")) :
         wxTreeCtrl(parent, id, pos, size, style, validator, name)
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         compare_func = (TreeCompareFunc) compareFunc;
     };
 
     virtual int OnCompareItems(const wxTreeItemId& item1, const wxTreeItemId& item2)
     {
-        return EiffelObject ? compare_func(EiffelObject, (void*) &item1, (void*) &item2) :
+        return kwxObject ? compare_func(kwxObject, (void*) &item1, (void*) &item2) :
                               wxTreeCtrl::OnCompareItems(item1, item2);
     }
 };

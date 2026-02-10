@@ -101,24 +101,24 @@ extern "C"
         self->SetDC(dc);
     }
 
-    EXPORT void kwxPrintout_SetPageSizePixels(void* pObject, int w, int h)
+    EXPORT void kwxPrintout_SetPageSizePixels(void* pObject, int width, int height)
     {
-        ((kwxPrintout*) pObject)->SetPageSizePixels(w, h);
+        ((kwxPrintout*) pObject)->SetPageSizePixels(width, height);
     }
 
-    EXPORT void kwxPrintout_GetPageSizePixels(void* pObject, int* w, int* h)
+    EXPORT void kwxPrintout_GetPageSizePixels(void* pObject, int* width, int* height)
     {
-        ((kwxPrintout*) pObject)->GetPageSizePixels(w, h);
+        ((kwxPrintout*) pObject)->GetPageSizePixels(width, height);
     }
 
-    EXPORT void kwxPrintout_SetPageSizeMM(void* pObject, int w, int h)
+    EXPORT void kwxPrintout_SetPageSizeMM(void* pObject, int width, int height)
     {
-        ((kwxPrintout*) pObject)->SetPageSizeMM(w, h);
+        ((kwxPrintout*) pObject)->SetPageSizeMM(width, height);
     }
 
-    EXPORT void kwxPrintout_GetPageSizeMM(void* pObject, int* w, int* h)
+    EXPORT void kwxPrintout_GetPageSizeMM(void* pObject, int* width, int* height)
     {
-        ((kwxPrintout*) pObject)->GetPageSizeMM(w, h);
+        ((kwxPrintout*) pObject)->GetPageSizeMM(width, height);
     }
 
     EXPORT void kwxPrintout_SetPPIScreen(void* pObject, int x, int y)
@@ -146,19 +146,19 @@ extern "C"
         return self->IsPreview();
     }
 
-    EXPORT void* wxPreviewCanvas_Create(void* preview, wxWindow* parent, int x, int y, int w, int h,
+    EXPORT void* wxPreviewCanvas_Create(void* preview, wxWindow* parent, int x, int y, int width, int height,
                                         int style)
     {
         return (void*) new wxPreviewCanvas((wxPrintPreviewBase*) preview, parent, wxPoint(x, y),
-                                           wxSize(w, h), (long) style);
+                                           wxSize(width, height), (long) style);
     }
 
     EXPORT void* kwxPreviewFrame_Create(void* pObject, void* init, void* createCanvas,
                                         void* createToolbar, void* preview, void* parent,
-                                        void* title, int x, int y, int w, int h, int style)
+                                        void* title, int x, int y, int width, int height, int style)
     {
         return (void*) new kwxPreviewFrame(pObject, init, createCanvas, createToolbar, preview,
-                                           parent, title, x, y, w, h, style);
+                                           parent, title, x, y, width, height, style);
     }
 
     EXPORT void kwxPreviewFrame_Initialize(kwxPreviewFrame* self)
@@ -197,10 +197,10 @@ extern "C"
     }
 
     EXPORT void* kwxPreviewControlBar_Create(void* preview, int buttons, wxWindow* parent,
-                                             void* title, int x, int y, int w, int h, int style)
+                                             void* title, int x, int y, int width, int height, int style)
     {
         return (void*) new wxPreviewControlBar((wxPrintPreviewBase*) preview, (long) buttons,
-                                               parent, wxPoint(x, y), wxSize(w, h), (long) style);
+                                               parent, wxPoint(x, y), wxSize(width, height), (long) style);
     }
 
     EXPORT void* wxPrintPreview_CreateFromDialogData(void* printout, void* printoutForPrinting,
@@ -313,9 +313,9 @@ extern "C"
         return self->IsOk();
     }
 
-    EXPORT void wxPrintPreview_SetOk(wxPrintPreview* self, bool ok)
+    EXPORT void wxPrintPreview_SetOk(wxPrintPreview* self, bool isOk)
     {
-        self->SetOk(ok);
+        self->SetOk(isOk);
     }
 
     EXPORT bool wxPrintPreview_Print(wxPrintPreview* self, bool interactive)
@@ -401,9 +401,9 @@ extern "C"
         return (int) self->GetQuality();
     }
 
-    EXPORT void wxPrintData_SetNoCopies(wxPrintData* self, int v)
+    EXPORT void wxPrintData_SetNoCopies(wxPrintData* self, int value)
     {
-        self->SetNoCopies(v);
+        self->SetNoCopies(value);
     }
 
     EXPORT void wxPrintData_SetCollate(wxPrintData* self, bool flag)
@@ -436,9 +436,9 @@ extern "C"
         self->SetPaperId((wxPaperSize) sizeId);
     }
 
-    EXPORT void wxPrintData_SetPaperSize(wxPrintData* self, int w, int h)
+    EXPORT void wxPrintData_SetPaperSize(wxPrintData* self, int width, int height)
     {
-        self->SetPaperSize(wxSize(w, h));
+        self->SetPaperSize(wxSize(width, height));
     }
 
     EXPORT void wxPrintData_SetQuality(wxPrintData* self, int quality)
@@ -678,29 +678,29 @@ extern "C"
         return self->GetPrintToFile();
     }
 
-    EXPORT void wxPrintDialogData_SetFromPage(wxPrintDialogData* self, int v)
+    EXPORT void wxPrintDialogData_SetFromPage(wxPrintDialogData* self, int value)
     {
-        self->SetFromPage(v);
+        self->SetFromPage(value);
     }
 
-    EXPORT void wxPrintDialogData_SetToPage(wxPrintDialogData* self, int v)
+    EXPORT void wxPrintDialogData_SetToPage(wxPrintDialogData* self, int value)
     {
-        self->SetToPage(v);
+        self->SetToPage(value);
     }
 
-    EXPORT void wxPrintDialogData_SetMinPage(wxPrintDialogData* self, int v)
+    EXPORT void wxPrintDialogData_SetMinPage(wxPrintDialogData* self, int value)
     {
-        self->SetMinPage(v);
+        self->SetMinPage(value);
     }
 
-    EXPORT void wxPrintDialogData_SetMaxPage(wxPrintDialogData* self, int v)
+    EXPORT void wxPrintDialogData_SetMaxPage(wxPrintDialogData* self, int value)
     {
-        self->SetMaxPage(v);
+        self->SetMaxPage(value);
     }
 
-    EXPORT void wxPrintDialogData_SetNoCopies(wxPrintDialogData* self, int v)
+    EXPORT void wxPrintDialogData_SetNoCopies(wxPrintDialogData* self, int value)
     {
-        self->SetNoCopies(v);
+        self->SetNoCopies(value);
     }
 
     EXPORT void wxPrintDialogData_SetAllPages(wxPrintDialogData* self, bool flag)

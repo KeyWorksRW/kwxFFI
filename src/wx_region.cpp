@@ -7,9 +7,9 @@ extern "C"
         return (void*) new wxRegion();
     }
 
-    EXPORT void* wxRegion_CreateFromRect(int x, int y, int w, int h)
+    EXPORT void* wxRegion_CreateFromRect(int x, int y, int width, int height)
     {
-        return (void*) new wxRegion((wxCoord) x, (wxCoord) y, (wxCoord) w, (wxCoord) h);
+        return (void*) new wxRegion((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
     EXPORT void wxRegion_Delete(wxRegion* self)
@@ -67,9 +67,9 @@ extern "C"
         return self->Xor(*region);
     }
 
-    EXPORT void wxRegion_GetBox(wxRegion* self, void* x, void* y, void* w, void* h)
+    EXPORT void wxRegion_GetBox(wxRegion* self, void* x, void* y, void* width, void* height)
     {
-        self->GetBox(*((wxCoord*) x), *((wxCoord*) y), *((wxCoord*) w), *((wxCoord*) h));
+        self->GetBox(*((wxCoord*) x), *((wxCoord*) y), *((wxCoord*) width), *((wxCoord*) height));
     }
 
     EXPORT bool wxRegion_IsEmpty(wxRegion* self)

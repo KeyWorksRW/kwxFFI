@@ -57,9 +57,9 @@ extern "C"
         return (void*) wxGetLocale();
     }
 
-    EXPORT void* wxGetkwxTranslation(void* sz)
+    EXPORT void* wxGetkwxTranslation(void* text)
     {
-        wxString retVal = wxGetTranslation((const char*) sz);
+        wxString retVal = wxGetTranslation((const char*) text);
         return (void*) strdup(retVal.utf8_str().data());
     }
 }

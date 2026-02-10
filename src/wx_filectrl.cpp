@@ -4,10 +4,10 @@ extern "C"
 {
     EXPORT wxFileCtrl* wxFileCtrl_Create(wxWindow* parent, int id, wxString* defaultDirectory,
                                          wxString* defaultFilename, wxString* wildCard, int x,
-                                         int y, int w, int h, int style)
+                                         int y, int width, int height, int style)
     {
         return new wxFileCtrl(parent, id, *defaultDirectory, *defaultFilename, *wildCard, style,
-                              wxPoint(x, y), wxSize(w, h));
+                              wxPoint(x, y), wxSize(width, height));
     }
 
     EXPORT wxString* wxFileCtrl_GetDirectory(wxFileCtrl* self)

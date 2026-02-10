@@ -32,9 +32,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxBitmap_GetSubBitmap(wxBitmap* self, int x, int y, int w, int h, wxBitmap* bitmap)
+    EXPORT void wxBitmap_GetSubBitmap(wxBitmap* self, int x, int y, int width, int height, wxBitmap* bitmap)
     {
-        *bitmap = self->GetSubBitmap(wxRect(x, y, w, h));
+        *bitmap = self->GetSubBitmap(wxRect(x, y, width, height));
     }
 
     EXPORT bool wxBitmap_LoadFile(wxBitmap* self, wxString* name, int type)

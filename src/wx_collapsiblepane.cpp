@@ -7,9 +7,9 @@ extern "C"
 {
     // Constructor
     EXPORT wxCollapsiblePane* wxCollapsiblePane_Create(wxWindow* parent, int id, wxString* label,
-                                                       int x, int y, int w, int h, int style)
+                                                       int x, int y, int width, int height, int style)
     {
-        return new wxCollapsiblePane(parent, id, *label, wxPoint(x, y), wxSize(w, h), style);
+        return new wxCollapsiblePane(parent, id, *label, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Collapse/Expand

@@ -3,10 +3,10 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxDataViewCtrl* wxDataViewCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                 int h, int style)
+    EXPORT wxDataViewCtrl* wxDataViewCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                 int height, int style)
     {
-        return new wxDataViewCtrl(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxDataViewCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Model management
@@ -221,13 +221,13 @@ extern "C"
     }
 
     EXPORT void wxDataViewCtrl_GetItemRect(wxDataViewCtrl* self, wxDataViewItem* item,
-                                           wxDataViewColumn* column, int* x, int* y, int* w, int* h)
+                                           wxDataViewColumn* column, int* x, int* y, int* width, int* height)
     {
         wxRect rect = self->GetItemRect(*item, column);
         *x = rect.x;
         *y = rect.y;
-        *w = rect.width;
-        *h = rect.height;
+        *width = rect.width;
+        *height = rect.height;
     }
 
     // Editing

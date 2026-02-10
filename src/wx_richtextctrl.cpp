@@ -3,11 +3,11 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRichTextCtrl* wxRichTextCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                 int h, int style)
+    EXPORT wxRichTextCtrl* wxRichTextCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                 int height, int style)
     {
-        return new wxRichTextCtrl(parent, id, wxEmptyString, wxPoint(x, y), wxSize(w, h), style,
-                                  wxDefaultValidator);
+        return new wxRichTextCtrl(parent, id, wxEmptyString, wxPoint(x, y), wxSize(width, height),
+                                  style, wxDefaultValidator);
     }
 
     // Basic text operations
@@ -23,10 +23,10 @@ extern "C"
         self->SetValue(*value);
     }
 
-    EXPORT wxString* wxRichTextCtrl_GetRange(wxRichTextCtrl* self, long from, long to)
+    EXPORT wxString* wxRichTextCtrl_GetRange(wxRichTextCtrl* self, long from, long toPos)
     {
         wxString* result = new wxString();
-        *result = self->GetRange(from, to);
+        *result = self->GetRange(from, toPos);
         return result;
     }
 
@@ -75,14 +75,14 @@ extern "C"
     }
 
     // Selection
-    EXPORT void wxRichTextCtrl_GetSelection(wxRichTextCtrl* self, long* from, long* to)
+    EXPORT void wxRichTextCtrl_GetSelection(wxRichTextCtrl* self, long* from, long* toPos)
     {
-        self->GetSelection(from, to);
+        self->GetSelection(from, toPos);
     }
 
-    EXPORT void wxRichTextCtrl_SetSelection(wxRichTextCtrl* self, long from, long to)
+    EXPORT void wxRichTextCtrl_SetSelection(wxRichTextCtrl* self, long from, long toPos)
     {
-        self->SetSelection(from, to);
+        self->SetSelection(from, toPos);
     }
 
     EXPORT void wxRichTextCtrl_SelectAll(wxRichTextCtrl* self)
@@ -139,14 +139,14 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT void wxRichTextCtrl_Replace(wxRichTextCtrl* self, long from, long to, wxString* value)
+    EXPORT void wxRichTextCtrl_Replace(wxRichTextCtrl* self, long from, long toPos, wxString* value)
     {
-        self->Replace(from, to, *value);
+        self->Replace(from, toPos, *value);
     }
 
-    EXPORT void wxRichTextCtrl_Remove(wxRichTextCtrl* self, long from, long to)
+    EXPORT void wxRichTextCtrl_Remove(wxRichTextCtrl* self, long from, long toPos)
     {
-        self->Remove(from, to);
+        self->Remove(from, toPos);
     }
 
     // File operations

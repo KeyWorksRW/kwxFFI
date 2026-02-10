@@ -3,9 +3,9 @@
 extern "C"
 {
     EXPORT wxSearchCtrl* wxSearchCtrl_Create(wxWindow* parent, int id, wxString* value, int x,
-                                             int y, int w, int h, int style)
+                                             int y, int width, int height, int style)
     {
-        return new wxSearchCtrl(parent, id, *value, wxPoint(x, y), wxSize(w, h), style);
+        return new wxSearchCtrl(parent, id, *value, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT void wxSearchCtrl_SetMenu(wxSearchCtrl* self, wxMenu* menu)

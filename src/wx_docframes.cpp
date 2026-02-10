@@ -7,10 +7,10 @@ extern "C"
     // ============================================================================
 
     EXPORT wxDocParentFrame* wxDocParentFrame_Create(wxDocManager* manager, wxFrame* parent, int id,
-                                                     wxString* title, int x, int y, int w, int h,
+                                                     wxString* title, int x, int y, int width, int height,
                                                      int style)
     {
-        return new wxDocParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(w, h),
+        return new wxDocParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(width, height),
                                     style);
     }
 
@@ -24,10 +24,10 @@ extern "C"
     // ============================================================================
 
     EXPORT wxDocChildFrame* wxDocChildFrame_Create(wxDocument* doc, wxView* view, wxFrame* parent,
-                                                   int id, wxString* title, int x, int y, int w,
-                                                   int h, int style)
+                                                   int id, wxString* title, int x, int y, int width,
+                                                   int height, int style)
     {
-        return new wxDocChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(w, h),
+        return new wxDocChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(width, height),
                                    style);
     }
 
@@ -57,9 +57,9 @@ extern "C"
 
     EXPORT wxDocMDIParentFrame* wxDocMDIParentFrame_Create(wxDocManager* manager, wxFrame* parent,
                                                            int id, wxString* title, int x, int y,
-                                                           int w, int h, int style)
+                                                           int width, int height, int style)
     {
-        return new wxDocMDIParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(w, h),
+        return new wxDocMDIParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(width, height),
                                        style);
     }
 
@@ -74,10 +74,10 @@ extern "C"
 
     EXPORT wxDocMDIChildFrame* wxDocMDIChildFrame_Create(wxDocument* doc, wxView* view,
                                                          wxMDIParentFrame* parent, int id,
-                                                         wxString* title, int x, int y, int w,
-                                                         int h, int style)
+                                                         wxString* title, int x, int y, int width,
+                                                         int height, int style)
     {
-        return new wxDocMDIChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(w, h),
+        return new wxDocMDIChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(width, height),
                                       style);
     }
 

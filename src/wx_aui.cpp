@@ -83,9 +83,9 @@ extern "C"
                                                  wxBitmap* bitmap, bool active,
                                                  int closeButtonState, int* xExtent)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetTabSize(*dc, window, *caption, *bitmap, active, closeButtonState, xExtent);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetTabSize(*dc, window, *caption, *bitmap, active, closeButtonState, xExtent);
+        return text;
     }
 
     EXPORT int wxAuiDefaultTabArt_ShowDropDown(wxAuiDefaultTabArt* self, wxWindow* window,
@@ -274,14 +274,14 @@ extern "C"
 
     EXPORT wxSize* wxAuiToolBarItem_GetMinSize(wxAuiToolBarItem* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetMinSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetMinSize();
+        return text;
     }
 
-    EXPORT void wxAuiToolBarItem_SetSpacerPixels(wxAuiToolBarItem* self, int s)
+    EXPORT void wxAuiToolBarItem_SetSpacerPixels(wxAuiToolBarItem* self, int spacerPixels)
     {
-        self->SetSpacerPixels(s);
+        self->SetSpacerPixels(spacerPixels);
     }
 
     EXPORT int wxAuiToolBarItem_GetSpacerPixels(wxAuiToolBarItem* self)
@@ -289,9 +289,9 @@ extern "C"
         return self->GetSpacerPixels();
     }
 
-    EXPORT void wxAuiToolBarItem_SetProportion(wxAuiToolBarItem* self, int p)
+    EXPORT void wxAuiToolBarItem_SetProportion(wxAuiToolBarItem* self, int proportion)
     {
-        self->SetProportion(p);
+        self->SetProportion(proportion);
     }
 
     EXPORT int wxAuiToolBarItem_GetProportion(wxAuiToolBarItem* self)
@@ -299,9 +299,9 @@ extern "C"
         return self->GetProportion();
     }
 
-    EXPORT void wxAuiToolBarItem_SetActive(wxAuiToolBarItem* self, bool b)
+    EXPORT void wxAuiToolBarItem_SetActive(wxAuiToolBarItem* self, bool enable)
     {
-        self->SetActive(b);
+        self->SetActive(enable);
     }
 
     EXPORT bool wxAuiToolBarItem_IsActive(wxAuiToolBarItem* self)
@@ -309,9 +309,9 @@ extern "C"
         return self->IsActive();
     }
 
-    EXPORT void wxAuiToolBarItem_SetHasDropDown(wxAuiToolBarItem* self, bool b)
+    EXPORT void wxAuiToolBarItem_SetHasDropDown(wxAuiToolBarItem* self, bool enable)
     {
-        self->SetHasDropDown(b);
+        self->SetHasDropDown(enable);
     }
 
     EXPORT bool wxAuiToolBarItem_HasDropDown(wxAuiToolBarItem* self)
@@ -319,9 +319,9 @@ extern "C"
         return self->HasDropDown();
     }
 
-    EXPORT void wxAuiToolBarItem_SetSticky(wxAuiToolBarItem* self, bool b)
+    EXPORT void wxAuiToolBarItem_SetSticky(wxAuiToolBarItem* self, bool enable)
     {
-        self->SetSticky(b);
+        self->SetSticky(enable);
     }
 
     EXPORT bool wxAuiToolBarItem_IsSticky(wxAuiToolBarItem* self)
@@ -329,9 +329,9 @@ extern "C"
         return self->IsSticky();
     }
 
-    EXPORT void wxAuiToolBarItem_SetUserData(wxAuiToolBarItem* self, long l)
+    EXPORT void wxAuiToolBarItem_SetUserData(wxAuiToolBarItem* self, long userData)
     {
-        self->SetUserData(l);
+        self->SetUserData(userData);
     }
 
     EXPORT long wxAuiToolBarItem_GetUserData(wxAuiToolBarItem* self)
@@ -339,9 +339,9 @@ extern "C"
         return self->GetUserData();
     }
 
-    EXPORT void wxAuiToolBarItem_SetAlignment(wxAuiToolBarItem* self, int l)
+    EXPORT void wxAuiToolBarItem_SetAlignment(wxAuiToolBarItem* self, int alignment)
     {
-        self->SetAlignment(l);
+        self->SetAlignment(alignment);
     }
 
     EXPORT int wxAuiToolBarItem_GetAlignment(wxAuiToolBarItem* self)
@@ -446,17 +446,17 @@ extern "C"
     EXPORT wxSize* wxAuiToolBarArt_GetLabelSize(wxAuiToolBarArt* self, wxDC* dc, wxWindow* window,
                                                 wxAuiToolBarItem* item)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetLabelSize(*dc, window, *item);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetLabelSize(*dc, window, *item);
+        return text;
     }
 
     EXPORT wxSize* wxAuiToolBarArt_GetToolSize(wxAuiToolBarArt* self, wxDC* dc, wxWindow* window,
                                                wxAuiToolBarItem* item)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetToolSize(*dc, window, *item);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetToolSize(*dc, window, *item);
+        return text;
     }
 
     EXPORT int wxAuiToolBarArt_GetElementSize(wxAuiToolBarArt* self, int element_id)
@@ -581,17 +581,17 @@ extern "C"
     EXPORT wxSize* wxAuiDefaultToolBarArt_GetLabelSize(wxAuiDefaultToolBarArt* self, wxDC* dc,
                                                        wxWindow* window, wxAuiToolBarItem* item)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetLabelSize(*dc, window, *item);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetLabelSize(*dc, window, *item);
+        return text;
     }
 
     EXPORT wxSize* wxAuiDefaultToolBarArt_GetToolSize(wxAuiDefaultToolBarArt* self, wxDC* dc,
                                                       wxWindow* window, wxAuiToolBarItem* item)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetToolSize(*dc, window, *item);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetToolSize(*dc, window, *item);
+        return text;
     }
 
     EXPORT int wxAuiDefaultToolBarArt_GetElementSize(wxAuiDefaultToolBarArt* self, int element)
@@ -811,9 +811,9 @@ extern "C"
 
     EXPORT wxSize* wxAuiToolBar_GetToolBitmapSize(wxAuiToolBar* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetToolBitmapSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetToolBitmapSize();
+        return text;
     }
 
     EXPORT bool wxAuiToolBar_GetOverflowVisible(wxAuiToolBar* self)
@@ -981,9 +981,9 @@ extern "C"
 
     EXPORT wxSize* wxAuiToolBar_GetHintSize(wxAuiToolBar* self, int dock_direction)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetHintSize(dock_direction);
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetHintSize(dock_direction);
+        return text;
     }
 
     EXPORT bool wxAuiToolBar_IsPaneValid(wxAuiToolBar* self, wxAuiPaneInfo* pane)
@@ -1027,9 +1027,9 @@ extern "C"
         self->AdvanceSelection(forward);
     }
 
-    EXPORT int wxAuiNotebook_ChangeSelection(wxAuiNotebook* self, size_t n)
+    EXPORT int wxAuiNotebook_ChangeSelection(wxAuiNotebook* self, size_t index)
     {
-        return self->ChangeSelection(n);
+        return self->ChangeSelection(index);
     }
 
     EXPORT bool wxAuiNotebook_DeleteAllPages(wxAuiNotebook* self)
@@ -1144,9 +1144,9 @@ extern "C"
         return self->SetPageBitmap(page, *bitmap);
     }
 
-    EXPORT bool wxAuiNotebook_SetPageImage(wxAuiNotebook* self, size_t n, int imageId)
+    EXPORT bool wxAuiNotebook_SetPageImage(wxAuiNotebook* self, size_t index, int imageId)
     {
-        return self->SetPageImage(n, imageId);
+        return self->SetPageImage(index, imageId);
     }
 
     EXPORT bool wxAuiNotebook_SetPageText(wxAuiNotebook* self, size_t page, wxString* text)
@@ -1622,10 +1622,10 @@ extern "C"
                                           wxString* caption, wxBitmap* bitmap, bool active,
                                           int close_button_state, int* x_extent)
     {
-        wxSize* sz = new wxSize();
-        *sz =
+        wxSize* text = new wxSize();
+        *text =
             self->GetTabSize(*dc, window, *caption, *bitmap, active, close_button_state, x_extent);
-        return sz;
+        return text;
     }
 
     EXPORT void wxAuiTabArt_SetFlags(wxAuiTabArt* self, int flags)
@@ -1745,10 +1745,10 @@ extern "C"
                                                 wxString* caption, wxBitmap* bitmap, bool active,
                                                 int close_button_state, int* x_extent)
     {
-        wxSize* sz = new wxSize();
-        *sz =
+        wxSize* text = new wxSize();
+        *text =
             self->GetTabSize(*dc, window, *caption, *bitmap, active, close_button_state, x_extent);
-        return sz;
+        return text;
     }
 
     EXPORT int wxAuiSimpleTabArt_ShowDropDown(wxAuiSimpleTabArt* self, wxWindow* window,
@@ -2006,10 +2006,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_BottomDockable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_BottomDockable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->BottomDockable(b);
+        *out = self->BottomDockable(enable);
         return out;
     }
 
@@ -2041,10 +2041,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DestroyOnClose(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DestroyOnClose(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->DestroyOnClose(b);
+        *out = self->DestroyOnClose(enable);
         return out;
     }
 
@@ -2062,17 +2062,17 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DockFixed(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DockFixed(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->DockFixed(b);
+        *out = self->DockFixed(enable);
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Dockable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Dockable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Dockable(b);
+        *out = self->Dockable(enable);
         return out;
     }
 
@@ -2090,10 +2090,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Floatable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Floatable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Floatable(b);
+        *out = self->Floatable(enable);
         return out;
     }
 
@@ -2254,10 +2254,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_LeftDockable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_LeftDockable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->LeftDockable(b);
+        *out = self->LeftDockable(enable);
         return out;
     }
 
@@ -2275,10 +2275,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Movable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Movable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Movable(b);
+        *out = self->Movable(enable);
         return out;
     }
 
@@ -2324,10 +2324,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_RightDockable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_RightDockable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->RightDockable(b);
+        *out = self->RightDockable(enable);
         return out;
     }
 
@@ -2371,10 +2371,10 @@ extern "C"
         return out;
     }
 
-    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_TopDockable(wxAuiPaneInfo* self, bool b)
+    EXPORT wxAuiPaneInfo* wxAuiPaneInfo_TopDockable(wxAuiPaneInfo* self, bool enable)
     {
         wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->TopDockable(b);
+        *out = self->TopDockable(enable);
         return out;
     }
 
@@ -2719,7 +2719,7 @@ extern "C"
     }
 
     /** wxAuiNotebookPageArray **/
-    /** see wxWidgets dynarray.h for additional array functions **/
+    /** see wxWidgets dynarray.height for additional array functions **/
 
     EXPORT wxAuiNotebookPageArray* wxAuiNotebookPageArray_Create()
     {
@@ -2744,7 +2744,7 @@ extern "C"
     }
 
     /** wxAuiToolBarItemArray **/
-    /** see wxWidgets dynarray.h for additional array functions **/
+    /** see wxWidgets dynarray.height for additional array functions **/
     EXPORT wxAuiToolBarItemArray* wxAuiToolBarItemArray_Create()
     {
         return new wxAuiToolBarItemArray();
@@ -2767,7 +2767,7 @@ extern "C"
         return item;
     }
     /** wxAuiPaneInfoArray **/
-    /** see wxWidgets dynarray.h for additional array functions **/
+    /** see wxWidgets dynarray.height for additional array functions **/
     EXPORT wxAuiPaneInfoArray* wxAuiPaneInfoArray_Create()
     {
         return new wxAuiPaneInfoArray();

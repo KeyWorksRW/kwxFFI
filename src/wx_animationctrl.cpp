@@ -2,17 +2,17 @@
 
 extern "C"
 {
-    EXPORT wxAnimationCtrl* wxAnimationCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                   int h, int style)
+    EXPORT wxAnimationCtrl* wxAnimationCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                   int height, int style)
     {
-        return new wxAnimationCtrl(parent, id, wxNullAnimation, wxPoint(x, y), wxSize(w, h), style);
+        return new wxAnimationCtrl(parent, id, wxNullAnimation, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT wxAnimationCtrl* wxAnimationCtrl_CreateWithAnimation(wxWindow* parent, int id,
                                                                 wxAnimation* anim, int x, int y,
-                                                                int w, int h, int style)
+                                                                int width, int height, int style)
     {
-        return new wxAnimationCtrl(parent, id, *anim, wxPoint(x, y), wxSize(w, h), style);
+        return new wxAnimationCtrl(parent, id, *anim, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT void wxAnimationCtrl_GetAnimation(wxAnimationCtrl* self, wxAnimation* anim)
@@ -97,11 +97,11 @@ extern "C"
         *image = self->GetFrame(frame);
     }
 
-    EXPORT void wxAnimation_GetSize(wxAnimation* self, int* w, int* h)
+    EXPORT void wxAnimation_GetSize(wxAnimation* self, int* width, int* height)
     {
-        wxSize sz = self->GetSize();
-        *w = sz.GetWidth();
-        *h = sz.GetHeight();
+        wxSize text = self->GetSize();
+        *width = text.GetWidth();
+        *height = text.GetHeight();
     }
 
     EXPORT bool wxAnimation_IsOk(wxAnimation* self)

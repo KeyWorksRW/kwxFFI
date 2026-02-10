@@ -15,9 +15,9 @@ extern "C"
                               items, majorDim, style, wxDefaultValidator);
     }
 
-    EXPORT int wxRadioBox_FindString(void* pObject, wxString* s)
+    EXPORT int wxRadioBox_FindString(void* pObject, wxString* str)
     {
-        return ((wxRadioBox*) pObject)->FindString(*s);
+        return ((wxRadioBox*) pObject)->FindString(*str);
     }
 
     EXPORT void wxRadioBox_SetSelection(void* pObject, int selection)
@@ -59,9 +59,9 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxRadioBox_SetStringSelection(void* pObject, wxString* s)
+    EXPORT void wxRadioBox_SetStringSelection(void* pObject, wxString* str)
     {
-        ((wxRadioBox*) pObject)->SetStringSelection(*s);
+        ((wxRadioBox*) pObject)->SetStringSelection(*str);
     }
 
     EXPORT int wxRadioBox_Number(void* pObject)

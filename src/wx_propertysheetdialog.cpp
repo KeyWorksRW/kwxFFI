@@ -5,10 +5,10 @@ extern "C"
 {
     // Constructor
     EXPORT wxPropertySheetDialog* wxPropertySheetDialog_Create(wxWindow* parent, int id,
-                                                               wxString* title, int x, int y, int w,
-                                                               int h, int style)
+                                                               wxString* title, int x, int y, int width,
+                                                               int height, int style)
     {
-        return new wxPropertySheetDialog(parent, id, *title, wxPoint(x, y), wxSize(w, h), style);
+        return new wxPropertySheetDialog(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Create buttons

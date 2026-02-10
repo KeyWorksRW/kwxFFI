@@ -12,22 +12,22 @@ class kwxFontEnumerator : public wxFontEnumerator
 {
 private:
     TTextEnum func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxFontEnumerator(void* self, void* pFunction) : wxFontEnumerator()
     {
         func = (TTextEnum) pFunction;
-        EiffelObject = self;
+        kwxObject = self;
     }
 
     virtual bool OnFacename(const wxString& facename)
     {
-        return func(EiffelObject, (void*) facename.wchar_str()) != 0;
+        return func(kwxObject, (void*) facename.wchar_str()) != 0;
     }
     virtual bool OnFontEncoding(const wxString& WXUNUSED(facename), const wxString& encoding)
     {
-        return func(EiffelObject, (void*) encoding.wchar_str()) != 0;
+        return func(kwxObject, (void*) encoding.wchar_str()) != 0;
     }
 };
 

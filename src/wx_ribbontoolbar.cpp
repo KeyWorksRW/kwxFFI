@@ -4,10 +4,10 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRibbonToolBar* wxRibbonToolBar_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                   int h, int style)
+    EXPORT wxRibbonToolBar* wxRibbonToolBar_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                   int height, int style)
     {
-        return new wxRibbonToolBar(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxRibbonToolBar(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Tool management - Add methods
@@ -144,13 +144,13 @@ extern "C"
     }
 
     EXPORT void wxRibbonToolBar_GetToolRect(wxRibbonToolBar* self, int tool_id, int* x, int* y,
-                                            int* w, int* h)
+                                            int* width, int* height)
     {
         wxRect r = self->GetToolRect(tool_id);
         *x = r.x;
         *y = r.y;
-        *w = r.width;
-        *h = r.height;
+        *width = r.width;
+        *height = r.height;
     }
 
     // Tool properties

@@ -7,10 +7,10 @@ extern "C"
     // ============================================================================
 
     EXPORT wxAuiMDIParentFrame* wxAuiMDIParentFrame_Create(wxWindow* parent, int id,
-                                                           wxString* title, int x, int y, int w,
-                                                           int h, int style)
+                                                           wxString* title, int x, int y, int width,
+                                                           int height, int style)
     {
-        return new wxAuiMDIParentFrame(parent, id, *title, wxPoint(x, y), wxSize(w, h), style);
+        return new wxAuiMDIParentFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT wxAuiMDIChildFrame* wxAuiMDIParentFrame_GetActiveChild(wxAuiMDIParentFrame* self)
@@ -86,10 +86,10 @@ extern "C"
     // ============================================================================
 
     EXPORT wxAuiMDIChildFrame* wxAuiMDIChildFrame_Create(wxAuiMDIParentFrame* parent, int id,
-                                                         wxString* title, int x, int y, int w,
-                                                         int h, int style)
+                                                         wxString* title, int x, int y, int width,
+                                                         int height, int style)
     {
-        return new wxAuiMDIChildFrame(parent, id, *title, wxPoint(x, y), wxSize(w, h), style);
+        return new wxAuiMDIChildFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT void wxAuiMDIChildFrame_Activate(wxAuiMDIChildFrame* self)

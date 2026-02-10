@@ -10,7 +10,7 @@ extern "C"
 class kwxPlotCurve : public wxPlotCurve
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TGetPlotInt EGetStartX;
     TGetPlotInt EGetEndX;
     TGetPlotDouble EGetY;
@@ -19,24 +19,24 @@ public:
     kwxPlotCurve(void* pObject, void* fnGetStartX, void* endVal, void* y, int offsetY, double startY,
                  double endY) : wxPlotCurve(offsetY, startY, endY)
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         EGetStartX = (TGetPlotInt) fnGetStartX;
         EGetEndX = (TGetPlotInt) endVal;
         EGetY = (TGetPlotDouble) y;
     }
-    virtual wxInt32 GetStartX() { return (wxInt32) EGetStartX(EiffelObject); }
+    virtual wxInt32 GetStartX() { return (wxInt32) EGetStartX(kwxObject); }
 
-    virtual wxInt32 GetEndX() { return (wxInt32) EGetEndX(EiffelObject); }
+    virtual wxInt32 GetEndX() { return (wxInt32) EGetEndX(kwxObject); }
 
-    virtual double GetY(wxInt32 x) { return EGetY(EiffelObject, (int) x); }
+    virtual double GetY(wxInt32 x) { return EGetY(kwxObject, (int) x); }
 };
 
 extern "C"
 {
-    EXPORT void* wxPlotWindow_Create(void* parent, int id, int x, int y, int w, int h, int flags)
+    EXPORT void* wxPlotWindow_Create(void* parent, int id, int x, int y, int width, int height, int flags)
     {
         return (void*) new wxPlotWindow((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
-                                        wxSize(w, h), flags);
+                                        wxSize(width, height), flags);
     }
 
     EXPORT void wxPlotWindow_Add(void* pObject, void* curve)
@@ -189,9 +189,9 @@ extern "C"
         return ((wxPlotOnOffCurve*) pObject)->GetOffsetY();
     }
 
-    EXPORT void wxPlotOnOffCurve_Add(void* pObject, int on, int off, void* clientData)
+    EXPORT void wxPlotOnOffCurve_Add(void* pObject, int onPos, int offPos, void* clientData)
     {
-        ((wxPlotOnOffCurve*) pObject)->Add((wxInt32) on, (wxInt32) off, clientData);
+        ((wxPlotOnOffCurve*) pObject)->Add((wxInt32) onPos, (wxInt32) offPos, clientData);
     }
 
     EXPORT int wxPlotOnOffCurve_GetCount(void* pObject)

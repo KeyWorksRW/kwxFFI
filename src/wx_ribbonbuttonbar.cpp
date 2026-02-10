@@ -5,9 +5,9 @@ extern "C"
 {
     // Constructor
     EXPORT wxRibbonButtonBar* wxRibbonButtonBar_Create(wxWindow* parent, int id, int x, int y,
-                                                       int w, int h, int style)
+                                                       int width, int height, int style)
     {
-        return new wxRibbonButtonBar(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxRibbonButtonBar(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Button management - Add methods
@@ -148,9 +148,9 @@ extern "C"
         return self->GetButtonCount();
     }
 
-    EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetItem(wxRibbonButtonBar* self, size_t n)
+    EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetItem(wxRibbonButtonBar* self, size_t index)
     {
-        return self->GetItem(n);
+        return self->GetItem(index);
     }
 
     EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetItemById(wxRibbonButtonBar* self,
@@ -166,13 +166,13 @@ extern "C"
     }
 
     EXPORT void wxRibbonButtonBar_GetItemRect(wxRibbonButtonBar* self, int button_id, int* x,
-                                              int* y, int* w, int* h)
+                                              int* y, int* width, int* height)
     {
         wxRect r = self->GetItemRect(button_id);
         *x = r.x;
         *y = r.y;
-        *w = r.width;
-        *h = r.height;
+        *width = r.width;
+        *height = r.height;
     }
 
     EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetActiveItem(wxRibbonButtonBar* self)

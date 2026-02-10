@@ -4,10 +4,10 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRibbonBar* wxRibbonBar_Create(wxWindow* parent, int id, int x, int y, int w, int h,
+    EXPORT wxRibbonBar* wxRibbonBar_Create(wxWindow* parent, int id, int x, int y, int width, int height,
                                            int style)
     {
-        return new wxRibbonBar(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxRibbonBar(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Page management - Note: AddPage is protected, not exposed
@@ -26,9 +26,9 @@ extern "C"
         return self->GetPageCount();
     }
 
-    EXPORT bool wxRibbonBar_DeletePage(wxRibbonBar* self, size_t n)
+    EXPORT bool wxRibbonBar_DeletePage(wxRibbonBar* self, size_t index)
     {
-        self->DeletePage(n);
+        self->DeletePage(index);
         return true;  // Always succeeds if it doesn't throw
     }
 

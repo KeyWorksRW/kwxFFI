@@ -88,14 +88,14 @@ extern "C"
             (icon1->GetHeight() == icon2->GetHeight()) && (icon1->GetDepth() == icon2->GetDepth()))
         {
             bool equal = true;
-            for (int sx = 0; sx < (icon1->GetWidth()); sx++)
+            for (int sizeX = 0; sizeX < (icon1->GetWidth()); sizeX++)
             {
-                for (int sy = 0; sy < (icon1->GetHeight()); sy++)
+                for (int sizeY = 0; sizeY < (icon1->GetHeight()); sizeY++)
                 {
-                    equal = equal && (img1->GetRed(sx, sy) == img2->GetRed(sx, sy) &&
-                                      img1->GetGreen(sx, sy) == img2->GetGreen(sx, sy) &&
-                                      img1->GetBlue(sx, sy) == img2->GetBlue(sx, sy) &&
-                                      img1->GetAlpha(sx, sy) == img2->GetAlpha(sx, sy));
+                    equal = equal && (img1->GetRed(sizeX, sizeY) == img2->GetRed(sizeX, sizeY) &&
+                                      img1->GetGreen(sizeX, sizeY) == img2->GetGreen(sizeX, sizeY) &&
+                                      img1->GetBlue(sizeX, sizeY) == img2->GetBlue(sizeX, sizeY) &&
+                                      img1->GetAlpha(sizeX, sizeY) == img2->GetAlpha(sizeX, sizeY));
                 }
             }
             return equal;

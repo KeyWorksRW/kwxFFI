@@ -40,22 +40,22 @@ extern "C"
         return self->IsOk();
     }
 
-    EXPORT void wxDisplay_GetClientArea(wxDisplay* self, int* x, int* y, int* w, int* h)
+    EXPORT void wxDisplay_GetClientArea(wxDisplay* self, int* x, int* y, int* width, int* height)
     {
         wxRect rect = self->GetClientArea();
         *x = rect.x;
         *y = rect.y;
-        *w = rect.width;
-        *h = rect.height;
+        *width = rect.width;
+        *height = rect.height;
     }
 
-    EXPORT void wxDisplay_GetGeometry(wxDisplay* self, int* x, int* y, int* w, int* h)
+    EXPORT void wxDisplay_GetGeometry(wxDisplay* self, int* x, int* y, int* width, int* height)
     {
         wxRect rect = self->GetGeometry();
         *x = rect.x;
         *y = rect.y;
-        *w = rect.width;
-        *h = rect.height;
+        *width = rect.width;
+        *height = rect.height;
     }
 
     EXPORT wxString* wxDisplay_GetName(wxDisplay* self)
@@ -75,11 +75,11 @@ extern "C"
         return self->GetScaleFactor();
     }
 
-    EXPORT void wxDisplay_GetPPI(wxDisplay* self, int* w, int* h)
+    EXPORT void wxDisplay_GetPPI(wxDisplay* self, int* width, int* height)
     {
         wxSize ppi = self->GetPPI();
-        *w = ppi.x;
-        *h = ppi.y;
+        *width = ppi.x;
+        *height = ppi.y;
     }
 
     // wxVideoMode

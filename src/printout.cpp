@@ -351,24 +351,24 @@ extern "C"
         ((wxPrintout*) pObject)->SetDC((wxDC*) dc);
     }
 
-    EXPORT void wxPrintout_SetPageSizePixels(void* pObject, int w, int h)
+    EXPORT void wxPrintout_SetPageSizePixels(void* pObject, int width, int height)
     {
-        ((wxPrintout*) pObject)->SetPageSizePixels(w, h);
+        ((wxPrintout*) pObject)->SetPageSizePixels(width, height);
     }
 
-    EXPORT void wxPrintout_GetPageSizePixels(void* pObject, int* w, int* h)
+    EXPORT void wxPrintout_GetPageSizePixels(void* pObject, int* width, int* height)
     {
-        ((wxPrintout*) pObject)->GetPageSizePixels(w, h);
+        ((wxPrintout*) pObject)->GetPageSizePixels(width, height);
     }
 
-    EXPORT void wxPrintout_SetPageSizeMM(void* pObject, int w, int h)
+    EXPORT void wxPrintout_SetPageSizeMM(void* pObject, int width, int height)
     {
-        ((wxPrintout*) pObject)->SetPageSizeMM(w, h);
+        ((wxPrintout*) pObject)->SetPageSizeMM(width, height);
     }
 
-    EXPORT void wxPrintout_GetPageSizeMM(void* pObject, int* w, int* h)
+    EXPORT void wxPrintout_GetPageSizeMM(void* pObject, int* width, int* height)
     {
-        ((wxPrintout*) pObject)->GetPageSizeMM(w, h);
+        ((wxPrintout*) pObject)->GetPageSizeMM(width, height);
     }
 
     EXPORT void wxPrintout_SetPPIScreen(void* pObject, int x, int y)

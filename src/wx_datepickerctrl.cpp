@@ -3,23 +3,23 @@
 
 extern "C"
 {
-    EXPORT wxDatePickerCtrl* wxDatePickerCtrl_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                     int h, long style)
+    EXPORT wxDatePickerCtrl* wxDatePickerCtrl_Create(wxWindow* parent, int id, int x, int y,
+                                                     int width, int height, long style)
     {
-        return new wxDatePickerCtrl(parent, id, wxDefaultDateTime, wxPoint(x, y), wxSize(w, h),
-                                    style);
+        return new wxDatePickerCtrl(parent, id, wxDefaultDateTime, wxPoint(x, y),
+                                    wxSize(width, height), style);
     }
 
-    EXPORT void wxDatePickerCtrl_SetValue(wxDatePickerCtrl* self, wxDateTime* dt)
+    EXPORT void wxDatePickerCtrl_SetValue(wxDatePickerCtrl* self, wxDateTime* dateTime)
     {
-        if (dt)
-            self->SetValue(*dt);
+        if (dateTime)
+            self->SetValue(*dateTime);
     }
 
-    EXPORT void wxDatePickerCtrl_GetValue(wxDatePickerCtrl* self, wxDateTime* dt)
+    EXPORT void wxDatePickerCtrl_GetValue(wxDatePickerCtrl* self, wxDateTime* dateTime)
     {
-        if (dt)
-            *dt = self->GetValue();
+        if (dateTime)
+            *dateTime = self->GetValue();
     }
 
     EXPORT void wxDatePickerCtrl_SetRange(wxDatePickerCtrl* self, wxDateTime* dt1, wxDateTime* dt2)

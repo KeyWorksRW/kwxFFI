@@ -41,9 +41,11 @@ extern "C"
         self->DrawCheckMark((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT void wxDC_DrawEllipticArc(wxDC* self, int x, int y, int w, int h, double sa, double ea)
+    EXPORT void wxDC_DrawEllipticArc(wxDC* self, int x, int y, int width, int height,
+                                     double startAngle, double endAngle)
     {
-        self->DrawEllipticArc((wxCoord) x, (wxCoord) y, (wxCoord) w, (wxCoord) h, sa, ea);
+        self->DrawEllipticArc((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height,
+                              startAngle, endAngle);
     }
 
     EXPORT void wxDC_DrawPoint(wxDC* self, int x, int y)
@@ -208,9 +210,10 @@ extern "C"
         self->DestroyClippingRegion();
     }
 
-    EXPORT void wxDC_GetClippingBox(wxDC* self, wxCoord* x, wxCoord* y, wxCoord* w, wxCoord* h)
+    EXPORT void wxDC_GetClippingBox(wxDC* self, wxCoord* x, wxCoord* y, wxCoord* width,
+                                    wxCoord* height)
     {
-        self->GetClippingBox(x, y, w, h);
+        self->GetClippingBox(x, y, width, height);
     }
 
     EXPORT wxCoord wxDC_GetCharHeight(wxDC* self)
@@ -223,16 +226,16 @@ extern "C"
         return self->GetCharWidth();
     }
 
-    EXPORT void wxDC_GetTextExtent(wxDC* self, wxString* string, wxCoord* w, wxCoord* h,
+    EXPORT void wxDC_GetTextExtent(wxDC* self, wxString* string, wxCoord* width, wxCoord* height,
                                    wxCoord* descent, wxCoord* externalLeading, wxFont* theFont)
     {
-        self->GetTextExtent(*string, w, h, descent, externalLeading, theFont);
+        self->GetTextExtent(*string, width, height, descent, externalLeading, theFont);
     }
 
-    EXPORT void wxDC_GetMultiLineTextExtent(wxDC* self, wxString* string, wxCoord* w, wxCoord* h,
-                                            wxCoord* heightLine, wxFont* theFont)
+    EXPORT void wxDC_GetMultiLineTextExtent(wxDC* self, wxString* string, wxCoord* width,
+                                            wxCoord* height, wxCoord* heightLine, wxFont* theFont)
     {
-        self->GetMultiLineTextExtent(*string, w, h, heightLine, theFont);
+        self->GetMultiLineTextExtent(*string, width, height, heightLine, theFont);
     }
 
     EXPORT wxSize* wxDC_GetSize(wxDC* self)
@@ -537,9 +540,9 @@ extern "C"
         return self->StartDrawingOnTop(win);
     }
 
-    EXPORT bool wxScreenDC_StartDrawingOnTop(wxScreenDC* self, int l, int t, int w, int h)
+    EXPORT bool wxScreenDC_StartDrawingOnTop(wxScreenDC* self, int x, int y, int width, int height)
     {
-        wxRect rect(l, t, w, h);
+        wxRect rect(x, y, width, height);
         return self->StartDrawingOnTop(&rect);
     }
 
@@ -670,17 +673,17 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxDC_DrawLabel(wxDC* self, wxString* str, int x, int y, int w, int h, int align,
-                               int indexAccel)
+    EXPORT void wxDC_DrawLabel(wxDC* self, wxString* str, int x, int y, int width, int height,
+                               int align, int indexAccel)
     {
-        wxRect rect(x, y, w, h);
+        wxRect rect(x, y, width, height);
         self->DrawLabel(*str, rect, align, indexAccel);
     }
 
     EXPORT wxRect* wxDC_DrawLabelBitmap(wxDC* self, wxString* str, wxBitmap* bmp, int x, int y,
-                                        int w, int h, int align, int indexAccel)
+                                        int width, int height, int align, int indexAccel)
     {
-        wxRect rect(x, y, w, h);
+        wxRect rect(x, y, width, height);
         wxRect* r = new wxRect();
         self->DrawLabel(*str, *bmp, rect, align, indexAccel, r);
         return r;

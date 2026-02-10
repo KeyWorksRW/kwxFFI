@@ -80,14 +80,14 @@ extern "C"
         ((wxTopLevelWindow*) self)->SetIcons(*((wxIconBundle*) icons));
     }
 
-    EXPORT void wxTopLevelWindow_SetMaxSize(void* self, int w, int h)
+    EXPORT void wxTopLevelWindow_SetMaxSize(void* self, int width, int height)
     {
-        ((wxTopLevelWindow*) self)->SetMaxSize(wxSize(w, h));
+        ((wxTopLevelWindow*) self)->SetMaxSize(wxSize(width, height));
     }
 
-    EXPORT void wxTopLevelWindow_SetMinSize(void* self, int w, int h)
+    EXPORT void wxTopLevelWindow_SetMinSize(void* self, int width, int height)
     {
-        ((wxTopLevelWindow*) self)->SetMinSize(wxSize(w, h));
+        ((wxTopLevelWindow*) self)->SetMinSize(wxSize(width, height));
     }
 
     EXPORT void wxTopLevelWindow_SetTitle(void* self, wxString* title)

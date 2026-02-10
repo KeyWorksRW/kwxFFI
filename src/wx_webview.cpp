@@ -6,10 +6,10 @@
 extern "C"
 {
     // Factory method - create with default backend
-    EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y, int w,
-                                    int h, wxString* backend, int style)
+    EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y, int width,
+                                    int height, wxString* backend, int style)
     {
-        return wxWebView::New(parent, id, *url, wxPoint(x, y), wxSize(w, h),
+        return wxWebView::New(parent, id, *url, wxPoint(x, y), wxSize(width, height),
                               backend ? *backend : wxString(wxWebViewBackendDefault), style);
     }
 

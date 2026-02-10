@@ -161,9 +161,9 @@ extern "C"
         self->Undo();
     }
 
-    EXPORT void wxComboCtrl_SetSelection(wxComboCtrl* self, long from, long to)
+    EXPORT void wxComboCtrl_SetSelection(wxComboCtrl* self, long from, long toPos)
     {
-        self->SetSelection(from, to);
+        self->SetSelection(from, toPos);
     }
 
     EXPORT void wxComboCtrl_SetInsertionPoint(wxComboCtrl* self, long pos)
@@ -186,14 +186,14 @@ extern "C"
         return self->GetLastPosition();
     }
 
-    EXPORT void wxComboCtrl_Replace(wxComboCtrl* self, long from, long to, wxString* value)
+    EXPORT void wxComboCtrl_Replace(wxComboCtrl* self, long from, long toPos, wxString* value)
     {
-        self->Replace(from, to, *value);
+        self->Replace(from, toPos, *value);
     }
 
-    EXPORT void wxComboCtrl_Remove(wxComboCtrl* self, long from, long to)
+    EXPORT void wxComboCtrl_Remove(wxComboCtrl* self, long from, long toPos)
     {
-        self->Remove(from, to);
+        self->Remove(from, toPos);
     }
 
     EXPORT bool wxComboCtrl_IsEditable(wxComboCtrl* self)

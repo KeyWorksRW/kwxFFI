@@ -7,9 +7,9 @@ extern "C"
 {
     // Constructor
     EXPORT wxPropertyGridManager* wxPropertyGridManager_Create(wxWindow* parent, int id, int x,
-                                                               int y, int w, int h, int style)
+                                                               int y, int width, int height, int style)
     {
-        return new wxPropertyGridManager(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxPropertyGridManager(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Page management
@@ -93,10 +93,10 @@ extern "C"
     }
 
     // Description box
-    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self, int ht,
+    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self, int descBoxHeight,
                                                        bool refresh)
     {
-        self->SetDescBoxHeight(ht, refresh);
+        self->SetDescBoxHeight(descBoxHeight, refresh);
     }
 
     EXPORT int wxPropertyGridManager_GetDescBoxHeight(wxPropertyGridManager* self)

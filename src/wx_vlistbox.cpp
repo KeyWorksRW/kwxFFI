@@ -35,14 +35,14 @@ extern "C"
         return self->GetItemCount();
     }
 
-    EXPORT void wxVListBox_GetItemRect(wxVListBox* self, size_t item, int* x, int* y, int* w,
-                                       int* h)
+    EXPORT void wxVListBox_GetItemRect(wxVListBox* self, size_t item, int* x, int* y, int* width,
+                                       int* height)
     {
         wxRect rect = self->GetItemRect(item);
         *x = rect.x;
         *y = rect.y;
-        *w = rect.width;
-        *h = rect.height;
+        *width = rect.width;
+        *height = rect.height;
     }
 
     EXPORT int wxVListBox_GetNextSelected(wxVListBox* self, unsigned long* cookie)
@@ -90,9 +90,9 @@ extern "C"
         return self->SelectAll();
     }
 
-    EXPORT bool wxVListBox_SelectRange(wxVListBox* self, size_t from, size_t to)
+    EXPORT bool wxVListBox_SelectRange(wxVListBox* self, size_t from, size_t toPos)
     {
-        return self->SelectRange(from, to);
+        return self->SelectRange(from, toPos);
     }
 
     EXPORT void wxVListBox_SetItemCount(wxVListBox* self, size_t count)

@@ -4,10 +4,10 @@ extern "C"
 {
     // Constructor
     EXPORT wxSimpleHtmlListBox* wxSimpleHtmlListBox_Create(wxWindow* parent, int id, int x, int y,
-                                                           int w, int h, int style)
+                                                           int width, int height, int style)
     {
-        return new wxSimpleHtmlListBox(parent, id, wxPoint(x, y), wxSize(w, h), 0, nullptr, style,
-                                       wxDefaultValidator);
+        return new wxSimpleHtmlListBox(parent, id, wxPoint(x, y), wxSize(width, height), 0, nullptr,
+                                       style, wxDefaultValidator);
     }
 
     // Clear all items
@@ -37,9 +37,9 @@ extern "C"
     }
 
     // Set item string
-    EXPORT void wxSimpleHtmlListBox_SetString(wxSimpleHtmlListBox* self, int index, wxString* s)
+    EXPORT void wxSimpleHtmlListBox_SetString(wxSimpleHtmlListBox* self, int index, wxString* str)
     {
-        self->SetString(index, *s);
+        self->SetString(index, *str);
     }
 
     // Get selection
@@ -80,10 +80,10 @@ extern "C"
     }
 
     // Find string
-    EXPORT int wxSimpleHtmlListBox_FindString(wxSimpleHtmlListBox* self, wxString* s,
+    EXPORT int wxSimpleHtmlListBox_FindString(wxSimpleHtmlListBox* self, wxString* str,
                                               bool caseSensitive)
     {
-        return self->FindString(*s, caseSensitive);
+        return self->FindString(*str, caseSensitive);
     }
 
     // Get/Set item data

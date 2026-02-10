@@ -108,11 +108,11 @@ extern "C"
     }
 
     EXPORT bool wxGenericDragImage_UpdateBackingFromWindow(wxGenericDragImage* self, wxDC* windowDC,
-                                                           wxMemoryDC* destDC, int x, int y, int w,
-                                                           int h, int xdest, int ydest, int width,
-                                                           int height)
+                                                           wxMemoryDC* destDC, int x, int y,
+                                                           int width, int height, int xdest,
+                                                           int ydest, int destWidth, int destHeight)
     {
-        return self->UpdateBackingFromWindow(*windowDC, *destDC, wxRect(x, y, w, h),
-                                             wxRect(xdest, ydest, width, height));
+        return self->UpdateBackingFromWindow(*windowDC, *destDC, wxRect(x, y, width, height),
+                                             wxRect(xdest, ydest, destWidth, destHeight));
     }
 }

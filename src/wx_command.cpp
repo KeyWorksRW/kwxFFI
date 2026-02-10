@@ -10,18 +10,18 @@ class kwxCommand : public wxCommand
 {
 private:
     TGetResp func;
-    void* EiffelObject;
+    void* kwxObject;
 
 public:
     kwxCommand(bool canUndo, const wxString& name, void* pObject, void* callback) : wxCommand(canUndo, name)
     {
         func = (TGetResp) callback;
-        EiffelObject = pObject;
+        kwxObject = pObject;
     }
 
-    bool Do() { return func(EiffelObject, 0) != 0; }
+    bool Do() { return func(kwxObject, 0) != 0; }
 
-    bool Undo() { return func(EiffelObject, 1) != 0; }
+    bool Undo() { return func(kwxObject, 1) != 0; }
 };
 
 extern "C"

@@ -113,9 +113,9 @@ extern "C"
 
     EXPORT wxSize* wxWindow_GetSize(wxWindow* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetSize();
+        return text;
     }
 
     EXPORT wxRect* wxWindow_GetRect(wxWindow* self)
@@ -127,16 +127,16 @@ extern "C"
 
     EXPORT wxSize* wxWindow_GetClientSize(wxWindow* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetClientSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetClientSize();
+        return text;
     }
 
     EXPORT wxSize* wxWindow_GetBestSize(wxWindow* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetBestSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetBestSize();
+        return text;
     }
 
     EXPORT void wxWindow_Center(wxWindow* self, int direction)
@@ -382,10 +382,10 @@ extern "C"
         self->Refresh(eraseBackground, (const wxRect*) nullptr);
     }
 
-    EXPORT void wxWindow_RefreshRect(wxWindow* self, bool eraseBackground, int x, int y, int w,
-                                     int h)
+    EXPORT void wxWindow_RefreshRect(wxWindow* self, bool eraseBackground, int x, int y, int width,
+                                     int height)
     {
-        const wxRect rect(x, y, w, h);
+        const wxRect rect(x, y, width, height);
         self->Refresh(eraseBackground, &rect);
     }
 
@@ -399,9 +399,9 @@ extern "C"
         return (void*) (&self->GetUpdateRegion());
     }
 
-    EXPORT bool wxWindow_IsExposed(wxWindow* self, int x, int y, int w, int h)
+    EXPORT bool wxWindow_IsExposed(wxWindow* self, int x, int y, int width, int height)
     {
-        return self->IsExposed(x, y, w, h);
+        return self->IsExposed(x, y, width, height);
     }
 
     EXPORT bool wxWindow_SetBackgroundColour(wxWindow* self, wxColour* colour)
@@ -520,10 +520,10 @@ extern "C"
         self->ScrollWindow(dx, dy, (const wxRect*) nullptr);
     }
 
-    EXPORT void wxWindow_ScrollWindowRect(wxWindow* self, int dx, int dy, int x, int y, int w,
-                                          int h)
+    EXPORT void wxWindow_ScrollWindowRect(wxWindow* self, int dx, int dy, int x, int y, int width,
+                                          int height)
     {
-        const wxRect rect(x, y, w, h);
+        const wxRect rect(x, y, width, height);
         self->ScrollWindow(dx, dy, &rect);
     }
 
@@ -580,9 +580,9 @@ extern "C"
         self->Layout();
     }
 
-    EXPORT void wxWindow_UnsetConstraints(wxWindow* self, void* c)
+    EXPORT void wxWindow_UnsetConstraints(wxWindow* self, void* constraints)
     {
-        self->UnsetConstraints((wxLayoutConstraints*) c);
+        self->UnsetConstraints((wxLayoutConstraints*) constraints);
     }
 
     EXPORT void* wxWindow_GetConstraintsInvolvedIn(wxWindow* self)
@@ -630,9 +630,9 @@ extern "C"
         return (int) self->DoPhase(phase);
     }
 
-    EXPORT void wxWindow_SetSizeConstraint(wxWindow* self, int x, int y, int w, int h)
+    EXPORT void wxWindow_SetSizeConstraint(wxWindow* self, int x, int y, int width, int height)
     {
-        self->SetSizeConstraint(x, y, w, h);
+        self->SetSizeConstraint(x, y, width, height);
     }
 
     EXPORT void wxWindow_MoveConstraint(wxWindow* self, int x, int y)
@@ -640,14 +640,14 @@ extern "C"
         self->MoveConstraint(x, y);
     }
 
-    EXPORT void wxWindow_GetSizeConstraint(wxWindow* self, int* w, int* h)
+    EXPORT void wxWindow_GetSizeConstraint(wxWindow* self, int* width, int* height)
     {
-        self->GetSizeConstraint(w, h);
+        self->GetSizeConstraint(width, height);
     }
 
-    EXPORT void wxWindow_GetClientSizeConstraint(wxWindow* self, int* w, int* h)
+    EXPORT void wxWindow_GetClientSizeConstraint(wxWindow* self, int* width, int* height)
     {
-        self->GetClientSizeConstraint(w, h);
+        self->GetClientSizeConstraint(width, height);
     }
 
     EXPORT void wxWindow_GetPositionConstraint(wxWindow* self, int* x, int* y)
@@ -688,9 +688,9 @@ extern "C"
 
     EXPORT wxSize* wxWindow_GetEffectiveMinSize(wxWindow* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetEffectiveMinSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetEffectiveMinSize();
+        return text;
     }
 
     EXPORT void wxWindow_Freeze(wxWindow* self)
@@ -716,15 +716,15 @@ extern "C"
         self->FitInside();
     }
 
-    EXPORT void wxWindow_SetVirtualSize(wxWindow* self, int w, int h)
+    EXPORT void wxWindow_SetVirtualSize(wxWindow* self, int width, int height)
     {
-        self->SetVirtualSize(w, h);
+        self->SetVirtualSize(width, height);
     }
 
     EXPORT wxSize* wxWindow_GetVirtualSize(wxWindow* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetVirtualSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetVirtualSize();
+        return text;
     }
 }

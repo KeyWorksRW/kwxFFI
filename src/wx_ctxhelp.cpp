@@ -24,9 +24,10 @@ extern "C"
     }
 
     EXPORT wxContextHelpButton* wxContextHelpButton_Create(wxWindow* parent, int id, int x, int y,
-                                                           int w, int h, long style)
+                                                           int width, int height, long style)
     {
-        return new wxContextHelpButton(parent, (wxWindowID) id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxContextHelpButton(parent, (wxWindowID) id, wxPoint(x, y),
+                                       wxSize(width, height), style);
     }
 
     EXPORT wxHelpProvider* wxHelpProvider_Get()
@@ -83,9 +84,9 @@ extern "C"
     }
 
     EXPORT void wxHelpControllerHelpProvider_SetHelpController(wxHelpControllerHelpProvider* self,
-                                                               wxHelpControllerBase* hc)
+                                                               wxHelpControllerBase* helpController)
     {
-        self->SetHelpController(hc);
+        self->SetHelpController(helpController);
     }
 
     EXPORT wxHelpControllerBase*

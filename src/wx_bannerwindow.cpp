@@ -3,10 +3,10 @@
 extern "C"
 {
     EXPORT wxBannerWindow* wxBannerWindow_Create(wxWindow* parent, int id, int dir, int x, int y,
-                                                 int w, int h, int style)
+                                                 int width, int height, int style)
     {
         return new wxBannerWindow(parent, id, static_cast<wxDirection>(dir), wxPoint(x, y),
-                                  wxSize(w, h), style);
+                                  wxSize(width, height), style);
     }
 
     EXPORT void wxBannerWindow_SetBitmap(wxBannerWindow* self, wxBitmap* bmp)

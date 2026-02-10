@@ -4,10 +4,10 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRibbonGallery* wxRibbonGallery_Create(wxWindow* parent, int id, int x, int y, int w,
-                                                   int h, int style)
+    EXPORT wxRibbonGallery* wxRibbonGallery_Create(wxWindow* parent, int id, int x, int y, int width,
+                                                   int height, int style)
     {
-        return new wxRibbonGallery(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxRibbonGallery(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Item management

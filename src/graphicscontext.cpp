@@ -195,10 +195,10 @@ extern "C"
     }
 
     EXPORT void wxGraphicsContext_ClipByRectangle(wxGraphicsContext* self, wxDouble x, wxDouble y,
-                                                  wxDouble w, wxDouble h)
+                                                  wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->Clip(x, y, w, h);
+        self->Clip(x, y, width, height);
 #endif
     }
 
@@ -210,41 +210,41 @@ extern "C"
     }
 
     EXPORT void wxGraphicsContext_DrawBitmap(wxGraphicsContext* self, const wxBitmap* bmp,
-                                             wxDouble x, wxDouble y, wxDouble w, wxDouble h)
+                                             wxDouble x, wxDouble y, wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->DrawBitmap(*bmp, x, y, w, h);
+        self->DrawBitmap(*bmp, x, y, width, height);
 #endif
     }
 
     EXPORT void wxGraphicsContext_DrawEllipse(wxGraphicsContext* self, wxDouble x, wxDouble y,
-                                              wxDouble w, wxDouble h)
+                                              wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->DrawEllipse(x, y, w, h);
+        self->DrawEllipse(x, y, width, height);
 #endif
     }
 
     EXPORT void wxGraphicsContext_DrawIcon(wxGraphicsContext* self, const wxIcon* icon, wxDouble x,
-                                           wxDouble y, wxDouble w, wxDouble h)
+                                           wxDouble y, wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->DrawIcon(*icon, x, y, w, h);
+        self->DrawIcon(*icon, x, y, width, height);
 #endif
     }
 
-    EXPORT void wxGraphicsContext_DrawLines(wxGraphicsContext* self, size_t n, wxDouble* x,
+    EXPORT void wxGraphicsContext_DrawLines(wxGraphicsContext* self, size_t count, wxDouble* x,
                                             wxDouble* y, wxPolygonFillMode fillStyle)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        wxPoint2DDouble* points = (wxPoint2DDouble*) malloc(n * sizeof(wxPoint2DDouble));
+        wxPoint2DDouble* points = (wxPoint2DDouble*) malloc(count * sizeof(wxPoint2DDouble));
 
-        for (size_t i = 0; i < n; i++)
+        for (size_t i = 0; i < count; i++)
             points[i] = wxPoint2DDouble(x[i], y[i]);
 
         wxPolygonFillMode pfm_fillStyle = (wxPolygonFillMode) fillStyle;
 
-        self->DrawLines(n, points, pfm_fillStyle);
+        self->DrawLines(count, points, pfm_fillStyle);
 
         free(points);
 #endif
@@ -261,19 +261,19 @@ extern "C"
     }
 
     EXPORT void wxGraphicsContext_DrawRectangle(wxGraphicsContext* self, wxDouble x, wxDouble y,
-                                                wxDouble w, wxDouble h)
+                                                wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->DrawRectangle(x, y, w, h);
+        self->DrawRectangle(x, y, width, height);
 #endif
     }
 
     EXPORT void wxGraphicsContext_DrawRoundedRectangle(wxGraphicsContext* self, wxDouble x,
-                                                       wxDouble y, wxDouble w, wxDouble h,
+                                                       wxDouble y, wxDouble width, wxDouble height,
                                                        wxDouble radius)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->DrawRoundedRectangle(x, y, w, h, radius);
+        self->DrawRoundedRectangle(x, y, width, height, radius);
 #endif
     }
 
@@ -422,27 +422,27 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxGraphicsContext_StrokeLines(wxGraphicsContext* self, size_t n, wxDouble* x,
+    EXPORT void wxGraphicsContext_StrokeLines(wxGraphicsContext* self, size_t count, wxDouble* x,
                                               wxDouble* y, wxPolygonFillMode fillStyle)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        wxPoint2DDouble* points = (wxPoint2DDouble*) malloc(n * sizeof(wxPoint2DDouble));
+        wxPoint2DDouble* points = (wxPoint2DDouble*) malloc(count * sizeof(wxPoint2DDouble));
 
-        for (size_t i = 0; i < n; i++)
+        for (size_t i = 0; i < count; i++)
             points[i] = wxPoint2DDouble(x[i], y[i]);
 
-        self->StrokeLines(n, points);
+        self->StrokeLines(count, points);
 
         free(points);
 #endif
     }
 
-    EXPORT void wxGraphicsContext_StrokeLinesStartAndEnd(wxGraphicsContext* self, size_t n,
+    EXPORT void wxGraphicsContext_StrokeLinesStartAndEnd(wxGraphicsContext* self, size_t count,
                                                          const wxPoint2DDouble* beginPoints,
                                                          const wxPoint2DDouble* endPoints)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->StrokeLines(n, beginPoints, endPoints);
+        self->StrokeLines(count, beginPoints, endPoints);
 #endif
     }
 
@@ -700,11 +700,11 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxGraphicsPath_AddEllipse(wxGraphicsPath* self, wxDouble x, wxDouble y, wxDouble w,
-                                          wxDouble h)
+    EXPORT void wxGraphicsPath_AddEllipse(wxGraphicsPath* self, wxDouble x, wxDouble y, wxDouble width,
+                                          wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->AddEllipse(x, y, w, h);
+        self->AddEllipse(x, y, width, height);
 #endif
     }
 
@@ -731,18 +731,18 @@ extern "C"
     }
 
     EXPORT void wxGraphicsPath_AddRectangle(wxGraphicsPath* self, wxDouble x, wxDouble y,
-                                            wxDouble w, wxDouble h)
+                                            wxDouble width, wxDouble height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->AddRectangle(x, y, w, h);
+        self->AddRectangle(x, y, width, height);
 #endif
     }
 
     EXPORT void wxGraphicsPath_AddRoundedRectangle(wxGraphicsPath* self, wxDouble x, wxDouble y,
-                                                   wxDouble w, wxDouble h, wxDouble radius)
+                                                   wxDouble width, wxDouble height, wxDouble radius)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->AddRoundedRectangle(x, y, w, h, radius);
+        self->AddRoundedRectangle(x, y, width, height, radius);
 #endif
     }
 
@@ -763,11 +763,11 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxGraphicsPath_GetBox(wxGraphicsPath* self, wxDouble* x, wxDouble* y, wxDouble* w,
-                                      wxDouble* h)
+    EXPORT void wxGraphicsPath_GetBox(wxGraphicsPath* self, wxDouble* x, wxDouble* y, wxDouble* width,
+                                      wxDouble* height)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->GetBox(x, y, w, h);
+        self->GetBox(x, y, width, height);
 #endif
     }
 
@@ -794,10 +794,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxGraphicsPath_UnGetNativePath(wxGraphicsPath* self, void* p)
+    EXPORT void wxGraphicsPath_UnGetNativePath(wxGraphicsPath* self, void* nativePath)
     {
 #ifdef wxUSE_GRAPHICS_CONTEXT
-        self->UnGetNativePath(p);
+        self->UnGetNativePath(nativePath);
 #endif
     }
 

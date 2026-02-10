@@ -73,9 +73,9 @@ extern "C"
         ((wxScrolledWindow*) pObject)->GetVirtualSize((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_SetScale(void* self, double xs, double ys)
+    EXPORT void wxScrolledWindow_SetScale(void* self, double xScale, double yScale)
     {
-        ((wxScrolledWindow*) self)->SetScale(xs, ys);
+        ((wxScrolledWindow*) self)->SetScale(xScale, yScale);
     }
 
     EXPORT double wxScrolledWindow_GetScaleX(void* self)

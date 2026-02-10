@@ -4,10 +4,10 @@
 extern "C"
 {
     EXPORT wxFontPickerCtrl* wxFontPickerCtrl_Create(wxWindow* parent, int id, wxFont* initial,
-                                                     int x, int y, int w, int h, long style)
+                                                     int x, int y, int width, int height, long style)
     {
         return new wxFontPickerCtrl(parent, id, initial ? *initial : wxNullFont, wxPoint(x, y),
-                                    wxSize(w, h), style);
+                                    wxSize(width, height), style);
     }
 
     EXPORT wxFont* wxFontPickerCtrl_GetSelectedFont(wxFontPickerCtrl* self)

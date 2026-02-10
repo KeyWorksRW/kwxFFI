@@ -2,10 +2,10 @@
 
 extern "C"
 {
-    EXPORT wxListView* wxListView_Create(wxWindow* parent, int id, int x, int y, int w, int h,
-                                         int style)
+    EXPORT wxListView* wxListView_Create(wxWindow* parent, int id, int x, int y, int width,
+                                         int height, int style)
     {
-        return new wxListView(parent, id, wxPoint(x, y), wxSize(w, h), style);
+        return new wxListView(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT void wxListView_ClearColumnImage(wxListView* self, int col)
@@ -38,9 +38,9 @@ extern "C"
         return self->IsSelected(index);
     }
 
-    EXPORT void wxListView_Select(wxListView* self, long n, bool on)
+    EXPORT void wxListView_Select(wxListView* self, long index, bool select)
     {
-        self->Select(n, on);
+        self->Select(index, select);
     }
 
     EXPORT void wxListView_SetColumnImage(wxListView* self, int col, int image)

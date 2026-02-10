@@ -18,9 +18,9 @@ extern "C"
         ((wxFileHistory*) pObject)->AddFileToHistory(*file);
     }
 
-    EXPORT void wxFileHistory_RemoveFileFromHistory(void* pObject, int i)
+    EXPORT void wxFileHistory_RemoveFileFromHistory(void* pObject, int index)
     {
-        ((wxFileHistory*) pObject)->RemoveFileFromHistory(i);
+        ((wxFileHistory*) pObject)->RemoveFileFromHistory(index);
     }
 
     EXPORT int wxFileHistory_GetMaxFiles(void* pObject)
@@ -56,10 +56,10 @@ extern "C"
             ((wxFileHistory*) pObject)->AddFilesToMenu();
     }
 
-    EXPORT wxString* wxFileHistory_GetHistoryFile(void* pObject, int i)
+    EXPORT wxString* wxFileHistory_GetHistoryFile(void* pObject, int index)
     {
         wxString* result = new wxString();
-        *result = ((wxFileHistory*) pObject)->GetHistoryFile(i);
+        *result = ((wxFileHistory*) pObject)->GetHistoryFile(index);
         return result;
     }
 
@@ -73,13 +73,13 @@ extern "C"
         wxList lst = ((wxFileHistory*) pObject)->GetMenus();
         if (ref)
         {
-            int i = 0;
+            int index = 0;
             wxList::compatibility_iterator node = lst.GetFirst();
             while (node)
             {
-                ((void**) ref)[i] = node->GetData();
+                ((void**) ref)[index] = node->GetData();
                 node = node->GetNext();
-                ++i;
+                ++index;
             }
         }
 

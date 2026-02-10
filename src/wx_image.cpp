@@ -17,14 +17,14 @@ extern "C"
         return new wxImage(width, height);
     }
 
-    EXPORT wxImage* wxImage_CreateFromByteString(const wxSize& sz, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromByteString(const wxSize& text, unsigned char* data)
     {
-        return new wxImage(sz, data);
+        return new wxImage(text, data);
     }
 
-    EXPORT wxImage* wxImage_CreateFromLazyByteString(const wxSize& sz, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromLazyByteString(const wxSize& text, unsigned char* data)
     {
-        return new wxImage(sz, data);
+        return new wxImage(text, data);
     }
 
     EXPORT size_t wxImage_ConvertToByteString(wxImage* self, wxBitmapType type, char* data)
@@ -83,9 +83,9 @@ extern "C"
         self->Destroy();
     }
 
-    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int w, int h, wxImage* image)
+    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int width, int height, wxImage* image)
     {
-        *image = self->GetSubImage(wxRect(x, y, w, h));
+        *image = self->GetSubImage(wxRect(x, y, width, height));
     }
 
     EXPORT int wxImage_GetType(wxImage* self)

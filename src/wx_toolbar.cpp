@@ -58,23 +58,23 @@ extern "C"
 
     EXPORT wxSize* wxToolBar_GetToolSize(wxToolBar* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetToolSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetToolSize();
+        return text;
     }
 
     EXPORT wxSize* wxToolBar_GetToolBitmapSize(wxToolBar* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetToolBitmapSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetToolBitmapSize();
+        return text;
     }
 
     EXPORT wxSize* wxToolBar_GetMargins(wxToolBar* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetMargins();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetMargins();
+        return text;
     }
 
     EXPORT void* wxToolBar_GetToolClientData(wxToolBar* self, int id)

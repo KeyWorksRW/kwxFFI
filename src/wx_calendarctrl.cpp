@@ -97,9 +97,9 @@ extern "C"
     }
 
     EXPORT int wxCalendarCtrl_HitTest(wxCalendarCtrl* self, int x, int y, wxDateTime* date,
-                                      void* wd)
+                                      void* weekday)
     {
-        return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) wd);
+        return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) weekday);
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_Create(wxColour* textColour, wxColour* backColour,

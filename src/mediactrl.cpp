@@ -34,11 +34,11 @@ extern "C"
       MediaCtrl
     -----------------------------------------------------------------------------*/
     EXPORT wxMediaCtrl* wxMediaCtrl_Create(void* parent, int id, wxString* fileName, int x, int y,
-                                           int w, int h, long style, wxString* szBackend,
+                                           int width, int height, long style, wxString* szBackend,
                                            wxString* name)
     {
         return new wxMediaCtrl((wxWindow*) parent, (wxWindowID) id,
-                               (fileName ? *fileName : wxString("")), wxPoint(x, y), wxSize(w, h),
+                               (fileName ? *fileName : wxString("")), wxPoint(x, y), wxSize(width, height),
                                style, (szBackend ? *szBackend : wxString("")), wxDefaultValidator,
                                (name ? *name : wxString("MediaCtrl")));
     }
@@ -51,9 +51,9 @@ extern "C"
 
     EXPORT wxSize* wxMediaCtrl_GetBestSize(wxMediaCtrl* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetBestSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetBestSize();
+        return text;
     }
 
     EXPORT double wxMediaCtrl_GetPlaybackRate(wxMediaCtrl* self)

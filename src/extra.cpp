@@ -1200,27 +1200,27 @@ extern "C"
         return new wxString(buffer, len);
     }
 
-    EXPORT void wxString_Delete(wxString* s)
+    EXPORT void wxString_Delete(wxString* self)
     {
-        delete s;
+        delete self;
     }
 
-    EXPORT int wxString_GetString(wxString* s, char* buffer)
+    EXPORT int wxString_GetString(wxString* self, char* buffer)
     {
         if (buffer)
-            memcpy(buffer, s->utf8_str().data(), s->Length());
-        return s->Length();
+            memcpy(buffer, self->utf8_str().data(), self->Length());
+        return self->Length();
     }
 
-    EXPORT size_t wxString_Length(wxString* s)
+    EXPORT size_t wxString_Length(wxString* self)
     {
-        return s->length();
+        return self->length();
     }
 
-    EXPORT wxCharBuffer* wxString_GetUtf8(wxString* s)
+    EXPORT wxCharBuffer* wxString_GetUtf8(wxString* self)
     {
         wxCharBuffer* cb = new wxCharBuffer;
-        *cb = s->utf8_str();
+        *cb = self->utf8_str();
         return cb;
     }
 
@@ -1241,115 +1241,115 @@ extern "C"
         return new wxPoint(x, y);
     }
 
-    EXPORT void wxPoint_Delete(void* p)
+    EXPORT void wxPoint_Delete(void* pObject)
     {
-        delete (wxPoint*) p;
+        delete (wxPoint*) pObject;
     }
 
-    EXPORT int wxPoint_GetX(void* p)
+    EXPORT int wxPoint_GetX(void* pObject)
     {
-        return ((wxPoint*) p)->x;
+        return ((wxPoint*) pObject)->x;
     }
 
-    EXPORT int wxPoint_GetY(void* p)
+    EXPORT int wxPoint_GetY(void* pObject)
     {
-        return ((wxPoint*) p)->y;
+        return ((wxPoint*) pObject)->y;
     }
 
-    EXPORT void wxPoint_SetX(void* p, int x)
+    EXPORT void wxPoint_SetX(void* pObject, int x)
     {
-        ((wxPoint*) p)->x = x;
+        ((wxPoint*) pObject)->x = x;
     }
 
-    EXPORT void wxPoint_SetY(void* p, int y)
+    EXPORT void wxPoint_SetY(void* pObject, int y)
     {
-        ((wxPoint*) p)->y = y;
+        ((wxPoint*) pObject)->y = y;
     }
 
     /*-----------------------------------------------------------------------------
       Size
     -----------------------------------------------------------------------------*/
-    EXPORT void* wxSize_Create(int w, int h)
+    EXPORT void* wxSize_Create(int width, int height)
     {
-        return new wxSize(w, h);
+        return new wxSize(width, height);
     }
 
-    EXPORT void wxSize_Delete(void* s)
+    EXPORT void wxSize_Delete(void* pObject)
     {
-        delete (wxSize*) s;
+        delete (wxSize*) pObject;
     }
 
-    EXPORT int wxSize_GetWidth(void* s)
+    EXPORT int wxSize_GetWidth(void* pObject)
     {
-        return ((wxSize*) s)->GetWidth();
+        return ((wxSize*) pObject)->GetWidth();
     }
 
-    EXPORT int wxSize_GetHeight(void* s)
+    EXPORT int wxSize_GetHeight(void* pObject)
     {
-        return ((wxSize*) s)->GetHeight();
+        return ((wxSize*) pObject)->GetHeight();
     }
 
-    EXPORT void wxSize_SetWidth(wxSize* s, int w)
+    EXPORT void wxSize_SetWidth(wxSize* self, int width)
     {
-        s->SetWidth(w);
+        self->SetWidth(width);
     }
 
-    EXPORT void wxSize_SetHeight(wxSize* s, int h)
+    EXPORT void wxSize_SetHeight(wxSize* self, int height)
     {
-        s->SetHeight(h);
+        self->SetHeight(height);
     }
 
     /*-----------------------------------------------------------------------------
       Rect
     -----------------------------------------------------------------------------*/
-    EXPORT void* wxRect_Create(int x, int y, int w, int h)
+    EXPORT void* wxRect_Create(int x, int y, int width, int height)
     {
-        return new wxRect(x, y, w, h);
+        return new wxRect(x, y, width, height);
     }
 
-    EXPORT void wxRect_Delete(void* r)
+    EXPORT void wxRect_Delete(void* pObject)
     {
-        delete (wxRect*) r;
+        delete (wxRect*) pObject;
     }
 
-    EXPORT int wxRect_GetX(wxRect* r)
+    EXPORT int wxRect_GetX(wxRect* self)
     {
-        return r->GetX();
+        return self->GetX();
     }
 
-    EXPORT int wxRect_GetY(wxRect* r)
+    EXPORT int wxRect_GetY(wxRect* self)
     {
-        return r->GetY();
+        return self->GetY();
     }
 
-    EXPORT int wxRect_GetWidth(wxRect* r)
+    EXPORT int wxRect_GetWidth(wxRect* self)
     {
-        return r->GetWidth();
+        return self->GetWidth();
     }
 
-    EXPORT int wxRect_GetHeight(wxRect* r)
+    EXPORT int wxRect_GetHeight(wxRect* self)
     {
-        return r->GetHeight();
+        return self->GetHeight();
     }
 
-    EXPORT void wxRect_SetX(wxRect* r, int x)
+    EXPORT void wxRect_SetX(wxRect* self, int x)
     {
-        r->SetX(x);
+        self->SetX(x);
     }
 
-    EXPORT void wxRect_SetY(wxRect* r, int y)
+    EXPORT void wxRect_SetY(wxRect* self, int y)
     {
-        r->SetY(y);
+        self->SetY(y);
     }
 
-    EXPORT void wxRect_SetWidth(wxRect* r, int w)
+    EXPORT void wxRect_SetWidth(wxRect* self, int width)
     {
-        r->SetWidth(w);
+        self->SetWidth(width);
     }
 
-    EXPORT void wxRect_SetHeight(wxRect* r, int h)
+    EXPORT void wxRect_SetHeight(wxRect* self, int height)
     {
-        r->SetHeight(h);
+        self->SetHeight(height);
     }
 
     /*-----------------------------------------------------------------------------
@@ -1365,34 +1365,34 @@ extern "C"
         return new wxString(wxVERSION_STRING);
     }
 
-    EXPORT int wxIsDefined(char* s)
+    EXPORT int wxIsDefined(char* name)
     {
         int i;
-        if (s == nullptr)
+        if (name == nullptr)
             return 0;
         /* check define */
         for (i = 0; defineDefs[i] != nullptr; i++)
         {
-            if (strcmp(s, defineDefs[i]) == 0)
+            if (strcmp(name, defineDefs[i]) == 0)
                 return 1;
         }
         /* check wxUSE_XXX */
-        if (strncmp(s, "wxUSE_", 6) == 0)
+        if (strncmp(name, "wxUSE_", 6) == 0)
         {
-            const char* t = s + 6;
+            const char* suffix = name + 6;
             for (i = 0; useDefs[i] != nullptr; i++)
             {
-                if (strcmp(t, useDefs[i]) == 0)
+                if (strcmp(suffix, useDefs[i]) == 0)
                     return 1;
             }
         }
         /* check wxHAS_XXX */
-        if (strncmp(s, "wxHAS_", 6) == 0)
+        if (strncmp(name, "wxHAS_", 6) == 0)
         {
-            const char* t = s + 6;
+            const char* suffix = name + 6;
             for (i = 0; hasDefs[i] != nullptr; i++)
             {
-                if (strcmp(t, hasDefs[i]) == 0)
+                if (strcmp(suffix, hasDefs[i]) == 0)
                     return 1;
             }
         }
@@ -1404,10 +1404,10 @@ extern "C"
         return malloc(size);
     }
 
-    EXPORT void wxcFree(void* p)
+    EXPORT void wxcFree(void* pObject)
     {
-        if (p != nullptr)
-            free(p);
+        if (pObject != nullptr)
+            free(pObject);
     }
 
     EXPORT wxColour* wxcSystemSettingsGetColour(int systemColour)
@@ -1810,10 +1810,10 @@ extern "C"
         return (void*) &self->GetDefaultStyle();
     }
 
-    EXPORT wxString* wxTextCtrl_GetRange(wxTextCtrl* self, long from, long to)
+    EXPORT wxString* wxTextCtrl_GetRange(wxTextCtrl* self, long from, long toPos)
     {
         wxString* result = new wxString();
-        *result = self->GetRange(from, to);
+        *result = self->GetRange(from, toPos);
         return result;
     }
 
@@ -2215,9 +2215,9 @@ extern "C"
         self->ReadCustomization(cfg, *path);
     }
 
-    EXPORT void wxHtmlWindow_SetBorders(wxHtmlWindow* self, int b)
+    EXPORT void wxHtmlWindow_SetBorders(wxHtmlWindow* self, int borders)
     {
-        self->SetBorders(b);
+        self->SetBorders(borders);
     }
 
     EXPORT void wxHtmlWindow_SetFonts(wxHtmlWindow* self, wxString* normal_face,
@@ -2288,9 +2288,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxLog_OnLog(wxLog* self, int level, void* szString, int t)
+    EXPORT void wxLog_OnLog(wxLog* self, int level, void* szString, int timestamp)
     {
-        self->OnLog((wxLogLevel) level, (const char*) szString, (time_t) t);
+        self->OnLog((wxLogLevel) level, (const char*) szString, (time_t) timestamp);
     }
 
     EXPORT void wxLog_Flush(wxLog* self)
@@ -2351,9 +2351,9 @@ extern "C"
         self->RemoveTraceMask((const char*) str);
     }
 
-    EXPORT void wxLog_SetTimestamp(wxLog* self, void* ts)
+    EXPORT void wxLog_SetTimestamp(wxLog* self, void* timestamp)
     {
-        self->SetTimestamp((const char*) ts);
+        self->SetTimestamp((const char*) timestamp);
     }
 
     EXPORT bool wxLog_GetVerbose(wxLog* self)

@@ -21,21 +21,21 @@ extern "C"
         return (void*) self->GetCurrentPage();
     }
 
-    EXPORT void wxWizard_Chain(void* f, void* s)
+    EXPORT void wxWizard_Chain(void* first, void* second)
     {
-        wxWizardPageSimple::Chain((wxWizardPageSimple*) f, (wxWizardPageSimple*) s);
+        wxWizardPageSimple::Chain((wxWizardPageSimple*) first, (wxWizardPageSimple*) second);
     }
 
-    EXPORT void wxWizard_SetPageSize(wxWizard* self, int w, int h)
+    EXPORT void wxWizard_SetPageSize(wxWizard* self, int width, int height)
     {
-        self->SetPageSize(wxSize(w, h));
+        self->SetPageSize(wxSize(width, height));
     }
 
     EXPORT wxSize* wxWizard_GetPageSize(wxWizard* self)
     {
-        wxSize* sz = new wxSize();
-        *sz = self->GetPageSize();
-        return sz;
+        wxSize* text = new wxSize();
+        *text = self->GetPageSize();
+        return text;
     }
 
     EXPORT void* wxWizardPageSimple_Create(wxWizard* parent, wxWizardPage* prev, wxWizardPage* next,

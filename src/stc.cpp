@@ -427,31 +427,31 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetKey(void* pObject, int k)
+    EXPORT void wxStyledTextEvent_SetKey(void* pObject, int keyCode)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) pObject)->SetKey(k);
+        ((wxStyledTextEvent*) pObject)->SetKey(keyCode);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetModifiers(void* pObject, int m)
+    EXPORT void wxStyledTextEvent_SetModifiers(void* pObject, int modifiers)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) pObject)->SetModifiers(m);
+        ((wxStyledTextEvent*) pObject)->SetModifiers(modifiers);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetModificationType(void* pObject, int t)
+    EXPORT void wxStyledTextEvent_SetModificationType(void* pObject, int modType)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) pObject)->SetModificationType(t);
+        ((wxStyledTextEvent*) pObject)->SetModificationType(modType);
 #endif
     }
 
-    EXPORT void wxStyledTextEvent_SetText(void* pObject, void* t)
+    EXPORT void wxStyledTextEvent_SetText(void* pObject, void* text)
     {
 #ifdef wxUSE_STC
-        ((wxStyledTextEvent*) pObject)->SetText(*(wxString*) t);
+        ((wxStyledTextEvent*) pObject)->SetText(*(wxString*) text);
 #endif
     }
 

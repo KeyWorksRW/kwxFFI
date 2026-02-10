@@ -124,8 +124,8 @@ extern "C"
         self->Enable(enable);
     }
 
-    EXPORT void wxMenuBar_SetLabel(wxMenuBar* self, wxString* s)
+    EXPORT void wxMenuBar_SetLabel(wxMenuBar* self, wxString* str)
     {
-        self->SetLabel(*s);
+        self->SetLabel(*str);
     }
 }

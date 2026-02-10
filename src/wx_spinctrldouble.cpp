@@ -3,11 +3,11 @@
 extern "C"
 {
     EXPORT wxSpinCtrlDouble* wxSpinCtrlDouble_Create(wxWindow* parent, int id, wxString* value,
-                                                     int x, int y, int w, int h, int style,
+                                                     int x, int y, int width, int height, int style,
                                                      double min, double max, double initial,
                                                      double inc)
     {
-        return new wxSpinCtrlDouble(parent, id, *value, wxPoint(x, y), wxSize(w, h), style, min,
+        return new wxSpinCtrlDouble(parent, id, *value, wxPoint(x, y), wxSize(width, height), style, min,
                                     max, initial, inc);
     }
 

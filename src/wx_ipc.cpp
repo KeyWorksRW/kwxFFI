@@ -55,9 +55,9 @@ extern "C"
         return self->Disconnect();
     }
 
-    EXPORT void kwxConnection_Compress(void* self, bool on)
+    EXPORT void kwxConnection_Compress(void* self, bool enable)
     {
-        ((kwxConnection*) self)->Compress(on);
+        ((kwxConnection*) self)->Compress(enable);
     }
 
     EXPORT void kwxConnection_SetOnAdvise(void* self, void* pFunction)
@@ -95,9 +95,9 @@ extern "C"
         ((kwxConnection*) self)->SetOnDisconnect(pFunction);
     }
 
-    EXPORT void* kwxServer_Create(void* eiffelObject, void* connectFunc)
+    EXPORT void* kwxServer_Create(void* kwxObject, void* connectFunc)
     {
-        return new kwxServer(eiffelObject, connectFunc);
+        return new kwxServer(kwxObject, connectFunc);
     }
 
     EXPORT void kwxServer_Delete(void* self)
@@ -110,9 +110,9 @@ extern "C"
         return ((kwxServer*) self)->Create(*name);
     }
 
-    EXPORT void* kwxClient_Create(void* eiffelObject, void* connectFunc)
+    EXPORT void* kwxClient_Create(void* kwxObject, void* connectFunc)
     {
-        return new kwxClient(eiffelObject, connectFunc);
+        return new kwxClient(kwxObject, connectFunc);
     }
 
     EXPORT void kwxClient_Delete(void* self)

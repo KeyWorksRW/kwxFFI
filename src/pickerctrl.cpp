@@ -4,10 +4,10 @@
 extern "C"
 {
     EXPORT wxColourPickerCtrl* wxColorPickerCtrl_Create(wxWindow* parent, int id,
-                                                        const wxColour& colour, int x, int y, int w,
-                                                        int h, int style)
+                                                        const wxColour& colour, int x, int y, int width,
+                                                        int height, int style)
     {
-        return new wxColourPickerCtrl(parent, id, colour, wxPoint(x, y), wxSize(w, h), style);
+        return new wxColourPickerCtrl(parent, id, colour, wxPoint(x, y), wxSize(width, height), style);
     }
 
     EXPORT void wxColorPickerCtrl_GetColour(wxColourPickerCtrl* self, wxColour* colour)

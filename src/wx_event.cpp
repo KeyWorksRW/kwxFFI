@@ -90,9 +90,9 @@ extern "C"
         self->SetEventObject(obj);
     }
 
-    EXPORT void wxEvent_SetTimestamp(wxEvent* self, int ts)
+    EXPORT void wxEvent_SetTimestamp(wxEvent* self, int timestamp)
     {
-        self->SetTimestamp((long) ts);
+        self->SetTimestamp((long) timestamp);
     }
 
     EXPORT int wxEvent_GetId(wxEvent* self)
@@ -155,9 +155,9 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT void wxCommandEvent_SetString(wxCommandEvent* self, wxString* s)
+    EXPORT void wxCommandEvent_SetString(wxCommandEvent* self, wxString* str)
     {
-        self->SetString(*s);
+        self->SetString(*str);
     }
 
     EXPORT wxString* wxCommandEvent_GetString(wxCommandEvent* self)
@@ -187,9 +187,9 @@ extern "C"
         return self->GetExtraLong();
     }
 
-    EXPORT void wxCommandEvent_SetInt(wxCommandEvent* self, int i)
+    EXPORT void wxCommandEvent_SetInt(wxCommandEvent* self, int intValue)
     {
-        self->SetInt(i);
+        self->SetInt(intValue);
     }
 
     EXPORT long wxCommandEvent_GetInt(wxCommandEvent* self)

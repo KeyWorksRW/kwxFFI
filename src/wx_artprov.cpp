@@ -3,21 +3,21 @@
 
 extern "C"
 {
-    typedef void* (*TCreateBmp)(void* pObject, void* id, void* clt, int w, int h);
+    typedef void* (*TCreateBmp)(void* pObject, void* id, void* clt, int width, int height);
 }
 
 class kwxArtProv : public wxArtProvider
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TCreateBmp cb;
 
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client, const wxSize& size)
     {
-        if (EiffelObject)
+        if (kwxObject)
         {
-            void* res = cb(EiffelObject, (void*) id.wchar_str(), (void*) client.wchar_str(),
+            void* res = cb(kwxObject, (void*) id.wchar_str(), (void*) client.wchar_str(),
                            size.GetWidth(), size.GetHeight());
 
             if (res)
@@ -31,12 +31,12 @@ protected:
 public:
     kwxArtProv(void* obj, void* clb)
     {
-        EiffelObject = obj;
+        kwxObject = obj;
         cb = (TCreateBmp) clb;
     };
     void Release()
     {
-        EiffelObject = nullptr;
+        kwxObject = nullptr;
         cb = nullptr;
     };
 };

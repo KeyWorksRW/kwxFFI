@@ -14,9 +14,9 @@ extern "C"
         ((wxTipWindow*) pObject)->SetTipWindowPtr((wxTipWindow**) windowPtr);
     }
 
-    EXPORT void wxTipWindow_SetBoundingRect(void* pObject, int x, int y, int w, int h)
+    EXPORT void wxTipWindow_SetBoundingRect(void* pObject, int x, int y, int width, int height)
     {
-        ((wxTipWindow*) pObject)->SetBoundingRect(wxRect(x, y, w, h));
+        ((wxTipWindow*) pObject)->SetBoundingRect(wxRect(x, y, width, height));
     }
 
     EXPORT void wxTipWindow_Close(void* pObject)

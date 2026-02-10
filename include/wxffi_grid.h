@@ -18,7 +18,7 @@ extern "C"
 class kwxGridTable : public wxGridTableBase
 {
 private:
-    void* EiffelObject;
+    void* kwxObject;
     TGridGetInt EifGetNumberRows;
     TGridGetInt EifGetNumberCols;
     TGridGetValue EifGetValue;
@@ -44,7 +44,7 @@ public:
                  void* fnSetColLabelValue, void* fnGetRowLabelValue,
                  void* fnGetColLabelValue) : wxGridTableBase()
     {
-        EiffelObject = pObject;
+        kwxObject = pObject;
         EifGetNumberRows = (TGridGetInt) fnGetNumberRows;
         EifGetNumberCols = (TGridGetInt) fnGetNumberCols;
         EifGetValue = (TGridGetValue) fnGetValue;
@@ -63,52 +63,52 @@ public:
         EifGetColLabelValue = (TGridGetLabel) fnGetColLabelValue;
     };
 
-    int GetNumberRows() { return EifGetNumberRows(EiffelObject); };
-    int GetNumberCols() { return EifGetNumberCols(EiffelObject); };
+    int GetNumberRows() { return EifGetNumberRows(kwxObject); };
+    int GetNumberCols() { return EifGetNumberCols(kwxObject); };
     wxString GetValue(int row, int col)
     {
-        return (const char*) EifGetValue(EiffelObject, row, col);
+        return (const char*) EifGetValue(kwxObject, row, col);
     };
     void SetValue(int row, int col, const wxString& s)
     {
-        EifSetValue(EiffelObject, row, col, (void*) s.utf8_str().data());
+        EifSetValue(kwxObject, row, col, (void*) s.utf8_str().data());
     };
-    bool IsEmptyCell(int row, int col) { return EifIsEmptyCell(EiffelObject, row, col) != 0; };
+    bool IsEmptyCell(int row, int col) { return EifIsEmptyCell(kwxObject, row, col) != 0; };
 
-    void Clear() { EifClear(EiffelObject); };
+    void Clear() { EifClear(kwxObject); };
     bool InsertRows(size_t pos, size_t numRows)
     {
-        return EifInsertRows(EiffelObject, (int) pos, (int) numRows) != 0;
+        return EifInsertRows(kwxObject, (int) pos, (int) numRows) != 0;
     };
-    bool AppendRows(size_t numRows) { return EifAppendRows(EiffelObject, (int) numRows) != 0; };
+    bool AppendRows(size_t numRows) { return EifAppendRows(kwxObject, (int) numRows) != 0; };
     bool DeleteRows(size_t pos, size_t numRows)
     {
-        return EifDeleteRows(EiffelObject, (int) pos, (int) numRows) != 0;
+        return EifDeleteRows(kwxObject, (int) pos, (int) numRows) != 0;
     };
     bool InsertCols(size_t pos, size_t numCols)
     {
-        return EifInsertCols(EiffelObject, (int) pos, (int) numCols) != 0;
+        return EifInsertCols(kwxObject, (int) pos, (int) numCols) != 0;
     };
-    bool AppendCols(size_t numCols) { return EifAppendCols(EiffelObject, (int) numCols) != 0; };
+    bool AppendCols(size_t numCols) { return EifAppendCols(kwxObject, (int) numCols) != 0; };
     bool DeleteCols(size_t pos, size_t numCols)
     {
-        return EifDeleteCols(EiffelObject, (int) pos, (int) numCols) != 0;
+        return EifDeleteCols(kwxObject, (int) pos, (int) numCols) != 0;
     };
 
     void SetRowLabelValue(int row, const wxString& s)
     {
-        EifSetRowLabelValue(EiffelObject, row, (void*) s.utf8_str().data());
+        EifSetRowLabelValue(kwxObject, row, (void*) s.utf8_str().data());
     };
     void SetColLabelValue(int col, const wxString& s)
     {
-        EifSetColLabelValue(EiffelObject, col, (void*) s.utf8_str().data());
+        EifSetColLabelValue(kwxObject, col, (void*) s.utf8_str().data());
     };
     wxString GetRowLabelValue(int row)
     {
-        return (const char*) EifGetRowLabelValue(EiffelObject, row);
+        return (const char*) EifGetRowLabelValue(kwxObject, row);
     };
     wxString GetColLabelValue(int col)
     {
-        return (const char*) EifGetColLabelValue(EiffelObject, col);
+        return (const char*) EifGetColLabelValue(kwxObject, col);
     };
 };

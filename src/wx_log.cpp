@@ -11,20 +11,20 @@ class kwxLog : public wxLog
 {
 private:
     TLogFunc func;
-    void* EiffelObject;
+    void* kwxObject;
 
 protected:
     virtual void DoLog(wxLogLevel level, const char* szString, time_t t)
     {
         wxString s(szString);
-        func(EiffelObject, (int) level, (void*) &s, (int) t);
+        func(kwxObject, (int) level, (void*) &s, (int) t);
     }
 
 public:
     kwxLog(void* pObject, void* pFunction) : wxLog()
     {
         func = (TLogFunc) pFunction;
-        EiffelObject = pObject;
+        kwxObject = pObject;
     }
 };
 
@@ -50,9 +50,9 @@ extern "C"
         return (int) self->EnableLogging(doIt);
     }
 
-    EXPORT void kwxLog_OnLog(kwxLog* self, int level, void* szString, int t)
+    EXPORT void kwxLog_OnLog(kwxLog* self, int level, void* szString, int timestamp)
     {
-        self->OnLog((wxLogLevel) level, (const char*) szString, (time_t) t);
+        self->OnLog((wxLogLevel) level, (const char*) szString, (time_t) timestamp);
     }
 
     EXPORT void kwxLog_Flush(kwxLog* self)
@@ -110,9 +110,9 @@ extern "C"
         self->RemoveTraceMask((const char*) str);
     }
 
-    EXPORT void kwxLog_SetTimestamp(kwxLog* self, void* ts)
+    EXPORT void kwxLog_SetTimestamp(kwxLog* self, void* timestamp)
     {
-        self->SetTimestamp((const char*) ts);
+        self->SetTimestamp((const char*) timestamp);
     }
 
     EXPORT int kwxLog_GetVerbose(kwxLog* self)

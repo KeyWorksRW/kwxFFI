@@ -41,9 +41,9 @@ extern "C"
         self->RefreshRow(row);
     }
 
-    EXPORT void wxVScrolledWindow_RefreshRows(wxVScrolledWindow* self, size_t from, size_t to)
+    EXPORT void wxVScrolledWindow_RefreshRows(wxVScrolledWindow* self, size_t from, size_t toPos)
     {
-        self->RefreshRows(from, to);
+        self->RefreshRows(from, toPos);
     }
 
     EXPORT bool wxVScrolledWindow_ScrollRowPages(wxVScrolledWindow* self, int pages)
@@ -100,9 +100,9 @@ extern "C"
         self->RefreshColumn(column);
     }
 
-    EXPORT void wxHScrolledWindow_RefreshColumns(wxHScrolledWindow* self, size_t from, size_t to)
+    EXPORT void wxHScrolledWindow_RefreshColumns(wxHScrolledWindow* self, size_t from, size_t toPos)
     {
-        self->RefreshColumns(from, to);
+        self->RefreshColumns(from, toPos);
     }
 
     EXPORT bool wxHScrolledWindow_ScrollColumnPages(wxHScrolledWindow* self, int pages)

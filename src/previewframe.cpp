@@ -11,10 +11,10 @@ extern "C"
       PreviewFrame
     -----------------------------------------------------------------------------*/
     EXPORT wxPreviewFrame* wxPreviewFrame_Create(wxPrintPreview* preview, wxFrame* parent,
-                                                 wxString* title, int x, int y, int w, int h,
+                                                 wxString* title, int x, int y, int width, int height,
                                                  int style, wxString* name)
     {
-        return new wxPreviewFrame(preview, parent, *title, wxPoint(x, y), wxSize(w, h), style,
+        return new wxPreviewFrame(preview, parent, *title, wxPoint(x, y), wxSize(width, height), style,
                                   *name);
     }
 

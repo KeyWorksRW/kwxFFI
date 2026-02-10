@@ -95,29 +95,29 @@ extern "C"
         return wxDateTime::IsDSTApplicable(year, (wxDateTime::Country) country);
     }
 
-    EXPORT void wxDateTime_GetBeginDST(int year, int country, wxDateTime* dt)
+    EXPORT void wxDateTime_GetBeginDST(int year, int country, wxDateTime* dateTime)
     {
-        *dt = wxDateTime::GetBeginDST(year, (wxDateTime::Country) country);
+        *dateTime = wxDateTime::GetBeginDST(year, (wxDateTime::Country) country);
     }
 
-    EXPORT void wxDateTime_GetEndDST(int year, int country, wxDateTime* dt)
+    EXPORT void wxDateTime_GetEndDST(int year, int country, wxDateTime* dateTime)
     {
-        *dt = wxDateTime::GetEndDST(year, (wxDateTime::Country) country);
+        *dateTime = wxDateTime::GetEndDST(year, (wxDateTime::Country) country);
     }
 
-    EXPORT void wxDateTime_Now(wxDateTime* dt)
+    EXPORT void wxDateTime_Now(wxDateTime* dateTime)
     {
-        *dt = wxDateTime::Now();
+        *dateTime = wxDateTime::Now();
     }
 
-    EXPORT void wxDateTime_UNow(wxDateTime* dt)
+    EXPORT void wxDateTime_UNow(wxDateTime* dateTime)
     {
-        *dt = wxDateTime::UNow();
+        *dateTime = wxDateTime::UNow();
     }
 
-    EXPORT void wxDateTime_Today(wxDateTime* dt)
+    EXPORT void wxDateTime_Today(wxDateTime* dateTime)
     {
-        *dt = wxDateTime::Today();
+        *dateTime = wxDateTime::Today();
     }
 
     EXPORT void wxDateTime_SetToCurrent(wxDateTime* self)
@@ -188,7 +188,7 @@ extern "C"
                                                 wxDateTime* ref)
     {
         *ref = self->GetWeekDayInSameWeek((wxDateTime::WeekDay) weekday,
-                                           (wxDateTime::WeekFlags) flags);
+                                          (wxDateTime::WeekFlags) flags);
     }
 
     EXPORT void wxDateTime_SetToNextWeekDay(wxDateTime* self, int weekday)
@@ -211,16 +211,18 @@ extern "C"
         *ref = self->GetPrevWeekDay((wxDateTime::WeekDay) weekday);
     }
 
-    EXPORT bool wxDateTime_SetToWeekDay(wxDateTime* self, int weekday, int n, int month, int year)
+    EXPORT bool wxDateTime_SetToWeekDay(wxDateTime* self, int weekday, int nthWeek, int month,
+                                        int year)
     {
-        return self->SetToWeekDay((wxDateTime::WeekDay) weekday, n, (wxDateTime::Month) month,
+        return self->SetToWeekDay((wxDateTime::WeekDay) weekday, nthWeek, (wxDateTime::Month) month,
                                   year);
     }
 
-    EXPORT void wxDateTime_GetWeekDay(wxDateTime* self, int weekday, int n, int month, int year,
-                                      wxDateTime* ref)
+    EXPORT void wxDateTime_GetWeekDay(wxDateTime* self, int weekday, int nthWeek, int month,
+                                      int year, wxDateTime* ref)
     {
-        *ref = self->GetWeekDay((wxDateTime::WeekDay) weekday, n, (wxDateTime::Month) month, year);
+        *ref = self->GetWeekDay((wxDateTime::WeekDay) weekday, nthWeek, (wxDateTime::Month) month,
+                                year);
     }
 
     EXPORT bool wxDateTime_SetToLastWeekDay(wxDateTime* self, int weekday, int month, int year)
@@ -232,8 +234,7 @@ extern "C"
     EXPORT void wxDateTime_GetLastWeekDay(wxDateTime* self, int weekday, int month, int year,
                                           wxDateTime* ref)
     {
-        *ref =
-            self->GetLastWeekDay((wxDateTime::WeekDay) weekday, (wxDateTime::Month) month, year);
+        *ref = self->GetLastWeekDay((wxDateTime::WeekDay) weekday, (wxDateTime::Month) month, year);
     }
 
     EXPORT void wxDateTime_SetToLastMonthDay(wxDateTime* self, int month, int year)
@@ -246,14 +247,14 @@ extern "C"
         *ref = self->GetLastMonthDay((wxDateTime::Month) month, year);
     }
 
-    EXPORT void wxDateTime_ToTimezone(wxDateTime* self, int tz, bool noDST)
+    EXPORT void wxDateTime_ToTimezone(wxDateTime* self, int timeZone, bool noDST)
     {
-        self->ToTimezone(wxDateTime::TimeZone((wxDateTime::TZ) tz), noDST);
+        self->ToTimezone(wxDateTime::TimeZone((wxDateTime::TZ) timeZone), noDST);
     }
 
-    EXPORT void wxDateTime_MakeTimezone(wxDateTime* self, int tz, bool noDST)
+    EXPORT void wxDateTime_MakeTimezone(wxDateTime* self, int timeZone, bool noDST)
     {
-        self->MakeTimezone(wxDateTime::TimeZone((wxDateTime::TZ) tz), noDST);
+        self->MakeTimezone(wxDateTime::TimeZone((wxDateTime::TZ) timeZone), noDST);
     }
 
     EXPORT void wxDateTime_ToGMT(wxDateTime* self, bool noDST)
@@ -281,61 +282,61 @@ extern "C"
         return self->GetTicks();
     }
 
-    EXPORT int wxDateTime_GetYear(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetYear(wxDateTime* self, int timeZone)
     {
-        return self->GetYear(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return self->GetYear(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetMonth(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetMonth(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetMonth(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetMonth(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetDay(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetDay(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetDay(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetDay(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetWeekDayTZ(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetWeekDayTZ(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetWeekDay(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetWeekDay(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetHour(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetHour(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetHour(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetHour(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetMinute(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetMinute(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetMinute(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetMinute(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetSecond(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetSecond(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetSecond(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetSecond(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetMillisecond(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetMillisecond(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetMillisecond(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetMillisecond(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetDayOfYear(wxDateTime* self, int tz)
+    EXPORT int wxDateTime_GetDayOfYear(wxDateTime* self, int timeZone)
     {
-        return (int) self->GetDayOfYear(wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        return (int) self->GetDayOfYear(wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetWeekOfYear(wxDateTime* self, int flags, int tz)
+    EXPORT int wxDateTime_GetWeekOfYear(wxDateTime* self, int flags, int timeZone)
     {
         return (int) self->GetWeekOfYear((wxDateTime::WeekFlags) flags,
-                                         wxDateTime::TimeZone((wxDateTime::TZ) tz));
+                                         wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT int wxDateTime_GetWeekOfMonth(wxDateTime* self, int flags, int tz)
+    EXPORT int wxDateTime_GetWeekOfMonth(wxDateTime* self, int flags, int timeZone)
     {
         return (int) self->GetWeekOfMonth((wxDateTime::WeekFlags) flags,
-                                          wxDateTime::TimeZone((wxDateTime::TZ) tz));
+                                          wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
     EXPORT bool wxDateTime_IsWorkDay(wxDateTime* self, int country)
@@ -368,19 +369,19 @@ extern "C"
         return self->IsBetween(*t1, *t2);
     }
 
-    EXPORT bool wxDateTime_IsSameDate(wxDateTime* self, wxDateTime* dt)
+    EXPORT bool wxDateTime_IsSameDate(wxDateTime* self, wxDateTime* dateTime)
     {
-        return self->IsSameDate(*dt);
+        return self->IsSameDate(*dateTime);
     }
 
-    EXPORT bool wxDateTime_IsSameTime(wxDateTime* self, wxDateTime* dt)
+    EXPORT bool wxDateTime_IsSameTime(wxDateTime* self, wxDateTime* dateTime)
     {
-        return self->IsSameTime(*dt);
+        return self->IsSameTime(*dateTime);
     }
 
-    EXPORT bool wxDateTime_IsEqualUpTo(wxDateTime* self, wxDateTime* dt, wxTimeSpan* ts)
+    EXPORT bool wxDateTime_IsEqualUpTo(wxDateTime* self, wxDateTime* dateTime, wxTimeSpan* timeSpan)
     {
-        return self->IsEqualUpTo(*dt, *ts);
+        return self->IsEqualUpTo(*dateTime, *timeSpan);
     }
 
     EXPORT void wxDateTime_AddTime(wxDateTime* self, wxTimeSpan* diff, wxDateTime* ref)
@@ -498,10 +499,11 @@ extern "C"
             return nullptr;
     }
 
-    EXPORT wxString* wxDateTime_Format(wxDateTime* self, void* format, int tz)
+    EXPORT wxString* wxDateTime_Format(wxDateTime* self, void* format, int timeZone)
     {
         wxString* result = new wxString();
-        *result = self->Format((const char*) format, wxDateTime::TimeZone((wxDateTime::TZ) tz));
+        *result =
+            self->Format((const char*) format, wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
         return result;
     }
 
@@ -550,7 +552,8 @@ extern "C"
         return (int) wxDateTime::GetTimeNow();
     }
 
-    EXPORT void wxDateTime_AddTimeValues(wxDateTime* self, int hours, int minVal, int seconds, int milliseconds)
+    EXPORT void wxDateTime_AddTimeValues(wxDateTime* self, int hours, int minVal, int seconds,
+                                         int milliseconds)
     {
         self->Add(wxTimeSpan((long) hours, (long) minVal, (long) seconds, (long) milliseconds));
     }
