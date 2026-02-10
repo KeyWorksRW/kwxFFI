@@ -93,9 +93,10 @@ extern "C"
     }
 
     // Description box
-    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self, int ht)
+    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self, int ht,
+                                                       bool refresh)
     {
-        self->SetDescBoxHeight(ht);
+        self->SetDescBoxHeight(ht, refresh);
     }
 
     EXPORT int wxPropertyGridManager_GetDescBoxHeight(wxPropertyGridManager* self)

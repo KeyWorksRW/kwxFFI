@@ -11,12 +11,17 @@ extern "C"
     }
 
     // Button management - Add methods
-    EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_AddButton(wxRibbonButtonBar* self,
-                                                                    int button_id, wxString* label,
-                                                                    wxBitmap* bitmap,
-                                                                    wxString* help_string, int kind)
+    EXPORT wxRibbonButtonBarButtonBase*
+        wxRibbonButtonBar_AddButton(wxRibbonButtonBar* self, int button_id, wxString* label,
+                                    wxBitmap* bitmap, wxBitmap* bitmap_small,
+                                    wxBitmap* bitmap_disabled, wxBitmap* bitmap_small_disabled,
+                                    wxString* help_string, int kind)
     {
-        return self->AddButton(button_id, *label, *bitmap, *help_string, (wxRibbonButtonKind) kind);
+        wxBitmap bmpSmall = bitmap_small ? *bitmap_small : wxNullBitmap;
+        wxBitmap bmpDisabled = bitmap_disabled ? *bitmap_disabled : wxNullBitmap;
+        wxBitmap bmpSmallDisabled = bitmap_small_disabled ? *bitmap_small_disabled : wxNullBitmap;
+        return self->AddButton(button_id, *label, *bitmap, bmpSmall, bmpDisabled, bmpSmallDisabled,
+                               (wxRibbonButtonKind) kind, *help_string);
     }
 
     EXPORT wxRibbonButtonBarButtonBase*
@@ -43,11 +48,15 @@ extern "C"
     // Button management - Insert methods
     EXPORT wxRibbonButtonBarButtonBase*
         wxRibbonButtonBar_InsertButton(wxRibbonButtonBar* self, size_t pos, int button_id,
-                                       wxString* label, wxBitmap* bitmap, wxString* help_string,
-                                       int kind)
+                                       wxString* label, wxBitmap* bitmap, wxBitmap* bitmap_small,
+                                       wxBitmap* bitmap_disabled, wxBitmap* bitmap_small_disabled,
+                                       wxString* help_string, int kind)
     {
-        return self->InsertButton(pos, button_id, *label, *bitmap, *help_string,
-                                  (wxRibbonButtonKind) kind);
+        wxBitmap bmpSmall = bitmap_small ? *bitmap_small : wxNullBitmap;
+        wxBitmap bmpDisabled = bitmap_disabled ? *bitmap_disabled : wxNullBitmap;
+        wxBitmap bmpSmallDisabled = bitmap_small_disabled ? *bitmap_small_disabled : wxNullBitmap;
+        return self->InsertButton(pos, button_id, *label, *bitmap, bmpSmall, bmpDisabled,
+                                  bmpSmallDisabled, (wxRibbonButtonKind) kind, *help_string);
     }
 
     EXPORT wxRibbonButtonBarButtonBase*
@@ -92,9 +101,14 @@ extern "C"
     }
 
     EXPORT void wxRibbonButtonBar_SetButtonIcon(wxRibbonButtonBar* self, int button_id,
-                                                wxBitmap* bitmap)
+                                                wxBitmap* bitmap, wxBitmap* bitmap_small,
+                                                wxBitmap* bitmap_disabled,
+                                                wxBitmap* bitmap_small_disabled)
     {
-        self->SetButtonIcon(button_id, *bitmap);
+        wxBitmap bmpSmall = bitmap_small ? *bitmap_small : wxNullBitmap;
+        wxBitmap bmpDisabled = bitmap_disabled ? *bitmap_disabled : wxNullBitmap;
+        wxBitmap bmpSmallDisabled = bitmap_small_disabled ? *bitmap_small_disabled : wxNullBitmap;
+        self->SetButtonIcon(button_id, *bitmap, bmpSmall, bmpDisabled, bmpSmallDisabled);
     }
 
     EXPORT void wxRibbonButtonBar_SetButtonText(wxRibbonButtonBar* self, int button_id,

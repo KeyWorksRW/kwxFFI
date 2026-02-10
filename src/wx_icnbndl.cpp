@@ -38,8 +38,8 @@ extern "C"
         ((wxIconBundle*) _obj)->AddIcon(*((wxIcon*) icon));
     }
 
-    EXPORT void wxIconBundle_GetIcon(void* _obj, int w, int h, void* _ref)
+    EXPORT void wxIconBundle_GetIcon(void* _obj, int w, int h, int flags, void* _ref)
     {
-        *((wxIcon*) _ref) = ((wxIconBundle*) _obj)->GetIcon(wxSize(w, h));
+        *((wxIcon*) _ref) = ((wxIconBundle*) _obj)->GetIcon(wxSize(w, h), flags);
     }
 }

@@ -73,14 +73,14 @@ extern "C"
         self->Remove(from, to);
     }
 
-    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file)
+    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file, int fileType)
     {
-        return self->LoadFile(*file);
+        return self->LoadFile(*file, fileType);
     }
 
-    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file)
+    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file, int fileType)
     {
-        return self->SaveFile(*file);
+        return self->SaveFile(*file, fileType);
     }
 
     EXPORT void wxTextCtrl_DiscardEdits(wxTextCtrl* self)

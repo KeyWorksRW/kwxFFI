@@ -259,10 +259,10 @@ extern "C"
         return self->SetItemImage((long) item, image, selImage);
     }
 
-    EXPORT wxString* wxListCtrl_GetItemText(wxListCtrl* self, int item)
+    EXPORT wxString* wxListCtrl_GetItemText(wxListCtrl* self, int item, int col)
     {
         wxString* result = new wxString();
-        *result = self->GetItemText((long) item);
+        *result = self->GetItemText((long) item, col);
         return result;
     }
 
@@ -435,9 +435,9 @@ extern "C"
         return (int) self->FindItem((long) start, wxPoint(x, y), direction);
     }
 
-    EXPORT int wxListCtrl_HitTest(wxListCtrl* self, int x, int y, void* flags)
+    EXPORT int wxListCtrl_HitTest(wxListCtrl* self, int x, int y, void* flags, long* pSubItem)
     {
-        return self->HitTest(wxPoint(x, y), *((int*) flags));
+        return self->HitTest(wxPoint(x, y), *((int*) flags), pSubItem);
     }
 
     EXPORT int wxListCtrl_InsertItem(wxListCtrl* self, wxListItem* info)

@@ -412,9 +412,9 @@ extern "C"
         return self->AttachUnknownControl(*name, control, parent);
     }
 
-    EXPORT int wxXmlResource_GetXRCID(wxXmlResource* self, wxString* str_id)
+    EXPORT int wxXmlResource_GetXRCID(wxXmlResource* self, wxString* str_id, int value_if_not_found)
     {
-        return self->GetXRCID(*str_id);
+        return self->GetXRCID(*str_id, value_if_not_found);
     }
 
     EXPORT long wxXmlResource_GetVersion(wxXmlResource* self)

@@ -3,12 +3,12 @@
 extern "C"
 {
     EXPORT void* wxWizard_Create(wxWindow* parent, int id, wxString* title, wxBitmap* bitmap, int x,
-                                 int y, int width, int height)
+                                 int y, int width, int height, long style)
     {
         wxBitmap bmp = wxNullBitmap;
         if (bitmap)
             bmp = *bitmap;
-        return (void*) new wxWizard(parent, id, *title, bmp, wxPoint(x, y));
+        return (void*) new wxWizard(parent, id, *title, bmp, wxPoint(x, y), style);
     }
 
     EXPORT bool wxWizard_RunWizard(wxWizard* self, wxWizardPage* firstPage)
@@ -38,9 +38,13 @@ extern "C"
         return sz;
     }
 
-    EXPORT void* wxWizardPageSimple_Create(wxWizard* _prt)
+    EXPORT void* wxWizardPageSimple_Create(wxWizard* _prt, wxWizardPage* prev, wxWizardPage* next,
+                                           wxBitmap* bitmap)
     {
-        return (void*) new wxWizardPageSimple(_prt);
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return (void*) new wxWizardPageSimple(_prt, prev, next, bmp);
     }
 
     EXPORT void* wxWizardPageSimple_GetPrev(void* self)

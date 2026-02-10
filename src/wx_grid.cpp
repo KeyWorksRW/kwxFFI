@@ -506,14 +506,14 @@ extern "C"
         *c = cds.GetCol();
     }
 
-    EXPORT int wxGrid_YToRow(wxGrid* self, int y)
+    EXPORT int wxGrid_YToRow(wxGrid* self, int y, bool clipToMinMax)
     {
-        return self->YToRow(y);
+        return self->YToRow(y, clipToMinMax);
     }
 
-    EXPORT int wxGrid_XToCol(wxGrid* self, int x)
+    EXPORT int wxGrid_XToCol(wxGrid* self, int x, bool clipToMinMax)
     {
-        return self->XToCol(x);
+        return self->XToCol(x, clipToMinMax);
     }
 
     EXPORT int wxGrid_YToEdgeOfRow(wxGrid* self, int y)

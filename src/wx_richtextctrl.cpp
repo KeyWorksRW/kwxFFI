@@ -481,14 +481,19 @@ extern "C"
     }
 
     // List operations
-    EXPORT bool wxRichTextCtrl_WriteImage(wxRichTextCtrl* self, wxImage* image, int bitmapType)
+    EXPORT bool wxRichTextCtrl_WriteImage(wxRichTextCtrl* self, wxImage* image, int bitmapType,
+                                          wxRichTextAttr* textAttr)
     {
+        if (textAttr)
+            return self->WriteImage(*image, (wxBitmapType) bitmapType, *textAttr);
         return self->WriteImage(*image, (wxBitmapType) bitmapType);
     }
 
     EXPORT bool wxRichTextCtrl_WriteImageFile(wxRichTextCtrl* self, wxString* filename,
-                                              int bitmapType)
+                                              int bitmapType, wxRichTextAttr* textAttr)
     {
+        if (textAttr)
+            return self->WriteImage(*filename, (wxBitmapType) bitmapType, *textAttr);
         return self->WriteImage(*filename, (wxBitmapType) bitmapType);
     }
 

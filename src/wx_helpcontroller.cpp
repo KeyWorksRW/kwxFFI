@@ -16,11 +16,11 @@ static void InitZipFileSystem()
 
 extern "C"
 {
-    EXPORT void* wxHtmlHelpController_Create(int _style)
+    EXPORT void* wxHtmlHelpController_Create(int _style, wxWindow* parentWindow)
     {
         InitZipFileSystem();
         wxInitAllImageHandlers();
-        return (void*) new wxHtmlHelpController(_style);
+        return (void*) new wxHtmlHelpController(_style, parentWindow);
     }
 
     EXPORT void wxHtmlHelpController_Delete(void* self)
@@ -64,9 +64,10 @@ extern "C"
         self->DisplayIndex();
     }
 
-    EXPORT bool wxHtmlHelpController_KeywordSearch(wxHtmlHelpController* self, wxString* keyword)
+    EXPORT bool wxHtmlHelpController_KeywordSearch(wxHtmlHelpController* self, wxString* keyword,
+                                                   int mode)
     {
-        return self->KeywordSearch(*keyword);
+        return self->KeywordSearch(*keyword, (wxHelpSearchMode) mode);
     }
 
     EXPORT void* wxHtmlHelpController_GetFrame(void* self)

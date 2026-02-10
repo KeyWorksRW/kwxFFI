@@ -65,9 +65,9 @@ extern "C"
         return self->GetTimestamp();
     }
 
-    EXPORT void wxEvent_Skip(wxEvent* self)
+    EXPORT void wxEvent_Skip(wxEvent* self, bool skip)
     {
-        self->Skip();
+        self->Skip(skip);
     }
 
     EXPORT int wxEvent_GetEventType(wxEvent* self)

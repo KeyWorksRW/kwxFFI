@@ -121,11 +121,12 @@ extern "C"
     }
 
     EXPORT bool wxDC_Blit(wxDC* self, int xdest, int ydest, int width, int height, wxDC* source,
-                          int xsrc, int ysrc, int rop, bool useMask)
+                          int xsrc, int ysrc, int rop, bool useMask, int xsrcMask, int ysrcMask)
     {
         wxRasterOperationMode _rop = (wxRasterOperationMode) rop;
         return self->Blit((wxCoord) xdest, (wxCoord) ydest, (wxCoord) width, (wxCoord) height,
-                          source, (wxCoord) xsrc, (wxCoord) ysrc, _rop, useMask);
+                          source, (wxCoord) xsrc, (wxCoord) ysrc, _rop, useMask, (wxCoord) xsrcMask,
+                          (wxCoord) ysrcMask);
     }
 
     EXPORT void wxDC_Clear(wxDC* self)

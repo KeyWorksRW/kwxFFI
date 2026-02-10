@@ -179,14 +179,16 @@ extern "C"
         self->SetMillisecond((wxDateTime::wxDateTime_t) millisecond);
     }
 
-    EXPORT void wxDateTime_SetToWeekDayInSameWeek(wxDateTime* self, int weekday)
+    EXPORT void wxDateTime_SetToWeekDayInSameWeek(wxDateTime* self, int weekday, int flags)
     {
-        self->SetToWeekDayInSameWeek((wxDateTime::WeekDay) weekday);
+        self->SetToWeekDayInSameWeek((wxDateTime::WeekDay) weekday, (wxDateTime::WeekFlags) flags);
     }
 
-    EXPORT void wxDateTime_GetWeekDayInSameWeek(wxDateTime* self, int weekday, wxDateTime* _ref)
+    EXPORT void wxDateTime_GetWeekDayInSameWeek(wxDateTime* self, int weekday, int flags,
+                                                wxDateTime* _ref)
     {
-        *_ref = self->GetWeekDayInSameWeek((wxDateTime::WeekDay) weekday);
+        *_ref = self->GetWeekDayInSameWeek((wxDateTime::WeekDay) weekday,
+                                           (wxDateTime::WeekFlags) flags);
     }
 
     EXPORT void wxDateTime_SetToNextWeekDay(wxDateTime* self, int weekday)

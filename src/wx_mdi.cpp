@@ -45,9 +45,9 @@ extern "C"
         ((wxMDIParentFrame*) _obj)->Cascade();
     }
 
-    EXPORT void wxMDIParentFrame_Tile(void* _obj)
+    EXPORT void wxMDIParentFrame_Tile(void* _obj, int orient)
     {
-        ((wxMDIParentFrame*) _obj)->Tile();
+        ((wxMDIParentFrame*) _obj)->Tile((wxOrientation) orient);
     }
 
     EXPORT void wxMDIParentFrame_ArrangeIcons(void* _obj)

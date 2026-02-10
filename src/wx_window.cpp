@@ -84,9 +84,9 @@ extern "C"
         self->SetSize(x, y, width, height, sizeFlags);
     }
 
-    EXPORT void wxWindow_Move(wxWindow* self, int x, int y)
+    EXPORT void wxWindow_Move(wxWindow* self, int x, int y, int flags)
     {
-        self->Move(x, y);
+        self->Move(x, y, flags);
     }
 
     EXPORT void wxWindow_Raise(wxWindow* self)
@@ -485,9 +485,9 @@ extern "C"
         self->Update();
     }
 
-    EXPORT void wxWindow_UpdateWindowUI(wxWindow* self)
+    EXPORT void wxWindow_UpdateWindowUI(wxWindow* self, long flags)
     {
-        self->UpdateWindowUI();
+        self->UpdateWindowUI(flags);
     }
 
     EXPORT bool wxWindow_PopupMenu(wxWindow* self, wxMenu* menu, int x, int y)
@@ -655,9 +655,9 @@ extern "C"
         self->GetPositionConstraint(x, y);
     }
 
-    EXPORT void wxWindow_SetSizer(wxWindow* self, wxSizer* sizer)
+    EXPORT void wxWindow_SetSizer(wxWindow* self, wxSizer* sizer, bool deleteOld)
     {
-        self->SetSizer(sizer);
+        self->SetSizer(sizer, deleteOld);
     }
 
     EXPORT void wxWindow_SetSizerAndFit(wxWindow* self, wxSizer* sizer, bool deleteOld)

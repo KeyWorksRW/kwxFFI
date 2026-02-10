@@ -29,9 +29,9 @@ extern "C"
         self->AddCatalogLookupPathPrefix((const char*) prefix);
     }
 
-    EXPORT bool wxLocale_AddCatalog(wxLocale* self, void* szDomain)
+    EXPORT bool wxLocale_AddCatalog(wxLocale* self, void* szDomain, int msgIdLanguage)
     {
-        return self->AddCatalog((const char*) szDomain);
+        return self->AddCatalog((const char*) szDomain, (wxLanguage) msgIdLanguage);
     }
 
     EXPORT bool wxLocale_IsLoaded(wxLocale* self, void* szDomain)

@@ -48,7 +48,7 @@ extern "C"
     EXPORT void wxColour_Set(wxColour* self, wxUint8 _red, wxUint8 _green, wxUint8 _blue,
                              wxUint8 _alpha)
     {
-        self->Set(_red, _green, _blue);
+        self->Set(_red, _green, _blue, _alpha);
     }
 
     EXPORT void wxColour_Assign(wxColour* self, wxColour* other)

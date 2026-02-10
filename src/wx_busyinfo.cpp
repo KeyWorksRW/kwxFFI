@@ -3,9 +3,9 @@
 
 extern "C"
 {
-    EXPORT void* wxBusyInfo_Create(wxString* _txt)
+    EXPORT void* wxBusyInfo_Create(wxString* _txt, wxWindow* parent)
     {
-        return (void*) new wxBusyInfo(*_txt);
+        return (void*) new wxBusyInfo(*_txt, parent);
     }
 
     EXPORT void wxBusyInfo_Delete(wxBusyInfo* _obj)

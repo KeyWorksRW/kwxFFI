@@ -12,10 +12,14 @@ extern "C"
 
     // Tool management - Add methods
     EXPORT wxRibbonToolBarToolBase* wxRibbonToolBar_AddTool(wxRibbonToolBar* self, int tool_id,
-                                                            wxBitmap* bitmap, wxString* help_string,
-                                                            int kind)
+                                                            wxBitmap* bitmap,
+                                                            wxBitmap* bitmap_disabled,
+                                                            wxString* help_string, int kind,
+                                                            void* client_data)
     {
-        return self->AddTool(tool_id, *bitmap, *help_string, (wxRibbonButtonKind) kind);
+        wxBitmap bmpDisabled = bitmap_disabled ? *bitmap_disabled : wxNullBitmap;
+        return self->AddTool(tool_id, *bitmap, bmpDisabled, *help_string, (wxRibbonButtonKind) kind,
+                             (wxObject*) client_data);
     }
 
     EXPORT wxRibbonToolBarToolBase* wxRibbonToolBar_AddDropdownTool(wxRibbonToolBar* self,
@@ -47,9 +51,13 @@ extern "C"
     // Tool management - Insert methods
     EXPORT wxRibbonToolBarToolBase* wxRibbonToolBar_InsertTool(wxRibbonToolBar* self, size_t pos,
                                                                int tool_id, wxBitmap* bitmap,
-                                                               wxString* help_string, int kind)
+                                                               wxBitmap* bitmap_disabled,
+                                                               wxString* help_string, int kind,
+                                                               void* client_data)
     {
-        return self->InsertTool(pos, tool_id, *bitmap, *help_string, (wxRibbonButtonKind) kind);
+        wxBitmap bmpDisabled = bitmap_disabled ? *bitmap_disabled : wxNullBitmap;
+        return self->InsertTool(pos, tool_id, *bitmap, bmpDisabled, *help_string,
+                                (wxRibbonButtonKind) kind, (wxObject*) client_data);
     }
 
     EXPORT wxRibbonToolBarToolBase* wxRibbonToolBar_InsertDropdownTool(wxRibbonToolBar* self,

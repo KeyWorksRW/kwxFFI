@@ -554,9 +554,9 @@ extern "C"
         return sz;
     }
 
-    EXPORT void wxFlexGridSizer_AddGrowableRow(wxFlexGridSizer* self, size_t idx)
+    EXPORT void wxFlexGridSizer_AddGrowableRow(wxFlexGridSizer* self, size_t idx, int proportion)
     {
-        self->AddGrowableRow(idx);
+        self->AddGrowableRow(idx, proportion);
     }
 
     EXPORT void wxFlexGridSizer_RemoveGrowableRow(wxFlexGridSizer* self, size_t idx)
@@ -564,9 +564,9 @@ extern "C"
         self->RemoveGrowableRow(idx);
     }
 
-    EXPORT void wxFlexGridSizer_AddGrowableCol(wxFlexGridSizer* self, size_t idx)
+    EXPORT void wxFlexGridSizer_AddGrowableCol(wxFlexGridSizer* self, size_t idx, int proportion)
     {
-        self->AddGrowableCol(idx);
+        self->AddGrowableCol(idx, proportion);
     }
 
     EXPORT void wxFlexGridSizer_RemoveGrowableCol(wxFlexGridSizer* self, size_t idx)

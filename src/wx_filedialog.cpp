@@ -4,10 +4,10 @@ extern "C"
 {
     EXPORT void* wxFileDialog_Create(wxWindow* parent, wxString* message, wxString* defaultDir,
                                      wxString* defaultFile, wxString* wildcard, int x, int y,
-                                     int style)
+                                     int style, int sz_w, int sz_h)
     {
         return (void*) new wxFileDialog(parent, *message, *defaultDir, *defaultFile, *wildcard,
-                                        style, wxPoint(x, y));
+                                        style, wxPoint(x, y), wxSize(sz_w, sz_h));
     }
 
     EXPORT void wxFileDialog_SetMessage(void* _obj, wxString* message)

@@ -12,9 +12,9 @@ extern "C"
         delete (wxAcceleratorEntry*) _obj;
     }
 
-    EXPORT void wxAcceleratorEntry_Set(void* _obj, int flags, int keyCode, int cmd)
+    EXPORT void wxAcceleratorEntry_Set(void* _obj, int flags, int keyCode, int cmd, void* item)
     {
-        ((wxAcceleratorEntry*) _obj)->Set(flags, keyCode, cmd);
+        ((wxAcceleratorEntry*) _obj)->Set(flags, keyCode, cmd, (wxMenuItem*) item);
     }
 
     EXPORT int wxAcceleratorEntry_GetFlags(void* _obj)
