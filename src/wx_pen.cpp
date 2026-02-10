@@ -104,19 +104,19 @@ extern "C"
 
     EXPORT void wxPen_SetJoin(void* self, int join)
     {
-        wxPenJoin _join = (wxPenJoin) join;
-        ((wxPen*) self)->SetJoin(_join);
+        wxPenJoin joinStyle = (wxPenJoin) join;
+        ((wxPen*) self)->SetJoin(joinStyle);
     }
 
     EXPORT void wxPen_SetCap(void* self, int cap)
     {
-        wxPenCap _cap = (wxPenCap) cap;
-        ((wxPen*) self)->SetCap(_cap);
+        wxPenCap penCap = (wxPenCap) cap;
+        ((wxPen*) self)->SetCap(penCap);
     }
 
-    EXPORT void wxPen_GetColour(void* self, wxColour* _ref)
+    EXPORT void wxPen_GetColour(void* self, wxColour* ref)
     {
-        *_ref = ((wxPen*) self)->GetColour();
+        *ref = ((wxPen*) self)->GetColour();
     }
 
     EXPORT int wxPen_GetWidth(void* self)
@@ -144,12 +144,12 @@ extern "C"
         return ((wxPen*) self)->GetDashes((wxDash**) ptr);
     }
 
-    EXPORT void wxPen_GetStipple(void* self, wxBitmap* _ref)
+    EXPORT void wxPen_GetStipple(void* self, wxBitmap* ref)
     {
 #if defined(__WXGTK__)
-        *_ref = (GdkPixbuf*) nullptr;
+        *ref = (GdkPixbuf*) nullptr;
 #else
-        *_ref = *(((wxPen*) self)->GetStipple());
+        *ref = *(((wxPen*) self)->GetStipple());
 #endif
     }
 }

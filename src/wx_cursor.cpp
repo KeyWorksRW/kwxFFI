@@ -2,9 +2,9 @@
 
 extern "C"
 {
-    EXPORT wxCursor* Cursor_CreateFromStock(wxStockCursor _id)
+    EXPORT wxCursor* Cursor_CreateFromStock(wxStockCursor id)
     {
-        return new wxCursor(_id);
+        return new wxCursor(id);
     }
 
     EXPORT wxCursor* Cursor_CreateFromImage(wxImage* image)

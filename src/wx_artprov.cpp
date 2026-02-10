@@ -3,7 +3,7 @@
 
 extern "C"
 {
-    typedef void* (*TCreateBmp)(void* _obj, void* id, void* clt, int w, int h);
+    typedef void* (*TCreateBmp)(void* pObject, void* id, void* clt, int w, int h);
 }
 
 class kwxArtProv : public wxArtProvider
@@ -43,9 +43,9 @@ public:
 
 extern "C"
 {
-    EXPORT void* kwxArtProv_Create(void* _obj, void* _clb)
+    EXPORT void* kwxArtProv_Create(void* pObject, void* callback)
     {
-        return (void*) new kwxArtProv(_obj, _clb);
+        return (void*) new kwxArtProv(pObject, callback);
     }
 
     EXPORT void kwxArtProv_Release(kwxArtProv* self)

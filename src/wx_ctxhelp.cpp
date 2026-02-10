@@ -39,10 +39,10 @@ extern "C"
         return wxHelpProvider::Set(helpProvider);
     }
 
-    EXPORT wxString* wxHelpProvider_GetHelp(void* _obj, void* window)
+    EXPORT wxString* wxHelpProvider_GetHelp(void* pObject, void* window)
     {
         wxString* result = new wxString();
-        *result = ((wxHelpProvider*) _obj)->GetHelp((wxWindowBase*) window);
+        *result = ((wxHelpProvider*) pObject)->GetHelp((wxWindowBase*) window);
         return result;
     }
 

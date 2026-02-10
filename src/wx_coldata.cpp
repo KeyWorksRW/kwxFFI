@@ -27,9 +27,9 @@ extern "C"
         self->SetColour(*colour);
     }
 
-    EXPORT void wxColourData_GetColour(wxColourData* self, wxColour* _ref)
+    EXPORT void wxColourData_GetColour(wxColourData* self, wxColour* ref)
     {
-        *_ref = self->GetColour();
+        *ref = self->GetColour();
     }
 
     EXPORT void wxColourData_SetCustomColour(wxColourData* self, int i, wxColour* colour)
@@ -37,8 +37,8 @@ extern "C"
         self->SetCustomColour(i, *colour);
     }
 
-    EXPORT void wxColourData_GetCustomColour(wxColourData* self, int i, wxColour* _ref)
+    EXPORT void wxColourData_GetCustomColour(wxColourData* self, int i, wxColour* ref)
     {
-        *_ref = self->GetCustomColour(i);
+        *ref = self->GetCustomColour(i);
     }
 }

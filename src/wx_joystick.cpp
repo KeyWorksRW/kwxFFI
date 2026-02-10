@@ -87,10 +87,10 @@ extern "C"
         return self->GetProductId();
     }
 
-    EXPORT wxString* wxJoystick_GetProductName(wxJoystick* _obj)
+    EXPORT wxString* wxJoystick_GetProductName(wxJoystick* pObject)
     {
         wxString* result = new wxString();
-        *result = _obj->GetProductName();
+        *result = pObject->GetProductName();
         return result;
     }
 
@@ -236,208 +236,208 @@ extern "C"
         return nullptr;
     }
 
-    EXPORT void wxJoystick_Delete(void* _obj) {}
+    EXPORT void wxJoystick_Delete(void* pObject) {}
 
-    EXPORT void wxJoystick_GetPosition(void* _obj, void* _x, void* _y) {}
+    EXPORT void wxJoystick_GetPosition(void* pObject, void* x, void* y) {}
 
-    EXPORT int wxJoystick_GetZPosition(void* _obj)
+    EXPORT int wxJoystick_GetZPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetButtonState(void* _obj)
+    EXPORT int wxJoystick_GetButtonState(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetPOVPosition(void* _obj)
+    EXPORT int wxJoystick_GetPOVPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetPOVCTSPosition(void* _obj)
+    EXPORT int wxJoystick_GetPOVCTSPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetRudderPosition(void* _obj)
+    EXPORT int wxJoystick_GetRudderPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetUPosition(void* _obj)
+    EXPORT int wxJoystick_GetUPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetVPosition(void* _obj)
+    EXPORT int wxJoystick_GetVPosition(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetMovementThreshold(void* _obj)
+    EXPORT int wxJoystick_GetMovementThreshold(void* pObject)
     {
         return 0;
     }
 
-    EXPORT void wxJoystick_SetMovementThreshold(void* _obj, int threshold) {}
+    EXPORT void wxJoystick_SetMovementThreshold(void* pObject, int threshold) {}
 
-    EXPORT bool wxJoystick_IsOk(wxJoystick* _obj)
+    EXPORT bool wxJoystick_IsOk(wxJoystick* pObject)
     {
-        return _obj->isOk();
+        return pObject->isOk();
     }
 
-    EXPORT int wxJoystick_GetNumberJoysticks(void* _obj)
-    {
-        return 0;
-    }
-
-    EXPORT int wxJoystick_GetManufacturerId(void* _obj)
+    EXPORT int wxJoystick_GetNumberJoysticks(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetProductId(void* _obj)
+    EXPORT int wxJoystick_GetManufacturerId(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetProductName(void* _obj, void* _buf)
+    EXPORT int wxJoystick_GetProductId(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetXMin(void* _obj)
+    EXPORT int wxJoystick_GetProductName(void* pObject, void* buffer)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetYMin(void* _obj)
+    EXPORT int wxJoystick_GetXMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetZMin(void* _obj)
+    EXPORT int wxJoystick_GetYMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetXMax(void* _obj)
+    EXPORT int wxJoystick_GetZMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetYMax(void* _obj)
+    EXPORT int wxJoystick_GetXMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetZMax(void* _obj)
+    EXPORT int wxJoystick_GetYMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetNumberButtons(void* _obj)
+    EXPORT int wxJoystick_GetZMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetNumberAxes(void* _obj)
+    EXPORT int wxJoystick_GetNumberButtons(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetMaxButtons(void* _obj)
+    EXPORT int wxJoystick_GetNumberAxes(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetMaxAxes(void* _obj)
+    EXPORT int wxJoystick_GetMaxButtons(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetPollingMin(void* _obj)
+    EXPORT int wxJoystick_GetMaxAxes(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetPollingMax(void* _obj)
+    EXPORT int wxJoystick_GetPollingMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetRudderMin(void* _obj)
+    EXPORT int wxJoystick_GetPollingMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetRudderMax(void* _obj)
+    EXPORT int wxJoystick_GetRudderMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetUMin(void* _obj)
+    EXPORT int wxJoystick_GetRudderMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetUMax(void* _obj)
+    EXPORT int wxJoystick_GetUMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetVMin(void* _obj)
+    EXPORT int wxJoystick_GetUMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_GetVMax(void* _obj)
+    EXPORT int wxJoystick_GetVMin(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasRudder(void* _obj)
+    EXPORT int wxJoystick_GetVMax(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasZ(void* _obj)
+    EXPORT int wxJoystick_HasRudder(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasU(void* _obj)
+    EXPORT int wxJoystick_HasZ(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasV(void* _obj)
+    EXPORT int wxJoystick_HasU(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasPOV(void* _obj)
+    EXPORT int wxJoystick_HasV(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasPOV4Dir(void* _obj)
+    EXPORT int wxJoystick_HasPOV(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_HasPOVCTS(void* _obj)
+    EXPORT int wxJoystick_HasPOV4Dir(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_SetCapture(void* _obj, void* win, int pollingFreq)
+    EXPORT int wxJoystick_HasPOVCTS(void* pObject)
     {
         return 0;
     }
 
-    EXPORT int wxJoystick_ReleaseCapture(void* _obj)
+    EXPORT int wxJoystick_SetCapture(void* pObject, void* win, int pollingFreq)
+    {
+        return 0;
+    }
+
+    EXPORT int wxJoystick_ReleaseCapture(void* pObject)
     {
         return 0;
     }

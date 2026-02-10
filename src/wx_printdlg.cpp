@@ -7,9 +7,9 @@ extern "C"
         return (void*) new wxPrintDialog(parent, data);
     }
 
-    EXPORT void wxPrintDialog_GetPrintData(wxPrintDialog* self, wxPrintData* _ref)
+    EXPORT void wxPrintDialog_GetPrintData(wxPrintDialog* self, wxPrintData* ref)
     {
-        *_ref = self->GetPrintData();
+        *ref = self->GetPrintData();
     }
 
     EXPORT void* wxPrintDialog_GetPrintDC(wxPrintDialog* self)
@@ -22,9 +22,9 @@ extern "C"
         return (void*) new wxPageSetupDialog(parent, data);
     }
 
-    EXPORT void wxPageSetupDialog_GetPageSetupData(wxPageSetupDialog* self, wxPageSetupData* _ref)
+    EXPORT void wxPageSetupDialog_GetPageSetupData(wxPageSetupDialog* self, wxPageSetupData* ref)
     {
-        *_ref = self->GetPageSetupData();
+        *ref = self->GetPageSetupData();
     }
 
     EXPORT int wxPageSetupDialog_ShowModal(wxPageSetupDialog* self)
@@ -215,9 +215,9 @@ extern "C"
         *self = *data;
     }
 
-    EXPORT void wxPageSetupDialogData_GetPrintData(wxPageSetupDialogData* self, wxPrintData* _ref)
+    EXPORT void wxPageSetupDialogData_GetPrintData(wxPageSetupDialogData* self, wxPrintData* ref)
     {
-        *_ref = self->GetPrintData();
+        *ref = self->GetPrintData();
     }
 
     EXPORT void wxPageSetupDialogData_SetPrintData(wxPageSetupDialogData* self,

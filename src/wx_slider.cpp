@@ -10,96 +10,96 @@ extern "C"
                             style);
     }
 
-    EXPORT int wxSlider_GetValue(void* _obj)
+    EXPORT int wxSlider_GetValue(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetValue();
+        return ((wxSlider*) pObject)->GetValue();
     }
 
-    EXPORT void wxSlider_SetValue(void* _obj, int value)
+    EXPORT void wxSlider_SetValue(void* pObject, int value)
     {
-        ((wxSlider*) _obj)->SetValue(value);
+        ((wxSlider*) pObject)->SetValue(value);
     }
 
-    EXPORT void wxSlider_SetRange(void* _obj, int minValue, int maxValue)
+    EXPORT void wxSlider_SetRange(void* pObject, int minValue, int maxValue)
     {
-        ((wxSlider*) _obj)->SetRange(minValue, maxValue);
+        ((wxSlider*) pObject)->SetRange(minValue, maxValue);
     }
 
-    EXPORT int wxSlider_GetMin(void* _obj)
+    EXPORT int wxSlider_GetMin(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetMin();
+        return ((wxSlider*) pObject)->GetMin();
     }
 
-    EXPORT int wxSlider_GetMax(void* _obj)
+    EXPORT int wxSlider_GetMax(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetMax();
+        return ((wxSlider*) pObject)->GetMax();
     }
 
     // Obsolete
-    // EWXWEXPORT(void,wxSlider_SetTickFreq)(void* _obj, int n, int pos)
+    // EWXWEXPORT(void,wxSlider_SetTickFreq)(void* pObject, int n, int pos)
 
-    EXPORT int wxSlider_GetTickFreq(void* _obj)
+    EXPORT int wxSlider_GetTickFreq(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetTickFreq();
+        return ((wxSlider*) pObject)->GetTickFreq();
     }
 
-    EXPORT void wxSlider_SetPageSize(void* _obj, int pageSize)
+    EXPORT void wxSlider_SetPageSize(void* pObject, int pageSize)
     {
-        ((wxSlider*) _obj)->SetPageSize(pageSize);
+        ((wxSlider*) pObject)->SetPageSize(pageSize);
     }
 
-    EXPORT int wxSlider_GetPageSize(void* _obj)
+    EXPORT int wxSlider_GetPageSize(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetPageSize();
+        return ((wxSlider*) pObject)->GetPageSize();
     }
 
-    EXPORT void wxSlider_ClearSel(void* _obj)
+    EXPORT void wxSlider_ClearSel(void* pObject)
     {
-        ((wxSlider*) _obj)->ClearSel();
+        ((wxSlider*) pObject)->ClearSel();
     }
 
-    EXPORT void wxSlider_ClearTicks(void* _obj)
+    EXPORT void wxSlider_ClearTicks(void* pObject)
     {
-        ((wxSlider*) _obj)->ClearTicks();
+        ((wxSlider*) pObject)->ClearTicks();
     }
 
-    EXPORT void wxSlider_SetLineSize(void* _obj, int lineSize)
+    EXPORT void wxSlider_SetLineSize(void* pObject, int lineSize)
     {
-        ((wxSlider*) _obj)->SetLineSize(lineSize);
+        ((wxSlider*) pObject)->SetLineSize(lineSize);
     }
 
-    EXPORT int wxSlider_GetLineSize(void* _obj)
+    EXPORT int wxSlider_GetLineSize(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetLineSize();
+        return ((wxSlider*) pObject)->GetLineSize();
     }
 
-    EXPORT int wxSlider_GetSelEnd(void* _obj)
+    EXPORT int wxSlider_GetSelEnd(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetSelEnd();
+        return ((wxSlider*) pObject)->GetSelEnd();
     }
 
-    EXPORT int wxSlider_GetSelStart(void* _obj)
+    EXPORT int wxSlider_GetSelStart(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetSelStart();
+        return ((wxSlider*) pObject)->GetSelStart();
     }
 
-    EXPORT void wxSlider_SetSelection(void* _obj, int minPos, int maxPos)
+    EXPORT void wxSlider_SetSelection(void* pObject, int minPos, int maxPos)
     {
-        ((wxSlider*) _obj)->SetSelection(minPos, maxPos);
+        ((wxSlider*) pObject)->SetSelection(minPos, maxPos);
     }
 
-    EXPORT void wxSlider_SetThumbLength(void* _obj, int len)
+    EXPORT void wxSlider_SetThumbLength(void* pObject, int len)
     {
-        ((wxSlider*) _obj)->SetThumbLength(len);
+        ((wxSlider*) pObject)->SetThumbLength(len);
     }
 
-    EXPORT int wxSlider_GetThumbLength(void* _obj)
+    EXPORT int wxSlider_GetThumbLength(void* pObject)
     {
-        return ((wxSlider*) _obj)->GetThumbLength();
+        return ((wxSlider*) pObject)->GetThumbLength();
     }
 
-    EXPORT void wxSlider_SetTick(void* _obj, int tickPos)
+    EXPORT void wxSlider_SetTick(void* pObject, int tickPos)
     {
-        ((wxSlider*) _obj)->SetTick(tickPos);
+        ((wxSlider*) pObject)->SetTick(tickPos);
     }
 }

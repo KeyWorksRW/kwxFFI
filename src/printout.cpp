@@ -274,9 +274,9 @@ bool wxcPrintout::HasPage(int page)
 -----------------------------------------------------------------------------*/
 extern "C"
 {
-    EXPORT wxPrintDialogData* wxPrintDialog_GetPrintDialogData(wxPrintDialog* _obj)
+    EXPORT wxPrintDialogData* wxPrintDialog_GetPrintDialogData(wxPrintDialog* pObject)
     {
-        return &(_obj->GetPrintDialogData());
+        return &(pObject->GetPrintDialogData());
     }
 
     EXPORT wxcPrintout* wxcPrintout_Create(wxString* title)
@@ -335,64 +335,64 @@ extern "C"
     /*-----------------------------------------------------------------------------
       Printout
     -----------------------------------------------------------------------------*/
-    EXPORT wxString* wxPrintout_GetTitle(void* _obj)
+    EXPORT wxString* wxPrintout_GetTitle(void* pObject)
     {
-        wxString title = ((wxPrintout*) _obj)->GetTitle();
+        wxString title = ((wxPrintout*) pObject)->GetTitle();
         return new wxString(title);
     }
 
-    EXPORT void* wxPrintout_GetDC(void* _obj)
+    EXPORT void* wxPrintout_GetDC(void* pObject)
     {
-        return (void*) ((wxPrintout*) _obj)->GetDC();
+        return (void*) ((wxPrintout*) pObject)->GetDC();
     }
 
-    EXPORT void wxPrintout_SetDC(void* _obj, void* dc)
+    EXPORT void wxPrintout_SetDC(void* pObject, void* dc)
     {
-        ((wxPrintout*) _obj)->SetDC((wxDC*) dc);
+        ((wxPrintout*) pObject)->SetDC((wxDC*) dc);
     }
 
-    EXPORT void wxPrintout_SetPageSizePixels(void* _obj, int w, int h)
+    EXPORT void wxPrintout_SetPageSizePixels(void* pObject, int w, int h)
     {
-        ((wxPrintout*) _obj)->SetPageSizePixels(w, h);
+        ((wxPrintout*) pObject)->SetPageSizePixels(w, h);
     }
 
-    EXPORT void wxPrintout_GetPageSizePixels(void* _obj, int* w, int* h)
+    EXPORT void wxPrintout_GetPageSizePixels(void* pObject, int* w, int* h)
     {
-        ((wxPrintout*) _obj)->GetPageSizePixels(w, h);
+        ((wxPrintout*) pObject)->GetPageSizePixels(w, h);
     }
 
-    EXPORT void wxPrintout_SetPageSizeMM(void* _obj, int w, int h)
+    EXPORT void wxPrintout_SetPageSizeMM(void* pObject, int w, int h)
     {
-        ((wxPrintout*) _obj)->SetPageSizeMM(w, h);
+        ((wxPrintout*) pObject)->SetPageSizeMM(w, h);
     }
 
-    EXPORT void wxPrintout_GetPageSizeMM(void* _obj, int* w, int* h)
+    EXPORT void wxPrintout_GetPageSizeMM(void* pObject, int* w, int* h)
     {
-        ((wxPrintout*) _obj)->GetPageSizeMM(w, h);
+        ((wxPrintout*) pObject)->GetPageSizeMM(w, h);
     }
 
-    EXPORT void wxPrintout_SetPPIScreen(void* _obj, int x, int y)
+    EXPORT void wxPrintout_SetPPIScreen(void* pObject, int x, int y)
     {
-        ((wxPrintout*) _obj)->SetPPIScreen(x, y);
+        ((wxPrintout*) pObject)->SetPPIScreen(x, y);
     }
 
-    EXPORT void wxPrintout_GetPPIScreen(void* _obj, int* x, int* y)
+    EXPORT void wxPrintout_GetPPIScreen(void* pObject, int* x, int* y)
     {
-        ((wxPrintout*) _obj)->GetPPIScreen(x, y);
+        ((wxPrintout*) pObject)->GetPPIScreen(x, y);
     }
 
-    EXPORT void wxPrintout_SetPPIPrinter(void* _obj, int x, int y)
+    EXPORT void wxPrintout_SetPPIPrinter(void* pObject, int x, int y)
     {
-        ((wxPrintout*) _obj)->SetPPIPrinter(x, y);
+        ((wxPrintout*) pObject)->SetPPIPrinter(x, y);
     }
 
-    EXPORT void wxPrintout_GetPPIPrinter(void* _obj, int* x, int* y)
+    EXPORT void wxPrintout_GetPPIPrinter(void* pObject, int* x, int* y)
     {
-        ((wxPrintout*) _obj)->GetPPIPrinter(x, y);
+        ((wxPrintout*) pObject)->GetPPIPrinter(x, y);
     }
 
-    EXPORT bool wxPrintout_IsPreview(wxPrintout* _obj)
+    EXPORT bool wxPrintout_IsPreview(wxPrintout* pObject)
     {
-        return _obj->IsPreview();
+        return pObject->IsPreview();
     }
 }

@@ -101,8 +101,8 @@ extern "C"
         self->Allow();
     }
 
-    EXPORT wxTreeCtrl* wxTreeCtrl_Create(void* _obj, void* _cmp, wxWindow* parent, int id, int x,
-                                         int y, int width, int height, int style)
+    EXPORT wxTreeCtrl* wxTreeCtrl_Create(void* pObject, void* compareFunc, wxWindow* parent, int id,
+                                         int x, int y, int width, int height, int style)
     {
         return new wxTreeCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style,
                               wxDefaultValidator);
@@ -287,14 +287,14 @@ extern "C"
         return self->GetChildrenCount(*item, recursively);
     }
 
-    EXPORT void wxTreeCtrl_GetRootItem(wxTreeCtrl* self, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetRootItem(wxTreeCtrl* self, wxTreeItemId* item)
     {
-        *_item = self->GetRootItem();
+        *item = self->GetRootItem();
     }
 
-    EXPORT void wxTreeCtrl_GetSelection(wxTreeCtrl* self, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetSelection(wxTreeCtrl* self, wxTreeItemId* item)
     {
-        *_item = self->GetSelection();
+        *item = self->GetSelection();
     }
 
     EXPORT int wxTreeCtrl_GetSelections(wxTreeCtrl* self, intptr_t* selections)
@@ -316,103 +316,109 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxTreeCtrl_GetParent(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetParent(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                     wxTreeItemId* result)
     {
-        *_item = self->GetItemParent(*item);
+        *result = self->GetItemParent(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetFirstChild(wxTreeCtrl* self, wxTreeItemId* item, void* cookie,
-                                         wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetFirstChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void* cookie,
+                                         wxTreeItemId* result)
     {
-        *_item = self->GetFirstChild(*item, cookie);
+        *result = self->GetFirstChild(*inputItem, cookie);
     }
 
-    EXPORT void wxTreeCtrl_GetNextChild(wxTreeCtrl* self, wxTreeItemId* item, void* cookie,
-                                        wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetNextChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void* cookie,
+                                        wxTreeItemId* result)
     {
-        *_item = self->GetNextChild(*item, cookie);
+        *result = self->GetNextChild(*inputItem, cookie);
     }
 
-    EXPORT void wxTreeCtrl_GetLastChild(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetLastChild(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                        wxTreeItemId* result)
     {
-        *_item = self->GetLastChild(*item);
+        *result = self->GetLastChild(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetNextSibling(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetNextSibling(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                          wxTreeItemId* result)
     {
-        *_item = self->GetNextSibling(*item);
+        *result = self->GetNextSibling(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetPrevSibling(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetPrevSibling(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                          wxTreeItemId* result)
     {
-        *_item = self->GetPrevSibling(*item);
+        *result = self->GetPrevSibling(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetFirstVisibleItem(wxTreeCtrl* self, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetFirstVisibleItem(wxTreeCtrl* self, wxTreeItemId* item)
     {
-        *_item = self->GetFirstVisibleItem();
+        *item = self->GetFirstVisibleItem();
     }
 
-    EXPORT void wxTreeCtrl_GetNextVisible(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetNextVisible(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                          wxTreeItemId* result)
     {
-        *_item = self->GetNextVisible(*item);
+        *result = self->GetNextVisible(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetPrevVisible(wxTreeCtrl* self, wxTreeItemId* item, wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_GetPrevVisible(wxTreeCtrl* self, wxTreeItemId* inputItem,
+                                          wxTreeItemId* result)
     {
-        *_item = self->GetPrevVisible(*item);
+        *result = self->GetPrevVisible(*inputItem);
     }
 
     EXPORT void wxTreeCtrl_AddRoot(wxTreeCtrl* self, wxString* text, int image, int selectedImage,
-                                   wxClosure* data, wxTreeItemId* _item)
+                                   wxClosure* data, wxTreeItemId* item)
     {
-        *_item = self->AddRoot(*text, image, selectedImage, new wxcTreeItemData(data));
+        *item = self->AddRoot(*text, image, selectedImage, new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_PrependItem(wxTreeCtrl* self, wxTreeItemId* parent, wxString* text,
                                        int image, int selectedImage, wxClosure* data,
-                                       wxTreeItemId* _item)
+                                       wxTreeItemId* item)
     {
-        *_item = self->PrependItem(*parent, *text, image, selectedImage, new wxcTreeItemData(data));
+        *item = self->PrependItem(*parent, *text, image, selectedImage, new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_InsertItem(wxTreeCtrl* self, wxTreeItemId* parent,
                                       wxTreeItemId* idPrevious, wxString* text, int image,
-                                      int selectedImage, wxClosure* data, wxTreeItemId* _item)
+                                      int selectedImage, wxClosure* data, wxTreeItemId* item)
     {
-        *_item = self->InsertItem(*parent, *idPrevious, *text, image, selectedImage,
-                                  new wxcTreeItemData(data));
+        *item = self->InsertItem(*parent, *idPrevious, *text, image, selectedImage,
+                                 new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_InsertItem2(wxTreeCtrl* self, wxTreeItemId* parent,
                                        wxTreeItemId* idPrevious, wxString* text, int image,
-                                       int selectedImage, wxClosure* closure, wxTreeItemId* _item)
+                                       int selectedImage, wxClosure* closure, wxTreeItemId* item)
     {
-        *_item = self->InsertItem(*parent, *idPrevious, *text, image, selectedImage,
-                                  new wxcTreeItemData(closure));
+        *item = self->InsertItem(*parent, *idPrevious, *text, image, selectedImage,
+                                 new wxcTreeItemData(closure));
     }
 
     EXPORT void wxTreeCtrl_InsertItemByIndex(wxTreeCtrl* self, wxTreeItemId* parent, int index,
                                              wxString* text, int image, int selectedImage,
-                                             wxClosure* data, wxTreeItemId* _item)
+                                             wxClosure* data, wxTreeItemId* item)
     {
-        *_item = self->InsertItem(*parent, index, *text, image, selectedImage,
-                                  new wxcTreeItemData(data));
+        *item = self->InsertItem(*parent, index, *text, image, selectedImage,
+                                 new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_InsertItemByIndex2(wxTreeCtrl* self, wxTreeItemId* parent, int index,
                                               wxString* text, int image, int selectedImage,
-                                              wxClosure* data, wxTreeItemId* _item)
+                                              wxClosure* data, wxTreeItemId* item)
     {
-        *_item = self->InsertItem(*parent, index, *text, image, selectedImage,
-                                  new wxcTreeItemData(data));
+        *item = self->InsertItem(*parent, index, *text, image, selectedImage,
+                                 new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_AppendItem(wxTreeCtrl* self, wxTreeItemId* parent, wxString* text,
                                       int image, int selectedImage, wxClosure* data,
-                                      wxTreeItemId* _item)
+                                      wxTreeItemId* item)
     {
-        *_item = self->AppendItem(*parent, *text, image, selectedImage, new wxcTreeItemData(data));
+        *item = self->AppendItem(*parent, *text, image, selectedImage, new wxcTreeItemData(data));
     }
 
     EXPORT void wxTreeCtrl_Delete(wxTreeCtrl* self, wxTreeItemId* item)
@@ -506,10 +512,9 @@ extern "C"
         self->SortChildren(*item);
     }
 
-    EXPORT void wxTreeCtrl_HitTest(wxTreeCtrl* self, int _x, int _y, void* flags,
-                                   wxTreeItemId* _item)
+    EXPORT void wxTreeCtrl_HitTest(wxTreeCtrl* self, int x, int y, void* flags, wxTreeItemId* item)
     {
-        *_item = self->HitTest(wxPoint(_x, _y), *((int*) flags));
+        *item = self->HitTest(wxPoint(x, y), *((int*) flags));
     }
 
     EXPORT wxRect* wxTreeCtrl_GetBoundingRect(wxTreeCtrl* self, wxTreeItemId* item, bool textOnly)

@@ -9,18 +9,18 @@ extern "C"
         return ref ? (void*) ref.operator->() : nullptr;
     }
 
-    EXPORT void wxTipWindow_SetTipWindowPtr(void* _obj, void* windowPtr)
+    EXPORT void wxTipWindow_SetTipWindowPtr(void* pObject, void* windowPtr)
     {
-        ((wxTipWindow*) _obj)->SetTipWindowPtr((wxTipWindow**) windowPtr);
+        ((wxTipWindow*) pObject)->SetTipWindowPtr((wxTipWindow**) windowPtr);
     }
 
-    EXPORT void wxTipWindow_SetBoundingRect(void* _obj, int x, int y, int w, int h)
+    EXPORT void wxTipWindow_SetBoundingRect(void* pObject, int x, int y, int w, int h)
     {
-        ((wxTipWindow*) _obj)->SetBoundingRect(wxRect(x, y, w, h));
+        ((wxTipWindow*) pObject)->SetBoundingRect(wxRect(x, y, w, h));
     }
 
-    EXPORT void wxTipWindow_Close(void* _obj)
+    EXPORT void wxTipWindow_Close(void* pObject)
     {
-        ((wxTipWindow*) _obj)->Close();
+        ((wxTipWindow*) pObject)->Close();
     }
 }

@@ -4,15 +4,15 @@
 
 extern "C"
 {
-    typedef int (*TGridGetInt)(void* _obj);
-    typedef int (*TGridIsEmpty)(void* _obj, int row, int col);
-    typedef void* (*TGridGetValue)(void* _obj, int row, int col);
-    typedef void (*TGridSetValue)(void* _obj, int row, int col, void* val);
-    typedef void (*TGridClear)(void* _obj);
-    typedef int (*TGridModify)(void* _obj, int pos, int num);
-    typedef int (*TGridMultiModify)(void* _obj, int num);
-    typedef void (*TGridSetLabel)(void* _obj, int idx, void* val);
-    typedef void* (*TGridGetLabel)(void* _obj, int idx);
+    typedef int (*TGridGetInt)(void* pObject);
+    typedef int (*TGridIsEmpty)(void* pObject, int row, int col);
+    typedef void* (*TGridGetValue)(void* pObject, int row, int col);
+    typedef void (*TGridSetValue)(void* pObject, int row, int col, void* val);
+    typedef void (*TGridClear)(void* pObject);
+    typedef int (*TGridModify)(void* pObject, int pos, int num);
+    typedef int (*TGridMultiModify)(void* pObject, int num);
+    typedef void (*TGridSetLabel)(void* pObject, int idx, void* val);
+    typedef void* (*TGridGetLabel)(void* pObject, int idx);
 }
 
 class kwxGridTable : public wxGridTableBase
@@ -37,30 +37,30 @@ private:
     TGridGetLabel EifGetColLabelValue;
 
 public:
-    kwxGridTable(void* _obj, void* _EifGetNumberRows, void* _EifGetNumberCols, void* _EifGetValue,
-                 void* _EifSetValue, void* _EifIsEmptyCell, void* _EifClear, void* _EifInsertRows,
-                 void* _EifAppendRows, void* _EifDeleteRows, void* _EifInsertCols,
-                 void* _EifAppendCols, void* _EifDeleteCols, void* _EifSetRowLabelValue,
-                 void* _EifSetColLabelValue, void* _EifGetRowLabelValue,
-                 void* _EifGetColLabelValue) : wxGridTableBase()
+    kwxGridTable(void* pObject, void* fnGetNumberRows, void* fnGetNumberCols, void* fnGetValue,
+                 void* fnSetValue, void* fnIsEmptyCell, void* fnClear, void* fnInsertRows,
+                 void* fnAppendRows, void* fnDeleteRows, void* fnInsertCols,
+                 void* fnAppendCols, void* fnDeleteCols, void* fnSetRowLabelValue,
+                 void* fnSetColLabelValue, void* fnGetRowLabelValue,
+                 void* fnGetColLabelValue) : wxGridTableBase()
     {
-        EiffelObject = _obj;
-        EifGetNumberRows = (TGridGetInt) _EifGetNumberRows;
-        EifGetNumberCols = (TGridGetInt) _EifGetNumberCols;
-        EifGetValue = (TGridGetValue) _EifGetValue;
-        EifSetValue = (TGridSetValue) _EifSetValue;
-        EifIsEmptyCell = (TGridIsEmpty) _EifIsEmptyCell;
-        EifClear = (TGridClear) _EifClear;
-        EifInsertRows = (TGridModify) _EifInsertRows;
-        EifAppendRows = (TGridMultiModify) _EifAppendRows;
-        EifDeleteRows = (TGridModify) _EifDeleteRows;
-        EifInsertCols = (TGridModify) _EifInsertCols;
-        EifAppendCols = (TGridMultiModify) _EifAppendCols;
-        EifDeleteCols = (TGridModify) _EifDeleteCols;
-        EifSetRowLabelValue = (TGridSetLabel) _EifSetRowLabelValue;
-        EifSetColLabelValue = (TGridSetLabel) _EifSetColLabelValue;
-        EifGetRowLabelValue = (TGridGetLabel) _EifGetRowLabelValue;
-        EifGetColLabelValue = (TGridGetLabel) _EifGetColLabelValue;
+        EiffelObject = pObject;
+        EifGetNumberRows = (TGridGetInt) fnGetNumberRows;
+        EifGetNumberCols = (TGridGetInt) fnGetNumberCols;
+        EifGetValue = (TGridGetValue) fnGetValue;
+        EifSetValue = (TGridSetValue) fnSetValue;
+        EifIsEmptyCell = (TGridIsEmpty) fnIsEmptyCell;
+        EifClear = (TGridClear) fnClear;
+        EifInsertRows = (TGridModify) fnInsertRows;
+        EifAppendRows = (TGridMultiModify) fnAppendRows;
+        EifDeleteRows = (TGridModify) fnDeleteRows;
+        EifInsertCols = (TGridModify) fnInsertCols;
+        EifAppendCols = (TGridMultiModify) fnAppendCols;
+        EifDeleteCols = (TGridModify) fnDeleteCols;
+        EifSetRowLabelValue = (TGridSetLabel) fnSetRowLabelValue;
+        EifSetColLabelValue = (TGridSetLabel) fnSetColLabelValue;
+        EifGetRowLabelValue = (TGridGetLabel) fnGetRowLabelValue;
+        EifGetColLabelValue = (TGridGetLabel) fnGetColLabelValue;
     };
 
     int GetNumberRows() { return EifGetNumberRows(EiffelObject); };

@@ -35,9 +35,9 @@ extern "C"
         return sz;
     }
 
-    EXPORT void wxSizerItem_SetDimension(wxSizerItem* self, int _x, int _y, int _w, int _h)
+    EXPORT void wxSizerItem_SetDimension(wxSizerItem* self, int x, int y, int w, int h)
     {
-        self->SetDimension(wxPoint(_x, _y), wxSize(_w, _h));
+        self->SetDimension(wxPoint(x, y), wxSize(w, h));
     }
 
     EXPORT wxSize* wxSizerItem_GetMinSize(wxSizerItem* self)
@@ -163,7 +163,7 @@ extern "C"
         return rct;
     }
 
-    EXPORT wxSize* wxSizerItem_GetSpacer(wxSizerItem* self, void* _w, void* _h)
+    EXPORT wxSize* wxSizerItem_GetSpacer(wxSizerItem* self, void* w, void* h)
     {
         wxSize* sz = new wxSize(0, 0);
 
@@ -317,15 +317,15 @@ extern "C"
         self->SetSizeHints(window);
     }
 
-    EXPORT int wxSizer_GetChildren(wxSizer* self, void* _res, int _cnt)
+    EXPORT int wxSizer_GetChildren(wxSizer* self, void* result, int count)
     {
-        if (_res && (unsigned int) _cnt == self->GetChildren().GetCount())
+        if (result && (unsigned int) count == self->GetChildren().GetCount())
         {
             int i = 0;
             wxSizerItemList::compatibility_iterator node = self->GetChildren().GetFirst();
             while (node)
             {
-                ((void**) _res)[i] = node->GetData();
+                ((void**) result)[i] = node->GetData();
                 node = node->GetNext();
                 ++i;
             }

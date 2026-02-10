@@ -144,9 +144,9 @@ bool kwxTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
 
 extern "C"
 {
-    EXPORT void* kwxFileDropTarget_Create(void* self, void* _func)
+    EXPORT void* kwxFileDropTarget_Create(void* self, void* pFunction)
     {
-        return (void*) new kwxFileDropTarget(self, (FileDropFunc) _func);
+        return (void*) new kwxFileDropTarget(self, (FileDropFunc) pFunction);
     }
 
     EXPORT void kwxFileDropTarget_Delete(kwxFileDropTarget* self)
@@ -154,9 +154,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void* kwxTextDropTarget_Create(void* self, void* _func)
+    EXPORT void* kwxTextDropTarget_Create(void* self, void* pFunction)
     {
-        return (void*) new kwxTextDropTarget(self, (TextDropFunc) _func);
+        return (void*) new kwxTextDropTarget(self, (TextDropFunc) pFunction);
     }
 
     EXPORT void kwxTextDropTarget_Delete(kwxTextDropTarget* self)
@@ -164,9 +164,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void* TextDataObject_Create(wxString* _txt)
+    EXPORT void* TextDataObject_Create(wxString* text)
     {
-        return (void*) new wxTextDataObject(*_txt);
+        return (void*) new wxTextDataObject(*text);
     }
 
     EXPORT void TextDataObject_Delete(void* self)
@@ -181,18 +181,18 @@ extern "C"
         return result;
     }
 
-    EXPORT void TextDataObject_SetText(void* _obj, wxString* strText)
+    EXPORT void TextDataObject_SetText(void* pObject, wxString* strText)
     {
-        ((wxTextDataObject*) _obj)->SetText(*strText);
+        ((wxTextDataObject*) pObject)->SetText(*strText);
     }
 
-    EXPORT void* FileDataObject_Create(int _cnt, void* _lst)
+    EXPORT void* FileDataObject_Create(int count, void* list)
     {
         wxFileDataObject* result = new wxFileDataObject();
-        if (_cnt)
+        if (count)
         {
-            for (int i = 0; i < _cnt; i++)
-                result->AddFile(((char**) _lst)[i]);
+            for (int i = 0; i < count; i++)
+                result->AddFile(((char**) list)[i]);
         }
         return (void*) result;
     }
@@ -202,25 +202,25 @@ extern "C"
         delete (wxFileDataObject*) self;
     }
 
-    EXPORT void FileDataObject_AddFile(void* self, wxString* _fle)
+    EXPORT void FileDataObject_AddFile(void* self, wxString* files)
     {
-        ((wxFileDataObject*) self)->AddFile(*_fle);
+        ((wxFileDataObject*) self)->AddFile(*files);
     }
 
-    EXPORT int FileDataObject_GetFilenames(void* self, void* _lst)
+    EXPORT int FileDataObject_GetFilenames(void* self, void* list)
     {
         wxArrayString arr = ((wxFileDataObject*) self)->GetFilenames();
-        if (_lst)
+        if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) _lst)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
         }
         return arr.GetCount();
     }
 
-    EXPORT void* BitmapDataObject_Create(wxBitmap* _bmp)
+    EXPORT void* BitmapDataObject_Create(wxBitmap* bitmap)
     {
-        return (void*) new wxBitmapDataObject(*_bmp);
+        return (void*) new wxBitmapDataObject(*bitmap);
     }
 
     EXPORT void* BitmapDataObject_CreateEmpty()
@@ -233,14 +233,14 @@ extern "C"
         delete (wxBitmapDataObject*) self;
     }
 
-    EXPORT void BitmapDataObject_SetBitmap(void* self, wxBitmap* _bmp)
+    EXPORT void BitmapDataObject_SetBitmap(void* self, wxBitmap* bitmap)
     {
-        ((wxBitmapDataObject*) self)->SetBitmap(*_bmp);
+        ((wxBitmapDataObject*) self)->SetBitmap(*bitmap);
     }
 
-    EXPORT void BitmapDataObject_GetBitmap(void* self, wxBitmap* _bmp)
+    EXPORT void BitmapDataObject_GetBitmap(void* self, wxBitmap* bitmap)
     {
-        *_bmp = ((wxBitmapDataObject*) self)->GetBitmap();
+        *bitmap = ((wxBitmapDataObject*) self)->GetBitmap();
     }
 
     EXPORT void* DropSource_Create(wxDataObject* data, wxWindow* win, void* copy, void* move,
@@ -260,9 +260,9 @@ extern "C"
         delete (wxDropSource*) self;
     }
 
-    EXPORT int DropSource_DoDragDrop(void* self, bool _move)
+    EXPORT int DropSource_DoDragDrop(void* self, bool move)
     {
-        return (int) ((wxDropSource*) self)->DoDragDrop(_move);
+        return (int) ((wxDropSource*) self)->DoDragDrop(move);
     }
 
     EXPORT void* kwxDropTarget_Create(void* self)
@@ -275,79 +275,79 @@ extern "C"
         delete (kwxDropTarget*) self;
     }
 
-    EXPORT void kwxFileDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnData(void* self, void* pFunction)
     {
-        ((kwxFileDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnData((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxFileDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnDrop(void* self, void* pFunction)
     {
-        ((kwxFileDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnDrop((DragTwoFunc) pFunction);
     }
 
-    EXPORT void kwxFileDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnEnter(void* self, void* pFunction)
     {
-        ((kwxFileDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnEnter((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxFileDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnDragOver(void* self, void* pFunction)
     {
-        ((kwxFileDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnDragOver((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxFileDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxFileDropTarget_SetOnLeave(void* self, void* pFunction)
     {
-        ((kwxFileDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxFileDropTarget*) self)->SetOnLeave((DragZeroFunc) pFunction);
     }
 
-    EXPORT void kwxTextDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnData(void* self, void* pFunction)
     {
-        ((kwxTextDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnData((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxTextDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnDrop(void* self, void* pFunction)
     {
-        ((kwxTextDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnDrop((DragTwoFunc) pFunction);
     }
 
-    EXPORT void kwxTextDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnEnter(void* self, void* pFunction)
     {
-        ((kwxTextDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnEnter((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxTextDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnDragOver(void* self, void* pFunction)
     {
-        ((kwxTextDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnDragOver((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxTextDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxTextDropTarget_SetOnLeave(void* self, void* pFunction)
     {
-        ((kwxTextDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxTextDropTarget*) self)->SetOnLeave((DragZeroFunc) pFunction);
     }
 
-    EXPORT void kwxDropTarget_SetOnData(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnData(void* self, void* pFunction)
     {
-        ((kwxDropTarget*) self)->SetOnData((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnData((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxDropTarget_SetOnDrop(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnDrop(void* self, void* pFunction)
     {
-        ((kwxDropTarget*) self)->SetOnDrop((DragTwoFunc) _func);
+        ((kwxDropTarget*) self)->SetOnDrop((DragTwoFunc) pFunction);
     }
 
-    EXPORT void kwxDropTarget_SetOnEnter(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnEnter(void* self, void* pFunction)
     {
-        ((kwxDropTarget*) self)->SetOnEnter((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnEnter((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxDropTarget_SetOnDragOver(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnDragOver(void* self, void* pFunction)
     {
-        ((kwxDropTarget*) self)->SetOnDragOver((DragThreeFunc) _func);
+        ((kwxDropTarget*) self)->SetOnDragOver((DragThreeFunc) pFunction);
     }
 
-    EXPORT void kwxDropTarget_SetOnLeave(void* self, void* _func)
+    EXPORT void kwxDropTarget_SetOnLeave(void* self, void* pFunction)
     {
-        ((kwxDropTarget*) self)->SetOnLeave((DragZeroFunc) _func);
+        ((kwxDropTarget*) self)->SetOnLeave((DragZeroFunc) pFunction);
     }
 
     EXPORT void wxDropTarget_GetData(void* self)
@@ -355,16 +355,16 @@ extern "C"
         ((wxDropTarget*) self)->GetData();
     }
 
-    EXPORT void wxDropTarget_SetDataObject(void* self, void* _dat)
+    EXPORT void wxDropTarget_SetDataObject(void* self, void* dataObject)
     {
-        ((wxDropTarget*) self)->SetDataObject((wxDataObject*) _dat);
+        ((wxDropTarget*) self)->SetDataObject((wxDataObject*) dataObject);
     }
 
-    EXPORT void* kwxDragDataObject_Create(void* self, wxString* _fmt, void* _func1, void* _func2,
-                                          void* _func3)
+    EXPORT void* kwxDragDataObject_Create(void* self, wxString* format, void* fnGetDataSize, void* fnGetDataHere,
+                                          void* fnSetData)
     {
-        return (void*) new kwxDragDataObject(self, *(_fmt), (DataGetDataSize) _func1,
-                                             (DataGetDataHere) _func2, (DataSetData) _func3);
+        return (void*) new kwxDragDataObject(self, *(format), (DataGetDataSize) fnGetDataSize,
+                                             (DataGetDataHere) fnGetDataHere, (DataSetData) fnSetData);
     }
 
     EXPORT void kwxDragDataObject_Delete(void* self)
@@ -382,8 +382,8 @@ extern "C"
         delete (wxDataObjectComposite*) self;
     }
 
-    EXPORT void wxDataObjectComposite_Add(void* self, void* _dat, bool _preferred)
+    EXPORT void wxDataObjectComposite_Add(void* self, void* dataObject, bool preferred)
     {
-        ((wxDataObjectComposite*) self)->Add((wxDataObjectSimple*) _dat, _preferred);
+        ((wxDataObjectComposite*) self)->Add((wxDataObjectSimple*) dataObject, preferred);
     }
 }

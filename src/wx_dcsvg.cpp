@@ -35,10 +35,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxSVGFileDC_Delete(void* _obj)
+    EXPORT void wxSVGFileDC_Delete(void* pObject)
     {
 #ifdef wxUSE_SVG
-        delete (wxSVGFileDC*) _obj;
+        delete (wxSVGFileDC*) pObject;
 #endif
     }
 }

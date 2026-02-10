@@ -15,8 +15,8 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxFontDialog_GetFontData(void* _obj, void* _ref)
+    EXPORT void wxFontDialog_GetFontData(void* pObject, void* ref)
     {
-        *((wxFontData*) _ref) = ((wxFontDialog*) _obj)->GetFontData();
+        *((wxFontData*) ref) = ((wxFontDialog*) pObject)->GetFontData();
     }
 }

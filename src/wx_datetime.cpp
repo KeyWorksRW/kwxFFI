@@ -185,9 +185,9 @@ extern "C"
     }
 
     EXPORT void wxDateTime_GetWeekDayInSameWeek(wxDateTime* self, int weekday, int flags,
-                                                wxDateTime* _ref)
+                                                wxDateTime* ref)
     {
-        *_ref = self->GetWeekDayInSameWeek((wxDateTime::WeekDay) weekday,
+        *ref = self->GetWeekDayInSameWeek((wxDateTime::WeekDay) weekday,
                                            (wxDateTime::WeekFlags) flags);
     }
 
@@ -196,9 +196,9 @@ extern "C"
         self->SetToNextWeekDay((wxDateTime::WeekDay) weekday);
     }
 
-    EXPORT void wxDateTime_GetNextWeekDay(wxDateTime* self, int weekday, wxDateTime* _ref)
+    EXPORT void wxDateTime_GetNextWeekDay(wxDateTime* self, int weekday, wxDateTime* ref)
     {
-        *_ref = self->GetNextWeekDay((wxDateTime::WeekDay) weekday);
+        *ref = self->GetNextWeekDay((wxDateTime::WeekDay) weekday);
     }
 
     EXPORT void wxDateTime_SetToPrevWeekDay(wxDateTime* self, int weekday)
@@ -206,9 +206,9 @@ extern "C"
         self->SetToPrevWeekDay((wxDateTime::WeekDay) weekday);
     }
 
-    EXPORT void wxDateTime_GetPrevWeekDay(wxDateTime* self, int weekday, wxDateTime* _ref)
+    EXPORT void wxDateTime_GetPrevWeekDay(wxDateTime* self, int weekday, wxDateTime* ref)
     {
-        *_ref = self->GetPrevWeekDay((wxDateTime::WeekDay) weekday);
+        *ref = self->GetPrevWeekDay((wxDateTime::WeekDay) weekday);
     }
 
     EXPORT bool wxDateTime_SetToWeekDay(wxDateTime* self, int weekday, int n, int month, int year)
@@ -218,9 +218,9 @@ extern "C"
     }
 
     EXPORT void wxDateTime_GetWeekDay(wxDateTime* self, int weekday, int n, int month, int year,
-                                      wxDateTime* _ref)
+                                      wxDateTime* ref)
     {
-        *_ref = self->GetWeekDay((wxDateTime::WeekDay) weekday, n, (wxDateTime::Month) month, year);
+        *ref = self->GetWeekDay((wxDateTime::WeekDay) weekday, n, (wxDateTime::Month) month, year);
     }
 
     EXPORT bool wxDateTime_SetToLastWeekDay(wxDateTime* self, int weekday, int month, int year)
@@ -230,9 +230,9 @@ extern "C"
     }
 
     EXPORT void wxDateTime_GetLastWeekDay(wxDateTime* self, int weekday, int month, int year,
-                                          wxDateTime* _ref)
+                                          wxDateTime* ref)
     {
-        *_ref =
+        *ref =
             self->GetLastWeekDay((wxDateTime::WeekDay) weekday, (wxDateTime::Month) month, year);
     }
 
@@ -241,9 +241,9 @@ extern "C"
         self->SetToLastMonthDay((wxDateTime::Month) month, year);
     }
 
-    EXPORT void wxDateTime_GetLastMonthDay(wxDateTime* self, int month, int year, wxDateTime* _ref)
+    EXPORT void wxDateTime_GetLastMonthDay(wxDateTime* self, int month, int year, wxDateTime* ref)
     {
-        *_ref = self->GetLastMonthDay((wxDateTime::Month) month, year);
+        *ref = self->GetLastMonthDay((wxDateTime::Month) month, year);
     }
 
     EXPORT void wxDateTime_ToTimezone(wxDateTime* self, int tz, bool noDST)
@@ -383,24 +383,24 @@ extern "C"
         return self->IsEqualUpTo(*dt, *ts);
     }
 
-    EXPORT void wxDateTime_AddTime(wxDateTime* self, wxTimeSpan* diff, wxDateTime* _ref)
+    EXPORT void wxDateTime_AddTime(wxDateTime* self, wxTimeSpan* diff, wxDateTime* ref)
     {
-        *_ref = self->Add(*diff);
+        *ref = self->Add(*diff);
     }
 
-    EXPORT void wxDateTime_SubtractTime(wxDateTime* self, wxTimeSpan* diff, wxDateTime* _ref)
+    EXPORT void wxDateTime_SubtractTime(wxDateTime* self, wxTimeSpan* diff, wxDateTime* ref)
     {
-        *_ref = self->Subtract(*diff);
+        *ref = self->Subtract(*diff);
     }
 
-    EXPORT void wxDateTime_AddDate(wxDateTime* self, wxDateSpan* diff, wxDateTime* _ref)
+    EXPORT void wxDateTime_AddDate(wxDateTime* self, wxDateSpan* diff, wxDateTime* ref)
     {
-        *_ref = self->Add(*diff);
+        *ref = self->Add(*diff);
     }
 
-    EXPORT void wxDateTime_SubtractDate(wxDateTime* self, wxDateSpan* diff, wxDateTime* _ref)
+    EXPORT void wxDateTime_SubtractDate(wxDateTime* self, wxDateSpan* diff, wxDateTime* ref)
     {
-        *_ref = self->Subtract(*diff);
+        *ref = self->Subtract(*diff);
     }
 
     EXPORT void* wxDateTime_ParseRfc822Date(wxDateTime* self, void* date)
@@ -550,13 +550,13 @@ extern "C"
         return (int) wxDateTime::GetTimeNow();
     }
 
-    EXPORT void wxDateTime_AddTimeValues(wxDateTime* self, int _hrs, int _min, int _sec, int _mls)
+    EXPORT void wxDateTime_AddTimeValues(wxDateTime* self, int hours, int minVal, int seconds, int milliseconds)
     {
-        self->Add(wxTimeSpan((long) _hrs, (long) _min, (long) _sec, (long) _mls));
+        self->Add(wxTimeSpan((long) hours, (long) minVal, (long) seconds, (long) milliseconds));
     }
 
-    EXPORT void wxDateTime_AddDateValues(wxDateTime* self, int _yrs, int _mnt, int _wek, int _day)
+    EXPORT void wxDateTime_AddDateValues(wxDateTime* self, int years, int month, int week, int day)
     {
-        self->Add(wxDateSpan((long) _yrs, (long) _mnt, (long) _wek, (long) _day));
+        self->Add(wxDateSpan((long) years, (long) month, (long) week, (long) day));
     }
 }

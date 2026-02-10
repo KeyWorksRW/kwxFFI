@@ -391,14 +391,14 @@ extern "C"
         }
     }
 
-    EXPORT void wxXmlResource_LoadBitmap(wxXmlResource* self, wxString* name, wxBitmap* _ref)
+    EXPORT void wxXmlResource_LoadBitmap(wxXmlResource* self, wxString* name, wxBitmap* ref)
     {
-        *_ref = self->LoadBitmap(*name);
+        *ref = self->LoadBitmap(*name);
     }
 
-    EXPORT void wxXmlResource_LoadIcon(wxXmlResource* self, wxString* name, wxIcon* _ref)
+    EXPORT void wxXmlResource_LoadIcon(wxXmlResource* self, wxString* name, wxIcon* ref)
     {
-        *_ref = self->LoadIcon(*name);
+        *ref = self->LoadIcon(*name);
     }
 
     EXPORT bool wxXmlResource_Unload(wxXmlResource* self, wxString* name)
@@ -435,10 +435,10 @@ extern "C"
 
 // BUILD_XRCGETCTRL_FN constructs functions for geting control pointers out of
 // window hierarchies created from XRC files. The functions themselves
-#define BUILD_XRCGETCTRL_FN(_typ)                                                                \
-    EXPORT wx##_typ* wxXmlResource_Get##_typ(wxWindow* _win, wxString* _str_id)                  \
+#define BUILD_XRCGETCTRL_FN(type)                                                                \
+    EXPORT wx##type* wxXmlResource_Get##type(wxWindow* win, wxString* strId)                  \
     {                                                                                            \
-        return reinterpret_cast<wx##_typ*>(_win->FindWindow(wxXmlResource::GetXRCID(*_str_id))); \
+        return reinterpret_cast<wx##type*>(win->FindWindow(wxXmlResource::GetXRCID(*strId))); \
     }
     // Construct the XRC control getter functions
     BUILD_XRCGETCTRL_FN(Sizer)
@@ -476,7 +476,7 @@ extern "C"
 #ifdef wxUSE_STC
     BUILD_XRCGETCTRL_FN(StyledTextCtrl)
 #else
-    EXPORT void* wxXmlResource_GetStyledTextCtrl(wxWindow* _win, wxString* _str_id)
+    EXPORT void* wxXmlResource_GetStyledTextCtrl(wxWindow* win, wxString* strId)
     {
         return nullptr;
     }

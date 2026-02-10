@@ -9,7 +9,7 @@ extern "C"
 
     EXPORT void wxClipboard_Delete(wxClipboard* self)
     {
-        // delete _obj;
+        // delete pObject;
     }
 
     EXPORT bool wxClipboard_Open(wxClipboard* self)

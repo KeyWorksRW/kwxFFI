@@ -15,30 +15,30 @@ extern "C"
                               items, majorDim, style, wxDefaultValidator);
     }
 
-    EXPORT int wxRadioBox_FindString(void* _obj, wxString* s)
+    EXPORT int wxRadioBox_FindString(void* pObject, wxString* s)
     {
-        return ((wxRadioBox*) _obj)->FindString(*s);
+        return ((wxRadioBox*) pObject)->FindString(*s);
     }
 
-    EXPORT void wxRadioBox_SetSelection(void* _obj, int _n)
+    EXPORT void wxRadioBox_SetSelection(void* pObject, int selection)
     {
-        ((wxRadioBox*) _obj)->SetSelection(_n);
+        ((wxRadioBox*) pObject)->SetSelection(selection);
     }
 
-    EXPORT int wxRadioBox_GetSelection(void* _obj)
+    EXPORT int wxRadioBox_GetSelection(void* pObject)
     {
-        return ((wxRadioBox*) _obj)->GetSelection();
+        return ((wxRadioBox*) pObject)->GetSelection();
     }
 
-    EXPORT void wxRadioBox_SetItemLabel(void* _obj, int item, wxString* label)
+    EXPORT void wxRadioBox_SetItemLabel(void* pObject, int item, wxString* label)
     {
-        ((wxRadioBoxBase*) _obj)->SetString(item, *label);
+        ((wxRadioBoxBase*) pObject)->SetString(item, *label);
     }
 
-    EXPORT wxString* wxRadioBox_GetItemLabel(void* _obj, int item)
+    EXPORT wxString* wxRadioBox_GetItemLabel(void* pObject, int item)
     {
         wxString* result = new wxString();
-        *result = ((wxRadioBox*) _obj)->GetString(item);
+        *result = ((wxRadioBox*) pObject)->GetString(item);
         return result;
     }
 
@@ -52,29 +52,29 @@ extern "C"
         ((wxRadioBox*) self)->Show(item, show);
     }
 
-    EXPORT wxString* wxRadioBox_GetStringSelection(void* _obj)
+    EXPORT wxString* wxRadioBox_GetStringSelection(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxRadioBox*) _obj)->GetStringSelection();
+        *result = ((wxRadioBox*) pObject)->GetStringSelection();
         return result;
     }
 
-    EXPORT void wxRadioBox_SetStringSelection(void* _obj, wxString* s)
+    EXPORT void wxRadioBox_SetStringSelection(void* pObject, wxString* s)
     {
-        ((wxRadioBox*) _obj)->SetStringSelection(*s);
+        ((wxRadioBox*) pObject)->SetStringSelection(*s);
     }
 
-    EXPORT int wxRadioBox_Number(void* _obj)
+    EXPORT int wxRadioBox_Number(void* pObject)
     {
-        return ((wxRadioBox*) _obj)->GetCount();
+        return ((wxRadioBox*) pObject)->GetCount();
     }
 
-    EXPORT int wxRadioBox_GetNumberOfRowsOrCols(void* _obj)
+    EXPORT int wxRadioBox_GetNumberOfRowsOrCols(void* pObject)
     {
-        return ((wxRadioBox*) _obj)->GetCount();
+        return ((wxRadioBox*) pObject)->GetCount();
     }
 
-    EXPORT void wxRadioBox_SetNumberOfRowsOrCols(void* _obj, int count)
+    EXPORT void wxRadioBox_SetNumberOfRowsOrCols(void* pObject, int count)
     {
         // No-op: SetNumberOfRowsOrCols was removed in wxWidgets 2.6
     }

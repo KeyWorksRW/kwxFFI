@@ -4,7 +4,7 @@ extern "C"
 {
     typedef int (*EiffelSortFunc)(void* obj, int data1, int data2);
 
-    typedef struct _EiffelSort
+    typedef struct fnSort
     {
         void* obj;
         EiffelSortFunc fnc;

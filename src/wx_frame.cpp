@@ -60,39 +60,39 @@ extern "C"
         ((wxTopLevelWindow*) self)->RequestUserAttention(flags);
     }
 
-    EXPORT void wxTopLevelWindow_SetDefaultButton(void* self, void* _item)
+    EXPORT void wxTopLevelWindow_SetDefaultButton(void* self, void* item)
     {
-        ((wxTopLevelWindow*) self)->SetDefaultItem((wxButton*) _item);
+        ((wxTopLevelWindow*) self)->SetDefaultItem((wxButton*) item);
     }
 
-    EXPORT void wxTopLevelWindow_SetDefaultItem(void* self, wxWindow* _item)
+    EXPORT void wxTopLevelWindow_SetDefaultItem(void* self, wxWindow* item)
     {
-        ((wxTopLevelWindow*) self)->SetDefaultItem(_item);
+        ((wxTopLevelWindow*) self)->SetDefaultItem(item);
     }
 
-    EXPORT void wxTopLevelWindow_SetIcon(void* self, wxIcon* _icons)
+    EXPORT void wxTopLevelWindow_SetIcon(void* self, wxIcon* icons)
     {
-        ((wxTopLevelWindow*) self)->SetIcon(*_icons);
+        ((wxTopLevelWindow*) self)->SetIcon(*icons);
     }
 
-    EXPORT void wxTopLevelWindow_SetIcons(void* self, void* _icons)
+    EXPORT void wxTopLevelWindow_SetIcons(void* self, void* icons)
     {
-        ((wxTopLevelWindow*) self)->SetIcons(*((wxIconBundle*) _icons));
+        ((wxTopLevelWindow*) self)->SetIcons(*((wxIconBundle*) icons));
     }
 
-    EXPORT void wxTopLevelWindow_SetMaxSize(void* self, int _w, int _h)
+    EXPORT void wxTopLevelWindow_SetMaxSize(void* self, int w, int h)
     {
-        ((wxTopLevelWindow*) self)->SetMaxSize(wxSize(_w, _h));
+        ((wxTopLevelWindow*) self)->SetMaxSize(wxSize(w, h));
     }
 
-    EXPORT void wxTopLevelWindow_SetMinSize(void* self, int _w, int _h)
+    EXPORT void wxTopLevelWindow_SetMinSize(void* self, int w, int h)
     {
-        ((wxTopLevelWindow*) self)->SetMinSize(wxSize(_w, _h));
+        ((wxTopLevelWindow*) self)->SetMinSize(wxSize(w, h));
     }
 
-    EXPORT void wxTopLevelWindow_SetTitle(void* self, wxString* _str)
+    EXPORT void wxTopLevelWindow_SetTitle(void* self, wxString* title)
     {
-        ((wxTopLevelWindow*) self)->SetTitle(*_str);
+        ((wxTopLevelWindow*) self)->SetTitle(*title);
     }
 
     EXPORT wxFrame* wxFrame_Create(wxWindow* parent, int id, wxString* title, int x, int y,
@@ -138,9 +138,9 @@ extern "C"
         return (void*) &icon;
     }
 
-    EXPORT void wxFrame_SetIcon(wxFrame* self, wxIcon* _icon)
+    EXPORT void wxFrame_SetIcon(wxFrame* self, wxIcon* icon)
     {
-        self->SetIcon(*_icon);
+        self->SetIcon(*icon);
     }
 
     EXPORT int wxFrame_GetClientAreaOrigin_left(wxFrame* self)
@@ -173,14 +173,14 @@ extern "C"
         self->SetStatusBar(statBar);
     }
 
-    EXPORT void wxFrame_SetStatusText(wxFrame* self, wxString* _txt, int _number)
+    EXPORT void wxFrame_SetStatusText(wxFrame* self, wxString* text, int number)
     {
-        self->SetStatusText(*_txt, _number);
+        self->SetStatusText(*text, number);
     }
 
-    EXPORT void wxFrame_SetStatusWidths(wxFrame* self, int _n, void* _widths_field)
+    EXPORT void wxFrame_SetStatusWidths(wxFrame* self, int count, void* widths)
     {
-        self->SetStatusWidths(_n, (int*) _widths_field);
+        self->SetStatusWidths(count, (int*) widths);
     }
 
     EXPORT void* wxFrame_CreateToolBar(wxFrame* self, long style)
@@ -193,8 +193,8 @@ extern "C"
         return (void*) self->GetToolBar();
     }
 
-    EXPORT void wxFrame_SetToolBar(wxFrame* self, wxToolBar* _toolbar)
+    EXPORT void wxFrame_SetToolBar(wxFrame* self, wxToolBar* toolbar)
     {
-        self->SetToolBar(_toolbar);
+        self->SetToolBar(toolbar);
     }
 }

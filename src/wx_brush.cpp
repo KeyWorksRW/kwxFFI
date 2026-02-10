@@ -81,9 +81,9 @@ extern "C"
         return *self == *brush;
     }
 
-    EXPORT void wxBrush_GetColour(wxBrush* self, wxColour* _ref)
+    EXPORT void wxBrush_GetColour(wxBrush* self, wxColour* ref)
     {
-        *_ref = self->GetColour();
+        *ref = self->GetColour();
     }
 
     EXPORT int wxBrush_GetStyle(wxBrush* self)
@@ -91,9 +91,9 @@ extern "C"
         return self->GetStyle();
     }
 
-    EXPORT void wxBrush_GetStipple(wxBrush* self, wxBitmap* _ref)
+    EXPORT void wxBrush_GetStipple(wxBrush* self, wxBitmap* ref)
     {
-        *_ref = *(self->GetStipple());
+        *ref = *(self->GetStipple());
     }
 
     EXPORT bool wxBrush_IsOk(wxBrush* self)

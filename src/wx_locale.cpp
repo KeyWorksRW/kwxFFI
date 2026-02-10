@@ -3,9 +3,9 @@
 
 extern "C"
 {
-    EXPORT void* wxLocale_Create(int _lang, int _flags)
+    EXPORT void* wxLocale_Create(int language, int flags)
     {
-        return (void*) new wxLocale(_lang, _flags);
+        return (void*) new wxLocale(language, flags);
     }
 
     EXPORT void wxLocale_Delete(wxLocale* self)
@@ -45,10 +45,10 @@ extern "C"
         return (void*) strdup(retVal.utf8_str().data());
     }
 
-    EXPORT wxString* wxLocale_GetName(void* _obj)
+    EXPORT wxString* wxLocale_GetName(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxLocale*) _obj)->GetName();
+        *result = ((wxLocale*) pObject)->GetName();
         return result;
     }
 

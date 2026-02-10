@@ -1445,9 +1445,9 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxFrame_SetTitle(wxFrame* self, wxString* _txt)
+    EXPORT void wxFrame_SetTitle(wxFrame* self, wxString* text)
     {
-        self->SetTitle(*_txt);
+        self->SetTitle(*text);
     }
 
     EXPORT bool wxFrame_SetShape(wxFrame* self, wxRegion* region)
@@ -1730,9 +1730,9 @@ extern "C"
         return new wxTimerEx();
     }
 
-    EXPORT void wxTimerEx_Connect(wxTimerEx* self, wxClosure* _closure)
+    EXPORT void wxTimerEx_Connect(wxTimerEx* self, wxClosure* closure)
     {
-        self->Connect(_closure);
+        self->Connect(closure);
     }
 
     EXPORT wxClosure* wxTimerEx_GetClosure(wxTimerEx* self)
@@ -1956,11 +1956,11 @@ extern "C"
     }
 
     EXPORT int wxGetPasswordFromUser(char* message, char* caption, char* defaultText,
-                                     wxWindow* parent, char* _buf)
+                                     wxWindow* parent, char* buffer)
     {
         /* we use a complicated caching method as we don't want to call getpassword twice :-) */
         static char* resultBuffer = nullptr;
-        if (_buf == nullptr)
+        if (buffer == nullptr)
         {
             if (resultBuffer)
             {
@@ -1982,7 +1982,7 @@ extern "C"
         else if (resultBuffer)
         {
             int len = strlen(resultBuffer);
-            memcpy(_buf, resultBuffer, len); /* copy saved result */
+            memcpy(buffer, resultBuffer, len); /* copy saved result */
             free(resultBuffer);
             resultBuffer = nullptr;
             return len;
@@ -1994,11 +1994,11 @@ extern "C"
     }
 
     EXPORT int wxGetTextFromUser(char* message, char* caption, char* defaultText, wxWindow* parent,
-                                 int x, int y, int center, char* _buf)
+                                 int x, int y, int center, char* buffer)
     {
         /* we use a complicated caching method as we don't want to call gettext twice :-) */
         static char* resultBuffer = nullptr;
-        if (_buf == nullptr)
+        if (buffer == nullptr)
         {
             if (resultBuffer)
             {
@@ -2021,7 +2021,7 @@ extern "C"
         else if (resultBuffer)
         {
             int len = strlen(resultBuffer);
-            memcpy(_buf, resultBuffer, len); /* copy saved result */
+            memcpy(buffer, resultBuffer, len); /* copy saved result */
             free(resultBuffer);
             resultBuffer = nullptr;
             return len;
@@ -2371,49 +2371,49 @@ extern "C"
         return (void*) strdup((self->GetTimestamp()).utf8_str().data());
     }
 
-    EXPORT void LogError(wxString* _msg)
+    EXPORT void LogError(wxString* message)
     {
-        wxLogError(*_msg);
+        wxLogError(*message);
     }
 
-    EXPORT void LogFatalError(wxString* _msg)
+    EXPORT void LogFatalError(wxString* message)
     {
-        wxLogFatalError(*_msg);
+        wxLogFatalError(*message);
     }
 
-    EXPORT void LogWarning(wxString* _msg)
+    EXPORT void LogWarning(wxString* message)
     {
-        wxLogWarning(*_msg);
+        wxLogWarning(*message);
     }
 
-    EXPORT void LogMessage(wxString* _msg)
+    EXPORT void LogMessage(wxString* message)
     {
-        wxLogMessage(*_msg);
+        wxLogMessage(*message);
     }
 
-    EXPORT void LogVerbose(wxString* _msg)
+    EXPORT void LogVerbose(wxString* message)
     {
-        wxLogVerbose(*_msg);
+        wxLogVerbose(*message);
     }
 
-    EXPORT void LogStatus(wxString* _msg)
+    EXPORT void LogStatus(wxString* message)
     {
-        wxLogStatus(*_msg);
+        wxLogStatus(*message);
     }
 
-    EXPORT void LogSysError(wxString* _msg)
+    EXPORT void LogSysError(wxString* message)
     {
-        wxLogSysError(*_msg);
+        wxLogSysError(*message);
     }
 
-    EXPORT void LogDebug(wxString* _msg)
+    EXPORT void LogDebug(wxString* message)
     {
-        wxLogDebug(*_msg);
+        wxLogDebug(*message);
     }
 
-    EXPORT void LogTrace(wxString* mask, wxString* _msg)
+    EXPORT void LogTrace(wxString* mask, wxString* message)
     {
-        wxLogTrace(*mask, *_msg);
+        wxLogTrace(*mask, *message);
     }
 
     /*-----------------------------------------------------------------------------

@@ -38,13 +38,13 @@ extern "C"
         return sz;
     }
 
-    EXPORT void* wxWizardPageSimple_Create(wxWizard* _prt, wxWizardPage* prev, wxWizardPage* next,
+    EXPORT void* wxWizardPageSimple_Create(wxWizard* parent, wxWizardPage* prev, wxWizardPage* next,
                                            wxBitmap* bitmap)
     {
         wxBitmapBundle bmp;
         if (bitmap)
             bmp = *bitmap;
-        return (void*) new wxWizardPageSimple(_prt, prev, next, bmp);
+        return (void*) new wxWizardPageSimple(parent, prev, next, bmp);
     }
 
     EXPORT void* wxWizardPageSimple_GetPrev(void* self)

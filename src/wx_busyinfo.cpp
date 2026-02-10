@@ -3,14 +3,14 @@
 
 extern "C"
 {
-    EXPORT void* wxBusyInfo_Create(wxString* _txt, wxWindow* parent)
+    EXPORT void* wxBusyInfo_Create(wxString* text, wxWindow* parent)
     {
-        return (void*) new wxBusyInfo(*_txt, parent);
+        return (void*) new wxBusyInfo(*text, parent);
     }
 
-    EXPORT void wxBusyInfo_Delete(wxBusyInfo* _obj)
+    EXPORT void wxBusyInfo_Delete(wxBusyInfo* pObject)
     {
-        delete _obj;
+        delete pObject;
     }
 
     EXPORT void* wxBusyCursor_Create()
@@ -18,13 +18,13 @@ extern "C"
         return (void*) new wxBusyCursor();
     }
 
-    EXPORT void* wxBusyCursor_CreateWithCursor(void* _cur)
+    EXPORT void* wxBusyCursor_CreateWithCursor(void* cursor)
     {
-        return (void*) new wxBusyCursor((wxCursor*) _cur);
+        return (void*) new wxBusyCursor((wxCursor*) cursor);
     }
 
-    EXPORT void wxBusyCursor_Delete(wxBusyCursor* _obj)
+    EXPORT void wxBusyCursor_Delete(wxBusyCursor* pObject)
     {
-        delete _obj;
+        delete pObject;
     }
 }

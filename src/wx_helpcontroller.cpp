@@ -16,11 +16,11 @@ static void InitZipFileSystem()
 
 extern "C"
 {
-    EXPORT void* wxHtmlHelpController_Create(int _style, wxWindow* parentWindow)
+    EXPORT void* wxHtmlHelpController_Create(int style, wxWindow* parentWindow)
     {
         InitZipFileSystem();
         wxInitAllImageHandlers();
-        return (void*) new wxHtmlHelpController(_style, parentWindow);
+        return (void*) new wxHtmlHelpController(style, parentWindow);
     }
 
     EXPORT void wxHtmlHelpController_Delete(void* self)

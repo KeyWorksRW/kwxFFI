@@ -60,44 +60,44 @@ extern "C"
         ((kwxConnection*) self)->Compress(on);
     }
 
-    EXPORT void kwxConnection_SetOnAdvise(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnAdvise(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnAdvise(_fnc);
+        ((kwxConnection*) self)->SetOnAdvise(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnExecute(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnExecute(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnExecute(_fnc);
+        ((kwxConnection*) self)->SetOnExecute(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnRequest(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnRequest(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnRequest(_fnc);
+        ((kwxConnection*) self)->SetOnRequest(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnPoke(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnPoke(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnPoke(_fnc);
+        ((kwxConnection*) self)->SetOnPoke(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnStartAdvise(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnStartAdvise(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnStartAdvise(_fnc);
+        ((kwxConnection*) self)->SetOnStartAdvise(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnStopAdvise(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnStopAdvise(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnStopAdvise(_fnc);
+        ((kwxConnection*) self)->SetOnStopAdvise(pFunction);
     }
 
-    EXPORT void kwxConnection_SetOnDisconnect(void* self, void* _fnc)
+    EXPORT void kwxConnection_SetOnDisconnect(void* self, void* pFunction)
     {
-        ((kwxConnection*) self)->SetOnDisconnect(_fnc);
+        ((kwxConnection*) self)->SetOnDisconnect(pFunction);
     }
 
-    EXPORT void* kwxServer_Create(void* _eobj, void* _cnct)
+    EXPORT void* kwxServer_Create(void* eiffelObject, void* connectFunc)
     {
-        return new kwxServer(_eobj, _cnct);
+        return new kwxServer(eiffelObject, connectFunc);
     }
 
     EXPORT void kwxServer_Delete(void* self)
@@ -110,9 +110,9 @@ extern "C"
         return ((kwxServer*) self)->Create(*name);
     }
 
-    EXPORT void* kwxClient_Create(void* _eobj, void* _cnct)
+    EXPORT void* kwxClient_Create(void* eiffelObject, void* connectFunc)
     {
-        return new kwxClient(_eobj, _cnct);
+        return new kwxClient(eiffelObject, connectFunc);
     }
 
     EXPORT void kwxClient_Delete(void* self)

@@ -50,9 +50,9 @@
 
 extern "C"
 {
-    EXPORT wxCommandEvent* wxCommandEvent_Create(int _typ, int _id)
+    EXPORT wxCommandEvent* wxCommandEvent_Create(int type, int id)
     {
-        return new wxCommandEvent((wxEventType) _typ, _id);
+        return new wxCommandEvent((wxEventType) type, id);
     }
 
     EXPORT void wxCommandEvent_Delete(wxCommandEvent* self)
@@ -876,20 +876,20 @@ extern "C"
         return self->GetMask();
     }
 
-    EXPORT void wxListEvent_GetItem(wxListEvent* self, void* _ref)
+    EXPORT void wxListEvent_GetItem(wxListEvent* self, void* ref)
     {
         wxListItem* ret = new wxListItem(self->GetItem());
-        *((void**) _ref) = (void*) ret;
+        *((void**) ref) = (void*) ret;
     }
 
-    EXPORT void wxTreeEvent_GetItem(wxTreeEvent* self, wxTreeItemId* _ref)
+    EXPORT void wxTreeEvent_GetItem(wxTreeEvent* self, wxTreeItemId* ref)
     {
-        *_ref = self->GetItem();
+        *ref = self->GetItem();
     }
 
-    EXPORT void wxTreeEvent_GetOldItem(wxTreeEvent* self, wxTreeItemId* _ref)
+    EXPORT void wxTreeEvent_GetOldItem(wxTreeEvent* self, wxTreeItemId* ref)
     {
-        *_ref = self->GetOldItem();
+        *ref = self->GetOldItem();
     }
 
     EXPORT wxPoint* wxTreeEvent_GetPoint(wxTreeEvent* self)
@@ -931,9 +931,9 @@ extern "C"
         return self->GetWeekDay();
     }
 
-    EXPORT void wxCalendarEvent_GetDate(wxCalendarEvent* self, wxDateTime* _dte)
+    EXPORT void wxCalendarEvent_GetDate(wxCalendarEvent* self, wxDateTime* date)
     {
-        *_dte = self->GetDate();
+        *date = self->GetDate();
     }
 
     EXPORT int wxScrollEvent_GetOrientation(wxScrollEvent* self)

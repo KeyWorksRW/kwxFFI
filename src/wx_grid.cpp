@@ -1130,39 +1130,39 @@ extern "C"
         self->SetMargins(extraWidth, extraHeight);
     }
 
-    EXPORT void wxGrid_GetSelectedCells(wxGrid* self, wxGridCellCoordsArray* _arr)
+    EXPORT void wxGrid_GetSelectedCells(wxGrid* self, wxGridCellCoordsArray* array)
     {
-        *_arr = self->GetSelectedCells();
+        *array = self->GetSelectedCells();
     }
 
-    EXPORT void wxGrid_GetSelectionBlockTopLeft(wxGrid* self, wxGridCellCoordsArray* _arr)
+    EXPORT void wxGrid_GetSelectionBlockTopLeft(wxGrid* self, wxGridCellCoordsArray* array)
     {
-        *_arr = self->GetSelectionBlockTopLeft();
+        *array = self->GetSelectionBlockTopLeft();
     }
 
-    EXPORT void wxGrid_GetSelectionBlockBottomRight(wxGrid* self, wxGridCellCoordsArray* _arr)
+    EXPORT void wxGrid_GetSelectionBlockBottomRight(wxGrid* self, wxGridCellCoordsArray* array)
     {
-        *_arr = self->GetSelectionBlockBottomRight();
+        *array = self->GetSelectionBlockBottomRight();
     }
 
-    EXPORT int wxGrid_GetSelectedRows(wxGrid* self, void* _arr)
+    EXPORT int wxGrid_GetSelectedRows(wxGrid* self, void* array)
     {
         wxArrayInt arr = self->GetSelectedRows();
-        if (_arr)
+        if (array)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((int*) _arr)[i] = arr.Item(i);
+                ((int*) array)[i] = arr.Item(i);
         }
         return arr.GetCount();
     }
 
-    EXPORT int wxGrid_GetSelectedCols(wxGrid* self, void* _arr)
+    EXPORT int wxGrid_GetSelectedCols(wxGrid* self, void* array)
     {
         wxArrayInt arr = self->GetSelectedCols();
-        if (_arr)
+        if (array)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((int*) _arr)[i] = arr.Item(i);
+                ((int*) array)[i] = arr.Item(i);
         }
         return arr.GetCount();
     }
@@ -1176,19 +1176,19 @@ extern "C"
         self->SetCellSize(r, c, sr, sc);
     }
 
-    EXPORT void* kwxGridTable_Create(void* self, void* _EifGetNumberRows, void* _EifGetNumberCols,
-                                     void* _EifGetValue, void* _EifSetValue, void* _EifIsEmptyCell,
-                                     void* _EifClear, void* _EifInsertRows, void* _EifAppendRows,
-                                     void* _EifDeleteRows, void* _EifInsertCols,
-                                     void* _EifAppendCols, void* _EifDeleteCols,
-                                     void* _EifSetRowLabelValue, void* _EifSetColLabelValue,
-                                     void* _EifGetRowLabelValue, void* _EifGetColLabelValue)
+    EXPORT void* kwxGridTable_Create(void* self, void* fnGetNumberRows, void* fnGetNumberCols,
+                                     void* fnGetValue, void* fnSetValue, void* fnIsEmptyCell,
+                                     void* fnClear, void* fnInsertRows, void* fnAppendRows,
+                                     void* fnDeleteRows, void* fnInsertCols,
+                                     void* fnAppendCols, void* fnDeleteCols,
+                                     void* fnSetRowLabelValue, void* fnSetColLabelValue,
+                                     void* fnGetRowLabelValue, void* fnGetColLabelValue)
     {
         return (void*) new kwxGridTable(
-            self, _EifGetNumberRows, _EifGetNumberCols, _EifGetValue, _EifSetValue, _EifIsEmptyCell,
-            _EifClear, _EifInsertRows, _EifAppendRows, _EifDeleteRows, _EifInsertCols,
-            _EifAppendCols, _EifDeleteCols, _EifSetRowLabelValue, _EifSetColLabelValue,
-            _EifGetRowLabelValue, _EifGetColLabelValue);
+            self, fnGetNumberRows, fnGetNumberCols, fnGetValue, fnSetValue, fnIsEmptyCell,
+            fnClear, fnInsertRows, fnAppendRows, fnDeleteRows, fnInsertCols,
+            fnAppendCols, fnDeleteCols, fnSetRowLabelValue, fnSetColLabelValue,
+            fnGetRowLabelValue, fnGetColLabelValue);
     }
 
     EXPORT void kwxGridTable_Delete(kwxGridTable* self)
@@ -1281,20 +1281,20 @@ extern "C"
         return self->AltDown();
     }
 
-    EXPORT void wxGridRangeSelectEvent_GetTopLeftCoords(wxGridRangeSelectEvent* self, int* _c,
-                                                        int* _r)
+    EXPORT void wxGridRangeSelectEvent_GetTopLeftCoords(wxGridRangeSelectEvent* self, int* col,
+                                                        int* row)
     {
         wxGridCellCoords crd = self->GetTopLeftCoords();
-        *_c = crd.GetRow();
-        *_r = crd.GetCol();
+        *col = crd.GetRow();
+        *row = crd.GetCol();
     }
 
-    EXPORT void wxGridRangeSelectEvent_GetBottomRightCoords(wxGridRangeSelectEvent* self, int* _c,
-                                                            int* _r)
+    EXPORT void wxGridRangeSelectEvent_GetBottomRightCoords(wxGridRangeSelectEvent* self, int* col,
+                                                            int* row)
     {
         wxGridCellCoords crd = self->GetBottomRightCoords();
-        *_c = crd.GetRow();
-        *_r = crd.GetCol();
+        *col = crd.GetRow();
+        *row = crd.GetCol();
     }
 
     EXPORT int wxGridRangeSelectEvent_GetTopRow(wxGridRangeSelectEvent* self)

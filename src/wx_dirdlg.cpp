@@ -8,41 +8,41 @@ extern "C"
         return (void*) new wxDirDialog(parent, *message, *defaultPath, style, wxPoint(x, y));
     }
 
-    EXPORT void wxDirDialog_SetMessage(void* _obj, wxString* msg)
+    EXPORT void wxDirDialog_SetMessage(void* pObject, wxString* msg)
     {
-        ((wxDirDialog*) _obj)->SetMessage(*msg);
+        ((wxDirDialog*) pObject)->SetMessage(*msg);
     }
 
-    EXPORT void wxDirDialog_SetPath(void* _obj, wxString* pth)
+    EXPORT void wxDirDialog_SetPath(void* pObject, wxString* pth)
     {
-        ((wxDirDialog*) _obj)->SetPath(*pth);
+        ((wxDirDialog*) pObject)->SetPath(*pth);
     }
 
-    EXPORT void wxDirDialog_SetStyle(void* _obj, int style)
+    EXPORT void wxDirDialog_SetStyle(void* pObject, int style)
     {
 #if WXWIN_COMPATIBILITY_2_6
-        ((wxDirDialog*) _obj)->SetStyle((long) style);
+        ((wxDirDialog*) pObject)->SetStyle((long) style);
 #endif
     }
 
-    EXPORT wxString* wxDirDialog_GetMessage(void* _obj)
+    EXPORT wxString* wxDirDialog_GetMessage(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxDirDialog*) _obj)->GetMessage();
+        *result = ((wxDirDialog*) pObject)->GetMessage();
         return result;
     }
 
-    EXPORT wxString* wxDirDialog_GetPath(void* _obj)
+    EXPORT wxString* wxDirDialog_GetPath(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxDirDialog*) _obj)->GetPath();
+        *result = ((wxDirDialog*) pObject)->GetPath();
         return result;
     }
 
-    EXPORT int wxDirDialog_GetStyle(void* _obj)
+    EXPORT int wxDirDialog_GetStyle(void* pObject)
     {
 #if WXWIN_COMPATIBILITY_2_6
-        return (int) ((wxDirDialog*) _obj)->GetStyle();
+        return (int) ((wxDirDialog*) pObject)->GetStyle();
 #else
         return 0;
 #endif

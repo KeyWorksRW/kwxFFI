@@ -29,9 +29,9 @@ extern "C"
         self->Append(id, *text, submenu, *help);
     }
 
-    EXPORT void wxMenu_AppendItem(wxMenu* self, wxMenuItem* _itm)
+    EXPORT void wxMenu_AppendItem(wxMenu* self, wxMenuItem* item)
     {
-        self->Append(_itm);
+        self->Append(item);
     }
 
     EXPORT void wxMenu_Break(wxMenu* self)
@@ -51,9 +51,9 @@ extern "C"
         self->Insert(pos, id, *text, submenu, *help);
     }
 
-    EXPORT void wxMenu_InsertItem(wxMenu* self, int pos, wxMenuItem* _itm)
+    EXPORT void wxMenu_InsertItem(wxMenu* self, int pos, wxMenuItem* item)
     {
-        self->Insert((size_t) pos, _itm);
+        self->Insert((size_t) pos, item);
     }
 
     EXPORT void wxMenu_Prepend(wxMenu* self, int id, wxString* text, wxString* help,
@@ -68,9 +68,9 @@ extern "C"
         self->Prepend(id, *text, submenu, *help);
     }
 
-    EXPORT void wxMenu_PrependItem(wxMenu* self, wxMenuItem* _itm)
+    EXPORT void wxMenu_PrependItem(wxMenu* self, wxMenuItem* item)
     {
-        self->Prepend(_itm);
+        self->Prepend(item);
     }
 
     EXPORT void wxMenu_RemoveByItem(wxMenu* self, wxMenuItem* item)
@@ -78,9 +78,9 @@ extern "C"
         self->Remove(item);
     }
 
-    EXPORT void wxMenu_RemoveById(wxMenu* self, int id, void* _itm)
+    EXPORT void wxMenu_RemoveById(wxMenu* self, int id, void* item)
     {
-        *((void**) _itm) = (void*) self->Remove(id);
+        *((void**) item) = (void*) self->Remove(id);
     }
 
     EXPORT void wxMenu_DeleteById(wxMenu* self, int id)
@@ -88,9 +88,9 @@ extern "C"
         self->Delete(id);
     }
 
-    EXPORT void wxMenu_DeleteByItem(wxMenu* self, wxMenuItem* _itm)
+    EXPORT void wxMenu_DeleteByItem(wxMenu* self, wxMenuItem* item)
     {
-        self->Delete(_itm);
+        self->Delete(item);
     }
 
     EXPORT void wxMenu_DestroyById(wxMenu* self, int id)
@@ -98,9 +98,9 @@ extern "C"
         self->Destroy(id);
     }
 
-    EXPORT void wxMenu_DestroyByItem(wxMenu* self, wxMenuItem* _itm)
+    EXPORT void wxMenu_DestroyByItem(wxMenu* self, wxMenuItem* item)
     {
-        self->Destroy(_itm);
+        self->Destroy(item);
     }
 
     EXPORT size_t wxMenu_GetMenuItemCount(wxMenu* self)
@@ -108,12 +108,12 @@ extern "C"
         return self->GetMenuItemCount();
     }
 
-    EXPORT int wxMenu_GetMenuItems(wxMenu* self, void* _lst)
+    EXPORT int wxMenu_GetMenuItems(wxMenu* self, void* list)
     {
-        if (_lst)
+        if (list)
         {
             for (unsigned int i = 0; i < self->GetMenuItems().GetCount(); i++)
-                ((void**) _lst)[i] = self->GetMenuItems().Item(i)->GetData();
+                ((void**) list)[i] = self->GetMenuItems().Item(i)->GetData();
         }
         return self->GetMenuItems().GetCount();
     }
@@ -172,9 +172,9 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxMenu_SetTitle(void* _obj, wxString* title)
+    EXPORT void wxMenu_SetTitle(void* pObject, wxString* title)
     {
-        ((wxMenu*) _obj)->SetTitle(*title);
+        ((wxMenu*) pObject)->SetTitle(*title);
     }
 
     EXPORT wxString* wxMenu_GetTitle(wxMenu* self)

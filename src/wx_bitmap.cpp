@@ -2,19 +2,19 @@
 
 extern "C"
 {
-    EXPORT void* wxBitmap_Create(void* _data, int _width, int _height, int _depth)
+    EXPORT void* wxBitmap_Create(void* data, int width, int height, int depth)
     {
-        return (void*) new wxBitmap((const char*) _data, _width, _height, _depth);
+        return (void*) new wxBitmap((const char*) data, width, height, depth);
     }
 
-    EXPORT void* wxBitmap_CreateFromXPM(void* _data)
+    EXPORT void* wxBitmap_CreateFromXPM(void* data)
     {
-        return (void*) new wxBitmap((const char**) _data);
+        return (void*) new wxBitmap((const char**) data);
     }
 
-    EXPORT void* wxBitmap_CreateEmpty(int _width, int _height, int _depth)
+    EXPORT void* wxBitmap_CreateEmpty(int width, int height, int depth)
     {
-        return (void*) new wxBitmap(_width, _height, _depth);
+        return (void*) new wxBitmap(width, height, depth);
     }
 
     EXPORT void* wxBitmap_CreateLoad(wxString* name, int type)
@@ -160,14 +160,14 @@ extern "C"
         self->SetBitmap(*bitmap);
     }
 
-    EXPORT void wxStaticBitmap_GetIcon(wxStaticBitmap* self, wxIcon* _ref)
+    EXPORT void wxStaticBitmap_GetIcon(wxStaticBitmap* self, wxIcon* ref)
     {
-        *_ref = self->GetIcon();
+        *ref = self->GetIcon();
     }
 
-    EXPORT void wxStaticBitmap_GetBitmap(wxStaticBitmap* self, wxBitmap* _ref)
+    EXPORT void wxStaticBitmap_GetBitmap(wxStaticBitmap* self, wxBitmap* ref)
     {
-        *_ref = self->GetBitmap();
+        *ref = self->GetBitmap();
     }
 
     EXPORT void wxStaticBitmap_Delete(wxStaticBitmap* self)
