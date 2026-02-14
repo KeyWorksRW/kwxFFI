@@ -192,4 +192,9 @@ extern "C"
     {
         self->SetEditable(editable);
     }
+
+    EXPORT void wxTextCtrl_MarkDirty(wxTextCtrl* self)
+    {
+        self->MarkDirty();
+    }
 }

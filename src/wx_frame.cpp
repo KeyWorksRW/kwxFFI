@@ -197,4 +197,9 @@ extern "C"
     {
         self->SetToolBar(toolbar);
     }
+
+    EXPORT void wxTopLevelWindow_CenterOnScreen(wxTopLevelWindow* self, int direction)
+    {
+        self->CentreOnScreen(direction);
+    }
 }

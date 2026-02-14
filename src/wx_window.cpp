@@ -727,4 +727,14 @@ extern "C"
         *text = self->GetVirtualSize();
         return text;
     }
+
+    EXPORT void wxWindow_SetMinSize(wxWindow* self, int width, int height)
+    {
+        self->SetMinSize(wxSize(width, height));
+    }
+
+    EXPORT void wxWindow_SetMaxSize(wxWindow* self, int width, int height)
+    {
+        self->SetMaxSize(wxSize(width, height));
+    }
 }

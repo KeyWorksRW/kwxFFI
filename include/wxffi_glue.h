@@ -6761,6 +6761,7 @@ void wxTextCtrl_Remove(TSelf(wxTextCtrl) pObject, long from, long toPos);
 void wxTextCtrl_Replace(TSelf(wxTextCtrl) pObject, long from, long toPos, TClass(wxString) value);
 TBool wxTextCtrl_SaveFile(TSelf(wxTextCtrl) pObject, TClass(wxString) file, int fileType);
 void wxTextCtrl_SetEditable(TSelf(wxTextCtrl) pObject, TBool editable);
+void wxTextCtrl_MarkDirty(TSelf(wxTextCtrl) pObject);
 void wxTextCtrl_SetInsertionPoint(TSelf(wxTextCtrl) pObject, long pos);
 void wxTextCtrl_SetInsertionPointEnd(TSelf(wxTextCtrl) pObject);
 void wxTextCtrl_SetSelection(TSelf(wxTextCtrl) pObject, long from, long toPos);
@@ -6957,6 +6958,7 @@ void wxTopLevelWindow_SetIcon(TSelf(wxTopLevelWindow) pObject, TClass(wxIcon) pI
 void wxTopLevelWindow_SetIcons(TSelf(wxTopLevelWindow) pObject, void* icons);
 void wxTopLevelWindow_SetMaxSize(TSelf(wxTopLevelWindow) pObject, TSize(width, height));
 void wxTopLevelWindow_SetMinSize(TSelf(wxTopLevelWindow) pObject, TSize(width, height));
+void wxTopLevelWindow_CenterOnScreen(TSelf(wxTopLevelWindow) pObject, int direction);
 void wxTopLevelWindow_SetTitle(TSelf(wxTopLevelWindow) pObject, TClass(wxString) pString);
 
 /* wxTreeCompanionWindow */
@@ -7464,6 +7466,8 @@ void wxWindow_SetSize(TSelf(wxWindow) pObject, TRect(x, y, width, height), int s
 void wxWindow_SetSizeConstraint(TSelf(wxWindow) pObject, TRect(x, y, width, height));
 void wxWindow_SetSizeHints(TSelf(wxWindow) pObject, int minW, int minH, int maxW, int maxH,
                            int incW, int incH);
+void wxWindow_SetMinSize(TSelf(wxWindow) pObject, TSize(width, height));
+void wxWindow_SetMaxSize(TSelf(wxWindow) pObject, TSize(width, height));
 void wxWindow_SetSizer(TSelf(wxWindow) pObject, TClass(wxSizer) sizer, TBool deleteOld);
 void wxWindow_SetSizerAndFit(TSelf(wxWindow) pObject, TClass(wxSizer) sizer, TBool deleteOld);
 void wxWindow_SetToolTip(TSelf(wxWindow) pObject, TClass(wxString) tip);
