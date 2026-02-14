@@ -1,8 +1,10 @@
 lib/
+bin/
 .cache
 .local
 .private
 .serena
+.shared
 .vscode
 
 src/version.h
