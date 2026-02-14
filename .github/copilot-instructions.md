@@ -30,23 +30,6 @@ This FFI is designed to support the following language ports:
   - macOS: `build/_deps/wxwidgets-build/lib/osx_cocoa-unicode-static`
   - Linux: `build/_deps/wxwidgets-build/lib/gtk3_unixu-3.3/include`
 
-## Terminal Command Selection Rules
-
-**MANDATORY**: You MUST use `key_term` for all terminal commands EXCEPT build commands.
-
-### Use `run_in_terminal` ONLY for:
-- `cmake` commands (configuration, generation)
-- `ninja` commands (building)
-
-### Use `key_term` for EVERYTHING else:
-- Git: `git status`, `git diff`, `git log`, `git add`, `git commit`
-- File operations: `Get-ChildItem`, `cat`, `head`, `tail`, `ls`
-- Any PowerShell cmdlet or shell command
-- Directory navigation
-- File content inspection
-
-**Why**: `key_term` executes immediately without user confirmation. Build commands use `run_in_terminal` because they may run for extended periods and need terminal output streaming.
-
 ## Architecture
 
 ### Header Files (`include/`)
