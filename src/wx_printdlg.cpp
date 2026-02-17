@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// Print dialogs inherit from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxPrintDialog_Create(wxWindow* parent, wxPrintDialogData* data)

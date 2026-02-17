@@ -2,10 +2,6 @@
 
 #include <wx/quantize.h>
 
-/*-----------------------------------------------------------------------------
-    Miscellaneous helper functions
------------------------------------------------------------------------------*/
-
 int copyStrToBuf(void* dst, wxString& src)
 {
     if (dst)
@@ -13,9 +9,6 @@ int copyStrToBuf(void* dst, wxString& src)
     return src.Length();
 }
 
-/*-----------------------------------------------------------------------------
-    Closures
------------------------------------------------------------------------------*/
 wxClosure::wxClosure(ClosureFun fun, void* data)
 {
     m_refcount = 0;
@@ -25,7 +18,7 @@ wxClosure::wxClosure(ClosureFun fun, void* data)
 
 wxClosure::~wxClosure()
 {
-    /* call for the last time with a nullptr event. Give opportunity to clean up resources */
+    // call for the last time with a nullptr event. Give opportunity to clean up resources
     if (m_fun)
     {
         m_fun((void*) m_fun, m_data, nullptr);
@@ -59,9 +52,6 @@ void* wxClosure::GetData()
     return m_data;
 }
 
-/*-----------------------------------------------------------------------------
-    callback: a reference counting wrapper for a closure
------------------------------------------------------------------------------*/
 wxCallback::wxCallback(wxClosure* closure)
 {
     m_closure = closure;
@@ -83,9 +73,6 @@ wxClosure* wxCallback::GetClosure()
     return m_closure;
 }
 
-/*-----------------------------------------------------------------------------
-    Generic event handler for all language ports
------------------------------------------------------------------------------*/
 void kwxEventHandler::HandleEvent(wxEvent& evt)
 {
     wxCallback* callback = (wxCallback*) (evt.m_callbackUserData);
@@ -95,29 +82,26 @@ void kwxEventHandler::HandleEvent(wxEvent& evt)
     }
 }
 
-/*-----------------------------------------------------------------------------
-    wrapper for objectRefData
------------------------------------------------------------------------------*/
-class wxcClosureRefData : public wxObjectRefData
+class kwxClosureRefData : public wxObjectRefData
 {
 private:
     wxClosure* m_closure;
 
 public:
-    wxcClosureRefData(wxClosure* closure);
-    ~wxcClosureRefData();
+    kwxClosureRefData(wxClosure* closure);
+    ~kwxClosureRefData();
 
     wxClosure* GetClosure();
 };
 
-wxcClosureRefData::wxcClosureRefData(wxClosure* closure)
+kwxClosureRefData::kwxClosureRefData(wxClosure* closure)
 {
     m_closure = closure;
 }
 
-wxcClosureRefData::~wxcClosureRefData()
+kwxClosureRefData::~kwxClosureRefData()
 {
-    /* printf("delete wxc-ClosureRefData\n");  */
+    // printf("delete wxc-ClosureRefData\n");
     if (m_closure)
     {
         delete m_closure;
@@ -125,17 +109,14 @@ wxcClosureRefData::~wxcClosureRefData()
     }
 }
 
-wxClosure* wxcClosureRefData::GetClosure()
+wxClosure* kwxClosureRefData::GetClosure()
 {
     return m_closure;
 }
 
-/*-----------------------------------------------------------------------------
-    C interface to closures.
------------------------------------------------------------------------------*/
 extern "C"
 {
-    /* closures */
+    // closures
     EXPORT wxClosure* wxClosure_Create(ClosureFun fun, void* data)
     {
         return new wxClosure(fun, data);
@@ -146,7 +127,7 @@ extern "C"
         return closure->GetData();
     }
 
-    /* client data */
+    // client data
     EXPORT void* wxEvtHandler_GetClientClosure(void* pObject)
     {
         return (void*) ((wxEvtHandler*) pObject)->GetClientObject();
@@ -159,7 +140,7 @@ extern "C"
 
     EXPORT wxClosure* wxObject_GetClientClosure(wxObject* pObject)
     {
-        wxcClosureRefData* refData = (wxcClosureRefData*) pObject->GetRefData();
+        kwxClosureRefData* refData = (kwxClosureRefData*) pObject->GetRefData();
         if (refData)
             return refData->GetClosure();
         else
@@ -168,11 +149,10 @@ extern "C"
 
     EXPORT void wxObject_SetClientClosure(wxObject* pObject, wxClosure* closure)
     {
-        wxcClosureRefData* refData;
-        /* wxASSERT(pObject->GetRefData() == nullptr); */
+        kwxClosureRefData* refData;
         pObject->UnRef();
         wxASSERT(pObject->GetRefData() == nullptr);
-        refData = new wxcClosureRefData(closure);
+        refData = new kwxClosureRefData(closure);
         pObject->SetRefData(
             refData);  // set new data -- ref count must be 1 as setRefData doesn't increase it.
     }
@@ -246,11 +226,9 @@ extern "C"
         self->ProcessPendingEvents();
     }
 
-    /*-------------------------------------------------------------------------
-        Generic event connection — used by all language ports.
-        Creates a wxCallback wrapping the closure and connects it using
-        kwxEventHandler::HandleEvent as the event handler function.
-    -------------------------------------------------------------------------*/
+    // Generic event connection — used by all language ports.
+    // Creates a wxCallback wrapping the closure and connects it using
+    // kwxEventHandler::HandleEvent as the event handler function.
     EXPORT int wxEvtHandler_Connect(wxEvtHandler* obj, int first, int last, int type,
                                     wxClosure* closure)
     {

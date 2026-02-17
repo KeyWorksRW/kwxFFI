@@ -58,16 +58,10 @@
 #define TClassDef(tp)
 #define TClassDefExtend(tp, parent)
 
-/* Types that can be 'untyped' or C++ typed */
-#ifdef WXC_USE_TYPED_INTERFACE
-    #define TClass(tp)  tp*
-    #define TBool       bool
-    #define TClosureFun ClosureFun
-#else
-    #define TClass(tp)  void*
-    #define TBool       int
-    #define TClosureFun void*
-#endif
+/* FFI types — always untyped for C ABI compatibility */
+#define TClass(tp)  void*
+#define TBool       int
+#define TClosureFun void*
 
 /* basic types */
 #define TChar char
@@ -132,31 +126,17 @@
 #define TArrayIntPtr(n, p)     int n, intptr_t *p
 #define TArrayObject(n, tp, p) int n, TClass(tp) * p
 
-/* Define "Void" variants for void* declared signatures.
-   we only use this for compatibility with the original ewxw_glue.h */
-#ifdef WXC_USE_TYPED_INTERFACE
-    #define TStringVoid              TString
-    #define TStringOutVoid           TStringOut
-    #define TPointOutVoid(x, y)      TPointOut(x, y)
-    #define TVectorOutVoid(x, y)     TVectorOut(x, y)
-    #define TSizeOutVoid(w, h)       TSizeOut(w, h)
-    #define TRectOutVoid(x, y, w, h) TRectOut(x, y, w, h)
-    #define TArrayIntOutVoid         TArrayIntOut
-    #define TArrayIntPtrOutVoid      TArrayIntPtrOut
-    #define TArrayStringOutVoid      TArrayStringOut
-    #define TArrayObjectOutVoid(tp)  TArrayObjectOut(tp)
-#else
-    #define TStringVoid              void*
-    #define TStringOutVoid           void*
-    #define TPointOutVoid(x, y)      void *x, void *y
-    #define TVectorOutVoid(x, y)     void *x, void *y
-    #define TSizeOutVoid(w, h)       void *w, void *h
-    #define TRectOutVoid(x, y, w, h) void *x, void *y, void *w, void *h
-    #define TArrayIntOutVoid         void*
-    #define TArrayIntPtrOutVoid      void*
-    #define TArrayStringOutVoid      void*
-    #define TArrayObjectOutVoid(tp)  void*
-#endif
+/* "Void" variants — legacy compatibility with ewxw_glue.h */
+#define TStringVoid              void*
+#define TStringOutVoid           void*
+#define TPointOutVoid(x, y)      void *x, void *y
+#define TVectorOutVoid(x, y)     void *x, void *y
+#define TSizeOutVoid(w, h)       void *w, void *h
+#define TRectOutVoid(x, y, w, h) void *x, void *y, void *w, void *h
+#define TArrayIntOutVoid         void*
+#define TArrayIntPtrOutVoid      void*
+#define TArrayStringOutVoid      void*
+#define TArrayObjectOutVoid(tp)  void*
 
 /* Define "Long" variants for long declared signatures.
    we only use this for compatibility with the original ewxw_glue.h */

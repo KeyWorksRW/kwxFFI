@@ -57,7 +57,6 @@ extern "C"
         self->SetMask(mask);
     }
 
-    /**/
     EXPORT void wxBitmap_AddHandler(void* handler)
     {
 #ifdef __WIN32__
@@ -122,7 +121,6 @@ extern "C"
 #endif
     }
 
-    /**/
     EXPORT bool wxBitmap_IsOk(wxBitmap* self)
     {
         return self->IsOk();

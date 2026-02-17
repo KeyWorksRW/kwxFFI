@@ -5,7 +5,7 @@
 
 extern "C"
 {
-    /* bitmap/image helpers */
+    // bitmap/image helpers
     EXPORT wxBitmap* wxBitmap_CreateFromImage(wxImage* image, int depth)
     {
         return new wxBitmap(*image, depth);
@@ -22,7 +22,7 @@ extern "C"
         delete image;
     }
 
-    /* colours */
+    // colours
     EXPORT wxColour* wxColour_CreateFromInt(int rgb)
     {
         return new wxColour((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
@@ -36,8 +36,8 @@ extern "C"
         return ((r << 16) | (g << 8) | b);
     }
 
-    /* basic pixel manipulation */
-    EXPORT void wxcSetPixelRGB(wxUint8* buffer, int width, int x, int y, int rgb)
+    // basic pixel manipulation
+    EXPORT void kwxSetPixelRGB(wxUint8* buffer, int width, int x, int y, int rgb)
     {
         int indexR = 3 * (width * y + x);
         buffer[indexR] = rgb >> 16;
@@ -45,7 +45,7 @@ extern "C"
         buffer[indexR + 2] = rgb;
     }
 
-    EXPORT int wxcGetPixelRGB(wxUint8* buffer, int width, int x, int y)
+    EXPORT int kwxGetPixelRGB(wxUint8* buffer, int width, int x, int y)
     {
         int indexR = 3 * (width * y + x);
         int r, g, b;
@@ -55,7 +55,7 @@ extern "C"
         return ((r << 16) | (g << 8) | b);
     }
 
-    EXPORT void wxcSetPixelRowRGB(wxUint8* buffer, int width, int x, int y, int rgb0, int rgb1,
+    EXPORT void kwxSetPixelRowRGB(wxUint8* buffer, int width, int x, int y, int rgb0, int rgb1,
                                   int count)
     {
         int r0 = ((rgb0 >> 16) & 0xFF);
@@ -66,7 +66,7 @@ extern "C"
 
         if (rgb0 == rgb1)
         {
-            /* same color */
+            // same color
             for (i = 0; i < count * 3; i += 3)
             {
                 buffer[start + i] = r0;
@@ -76,7 +76,7 @@ extern "C"
         }
         else
         {
-            /* do linear interpolation of the color */
+            // do linear interpolation of the color
             int r1 = ((rgb1 >> 16) & 0xFF);
             int g1 = ((rgb1 >> 8) & 0xFF);
             int b1 = (rgb1 & 0xFF);
@@ -101,7 +101,7 @@ extern "C"
         }
     }
 
-    EXPORT void wxcInitPixelsRGB(wxUint8* buffer, int width, int height, int rgb)
+    EXPORT void kwxInitPixelsRGB(wxUint8* buffer, int width, int height, int rgb)
     {
         int count = width * height * 3;
         wxUint8 r = ((rgb >> 16) & 0xFF);
@@ -142,8 +142,8 @@ extern "C"
         return ((r << 24) | (g << 16) | (b << 8) | a);
     }
 
-    /* basic pixel manipulation */
-    EXPORT void wxcSetPixelRGBA(wxUint8* buffer, int width, int x, int y, unsigned int rgba)
+    // basic pixel manipulation
+    EXPORT void kwxSetPixelRGBA(wxUint8* buffer, int width, int x, int y, unsigned int rgba)
     {
         unsigned int indexR = 4 * (width * y + x);
         buffer[indexR] = rgba >> 24;
@@ -152,7 +152,7 @@ extern "C"
         buffer[indexR + 3] = rgba;
     }
 
-    EXPORT int wxcGetPixelRGBA(wxUint8* buffer, int width, int x, int y)
+    EXPORT int kwxGetPixelRGBA(wxUint8* buffer, int width, int x, int y)
     {
         unsigned int indexR = 4 * (width * y + x);
         int r, g, b, a;
@@ -163,7 +163,7 @@ extern "C"
         return ((r << 24) | (g << 16) | (b << 8) | a);
     }
 
-    EXPORT void wxcSetPixelRowRGBA(wxUint8* buffer, int width, int x, int y, unsigned int rgba0,
+    EXPORT void kwxSetPixelRowRGBA(wxUint8* buffer, int width, int x, int y, unsigned int rgba0,
                                    unsigned int rgba1, unsigned int count)
     {
         int r0 = ((rgba0 >> 24) & 0xFF);
@@ -175,7 +175,7 @@ extern "C"
 
         if (rgba0 == rgba1)
         {
-            /* same color */
+            // same color
             for (i = 0; i < count * 4; i += 4)
             {
                 buffer[start + i] = r0;
@@ -186,7 +186,7 @@ extern "C"
         }
         else
         {
-            /* do linear interpolation of the color */
+            // do linear interpolation of the color
             int r1 = ((rgba1 >> 24) & 0xFF);
             int g1 = ((rgba1 >> 16) & 0xFF);
             int b1 = ((rgba1 >> 8) & 0xFF);
@@ -216,7 +216,7 @@ extern "C"
         }
     }
 
-    EXPORT void wxcInitPixelsRGBA(wxUint8* buffer, int width, int height, int rgba)
+    EXPORT void kwxInitPixelsRGBA(wxUint8* buffer, int width, int height, int rgba)
     {
         unsigned int count = width * height * 4;
         wxUint8 r = ((rgba >> 24) & 0xFF);

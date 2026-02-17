@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxMDIParentFrame and wxMDIChildFrame inherit from wxFrame (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxMDIParentFrame_Create(wxWindow* parent, int id, wxString* title, int x, int y,
@@ -74,5 +78,10 @@ extern "C"
     EXPORT void wxMDIChildFrame_Activate(void* pObject)
     {
         ((wxMDIChildFrame*) pObject)->Activate();
+    }
+
+    EXPORT void* wxMDIChildFrame_GetMDIParent(wxMDIChildFrame* self)
+    {
+        return (void*) self->GetMDIParent();
     }
 }

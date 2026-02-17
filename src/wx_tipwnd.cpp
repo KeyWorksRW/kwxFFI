@@ -1,6 +1,10 @@
 #include "wrapper.h"
 #include <wx/tipwin.h>
 
+// wxTipWindow inherits from wxWindow (via wxPopupTransientWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxTipWindow_Create(wxWindow* parent, wxString* text, int maxLength)

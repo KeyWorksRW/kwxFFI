@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxSimplebook inherits from wxBookCtrlBase (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxSimplebook* wxSimplebook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -95,5 +100,15 @@ extern "C"
     EXPORT void wxSimplebook_ShowNewPage(wxSimplebook* self, wxWindow* page)
     {
         self->ShowNewPage(page);
+    }
+
+    EXPORT void wxSimplebook_SetEffect(wxSimplebook* self, int effect)
+    {
+        self->SetEffect(static_cast<wxShowEffect>(effect));
+    }
+
+    EXPORT void wxSimplebook_SetEffectTimeout(wxSimplebook* self, unsigned int timeout)
+    {
+        self->SetEffectTimeout(timeout);
     }
 }

@@ -1,6 +1,11 @@
 // wx_ribbonbuttonbar.cpp - wxRibbonButtonBar wrapper
 #include "wrapper.h"
 
+// wxRibbonButtonBar inherits from wxControl (via wxRibbonControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     // Constructor

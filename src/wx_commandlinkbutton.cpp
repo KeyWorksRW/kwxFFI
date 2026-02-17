@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxCommandLinkButton inherits from wxButton (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxCommandLinkButton* wxCommandLinkButton_Create(wxWindow* parent, int id,
@@ -32,5 +37,11 @@ extern "C"
         wxString* result = new wxString();
         *result = self->GetNote();
         return result;
+    }
+
+    EXPORT void wxCommandLinkButton_SetMainLabelAndNote(wxCommandLinkButton* self,
+                                                        wxString* mainLabel, wxString* note)
+    {
+        self->SetMainLabelAndNote(*mainLabel, *note);
     }
 }

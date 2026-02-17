@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxSplashScreen inherits from wxTopLevelWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT wxSplashScreen* wxSplashScreen_Create(wxBitmap bitmap, long splashStyle, int timeout,

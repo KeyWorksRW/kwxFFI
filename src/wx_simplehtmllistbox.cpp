@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxSimpleHtmlListBox inherits from wxWindow and wxItemContainer (not wxControl).
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+
 extern "C"
 {
     // Constructor

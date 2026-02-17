@@ -1,6 +1,11 @@
 #include "wrapper.h"
 #include <wx/dirctrl.h>
 
+// wxGenericDirCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxGenericDirCtrl_Create(wxWindow* parent, int id, wxString* dir, int x, int y,

@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxFontDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxFontDialog_Create(void* parent, void* fontData)

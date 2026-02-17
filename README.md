@@ -20,4 +20,4 @@ This library should not be used until the language ports that depend on it are i
 
 # Credits
 
-The original FFI code came from the wxHaskell (https://codeberg.org/wxHaskell/wxHaskell) team. A huge thanks go out to this team for creating a complete wxWidgets 3.2 interface!
+The original FFI code came from the wxHaskell (https://codeberg.org/wxHaskell/wxHaskell) team, which in turn was inspired by wxc project. A huge thanks go out to these teams for creating the original wxWidgets 3 interface!

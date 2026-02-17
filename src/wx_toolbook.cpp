@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxToolbook inherits from wxBookCtrlBase (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxToolbook* wxToolbook_Create(wxWindow* parent, int id, int x, int y, int width, int height,

@@ -3,6 +3,10 @@
 
 #include "wrapper.h"
 
+// wxPropertyGridManager inherits from wxPanel (wxWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // Constructor

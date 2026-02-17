@@ -1,5 +1,11 @@
 #include "wrapper.h"
 
+// wxChoice inherits from wxControl and wxItemContainer.
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+
 extern "C"
 {
     EXPORT wxChoice* wxChoice_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -63,5 +69,20 @@ extern "C"
     EXPORT void wxChoice_SetString(wxChoice* self, int index, wxString* str)
     {
         self->SetString(index, *str);
+    }
+
+    EXPORT void wxChoice_SetColumns(wxChoice* self, int n)
+    {
+        self->SetColumns(n);
+    }
+
+    EXPORT int wxChoice_GetColumns(wxChoice* self)
+    {
+        return self->GetColumns();
+    }
+
+    EXPORT int wxChoice_GetCurrentSelection(wxChoice* self)
+    {
+        return self->GetCurrentSelection();
     }
 }

@@ -17,25 +17,24 @@
 #include <wx/numdlg.h>
 #include <wx/power.h>
 
-////////////////////////////////////////////////////////////////////////////////
-// wxc specific events
-////////////////////////////////////////////////////////////////////////////////
+// Forward declarations for event types used below
+class wxInputSinkEvent;
+class kwxHtmlEvent;
 
-BEGIN_DECLARE_EVENT_TYPES()
-DECLARE_LOCAL_EVENT_TYPE(wxEVT_DELETE, 1000)
-DECLARE_LOCAL_EVENT_TYPE(wxEVT_HTML_CELL_MOUSE_HOVER, 1002)
-DECLARE_LOCAL_EVENT_TYPE(wxEVT_HTML_SET_TITLE, 1004)
-DECLARE_LOCAL_EVENT_TYPE(wxEVT_INPUT_SINK, 1005)
-DECLARE_LOCAL_EVENT_TYPE(wxEVT_SORT, 1006)
-END_DECLARE_EVENT_TYPES()
+// Declare custom event types (modern wxWidgets 3.x+ style for Bind)
+wxDECLARE_EVENT(wxEVT_DELETE, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_HTML_CELL_MOUSE_HOVER, kwxHtmlEvent);
+wxDECLARE_EVENT(wxEVT_HTML_SET_TITLE, kwxHtmlEvent);
+wxDECLARE_EVENT(wxEVT_INPUT_SINK, wxInputSinkEvent);
+wxDECLARE_EVENT(wxEVT_SORT, wxCommandEvent);
 
-DEFINE_LOCAL_EVENT_TYPE(wxEVT_DELETE)
-DEFINE_LOCAL_EVENT_TYPE(wxEVT_HTML_CELL_MOUSE_HOVER)
-DEFINE_LOCAL_EVENT_TYPE(wxEVT_HTML_SET_TITLE)
-DEFINE_LOCAL_EVENT_TYPE(wxEVT_INPUT_SINK)
-DEFINE_LOCAL_EVENT_TYPE(wxEVT_SORT)
+// Define the event types
+wxDEFINE_EVENT(wxEVT_DELETE, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_HTML_CELL_MOUSE_HOVER, kwxHtmlEvent);
+wxDEFINE_EVENT(wxEVT_HTML_SET_TITLE, kwxHtmlEvent);
+wxDEFINE_EVENT(wxEVT_INPUT_SINK, wxInputSinkEvent);
+wxDEFINE_EVENT(wxEVT_SORT, wxCommandEvent);
 
-// Exported wxC event wrappers - must be C linkage
 extern "C"
 {
     MAKE_EVENT_WRAPPER(EVT_DELETE)
@@ -47,9 +46,6 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_SORT)
 }
 
-/*-----------------------------------------------------------------------------
-  Timers
------------------------------------------------------------------------------*/
 class wxTimerEx : public wxTimer
 {
 private:
@@ -99,15 +95,12 @@ void wxTimerEx::Notify()
         m_closure->Invoke(&timerEvent);
 }
 
-/*-----------------------------------------------------------------------------
-  wxInputSink wrapper: adds non-blocking event driven input channel
------------------------------------------------------------------------------*/
 class wxInputSink;
 
 class wxInputSinkEvent : public wxEvent
 {
 private:
-    char* m_buffer;
+    std::unique_ptr<char[]> m_buffer;
     size_t m_bufferLen;
     size_t m_lastRead;
     wxStreamError m_lastError;
@@ -117,14 +110,14 @@ private:
 
 public:
     wxInputSinkEvent(int id, size_t bufferLen);
-    wxInputSinkEvent(const wxInputSinkEvent& event); /* copy constructor */
+    wxInputSinkEvent(const wxInputSinkEvent& event);  // copy constructor
     ~wxInputSinkEvent();
 
     wxEvent* Clone() const { return new wxInputSinkEvent(*this); }
 
     wxStreamError LastError() const { return m_lastError; }
     int LastRead() const { return m_lastRead; }
-    char* LastInput() const { return m_buffer; }
+    char* LastInput() const { return m_buffer.get(); }
 };
 
 class wxInputSink : public wxThread
@@ -154,7 +147,7 @@ wxInputSink::wxInputSink(wxInputStream* input, wxEvtHandler* evtHandler, int buf
 
 wxInputSink::~wxInputSink()
 {
-    /* fprintf(stderr, "InputSink is deleted\n"); */
+    // fprintf(stderr, "InputSink is deleted\n");
 }
 
 void wxInputSink::Start()
@@ -185,21 +178,21 @@ wxThread::ExitCode wxInputSink::Entry()
 
     m_event.SetId(GetId());
 
-    /* while input && not external destroy */
+    // while input && not external destroy
     while (!TestDestroy() && m_event.LastError() == wxSTREAM_NO_ERROR)
     {
-        /* (blocking) read */
+        // (blocking) read
         m_event.Read(m_input);
 
-        /* post the event to the main gui thread (note: event is cloned and thus the input buffer
-         * copied)*/
+        // post the event to the main gui thread (note: event is cloned and thus the input buffer
+        // copied)
         m_evtHandler->AddPendingEvent(m_event);
     }
 
-    /* Process pending events */
+    // Process pending events
     wxWakeUpIdle();
 
-    /* return */
+    // return
     if (m_event.LastError() == wxSTREAM_NO_ERROR || m_event.LastError() == wxSTREAM_EOF)
         return (ExitCode) 0;
     else
@@ -212,70 +205,63 @@ wxInputSinkEvent::wxInputSinkEvent(int id, size_t bufferLen) : wxEvent(id, wxEVT
     m_lastRead = 0;
     if (bufferLen <= 0)
         bufferLen = 128;
-    m_buffer = (char*) malloc(bufferLen + 1);
+    m_buffer = std::make_unique<char[]>(bufferLen + 1);
     m_bufferLen = (m_buffer ? bufferLen : 0);
 }
 
 wxInputSinkEvent::wxInputSinkEvent(const wxInputSinkEvent& event) : wxEvent(event)
 {
-    /* we copy only the exact input buffer, as 'Read' will never be called */
+    // we copy only the exact input buffer, as 'Read' will never be called
     m_lastError = event.m_lastError;
     m_bufferLen = 0;
     m_lastRead = 0;
-    m_buffer = (char*) malloc(event.m_lastRead + 1);
+    m_buffer = std::make_unique<char[]>(event.m_lastRead + 1);
     if (m_buffer)
     {
         m_bufferLen = event.m_lastRead;
         m_lastRead = event.m_lastRead;
-        memcpy(m_buffer, event.m_buffer, m_lastRead);
+        memcpy(m_buffer.get(), event.m_buffer.get(), m_lastRead);
         m_buffer[m_lastRead] = 0;
     }
 }
 
-wxInputSinkEvent::~wxInputSinkEvent()
-{
-    if (m_buffer)
-        free(m_buffer);
-}
+wxInputSinkEvent::~wxInputSinkEvent() = default;
 
 void wxInputSinkEvent::Read(wxInputStream* input)
 {
-    /* check */
-    if (input == nullptr || m_buffer == nullptr || m_bufferLen == 0)
+    // check
+    if (input == nullptr || !m_buffer || m_bufferLen == 0)
     {
         m_lastError = wxSTREAM_READ_ERROR;
         m_lastRead = 0;
         return;
     }
 
-    /* read */
-    input->Read(m_buffer, m_bufferLen);
+    // read
+    input->Read(m_buffer.get(), m_bufferLen);
     m_lastError = input->GetLastError();
     if (m_lastError == wxSTREAM_NO_ERROR)
         m_lastRead = input->LastRead();
     else
         m_lastRead = 0;
 
-    /* maintain invariants */
+    // maintain invariants
     if (m_lastRead < 0)
         m_lastRead = 0;
     if (m_lastRead > m_bufferLen)
         m_lastRead = m_bufferLen;
 
-    /* add zero terminator */
+    // add zero terminator
     m_buffer[m_lastRead] = 0;
 }
 
-/*-----------------------------------------------------------------------------
-  wxHtmlWindow wrapper: adds normal events instead of using inheritance
------------------------------------------------------------------------------*/
-class wxcHtmlWindow : public wxHtmlWindow
+class kwxHtmlWindow : public wxHtmlWindow
 {
 private:
-    DECLARE_DYNAMIC_CLASS(wxcHtmlWindow)
+    DECLARE_DYNAMIC_CLASS(kwxHtmlWindow)
 public:
-    wxcHtmlWindow() : wxHtmlWindow() {};
-    wxcHtmlWindow(wxWindow*, wxWindowID id, const wxPoint&, const wxSize& size, long style,
+    kwxHtmlWindow() : wxHtmlWindow() {};
+    kwxHtmlWindow(wxWindow*, wxWindowID id, const wxPoint&, const wxSize& size, long style,
                   const wxString&);
 
     bool OnCellClicked(wxHtmlCell* cell, wxCoord x, wxCoord y, const wxMouseEvent& event);
@@ -285,12 +271,12 @@ public:
     void OnSetTitle(const wxString& title);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxcHtmlWindow, wxHtmlWindow)
+IMPLEMENT_DYNAMIC_CLASS(kwxHtmlWindow, wxHtmlWindow)
 
-class wxcHtmlEvent : public wxCommandEvent
+class kwxHtmlEvent : public wxCommandEvent
 {
 private:
-    DECLARE_DYNAMIC_CLASS(wxcHtmlEvent)
+    DECLARE_DYNAMIC_CLASS(kwxHtmlEvent)
 private:
     const wxMouseEvent* m_mouseEvent;
     const wxHtmlCell* m_htmlCell;
@@ -298,8 +284,8 @@ private:
     wxPoint m_logicalPosition;
 
 public:
-    wxcHtmlEvent() : wxCommandEvent() {};
-    wxcHtmlEvent(wxEventType commandType, int id, const wxMouseEvent* mouseEvent,
+    kwxHtmlEvent() : wxCommandEvent() {};
+    kwxHtmlEvent(wxEventType commandType, int id, const wxMouseEvent* mouseEvent,
                  const wxHtmlCell* htmlCell, const wxHtmlLinkInfo* linkInfo, wxPoint logicalPoint);
     const wxMouseEvent* GetMouseEvent();
     const wxHtmlCell* GetHtmlCell();
@@ -309,15 +295,15 @@ public:
     wxPoint GetLogicalPosition();
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxcHtmlEvent, wxCommandEvent)
+IMPLEMENT_DYNAMIC_CLASS(kwxHtmlEvent, wxCommandEvent)
 
-wxcHtmlWindow::wxcHtmlWindow(wxWindow* prt, wxWindowID id, const wxPoint& pt, const wxSize& size,
+kwxHtmlWindow::kwxHtmlWindow(wxWindow* prt, wxWindowID id, const wxPoint& pt, const wxSize& size,
                              long style, const wxString& title) :
     wxHtmlWindow(prt, id, pt, size, style, title)
 {
 }
 
-bool wxcHtmlWindow::OnCellClicked(wxHtmlCell* cell, wxCoord x, wxCoord y, const wxMouseEvent& event)
+bool kwxHtmlWindow::OnCellClicked(wxHtmlCell* cell, wxCoord x, wxCoord y, const wxMouseEvent& event)
 {
     wxHtmlLinkInfo* linkPtr;
     if (cell == nullptr)
@@ -330,43 +316,43 @@ bool wxcHtmlWindow::OnCellClicked(wxHtmlCell* cell, wxCoord x, wxCoord y, const 
         link.SetEvent(&event);
         link.SetHtmlCell(cell);
         {
-            wxcHtmlEvent htmlEvent(wxEVT_HTML_LINK_CLICKED, this->GetId(), &event, cell, &link,
+            kwxHtmlEvent htmlEvent(wxEVT_HTML_LINK_CLICKED, this->GetId(), &event, cell, &link,
                                    wxPoint(x, y));
             this->ProcessEvent(htmlEvent);
         }
     }
     else
     {
-        wxcHtmlEvent htmlEvent(wxEVT_HTML_CELL_CLICKED, this->GetId(), &event, cell, nullptr,
+        kwxHtmlEvent htmlEvent(wxEVT_HTML_CELL_CLICKED, this->GetId(), &event, cell, nullptr,
                                wxPoint(x, y));
         this->ProcessEvent(htmlEvent);
     }
     return true;
 }
 
-void wxcHtmlWindow::OnCellMouseHover(wxHtmlCell* cell, wxCoord x, wxCoord y)
+void kwxHtmlWindow::OnCellMouseHover(wxHtmlCell* cell, wxCoord x, wxCoord y)
 {
-    wxcHtmlEvent htmlEvent(wxEVT_HTML_CELL_MOUSE_HOVER, this->GetId(), nullptr, cell, nullptr,
+    kwxHtmlEvent htmlEvent(wxEVT_HTML_CELL_MOUSE_HOVER, this->GetId(), nullptr, cell, nullptr,
                            wxPoint(x, y));
     this->ProcessEvent(htmlEvent);
 }
 
-void wxcHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link)
+void kwxHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link)
 {
-    wxcHtmlEvent htmlEvent(wxEVT_HTML_LINK_CLICKED, this->GetId(), link.GetEvent(),
+    kwxHtmlEvent htmlEvent(wxEVT_HTML_LINK_CLICKED, this->GetId(), link.GetEvent(),
                            link.GetHtmlCell(), &link, wxPoint(-1, -1));
     this->ProcessEvent(htmlEvent);
 }
 
-void wxcHtmlWindow::OnSetTitle(const wxString& title)
+void kwxHtmlWindow::OnSetTitle(const wxString& title)
 {
-    wxcHtmlEvent htmlEvent(wxEVT_HTML_SET_TITLE, this->GetId(), nullptr, nullptr, nullptr,
+    kwxHtmlEvent htmlEvent(wxEVT_HTML_SET_TITLE, this->GetId(), nullptr, nullptr, nullptr,
                            wxPoint(-1, -1));
     htmlEvent.SetString(title);
     this->ProcessEvent(htmlEvent);
 }
 
-wxcHtmlEvent::wxcHtmlEvent(wxEventType commandType, int id, const wxMouseEvent* mouseEvent,
+kwxHtmlEvent::kwxHtmlEvent(wxEventType commandType, int id, const wxMouseEvent* mouseEvent,
                            const wxHtmlCell* htmlCell, const wxHtmlLinkInfo* linkInfo,
                            wxPoint logicalPoint) : wxCommandEvent(commandType, id)
 {
@@ -376,17 +362,17 @@ wxcHtmlEvent::wxcHtmlEvent(wxEventType commandType, int id, const wxMouseEvent* 
     m_logicalPosition = logicalPoint;
 }
 
-const wxMouseEvent* wxcHtmlEvent::GetMouseEvent()
+const wxMouseEvent* kwxHtmlEvent::GetMouseEvent()
 {
     return m_mouseEvent;
 }
 
-const wxHtmlCell* wxcHtmlEvent::GetHtmlCell()
+const wxHtmlCell* kwxHtmlEvent::GetHtmlCell()
 {
     return m_htmlCell;
 }
 
-wxString* wxcHtmlEvent::GetHtmlCellId()
+wxString* kwxHtmlEvent::GetHtmlCellId()
 {
     if (m_htmlCell)
         return new wxString(m_htmlCell->GetId());
@@ -394,7 +380,7 @@ wxString* wxcHtmlEvent::GetHtmlCellId()
         return new wxString("");
 }
 
-wxString* wxcHtmlEvent::GetHref()
+wxString* kwxHtmlEvent::GetHref()
 {
     if (m_linkInfo)
         return new wxString(m_linkInfo->GetHref());
@@ -402,7 +388,7 @@ wxString* wxcHtmlEvent::GetHref()
         return new wxString("");
 }
 
-wxString* wxcHtmlEvent::GetTarget()
+wxString* kwxHtmlEvent::GetTarget()
 {
     if (m_linkInfo)
         return new wxString(m_linkInfo->GetTarget());
@@ -410,14 +396,11 @@ wxString* wxcHtmlEvent::GetTarget()
         return new wxString("");
 }
 
-wxPoint wxcHtmlEvent::GetLogicalPosition()
+wxPoint kwxHtmlEvent::GetLogicalPosition()
 {
     return m_logicalPosition;
 }
 
-/*-----------------------------------------------------------------------------
-  wxGridCellTextEnterEditor
------------------------------------------------------------------------------*/
 class wxGridCellTextEnterEditor : public wxGridCellTextEditor
 {
 public:
@@ -436,9 +419,6 @@ void wxGridCellTextEnterEditor::Create(wxWindow* parent, wxWindowID id, wxEvtHan
     }
 }
 
-/*-----------------------------------------------------------------------------
-  pre processor definitions
------------------------------------------------------------------------------*/
 static const char* defineDefs[] = {
 #ifdef __WINDOWS__
     "__WINDOWS__",
@@ -1175,14 +1155,8 @@ static const char* hasDefs[] = {
     nullptr
 };
 
-/*-----------------------------------------------------------------------------
-  EXTERN C
------------------------------------------------------------------------------*/
 extern "C"
 {
-    /*-----------------------------------------------------------------------------
-      String
-    -----------------------------------------------------------------------------*/
     typedef char utf8char;
 
     EXPORT wxString* wxString_Create(char* buffer)
@@ -1233,9 +1207,6 @@ extern "C"
     {
         delete cb;
     }
-    /*-----------------------------------------------------------------------------
-      Point
-    -----------------------------------------------------------------------------*/
     EXPORT void* wxPoint_Create(int x, int y)
     {
         return new wxPoint(x, y);
@@ -1266,9 +1237,6 @@ extern "C"
         ((wxPoint*) pObject)->y = y;
     }
 
-    /*-----------------------------------------------------------------------------
-      Size
-    -----------------------------------------------------------------------------*/
     EXPORT void* wxSize_Create(int width, int height)
     {
         return new wxSize(width, height);
@@ -1299,9 +1267,6 @@ extern "C"
         self->SetHeight(height);
     }
 
-    /*-----------------------------------------------------------------------------
-      Rect
-    -----------------------------------------------------------------------------*/
     EXPORT void* wxRect_Create(int x, int y, int width, int height)
     {
         return new wxRect(x, y, width, height);
@@ -1352,9 +1317,6 @@ extern "C"
         self->SetHeight(height);
     }
 
-    /*-----------------------------------------------------------------------------
-      pre-processor
-    -----------------------------------------------------------------------------*/
     EXPORT int wxVersionNumber()
     {
         return wxVERSION_NUMBER;
@@ -1370,13 +1332,13 @@ extern "C"
         int i;
         if (name == nullptr)
             return 0;
-        /* check define */
+        // check define
         for (i = 0; defineDefs[i] != nullptr; i++)
         {
             if (strcmp(name, defineDefs[i]) == 0)
                 return 1;
         }
-        /* check wxUSE_XXX */
+        // check wxUSE_XXX
         if (strncmp(name, "wxUSE_", 6) == 0)
         {
             const char* suffix = name + 6;
@@ -1386,7 +1348,7 @@ extern "C"
                     return 1;
             }
         }
-        /* check wxHAS_XXX */
+        // check wxHAS_XXX
         if (strncmp(name, "wxHAS_", 6) == 0)
         {
             const char* suffix = name + 6;
@@ -1399,32 +1361,29 @@ extern "C"
         return 0;
     }
 
-    EXPORT void* wxcMalloc(int size)
+    EXPORT void* kwxMalloc(int size)
     {
         return malloc(size);
     }
 
-    EXPORT void wxcFree(void* pObject)
+    EXPORT void kwxFree(void* pObject)
     {
         if (pObject != nullptr)
             free(pObject);
     }
 
-    EXPORT wxColour* wxcSystemSettingsGetColour(int systemColour)
+    EXPORT wxColour* kwxSystemSettingsGetColour(int systemColour)
     {
         wxColour* colour = new wxColour();
         *colour = wxSystemSettings::GetColour((wxSystemColour) systemColour);
         return colour;
     }
 
-    EXPORT void wxcWakeUpIdle(void)
+    EXPORT void kwxWakeUpIdle(void)
     {
         wxWakeUpIdle();
     }
 
-    /*-----------------------------------------------------------------------------
-      delete
-    -----------------------------------------------------------------------------*/
     EXPORT void wxCursor_Delete(wxCursor* self)
     {
         delete self;
@@ -1435,9 +1394,6 @@ extern "C"
         delete self;
     }
 
-    /*-----------------------------------------------------------------------------
-      frame
-    -----------------------------------------------------------------------------*/
     EXPORT wxString* wxFrame_GetTitle(wxFrame* self)
     {
         wxString* result = new wxString();
@@ -1475,9 +1431,6 @@ extern "C"
         self->AssignImageList(imageList);
     }
 
-    /*-----------------------------------------------------------------------------
-      menu & toolbar
-    -----------------------------------------------------------------------------*/
     EXPORT wxMenuBar* wxMenu_GetMenuBar(wxMenu* self)
     {
         return self->GetMenuBar();
@@ -1496,9 +1449,6 @@ extern "C"
                       *longHelp, nullptr);
     }
 
-    /*-----------------------------------------------------------------------------
-      listctrl
-    -----------------------------------------------------------------------------*/
     EXPORT int wxListEvent_GetCacheFrom(wxListEvent* self)
     {
         return self->GetCacheFrom();
@@ -1568,9 +1518,6 @@ extern "C"
         return self->SortItems(sortCallBack, (wxIntPtr) &sortData);
     }
 
-    /*-----------------------------------------------------------------------------
-      DC
-    -----------------------------------------------------------------------------*/
     EXPORT void wxDC_GetPixel2(wxDC* self, int x, int y, wxColour* col)
     {
         bool success = self->GetPixel((wxCoord) x, (wxCoord) y, col);
@@ -1578,9 +1525,6 @@ extern "C"
             *col = wxNullColour;
     }
 
-    /*-----------------------------------------------------------------------------
-      Object & static ClassInfo
-    -----------------------------------------------------------------------------*/
     EXPORT bool wxObject_IsKindOf(wxObject* self, wxClassInfo* classInfo)
     {
         return self->IsKindOf(classInfo);
@@ -1591,7 +1535,7 @@ extern "C"
         return self->GetClassInfo();
     }
 
-    /* optimize */
+    // optimize
     EXPORT bool wxObject_IsScrolledWindow(wxObject* self)
     {
         return self->IsKindOf(CLASSINFO(wxScrolledWindow));
@@ -1602,9 +1546,6 @@ extern "C"
         delete self;
     }
 
-    /*-----------------------------------------------------------------------------
-      classinfo
-    -----------------------------------------------------------------------------*/
     EXPORT wxClassInfo* wxClassInfo_FindClass(wxString* name)
     {
         return wxClassInfo::FindClass(*name);
@@ -1641,9 +1582,6 @@ extern "C"
         return (self)->GetSize();
     }
 
-    /*-----------------------------------------------------------------------------
-      window
-    -----------------------------------------------------------------------------*/
     EXPORT wxPoint* wxWindow_ConvertPixelsToDialogEx(wxWindow* self, int x, int y)
     {
         wxPoint* pt = new wxPoint();
@@ -1670,24 +1608,18 @@ extern "C"
         return pt;
     }
 
-    EXPORT wxPoint* wxcGetMousePosition()
+    EXPORT wxPoint* kwxGetMousePosition()
     {
         wxPoint* pt = new wxPoint();
         *pt = wxGetMousePosition();
         return pt;
     }
 
-    /*-----------------------------------------------------------------------------
-      scrolledwindow
-    -----------------------------------------------------------------------------*/
     EXPORT void wxScrolledWindow_SetScrollRate(wxScrolledWindow* self, int xstep, int ystep)
     {
         self->SetScrollRate(xstep, ystep);
     }
 
-    /*-----------------------------------------------------------------------------
-      mouse
-    -----------------------------------------------------------------------------*/
     EXPORT int wxMouseEvent_GetWheelDelta(wxMouseEvent* self)
     {
         return self->GetWheelDelta();
@@ -1703,9 +1635,6 @@ extern "C"
         return self->GetButton();
     }
 
-    /*-----------------------------------------------------------------------------
-      DC
-    -----------------------------------------------------------------------------*/
     EXPORT double wxDC_GetUserScaleX(wxDC* dc)
     {
         double x = 1.0;
@@ -1722,9 +1651,6 @@ extern "C"
         return y;
     }
 
-    /*-----------------------------------------------------------------------------
-      timers
-    -----------------------------------------------------------------------------*/
     EXPORT wxTimerEx* wxTimerEx_Create()
     {
         return new wxTimerEx();
@@ -1740,9 +1666,6 @@ extern "C"
         return self->GetClosure();
     }
 
-    /*-----------------------------------------------------------------------------
-      menu items
-    -----------------------------------------------------------------------------*/
     EXPORT wxMenuItem* wxMenuItem_CreateSeparator()
     {
         return new wxMenuItem(nullptr, wxID_SEPARATOR, "", "", wxITEM_SEPARATOR, nullptr);
@@ -1763,9 +1686,6 @@ extern "C"
 #endif
     }
 
-    /*------------------------------------------------------------------------------
-      process
-    ------------------------------------------------------------------------------*/
     EXPORT bool wxProcess_IsErrorAvailable(wxProcess* self)
     {
         return self->IsErrorAvailable();
@@ -1797,9 +1717,6 @@ extern "C"
             delete stream;
     }
 
-    /*------------------------------------------------------------------------------
-      TextCtrl
-    ------------------------------------------------------------------------------*/
     EXPORT int wxTextCtrl_EmulateKeyPress(wxTextCtrl* self, wxKeyEvent* keyevent)
     {
         return self->EmulateKeyPress(*keyevent);
@@ -1849,9 +1766,6 @@ extern "C"
         return self->SetStyle(start, end, *style);
     }
 
-    /*------------------------------------------------------------------------------
-      TextAttr
-    ------------------------------------------------------------------------------*/
     EXPORT wxTextAttr* wxTextAttr_CreateDefault()
     {
         return new wxTextAttr();
@@ -1917,9 +1831,6 @@ extern "C"
         self->SetFont(*font);
     }
 
-    /*------------------------------------------------------------------------------
-      progress dialog
-    ------------------------------------------------------------------------------*/
     EXPORT wxProgressDialog* wxProgressDialog_Create(wxString* title, wxString* message, int max,
                                                      wxWindow* parent, int style)
     {
@@ -1942,9 +1853,6 @@ extern "C"
         self->Resume();
     }
 
-    /*------------------------------------------------------------------------------
-      standard dialogs
-    ------------------------------------------------------------------------------*/
     EXPORT void wxGetColourFromUser(wxWindow* parent, wxColour* colInit, wxColour* colour)
     {
         *colour = wxGetColourFromUser(parent, *colInit);
@@ -1958,33 +1866,18 @@ extern "C"
     EXPORT int wxGetPasswordFromUser(char* message, char* caption, char* defaultText,
                                      wxWindow* parent, char* buffer)
     {
-        /* we use a complicated caching method as we don't want to call getpassword twice :-) */
-        static char* resultBuffer = nullptr;
+        static std::string resultBuffer;
         if (buffer == nullptr)
         {
-            if (resultBuffer)
-            {
-                free(resultBuffer);
-                resultBuffer = nullptr;
-            }
             wxString result = wxGetPasswordFromUser(message, caption, defaultText, parent);
-            resultBuffer = (char*) malloc(result.Length() + 1);
-            if (resultBuffer)
-            {
-                strcpy(resultBuffer, result.utf8_str().data()); /* save result */
-                return result.Length();
-            }
-            else
-            {
-                return 0;
-            }
+            resultBuffer = result.utf8_str().data();
+            return static_cast<int>(resultBuffer.size());
         }
-        else if (resultBuffer)
+        else if (!resultBuffer.empty())
         {
-            int len = strlen(resultBuffer);
-            memcpy(buffer, resultBuffer, len); /* copy saved result */
-            free(resultBuffer);
-            resultBuffer = nullptr;
+            memcpy(buffer, resultBuffer.data(), resultBuffer.size());
+            int len = static_cast<int>(resultBuffer.size());
+            resultBuffer.clear();
             return len;
         }
         else
@@ -1996,34 +1889,19 @@ extern "C"
     EXPORT int wxGetTextFromUser(char* message, char* caption, char* defaultText, wxWindow* parent,
                                  int x, int y, int center, char* buffer)
     {
-        /* we use a complicated caching method as we don't want to call gettext twice :-) */
-        static char* resultBuffer = nullptr;
+        static std::string resultBuffer;
         if (buffer == nullptr)
         {
-            if (resultBuffer)
-            {
-                free(resultBuffer);
-                resultBuffer = nullptr;
-            }
             wxString result =
                 wxGetTextFromUser(message, caption, defaultText, parent, x, y, center != 0);
-            resultBuffer = (char*) malloc(result.Length() + 1);
-            if (resultBuffer)
-            {
-                strcpy(resultBuffer, result.utf8_str().data()); /* save result */
-                return result.Length();
-            }
-            else
-            {
-                return 0;
-            }
+            resultBuffer = result.utf8_str().data();
+            return static_cast<int>(resultBuffer.size());
         }
-        else if (resultBuffer)
+        else if (!resultBuffer.empty())
         {
-            int len = strlen(resultBuffer);
-            memcpy(buffer, resultBuffer, len); /* copy saved result */
-            free(resultBuffer);
-            resultBuffer = nullptr;
+            memcpy(buffer, resultBuffer.data(), resultBuffer.size());
+            int len = static_cast<int>(resultBuffer.size());
+            resultBuffer.clear();
             return len;
         }
         else
@@ -2039,29 +1917,26 @@ extern "C"
                                    wxPoint(x, y));
     }
 
-    EXPORT void wxcBell(void)
+    EXPORT void kwxBell(void)
     {
         wxBell();
     }
 
-    EXPORT void wxcBeginBusyCursor(void)
+    EXPORT void kwxBeginBusyCursor(void)
     {
         wxBeginBusyCursor();
     }
 
-    EXPORT int wxcIsBusy(void)
+    EXPORT int kwxIsBusy(void)
     {
         return (wxIsBusy());
     }
 
-    EXPORT void wxcEndBusyCursor(void)
+    EXPORT void kwxEndBusyCursor(void)
     {
         wxEndBusyCursor();
     }
 
-    /*-----------------------------------------------------------------------------
-      wxInputSink
-    -----------------------------------------------------------------------------*/
     EXPORT wxInputSink* wxInputSink_Create(wxInputStream* input, wxEvtHandler* evtHandler,
                                            int bufferLen)
     {
@@ -2093,54 +1968,48 @@ extern "C"
         return self->LastInput();
     }
 
-    /*-----------------------------------------------------------------------------
-      html window
-    -----------------------------------------------------------------------------*/
-    EXPORT void* wxcHtmlEvent_GetMouseEvent(wxcHtmlEvent* self)
+    EXPORT void* kwxHtmlEvent_GetMouseEvent(kwxHtmlEvent* self)
     {
         return (void*) (self->GetMouseEvent());
     }
 
-    EXPORT void* wxcHtmlEvent_GetHtmlCell(wxcHtmlEvent* self)
+    EXPORT void* kwxHtmlEvent_GetHtmlCell(kwxHtmlEvent* self)
     {
         return (void*) (self->GetHtmlCell());
     }
 
-    EXPORT wxString* wxcHtmlEvent_GetHtmlCellId(wxcHtmlEvent* self)
+    EXPORT wxString* kwxHtmlEvent_GetHtmlCellId(kwxHtmlEvent* self)
     {
         return self->GetHtmlCellId();
     }
 
-    EXPORT wxString* wxcHtmlEvent_GetHref(wxcHtmlEvent* self)
+    EXPORT wxString* kwxHtmlEvent_GetHref(kwxHtmlEvent* self)
     {
         return self->GetHref();
     }
 
-    EXPORT wxString* wxcHtmlEvent_GetTarget(wxcHtmlEvent* self)
+    EXPORT wxString* kwxHtmlEvent_GetTarget(kwxHtmlEvent* self)
     {
         return self->GetTarget();
     }
 
-    EXPORT wxPoint* wxcHtmlEvent_GetLogicalPosition(wxcHtmlEvent* self)
+    EXPORT wxPoint* kwxHtmlEvent_GetLogicalPosition(kwxHtmlEvent* self)
     {
         wxPoint* pt = new wxPoint();
         *pt = self->GetLogicalPosition();
         return pt;
     }
 
-    /*-----------------------------------------------------------------------------
-      html window
-    -----------------------------------------------------------------------------*/
     EXPORT wxHtmlWindow* wxHtmlWindow_Create(wxWindow* parent, int id, int x, int y, int width,
                                              int height, long style, wxString* name)
     {
         return new wxHtmlWindow(parent, id, wxPoint(x, y), wxSize(width, height), style, *name);
     }
 
-    EXPORT wxHtmlWindow* wxcHtmlWindow_Create(wxWindow* parent, int id, int x, int y, int width,
+    EXPORT wxHtmlWindow* kwxHtmlWindow_Create(wxWindow* parent, int id, int x, int y, int width,
                                               int height, long style, wxString* name)
     {
-        return new wxcHtmlWindow(parent, id, wxPoint(x, y), wxSize(width, height), style, *name);
+        return new kwxHtmlWindow(parent, id, wxPoint(x, y), wxSize(width, height), style, *name);
     }
 
     EXPORT bool wxHtmlWindow_AppendToPage(wxHtmlWindow* self, wxString* source)
@@ -2247,9 +2116,6 @@ extern "C"
         self->WriteCustomization(cfg, *path);
     }
 
-    /*-----------------------------------------------------------------------------
-      LOGGER
-    -----------------------------------------------------------------------------*/
     EXPORT wxLogStderr* wxLogStderr_Create()
     {
         return new wxLogStderr();
@@ -2338,9 +2204,6 @@ extern "C"
         self->DontCreateOnDemand();
     }
 
-    // Obsolete
-    // EWXWEXPORT(void,wxLog_SetTraceMask)(wxLog* self,int ulMask)
-
     EXPORT void wxLog_AddTraceMask(wxLog* self, void* str)
     {
         self->AddTraceMask((const char*) str);
@@ -2416,17 +2279,11 @@ extern "C"
         wxLogTrace(*mask, *message);
     }
 
-    /*-----------------------------------------------------------------------------
-      Grid text editor
-    -----------------------------------------------------------------------------*/
     EXPORT wxGridCellTextEnterEditor* wxGridCellTextEnterEditor_Ctor()
     {
         return new wxGridCellTextEnterEditor();
     }
 
-    /*-----------------------------------------------------------------------------
-      ConfigBase
-    -----------------------------------------------------------------------------*/
     EXPORT wxConfigBase* wxConfigBase_Get()
     {
         return wxConfigBase::Get();
@@ -2442,9 +2299,6 @@ extern "C"
         return new wxFileConfig(*inp);
     }
 
-    /*-----------------------------------------------------------------------------
-      PropertyGrid
-    -----------------------------------------------------------------------------*/
     EXPORT void* wxPropertyGrid_Append(wxPropertyGrid* self, wxPGProperty* property)
     {
         return (void*) self->Append(property);
@@ -2461,14 +2315,6 @@ extern "C"
         return self->DisableProperty(*propName);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxPropertyGridEvent
-      Defined within eljevent.cpp
-    -----------------------------------------------------------------------------*/
-
-    /*-----------------------------------------------------------------------------
-      PGProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxString* wxPGProperty_GetLabel(wxPGProperty* self)
     {
         wxString* result = new wxString();
@@ -2502,66 +2348,45 @@ extern "C"
         self->SetHelpString(*helpString);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxStringProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxStringProperty* wxStringProperty_Create(wxString const* label, wxString const* name,
                                                      wxString const* value)
     {
         return new wxStringProperty(*label, *name, *value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxIntProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxIntProperty* wxIntProperty_Create(wxString const* label, wxString const* name,
                                                int value)
     {
         return new wxIntProperty(*label, *name, value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxBoolProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxBoolProperty* wxBoolProperty_Create(wxString const* label, wxString const* name,
                                                  bool value)
     {
         return new wxBoolProperty(*label, *name, value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxFloatProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxFloatProperty* wxFloatProperty_Create(wxString const* label, wxString const* name,
                                                    float value)
     {
         return new wxFloatProperty(*label, *name, value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxDateProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxDateProperty* wxDateProperty_Create(wxString const* label, wxString const* name,
                                                  wxDateTime const* value)
     {
         return new wxDateProperty(*label, *name, *value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxFileProperty
-    -----------------------------------------------------------------------------*/
     EXPORT wxFileProperty* wxFileProperty_Create(wxString const* label, wxString const* name,
                                                  wxString const* value)
     {
         return new wxFileProperty(*label, *name, *value);
     }
 
-    /*-----------------------------------------------------------------------------
-      wxPropertyCategory
-    -----------------------------------------------------------------------------*/
     EXPORT wxPropertyCategory* wxPropertyCategory_Create(wxString const* label)
     {
         return new wxPropertyCategory(*label);
     }
 
-} /* extern "C" */
+}  // extern "C"

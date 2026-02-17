@@ -84,19 +84,6 @@ extern "C"
         return self->Alpha();
     }
 
-    // FIXME: the return type on this is platform dependent
-    // and thus evil.  If you really want a GetPixel method,
-    // please hack this code and throw in the relevant
-    // ifdefs, cuz I don't want to deal with it.
-    //   Windows - WXCOLORREF
-    //   GTK     - int
-    //   X11     - long
-    //   Mac     - (WXCOLORREF&)
-    // EWXWEXPORT(WXCOLORREF,wxColour_GetPixel)(wxColour* self)
-    // {
-    // 	return self->GetPixel();
-    // }
-
     EXPORT void wxColour_Copy(wxColour* self, wxColour* other)
     {
         *self = *other;

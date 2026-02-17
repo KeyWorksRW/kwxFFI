@@ -1,11 +1,11 @@
-/* update checked 100% with 2.8.9 manual */
+// update checked 100% with 2.8.9 manual
 #include "wrapper.h"
 
 #include <wx/socket.h>
 
 extern "C"
 {
-#/* wxSocket errors */
+# // wxSocket errors
     EXPORT int expwxSOCKET_NOERROR()
     {
         return (int) wxSOCKET_NOERROR;
@@ -46,7 +46,7 @@ extern "C"
     {
         return (int) wxSOCKET_MEMERR;
     }
-    /* wxSocket events */
+    // wxSocket events
     EXPORT int expwxSOCKET_INPUT()
     {
         return (int) wxSOCKET_INPUT;
@@ -63,7 +63,7 @@ extern "C"
     {
         return (int) wxSOCKET_LOST;
     }
-    /* wxSocketFlags */
+    // wxSocketFlags
     EXPORT int expwxSOCKET_NONE()
     {
         return (int) wxSOCKET_NONE;
@@ -84,7 +84,7 @@ extern "C"
     {
         return (int) wxSOCKET_REUSEADDR;
     }
-    /* wxSocketEventFlags */
+    // wxSocketEventFlags
     EXPORT int expwxSOCKET_INPUT_FLAG()
     {
         return (int) wxSOCKET_INPUT_FLAG;
@@ -102,8 +102,8 @@ extern "C"
         return (int) wxSOCKET_LOST_FLAG;
     }
 
-    /* wxSocketBase */
-    /* wxSocketBase::wxSocketBase */
+    // wxSocketBase
+    // wxSocketBase::wxSocketBase
     EXPORT void wxSocketBase_Delete(wxSocketBase* self)
     {
         delete self;
@@ -132,7 +132,7 @@ extern "C"
     {
         return self->GetLocal(*addr);
     }
-    /*note gsocket = int */
+    // note gsocket = int
     EXPORT int wxSocketBase_GetFlags(wxSocketBase* self)
     {
         return self->GetFlags();
@@ -245,7 +245,7 @@ extern "C"
     {
         return &self->WriteMsg(buffer, nbytes);
     }
-    /* wxSocketEvent */
+    // wxSocketEvent
     EXPORT wxSocketEvent* wxSocketEvent_Create(int id)
     {
         return new wxSocketEvent(id);
@@ -266,7 +266,7 @@ extern "C"
     {
         return self->GetSocketEvent();
     }
-    /* wxSocketClient */
+    // wxSocketClient
     EXPORT wxSocketClient* wxSocketClient_Create(int flags)
     {
         return new wxSocketClient(flags);
@@ -289,7 +289,7 @@ extern "C"
         return self->WaitOnConnect(seconds, millisecond);
     }
 
-    /* wxSocketServer */
+    // wxSocketServer
     EXPORT wxSocketServer* wxSocketServer_Create(wxSockAddress* address, int flags)
     {
         return new wxSocketServer(*address, flags);

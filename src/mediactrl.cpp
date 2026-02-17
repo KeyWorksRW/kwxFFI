@@ -1,24 +1,14 @@
-/*==============================================================================
- * mediactrl.cpp
- *
- * C wrapper for wxMediaCtrl
- *
- * (C) 2002-2011 wxEiffel and wxHaskell contributors. See contributors.txt
- *
- * Licensed under the wxWidgets library license. see LICENSE.
- *
- *==============================================================================*/
-
 #include "wrapper.h"
 
 #include <wx/mediactrl.h>
 
+// wxMediaCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
-    ////////////////////////////////////////////////////////////////////////////////
-    // Event Handlers
-    ////////////////////////////////////////////////////////////////////////////////
-
     MAKE_EVENT_WRAPPER(EVT_MEDIA_FINISHED)
     MAKE_EVENT_WRAPPER(EVT_MEDIA_STOP)
     MAKE_EVENT_WRAPPER(EVT_MEDIA_LOADED)
@@ -26,13 +16,6 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_MEDIA_PLAY)
     MAKE_EVENT_WRAPPER(EVT_MEDIA_PAUSE)
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // Wrappers
-    ////////////////////////////////////////////////////////////////////////////////
-
-    /*-----------------------------------------------------------------------------
-      MediaCtrl
-    -----------------------------------------------------------------------------*/
     EXPORT wxMediaCtrl* wxMediaCtrl_Create(void* parent, int id, wxString* fileName, int x, int y,
                                            int width, int height, long style, wxString* szBackend,
                                            wxString* name)

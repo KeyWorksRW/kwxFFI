@@ -1,6 +1,11 @@
 // wx_fontpickerctrl.cpp - wxFontPickerCtrl wrappers
 #include "wrapper.h"
 
+// wxFontPickerCtrl inherits from wxControl (via wxPickerBase).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxFontPickerCtrl* wxFontPickerCtrl_Create(wxWindow* parent, int id, wxFont* initial,

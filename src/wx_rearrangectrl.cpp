@@ -1,5 +1,12 @@
 #include "wrapper.h"
 
+// wxRearrangeList inherits from wxCheckListBox (wxControl and wxItemContainer).
+// wxRearrangeCtrl is a wxPanel container.
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+
 extern "C"
 {
     EXPORT wxRearrangeCtrl* wxRearrangeCtrl_Create(wxWindow* parent, int id, int x, int y, int width,

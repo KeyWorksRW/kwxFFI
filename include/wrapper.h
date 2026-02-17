@@ -1,12 +1,5 @@
 #pragma once
 
-// MSC: disable warning about int-to-bool conversion (just affects performance)
-#pragma warning(disable : 4800)
-
-// MSC: disable warning about using different code page (just affects
-// performance)
-#pragma warning(disable : 4819)
-
 #include <wx/activityindicator.h>
 #include <wx/animate.h>
 #include <wx/apptrait.h>
@@ -25,10 +18,13 @@
 #include <wx/clrpicker.h>
 #include <wx/collpane.h>
 #include <wx/colordlg.h>
+#include <wx/combo.h>
 #include <wx/commandlinkbutton.h>
 #include <wx/config.h>
 #include <wx/dataview.h>
 #include <wx/datectrl.h>
+#include <wx/dirctrl.h>
+#include <wx/display.h>
 #include <wx/dnd.h>
 #include <wx/docmdi.h>
 #include <wx/docview.h>
@@ -38,6 +34,7 @@
 #include <wx/fontpicker.h>
 #include <wx/gbsizer.h>
 #include <wx/grid.h>
+#include <wx/headerctrl.h>
 #include <wx/html/helpctrl.h>
 #include <wx/htmllbox.h>
 #include <wx/image.h>
@@ -49,6 +46,9 @@
 #include <wx/minifram.h>
 #include <wx/mstream.h>
 #include <wx/notebook.h>
+#include <wx/notifmsg.h>
+#include <wx/odcombo.h>
+#include <wx/popupwin.h>
 #include <wx/print.h>
 #include <wx/propdlg.h>
 #include <wx/propgrid/manager.h>
@@ -74,26 +74,17 @@
 #include <wx/textdlg.h>
 #include <wx/timectrl.h>
 #include <wx/toolbook.h>
+#include <wx/tooltip.h>
 #include <wx/treebook.h>
 #include <wx/treectrl.h>
 #include <wx/treelist.h>
+#include <wx/uiaction.h>
+#include <wx/vlbox.h>
+#include <wx/vscroll.h>
 #include <wx/webview.h>
 #include <wx/wizard.h>
 #include <wx/wrapsizer.h>
 #include <wx/wx.h>
-
-// New includes for wxRuby3-compatible classes
-#include <wx/combo.h>
-#include <wx/dirctrl.h>
-#include <wx/display.h>
-#include <wx/headerctrl.h>
-#include <wx/notifmsg.h>
-#include <wx/odcombo.h>
-#include <wx/popupwin.h>
-#include <wx/tooltip.h>
-#include <wx/uiaction.h>
-#include <wx/vlbox.h>
-#include <wx/vscroll.h>
 
 #if !wxCHECK_VERSION(3, 3, 1)
     #error "This code requires wxWidgets 3.3.1 or later"
@@ -118,47 +109,44 @@
 
 extern "C"
 {
-    typedef void(_cdecl* ClosureFun)(void* closureFun, void* data, void* event);
+    typedef void (*ClosureFun)(void* closureFun, void* data, void* event);
 
-    typedef bool(_cdecl* AppInitFunc)(void);
+    typedef bool (*AppInitFunc)(void);
 
-    typedef void(_cdecl* kwxFunc)(void* pObject, void* event);
-    typedef int(_cdecl* TextDropFunc)(void* pObject, long x, long y, void* text);
-    typedef int(_cdecl* FileDropFunc)(void* pObject, long x, long y, void* files, int count);
-    typedef void(_cdecl* DragZeroFunc)(void* pObject);
-    typedef int(_cdecl* DragTwoFunc)(void* pObject, long x, long y);
-    typedef int(_cdecl* DragThreeFunc)(void* pObject, long x, long y, int def);
+    typedef void (*kwxFunc)(void* pObject, void* event);
+    typedef int (*TextDropFunc)(void* pObject, long x, long y, void* text);
+    typedef int (*FileDropFunc)(void* pObject, long x, long y, void* files, int count);
+    typedef void (*DragZeroFunc)(void* pObject);
+    typedef int (*DragTwoFunc)(void* pObject, long x, long y);
+    typedef int (*DragThreeFunc)(void* pObject, long x, long y, int def);
 
-    typedef void*(_cdecl* TGetText)(void* pObject, void* text);
+    typedef void* (*TGetText)(void* pObject, void* text);
 
-    typedef int(_cdecl* DataGetDataSize)(void* pObject);
-    typedef int(_cdecl* DataGetDataHere)(void* pObject, void* buffer);
-    typedef int(_cdecl* DataSetData)(void* pObject, int size, const void* buffer);
+    typedef int (*DataGetDataSize)(void* pObject);
+    typedef int (*DataGetDataHere)(void* pObject, void* buffer);
+    typedef int (*DataSetData)(void* pObject, int size, const void* buffer);
 
-    typedef int(_cdecl* ValidateFunc)(void* pObject);
+    typedef int (*ValidateFunc)(void* pObject);
 
-    typedef int(_cdecl* TCPAdviseFunc)(void* pObject, void* topic, void* item, void* data, int size,
-                                       int format);
-    typedef int(_cdecl* TCPExecuteFunc)(void* pObject, void* topic, void* data, int size,
-                                        int format);
-    typedef char*(_cdecl* TCPRequestFunc)(void* pObject, void* topic, void* item, void* size,
-                                          int format);
-    typedef int(_cdecl* TCPPokeFunc)(void* pObject, void* topic, void* item, void* data, int size,
-                                     int format);
-    typedef int(_cdecl* TCPStartAdviseFunc)(void* pObject, void* topic, void* item);
-    typedef int(_cdecl* TCPStopAdviseFunc)(void* pObject, void* topic, void* item);
-    typedef void*(_cdecl* TCPOnConnection)(void* pObject, void* count);
-    typedef int(_cdecl* TCPOnDisconnect)(void* pObject);
+    typedef int (*TCPAdviseFunc)(void* pObject, void* topic, void* item, void* data, int size,
+                                 int format);
+    typedef int (*TCPExecuteFunc)(void* pObject, void* topic, void* data, int size, int format);
+    typedef char* (*TCPRequestFunc)(void* pObject, void* topic, void* item, void* size, int format);
+    typedef int (*TCPPokeFunc)(void* pObject, void* topic, void* item, void* data, int size,
+                               int format);
+    typedef int (*TCPStartAdviseFunc)(void* pObject, void* topic, void* item);
+    typedef int (*TCPStopAdviseFunc)(void* pObject, void* topic, void* item);
+    typedef void* (*TCPOnConnection)(void* pObject, void* count);
+    typedef int (*TCPOnDisconnect)(void* pObject);
 
-    typedef int(_cdecl* PrintBeginDocument)(void* pObject, int start, int endVal);
-    typedef void(_cdecl* PrintCommon)(void* pObject);
-    typedef int(_cdecl* PrintBeginPage)(void* pObject, int page);
-    typedef void(_cdecl* PrintPageInfo)(void* pObject, int* minVal, int* maxVal, int* from,
-                                        int* to);
+    typedef int (*PrintBeginDocument)(void* pObject, int start, int endVal);
+    typedef void (*PrintCommon)(void* pObject);
+    typedef int (*PrintBeginPage)(void* pObject, int page);
+    typedef void (*PrintPageInfo)(void* pObject, int* minVal, int* maxVal, int* from, int* to);
 
-    typedef int(_cdecl* PreviewFrameFunc)(void* pObject);
+    typedef int (*PreviewFrameFunc)(void* pObject);
 
-    typedef int(_cdecl* TreeCompareFunc)(void* pObject, void* item1, void* item2);
+    typedef int (*TreeCompareFunc)(void* pObject, void* item1, void* item2);
 }
 
 // Miscellaneous helper functions
@@ -429,7 +417,7 @@ public:
     void SetOnStartAdvise(void* pFunction) { DoOnStartAdvise = (TCPStartAdviseFunc) pFunction; };
     void SetOnStopAdvise(void* pFunction) { DoOnStopAdvise = (TCPStopAdviseFunc) pFunction; };
     void SetOnDisconnect(void* pFunction) { DoOnDisconnect = (TCPOnDisconnect) pFunction; };
-    void SetEiffelObject(void* pObject) { kwxObject = pObject; };
+    void SetCallbackObject(void* pObject) { kwxObject = pObject; };
 
     virtual bool OnExecute(const wxString& topic, char* data, int size, wxIPCFormat format)
     {
@@ -499,7 +487,7 @@ public:
     virtual wxConnectionBase* OnAcceptConnection(const wxString& topic)
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
+        result->SetCallbackObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -520,7 +508,7 @@ public:
     virtual wxConnectionBase* OnMakeConnection()
     {
         kwxConnection* result = new kwxConnection();
-        result->SetEiffelObject(DoOnConnect(kwxObject, (void*) result));
+        result->SetCallbackObject(DoOnConnect(kwxObject, (void*) result));
         return result;
     };
 };
@@ -667,6 +655,6 @@ public:
     virtual int OnCompareItems(const wxTreeItemId& item1, const wxTreeItemId& item2)
     {
         return kwxObject ? compare_func(kwxObject, (void*) &item1, (void*) &item2) :
-                              wxTreeCtrl::OnCompareItems(item1, item2);
+                           wxTreeCtrl::OnCompareItems(item1, item2);
     }
 };

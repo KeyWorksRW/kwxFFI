@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxTextEntryDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxTextEntryDialog_Create(wxWindow* parent, wxString* message, wxString* caption,

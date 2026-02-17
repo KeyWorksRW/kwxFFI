@@ -1,14 +1,9 @@
-/*==============================================================================
- * eljfindrepdlg.cpp
- *
- * C wrapper for wxFindReplaceData
- *
- * (C) 2002-2011 wxEiffel and wxHaskell contributors. See contributors.txt
- *
- *==============================================================================*/
-
 #include "wrapper.h"
 #include <wx/fdrepdlg.h>
+
+// wxFindReplaceDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
 
 extern "C"
 {
@@ -16,7 +11,7 @@ extern "C"
     // Event Handlers
     ////////////////////////////////////////////////////////////////////////////////
 
-    /* #pragma message "wxWidgets find/replace dialog event wrappers generated" */
+    // #pragma message "wxWidgets find/replace dialog event wrappers generated"
     MAKE_EVENT_WRAPPER(EVT_COMMAND_FIND)
     MAKE_EVENT_WRAPPER(EVT_COMMAND_FIND_NEXT)
     MAKE_EVENT_WRAPPER(EVT_COMMAND_FIND_REPLACE)

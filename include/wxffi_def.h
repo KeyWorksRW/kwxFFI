@@ -22,38 +22,20 @@
     #endif
 #endif  // defined(_WIN32)
 
-#ifdef _WIN32
-    // REVIEW: [Randalphwa - 10-07-2024]
-    // Use this until there is a way to know whether the library is being built as a dll or not
-    #define WXFFI_EXPORT(TYPE, FUNC_NAME) TYPE FUNC_NAME
-// REVIEW: [Randalphwa - 10-07-2024]
-// This assumes that wxFFI_lang has been built as a dll which is not necessarily the case
-// #define WXFFI_EXPORT(TYPE, FUNC_NAME) __declspec(dllexport) TYPE __cdecl FUNC_NAME
-// #undef EXPORT
-// #define EXPORT extern "C" __declspec(dllexport)
-#else
-    #define WXFFI_EXPORT(TYPE, FUNC_NAME) TYPE FUNC_NAME
-#endif
-
-// REVIEW: [Randalphwa - 10-07-2024]
-// Default calling convention for C functiosn is cdecl so why are we specifying this?
-
-#if defined(_MSC_VER)
-    // Microsoft compiler
-    #ifndef _cdecl
-        #define _cdecl __cdecl
+// WXFFI_EXPORT - used for constant export functions in headers/implementations
+#if defined(_WIN32)
+    #if defined(SHARED_LIBRARY)
+        #define WXFFI_EXPORT(TYPE, FUNC_NAME) __declspec(dllexport) TYPE FUNC_NAME
+    #else
+        #define WXFFI_EXPORT(TYPE, FUNC_NAME) TYPE FUNC_NAME
     #endif
-#elif defined(__GNUC__)
-    // GCC and Clang compilers
-    #ifndef _cdecl
-        #define _cdecl __attribute__((cdecl))
+#else  // Unix
+    #if defined(SHARED_LIBRARY)
+        #define WXFFI_EXPORT(TYPE, FUNC_NAME) __attribute__((visibility("default"))) TYPE FUNC_NAME
+    #else
+        #define WXFFI_EXPORT(TYPE, FUNC_NAME) TYPE FUNC_NAME
     #endif
-#else
-    // Other compilers
-    #ifndef _cdecl
-        #define _cdecl
-    #endif
-#endif
+#endif  // defined(_WIN32)
 
 #define WXFFI_CONSTANT_INT(NAME, VAL) \
     WXFFI_EXPORT(int, exp##NAME)()    \
@@ -65,10 +47,3 @@
     {                                                           \
         return new wxString((const wchar_t*) VAL, wxConvLocal); \
     };
-#ifdef __EWX_PREPROCESS
-    #undef WXFFI_EXPORT
-    #undef WXFFI_CONSTANT_INT
-    #undef WXFFI_CONSTANT_STR
-    #define WXFFI_CONSTANT_INT(NAME, VAL) def_const_int(#NAME, VAL);
-    #define WXFFI_CONSTANT_STR(NAME, VAL) def_const_str(#NAME, VAL);
-#endif

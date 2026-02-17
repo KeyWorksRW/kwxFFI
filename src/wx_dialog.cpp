@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxDialog inherits from wxTopLevelWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT wxDialog* wxDialog_Create(wxWindow* parent, int id, wxString* title, int x, int y,
@@ -31,5 +35,40 @@ extern "C"
     EXPORT int wxDialog_GetReturnCode(wxDialog* self)
     {
         return self->GetReturnCode();
+    }
+
+    EXPORT void wxDialog_SetAffirmativeId(wxDialog* self, int id)
+    {
+        self->SetAffirmativeId(id);
+    }
+
+    EXPORT int wxDialog_GetAffirmativeId(wxDialog* self)
+    {
+        return self->GetAffirmativeId();
+    }
+
+    EXPORT void wxDialog_SetEscapeId(wxDialog* self, int id)
+    {
+        self->SetEscapeId(id);
+    }
+
+    EXPORT int wxDialog_GetEscapeId(wxDialog* self)
+    {
+        return self->GetEscapeId();
+    }
+
+    EXPORT void* wxDialog_CreateButtonSizer(wxDialog* self, long flags)
+    {
+        return (void*) self->CreateButtonSizer(flags);
+    }
+
+    EXPORT void* wxDialog_CreateSeparatedButtonSizer(wxDialog* self, long flags)
+    {
+        return (void*) self->CreateSeparatedButtonSizer(flags);
+    }
+
+    EXPORT void* wxDialog_CreateStdDialogButtonSizer(wxDialog* self, long flags)
+    {
+        return (void*) self->CreateStdDialogButtonSizer(flags);
     }
 }

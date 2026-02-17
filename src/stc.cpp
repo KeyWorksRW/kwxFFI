@@ -1,17 +1,12 @@
-/*==============================================================================
- * stc.cpp
- *
- * C wrapper for wxStyledTextCtrl
- *
- * (C) 2002-2011 wxEiffel and wxHaskell contributors. See contributors.txt
- *
- *==============================================================================*/
-
 #include "wrapper.h"
 
-#ifdef wxUSE_STC
-    #include <wx/stc/stc.h>
-#endif
+#include <wx/stc/stc.h>
+
+// wxStyledTextCtrl inherits from wxControl and wxTextEntry.
+// Additional methods available via:
+//   wxWindow_*    — base window methods (see wx_window.cpp)
+//   wxControl_*   — label, alignment (see wx_control.cpp)
+//   wxTextEntry_* — text editing, hints, margins, selection, auto-complete (see wx_textentry.cpp)
 
 extern "C"
 {
@@ -54,7 +49,7 @@ extern "C"
 
 #include "stc_gen.cpp"
 
-    /* wxStyledTextCtrl */
+    // wxStyledTextCtrl
 
     EXPORT void* wxStyledTextCtrl_Create(wxWindow* parent, int id, wxString* text, int x, int y,
                                          int width, int height, int style)
@@ -67,7 +62,7 @@ extern "C"
 #endif
     }
 
-    /* tricky handwritten functions */
+    // tricky handwritten functions
 
     EXPORT void* wxStyledTextCtrl_IndicatorGetForeground(void* pObject, int indic)
     {
@@ -93,8 +88,8 @@ extern "C"
                                                         int back_b)
     {
 #ifdef wxUSE_STC
-        /* SetCaretLineBack is changed name to SetCaretLineBackground.
-           So I avoid to use stc_gen.cpp for backward compatibility. */
+        // SetCaretLineBack is changed name to SetCaretLineBackground.
+        // So I avoid to use stc_gen.cpp for backward compatibility.
         ((wxStyledTextCtrl*) pObject)->SetCaretLineBackground(wxColour(back_r, back_g, back_b));
 #endif
     }
@@ -192,9 +187,7 @@ extern "C"
 #endif
     }
 
-    /*************************************/
-    /* wxStyledTextEvent's get functions */
-    /*************************************/
+    // wxStyledTextEvent's get functions
 
     EXPORT int wxStyledTextEvent_GetPosition(void* pObject)
     {
@@ -416,9 +409,7 @@ extern "C"
 #endif
     }
 
-    /*************************************/
-    /* wxStyledTextEvent's set functions */
-    /*************************************/
+    // wxStyledTextEvent's set functions
 
     EXPORT void wxStyledTextEvent_SetPosition(void* pObject, int pos)
     {

@@ -1,13 +1,13 @@
-/* update checked 100% with 2.8.9 manual*/
+// update checked 100% with 2.8.9 manual
 #include "wrapper.h"
 
 extern "C"
 {
 #if wxUSE_SOCKETS
 
-    /* wxSockAddress */
-    /* EWXWEXPORT(wxSockAddress*,wxSockAddress_wxSockAddress)() disabled because it has virtual
-     * function */
+    // wxSockAddress
+    // EWXWEXPORT(wxSockAddress*,wxSockAddress_wxSockAddress)() disabled because it has virtual
+    // function
     EXPORT void wxSockAddress_Delete(wxSockAddress* self)
     {
         delete self;
@@ -17,7 +17,7 @@ extern "C"
         self->Clear();
     }
 
-    /* wxIPaddress */
+    // wxIPaddress
     EXPORT wxString* wxIPaddress_Hostname(wxIPaddress* self)
     {
         return new wxString(self->Hostname());
@@ -56,7 +56,7 @@ extern "C"
         return self->IsLocalHost();
     }
 
-    /* wxIPV4address */
+    // wxIPV4address
     EXPORT wxIPV4address* wxIPV4address_Create()
     {
         return new wxIPV4address();
@@ -66,5 +66,5 @@ extern "C"
         delete self;
     }
 
-#endif /* wxUSE_SOCKETS */
+#endif  // wxUSE_SOCKETS
 }

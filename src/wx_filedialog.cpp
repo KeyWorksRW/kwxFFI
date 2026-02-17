@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxFileDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxFileDialog_Create(wxWindow* parent, wxString* message, wxString* defaultDir,
@@ -118,5 +122,17 @@ extern "C"
     EXPORT int wxFileDialog_GetFilterIndex(void* pObject)
     {
         return ((wxFileDialog*) pObject)->GetFilterIndex();
+    }
+
+    EXPORT wxString* wxFileDialog_GetCurrentlySelectedFilename(wxFileDialog* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetCurrentlySelectedFilename();
+        return result;
+    }
+
+    EXPORT void* wxFileDialog_GetExtraControl(wxFileDialog* self)
+    {
+        return (void*) self->GetExtraControl();
     }
 }

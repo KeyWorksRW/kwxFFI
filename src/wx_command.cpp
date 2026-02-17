@@ -3,7 +3,7 @@
 #include <wx/docview.h>
 extern "C"
 {
-    typedef int _cdecl (*TGetResp)(void* pObject, int canUndo);
+    typedef int (*TGetResp)(void* pObject, int canUndo);
 }
 
 class kwxCommand : public wxCommand
@@ -13,7 +13,8 @@ private:
     void* kwxObject;
 
 public:
-    kwxCommand(bool canUndo, const wxString& name, void* pObject, void* callback) : wxCommand(canUndo, name)
+    kwxCommand(bool canUndo, const wxString& name, void* pObject, void* callback) :
+        wxCommand(canUndo, name)
     {
         func = (TGetResp) callback;
         kwxObject = pObject;

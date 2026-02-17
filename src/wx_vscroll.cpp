@@ -1,6 +1,10 @@
 #include "wrapper.h"
 #include <wx/vscroll.h>
 
+// wxVScrolledWindow inherits from wxWindow (via wxPanel).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // For wxVScrolledWindow, the user needs to override OnGetRowHeight().

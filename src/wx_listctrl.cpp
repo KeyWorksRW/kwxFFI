@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxListCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     typedef int (*kwxSortFunc)(void* obj, int data1, int data2);
@@ -503,5 +508,76 @@ extern "C"
     EXPORT void wxListCtrl_RefreshItems(wxListCtrl* self, long from, long toPos)
     {
         self->RefreshItems(from, toPos);
+    }
+
+    EXPORT bool wxListCtrl_GetSubItemRect(wxListCtrl* self, long item, long subItem, int* x,
+                                          int* y, int* width, int* height, int code)
+    {
+        wxRect rect;
+        bool result = self->GetSubItemRect(item, subItem, rect, code);
+        *x = rect.x;
+        *y = rect.y;
+        *width = rect.width;
+        *height = rect.height;
+        return result;
+    }
+
+    EXPORT void wxListCtrl_GetViewRect(wxListCtrl* self, int* x, int* y, int* width, int* height)
+    {
+        wxRect rect = self->GetViewRect();
+        *x = rect.x;
+        *y = rect.y;
+        *width = rect.width;
+        *height = rect.height;
+    }
+
+    EXPORT bool wxListCtrl_HasCheckBoxes(wxListCtrl* self)
+    {
+        return self->HasCheckBoxes();
+    }
+
+    EXPORT bool wxListCtrl_EnableCheckBoxes(wxListCtrl* self, bool enable)
+    {
+        return self->EnableCheckBoxes(enable);
+    }
+
+    EXPORT bool wxListCtrl_IsItemChecked(wxListCtrl* self, long item)
+    {
+        return self->IsItemChecked(item);
+    }
+
+    EXPORT void wxListCtrl_CheckItem(wxListCtrl* self, long item, bool check)
+    {
+        self->CheckItem(item, check);
+    }
+
+    EXPORT void wxListCtrl_ShowSortIndicator(wxListCtrl* self, int col, bool ascending)
+    {
+        self->ShowSortIndicator(col, ascending);
+    }
+
+    EXPORT int wxListCtrl_GetSortIndicator(wxListCtrl* self)
+    {
+        return self->GetSortIndicator();
+    }
+
+    EXPORT bool wxListCtrl_IsAscendingSortIndicator(wxListCtrl* self)
+    {
+        return self->IsAscendingSortIndicator();
+    }
+
+    EXPORT bool wxListCtrl_IsVisible(wxListCtrl* self, long item)
+    {
+        return self->IsVisible(item);
+    }
+
+    EXPORT void wxListCtrl_SetItemCount(wxListCtrl* self, long count)
+    {
+        self->SetItemCount(count);
+    }
+
+    EXPORT bool wxListCtrl_SetHeaderAttr(wxListCtrl* self, wxItemAttr* attr)
+    {
+        return self->SetHeaderAttr(*attr);
     }
 }

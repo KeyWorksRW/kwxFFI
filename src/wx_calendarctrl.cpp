@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxCalendarCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxCalendarCtrl* wxCalendarCtrl_Create(wxWindow* parent, int id, wxDateTime* date, int x,

@@ -456,10 +456,6 @@ extern "C"
         return self->Replace((size_t) oldindex, newsz);
     }
 
-    /* Deprecated; replace with wxSizer_FitInside
-    // EWXWEXPORT(void,wxSizer_SetVirtualSizeHints)(wxSizer* self,wxWindow* window)
-    */
-
     EXPORT bool wxSizer_ShowWindow(wxSizer* self, wxWindow* window, bool show, bool recursive)
     {
         return self->Show(window, show, recursive);

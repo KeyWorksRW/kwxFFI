@@ -1,5 +1,11 @@
 #include "wrapper.h"
 
+// wxCheckListBox inherits from wxListBox (wxControl and wxItemContainer).
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+
 extern "C"
 {
     EXPORT wxCheckListBox* wxCheckListBox_Create(wxWindow* parent, int id, int x, int y, int width,
@@ -28,5 +34,18 @@ extern "C"
     EXPORT bool wxCheckListBox_IsChecked(wxCheckListBox* self, int item)
     {
         return self->IsChecked(item);
+    }
+
+    EXPORT int wxCheckListBox_GetCheckedItems(wxCheckListBox* self, int* checkedItems, int allocated)
+    {
+        wxArrayInt arr;
+        unsigned int count = self->GetCheckedItems(arr);
+        if (checkedItems)
+        {
+            int copyCount = (int) count < allocated ? (int) count : allocated;
+            for (int i = 0; i < copyCount; i++)
+                checkedItems[i] = arr[i];
+        }
+        return (int) count;
     }
 }

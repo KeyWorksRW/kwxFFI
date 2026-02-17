@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxGauge inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxGauge_Create(wxWindow* parent, int id, int range, int x, int y, int width,
@@ -26,5 +31,15 @@ extern "C"
     EXPORT int wxGauge_GetValue(void* pObject)
     {
         return ((wxGauge*) pObject)->GetValue();
+    }
+
+    EXPORT void wxGauge_Pulse(wxGauge* self)
+    {
+        self->Pulse();
+    }
+
+    EXPORT bool wxGauge_IsVertical(wxGauge* self)
+    {
+        return self->IsVertical();
     }
 }

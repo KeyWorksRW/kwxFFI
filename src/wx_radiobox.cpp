@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxRadioBox inherits from wxControl and wxItemContainerImmutable.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxRadioBox_Create(wxWindow* parent, int id, wxString* label, int x, int y,
@@ -76,6 +81,31 @@ extern "C"
 
     EXPORT void wxRadioBox_SetNumberOfRowsOrCols(void* pObject, int count)
     {
-        // No-op: SetNumberOfRowsOrCols was removed in wxWidgets 2.6
+        // Note: wxRadioBox does not have SetCount — this is a legacy wrapper
+    }
+
+    EXPORT int wxRadioBox_GetColumnCount(wxRadioBox* self)
+    {
+        return self->GetColumnCount();
+    }
+
+    EXPORT int wxRadioBox_GetRowCount(wxRadioBox* self)
+    {
+        return self->GetRowCount();
+    }
+
+    EXPORT bool wxRadioBox_IsItemEnabled(wxRadioBox* self, int item)
+    {
+        return self->IsItemEnabled(item);
+    }
+
+    EXPORT bool wxRadioBox_IsItemShown(wxRadioBox* self, int item)
+    {
+        return self->IsItemShown(item);
+    }
+
+    EXPORT int wxRadioBox_GetCount(wxRadioBox* self)
+    {
+        return self->GetCount();
     }
 }

@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxBannerWindow inherits from wxWindow (not wxControl).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT wxBannerWindow* wxBannerWindow_Create(wxWindow* parent, int id, int dir, int x, int y,

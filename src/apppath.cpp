@@ -4,18 +4,10 @@
 #include <wx/stdpaths.h>
 
 #ifdef __WXMAC__
-    #ifdef __DARWIN__
-        #if wxCHECK_VERSION(2, 9, 5)
-            #include <dlfcn.h>  /* dlsym */
-            #include <limits.h> /* PATH_MAX */
-        #endif
-        #include <mach-o/dyld.h>
+    #include <dlfcn.h> // dlsym
+    #include <limits.h> // PATH_MAX
+    #include <mach-o/dyld.h>
 typedef int (*NSGetExecutablePathProcPtr)(char* buf, size_t* bufsize);
-    #else
-        #include <Files.h>
-        #include <Processes.h>
-        #include <Types.h>
-    #endif
 #endif
 
 wxString GetApplicationPath()
@@ -25,19 +17,14 @@ wxString GetApplicationPath()
 
     if (!found)
     {
-/* Windows */
 #ifdef __WXMSW__
         path = wxStandardPaths::Get().GetExecutablePath();
 
-/* UNIX & MAC*/
 #else
         wxString argv0;
 
     #ifdef __WXMAC__
-        #if wxCHECK_VERSION(2, 9, 5)
-        // NSAddressOfSymbol, NSIsSymbolNameDefined, NSLookupAndBindSymbol are deprecated
-        // The dependence on WX 2.9.0.5 most likely can be relaxed as this is a longtime Darwin
-        // deprecation.
+        // _NSGetExecutablePath returns UTF-8 on APFS/HFS+
         void* addrOf_NSGetExecutablePath = dlsym(RTLD_DEFAULT, "_NSGetExecutablePath");
         if (addrOf_NSGetExecutablePath != nullptr)
         {
@@ -45,47 +32,25 @@ wxString GetApplicationPath()
             size_t bufLen = PATH_MAX;
             buf[0] = 0;
             ((NSGetExecutablePathProcPtr) addrOf_NSGetExecutablePath)(buf, &bufLen);
-            wxString strBuf = wxString();
-            size_t actualBuflen = strlen(buf);
-            if (actualBuflen > 0)
+            if (buf[0] != 0)
             {
-                // FIXME: we *assume* that the NS stuff returns utf-8 encoded strings
                 path = wxString(buf, wxConvUTF8);
                 found = true;
                 return path;
             }
         }
-        #else
-        if (NSIsSymbolNameDefined("__NSGetExecutablePath"))
-        {
-            char buf[512];
-            size_t bufLen = 512;
-            buf[0] = 0;
-            ((NSGetExecutablePathProcPtr) NSAddressOfSymbol(
-                NSLookupAndBindSymbol("__NSGetExecutablePath")))(buf, &bufLen);
-            wxString strBuf = wxString();
-            size_t actualBuflen = strlen(buf);
-            if (actualBuflen > 0)
-            {
-                // FIXME: we *assume* that the NS stuff returns utf-8 encoded strings
-                path = wxString(buf, wxConvUTF8);
-                found = true;
-                return path;
-            }
-        }
-        #endif
     #endif
 
         argv0 = wxTheApp->argv[0];
 
-        /* check absolute path */
+        // check absolute path
         if (wxIsAbsolutePath(argv0))
         {
             path = argv0;
         }
         else
         {
-            /* check relative path */
+            // check relative path
             wxString fname = wxGetCwd() + wxFILE_SEP_PATH + argv0;
             if (wxFileExists(fname))
             {
@@ -93,7 +58,7 @@ wxString GetApplicationPath()
             }
             else
             {
-                /* find on PATH */
+                // find on PATH
                 wxPathList pathlist;
                 pathlist.AddEnvList("PATH");
                 path = pathlist.FindAbsoluteValidPath(argv0);
@@ -114,7 +79,7 @@ wxString GetApplicationDir()
 {
     wxString path;
 
-    /* check APPDIR on unix's */
+    // check APPDIR on unix's
 #ifndef __WXMSW__
     #ifndef __WXMAC__
     wxGetEnv("APPDIR", &path);

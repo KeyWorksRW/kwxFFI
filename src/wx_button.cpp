@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxButton inherits from wxControl (via wxAnyButton).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxButton* wxButton_Create(wxWindow* parent, int id, wxString* text, int x, int y,

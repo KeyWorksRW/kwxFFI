@@ -4,9 +4,6 @@
 
 extern "C"
 {
-    /*-----------------------------------------------------------------------------
-      DragImage
-    -----------------------------------------------------------------------------*/
     EXPORT wxDragImage* wxDragImage_Create(wxBitmap* image, int x, int y)
     {
         return new wxDragImage(*image, wxNullCursor);

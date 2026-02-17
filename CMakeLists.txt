@@ -15,14 +15,6 @@ set( PROJECT_VERSION_PATCH 0 )
 set( PROJECT_VERSION_BUILD ${BUILD_NUM} )
 set( PROJECT_VERSION_YEAR ${PROJECT_YEAR} )
 
-# REVIEW: [Randalphwa - 01-31-2026] It might make sense for the caller
-# to be able to override the shared dll name by using the language's name, as in:
-# kwxLuaJitFFI.dll or kwxFortranFFI.dll
-# Child CMakeLists.txt might have:
-# if(NOT DEFINED PROJECT_NAME)
-# project(kwxFFI)
-# endif()
-
 project( kwxFFI
     LANGUAGES
     CXX C
@@ -147,10 +139,6 @@ if( MSVC )
     if( CMAKE_BUILD_TYPE STREQUAL "Debug" )
         add_compile_options( /fsanitize=address )
         add_link_options( /fsanitize=address )
-        # REVIEW: [Randalphwa - 01-26-2026] Even with MSVC from 2026, incremental linking
-        # messes with debugging where you the code you see is not what is actually running as
-        # you step through it.
-        # add_link_options( /INCREMENTAL:NO /OPT:REF /OPT:ICF )
         add_link_options( /INCREMENTAL:YES /OPT:NOREF /OPT:ICF )
     endif()
 
@@ -202,7 +190,6 @@ set(FETCHCONTENT_QUIET ON)
 # Set wxWidgets build options BEFORE FetchContent_MakeAvailable
 # wxWidgets is always built as static libraries even though kwxFFI is a shared DLL
 set( wxBUILD_SHARED OFF CACHE BOOL "Build wxWidgets as static libraries" FORCE )
-# REVIEW: [Randalphwa - 01-31-2026] Rust will insist on static release for Windows
 set( wxBUILD_USE_STATIC_RUNTIME OFF CACHE BOOL "Use dynamic runtime library" )
 
 set( wxUSE_UNICODE_UTF8 1 CACHE BOOL "Use UTF-8 internally in wxWidgets" )

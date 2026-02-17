@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxListView inherits from wxListCtrl (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxListView* wxListView_Create(wxWindow* parent, int id, int x, int y, int width,
