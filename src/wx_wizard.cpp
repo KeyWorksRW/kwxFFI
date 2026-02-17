@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxWizard inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxWizard_Create(wxWindow* parent, int id, wxString* title, wxBitmap* bitmap, int x,
@@ -75,5 +79,38 @@ extern "C"
     EXPORT bool wxWizardEvent_GetDirection(wxWizardEvent* self)
     {
         return self->GetDirection();
+    }
+
+    EXPORT void* wxWizard_GetPageAreaSizer(wxWizard* self)
+    {
+        return (void*) self->GetPageAreaSizer();
+    }
+
+    EXPORT void wxWizard_SetBorder(wxWizard* self, int border)
+    {
+        self->SetBorder(border);
+    }
+
+    EXPORT void wxWizard_FitToPage(wxWizard* self, wxWizardPage* firstPage)
+    {
+        self->FitToPage(firstPage);
+    }
+
+    EXPORT bool wxWizard_HasNextPage(wxWizard* self, wxWizardPage* page)
+    {
+        return self->HasNextPage(page);
+    }
+
+    EXPORT bool wxWizard_HasPrevPage(wxWizard* self, wxWizardPage* page)
+    {
+        return self->HasPrevPage(page);
+    }
+
+    EXPORT void wxWizard_GetBitmap(wxWizard* self, wxBitmap* bitmap)
+    {
+        // wxWizard doesn't have GetBitmap directly, use the page bitmap via GetCurrentPage
+        wxWizardPage* page = self->GetCurrentPage();
+        if (page)
+            *bitmap = page->GetBitmap();
     }
 }

@@ -1,5 +1,11 @@
 #include "wrapper.h"
 
+// wxTextCtrl inherits from wxControl and wxTextEntry.
+// Additional methods available via:
+//   wxWindow_*    — base window methods (see wx_window.cpp)
+//   wxControl_*   — label, alignment (see wx_control.cpp)
+//   wxTextEntry_* — text editing, hints, margins, selection, auto-complete (see wx_textentry.cpp)
+
 extern "C"
 {
     EXPORT void* wxTextCtrl_Create(wxWindow* parent, int id, wxString* text, int x, int y,
@@ -196,5 +202,20 @@ extern "C"
     EXPORT void wxTextCtrl_MarkDirty(wxTextCtrl* self)
     {
         self->MarkDirty();
+    }
+
+    EXPORT void wxTextCtrl_SetModified(wxTextCtrl* self, bool modified)
+    {
+        self->SetModified(modified);
+    }
+
+    EXPORT void wxTextCtrl_EmptyUndoBuffer(wxTextCtrl* self)
+    {
+        self->EmptyUndoBuffer();
+    }
+
+    EXPORT bool wxTextCtrl_GetStyle(wxTextCtrl* self, long position, wxTextAttr* style)
+    {
+        return self->GetStyle(position, *style);
     }
 }

@@ -136,22 +136,20 @@ kwxFFI requires wxWidgets 3.3+ built with `wxUSE_UNICODE_UTF8=1`. This means:
 - Better performance and simpler code
 - Modern languages (Go, Rust, Julia, etc.) natively use UTF-8
 
-## Helper Classes (ELJ* prefix)
+## Helper Classes (kwx* prefix)
 
 Several classes derive from wxWidgets classes to support callbacks:
 
 | Class | Purpose |
 |-------|---------|
-| `ELJApp` | Custom wxApp for FFI initialization |
-| `ELJDropTarget` | Drag-and-drop target with foreign callbacks |
-| `ELJTextDropTarget` | Text-specific drop target |
-| `ELJFileDropTarget` | File-specific drop target |
-| `ELJPrintout` | Print job with foreign callbacks |
-| `ELJConnection` | TCP/IPC connection with foreign callbacks |
-| `ELJTreeControl` | Tree control with custom compare callback |
-| `ELJGridTable` | Grid data source with foreign callbacks |
-
-Note: "ELJ" is a legacy prefix from the original wxEiffel/wxHaskell projects. These are kwxFFI-specific derived classes that enable callback functionality.
+| `kwxAppImpl` | Custom wxApp for FFI initialization |
+| `kwxDropTarget` | Drag-and-drop target with foreign callbacks |
+| `kwxTextDropTarget` | Text-specific drop target |
+| `kwxFileDropTarget` | File-specific drop target |
+| `kwxPrintout` | Print job with foreign callbacks |
+| `kwxConnection` | TCP/IPC connection with foreign callbacks |
+| `kwxTreeControl` | Tree control with custom compare callback |
+| `kwxGridTable` | Grid data source with foreign callbacks |
 
 ## Adding New Wrappers
 
@@ -165,4 +163,4 @@ For events, use the `MAKE_EVENT_WRAPPER(EVT_NAME)` macro in the source file.
 
 ## Credits
 
-This project is based on the FFI layer from [wxHaskell](https://codeberg.org/wxHaskell/wxHaskell). The original code provided a complete wxWidgets 3.2 interface.
+This project is loosely based on the FFI layer from [wxHaskell](https://codeberg.org/wxHaskell/wxHaskell).

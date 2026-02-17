@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxTreebook inherits from wxBookCtrlBase (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxTreebook* wxTreebook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -127,5 +132,10 @@ extern "C"
     EXPORT int wxTreebook_HitTest(wxTreebook* self, int x, int y, long* flags)
     {
         return self->HitTest(wxPoint(x, y), flags);
+    }
+
+    EXPORT bool wxTreebook_CollapseNode(wxTreebook* self, int nPage)
+    {
+        return self->CollapseNode(nPage);
     }
 }

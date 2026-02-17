@@ -1,4 +1,7 @@
-#include "wrapper.h"
+// #include "wrapper.h"
+
+// wxGrid inherits from wxWindow (via wxScrolledCanvas). Additional methods available via:
+// wxWindow_* — base window methods (see wx_window.cpp)
 
 #include "wxffi_grid.h"
 

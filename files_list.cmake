@@ -92,6 +92,7 @@ set( FFI_SRC_FILES
     src/wx_image.cpp
     src/wx_imagelist.cpp
     src/wx_infobar.cpp
+    src/wx_itemcontainer.cpp
     src/wx_layoutconstraints.cpp
     src/wx_listbook.cpp
     src/wx_listbox.cpp
@@ -151,6 +152,7 @@ set( FFI_SRC_FILES
     src/wx_systemsettings.cpp
     src/wx_textctrl.cpp
     src/wx_textdlg.cpp
+    src/wx_textentry.cpp
     src/wx_tglbtn.cpp
     src/wx_timepickerctrl.cpp
     src/wx_timer.cpp

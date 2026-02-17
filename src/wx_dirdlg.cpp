@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxDirDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxDirDialog_Create(wxWindow* parent, wxString* message, wxString* defaultPath,
@@ -46,5 +50,17 @@ extern "C"
 #else
         return 0;
 #endif
+    }
+
+    EXPORT int wxDirDialog_GetPaths(wxDirDialog* self, void* paths)
+    {
+        wxArrayString arr;
+        self->GetPaths(arr);
+        if (paths)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_str().data());
+        }
+        return arr.GetCount();
     }
 }

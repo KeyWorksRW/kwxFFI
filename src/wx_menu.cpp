@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxMenu inherits from wxEvtHandler.
+// Additional methods available via:
+//   wxWindow_* — base window methods (not applicable for menus)
+
 extern "C"
 {
     EXPORT wxMenu* wxMenu_Create(wxString* title, long style)
@@ -234,6 +238,53 @@ extern "C"
         return (void*) self->GetParent();
     }
 
+    EXPORT void wxMenu_AppendCheckItem(wxMenu* self, int id, wxString* text, wxString* help)
+    {
+        self->AppendCheckItem(id, *text, help ? *help : wxString());
+    }
+
+    EXPORT void wxMenu_InsertSeparator(wxMenu* self, size_t pos)
+    {
+        self->InsertSeparator(pos);
+    }
+
+    EXPORT void wxMenu_InsertCheckItem(wxMenu* self, size_t pos, int id, wxString* text,
+                                       wxString* help)
+    {
+        self->InsertCheckItem(pos, id, *text, help ? *help : wxString());
+    }
+
+    EXPORT void wxMenu_InsertRadioItem(wxMenu* self, size_t pos, int id, wxString* text,
+                                       wxString* help)
+    {
+        self->InsertRadioItem(pos, id, *text, help ? *help : wxString());
+    }
+
+    EXPORT void wxMenu_PrependSeparator(wxMenu* self)
+    {
+        self->PrependSeparator();
+    }
+
+    EXPORT void wxMenu_PrependCheckItem(wxMenu* self, int id, wxString* text, wxString* help)
+    {
+        self->PrependCheckItem(id, *text, help ? *help : wxString());
+    }
+
+    EXPORT void wxMenu_PrependRadioItem(wxMenu* self, int id, wxString* text, wxString* help)
+    {
+        self->PrependRadioItem(id, *text, help ? *help : wxString());
+    }
+
+    EXPORT wxMenuItem* wxMenu_FindItemByPosition(wxMenu* self, size_t pos)
+    {
+        return self->FindItemByPosition(pos);
+    }
+
+    EXPORT void* wxMenu_GetEventHandler(wxMenu* self)
+    {
+        return (void*) self->GetEventHandler();
+    }
+
     EXPORT wxMenuItem* wxMenuItem_Create()
     {
         return new wxMenuItem();
@@ -344,6 +395,38 @@ extern "C"
     {
         wxString* result = new wxString();
         *result = self->GetHelp();
+        return result;
+    }
+
+    EXPORT int wxMenuItem_GetKind(wxMenuItem* self)
+    {
+        return (int) self->GetKind();
+    }
+
+    EXPORT bool wxMenuItem_IsCheck(wxMenuItem* self)
+    {
+        return self->IsCheck();
+    }
+
+    EXPORT bool wxMenuItem_IsRadio(wxMenuItem* self)
+    {
+        return self->IsRadio();
+    }
+
+    EXPORT void wxMenuItem_Toggle(wxMenuItem* self)
+    {
+        self->Toggle();
+    }
+
+    EXPORT void wxMenuItem_SetBitmap(wxMenuItem* self, wxBitmap* bmp)
+    {
+        self->SetBitmap(*bmp);
+    }
+
+    EXPORT wxBitmap* wxMenuItem_GetBitmap(wxMenuItem* self)
+    {
+        wxBitmap* result = new wxBitmap();
+        *result = self->GetBitmap();
         return result;
     }
 }

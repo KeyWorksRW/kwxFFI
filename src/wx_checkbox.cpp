@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxCheckBox inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxCheckBox_Create(wxWindow* parent, int id, wxString* text, int x, int y,
@@ -37,5 +42,10 @@ extern "C"
     EXPORT void wxCheckBox_Set3StateValue(wxCheckBox* self, int state)
     {
         self->Set3StateValue(static_cast<wxCheckBoxState>(state));
+    }
+
+    EXPORT bool wxCheckBox_Is3rdStateAllowedForUser(wxCheckBox* self)
+    {
+        return self->Is3rdStateAllowedForUser();
     }
 }

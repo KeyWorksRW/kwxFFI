@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxFileCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxFileCtrl* wxFileCtrl_Create(wxWindow* parent, int id, wxString* defaultDirectory,

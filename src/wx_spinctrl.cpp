@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxSpinCtrl inherits from wxControl (via wxSpinButton on MSW).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxSpinCtrl_Create(wxWindow* parent, int id, wxString* value, int x, int y,
@@ -63,5 +68,15 @@ extern "C"
     EXPORT void wxSpinButton_SetRange(void* pObject, int minVal, int maxVal)
     {
         ((wxSpinButton*) pObject)->SetRange(minVal, maxVal);
+    }
+
+    EXPORT int wxSpinCtrl_GetBase(wxSpinCtrl* self)
+    {
+        return self->GetBase();
+    }
+
+    EXPORT bool wxSpinCtrl_SetBase(wxSpinCtrl* self, int base)
+    {
+        return self->SetBase(base);
     }
 }

@@ -1,6 +1,11 @@
 // wx_datepickerctrl.cpp - wxDatePickerCtrl wrappers
 #include "wrapper.h"
 
+// wxDatePickerCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxDatePickerCtrl* wxDatePickerCtrl_Create(wxWindow* parent, int id, int x, int y,

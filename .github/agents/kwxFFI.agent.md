@@ -1,5 +1,6 @@
 ---
 description: 'kwxFFI — C wrapper layer for wxWidgets
+model: Claude Sonnet 4.5
 tools: ['vscode/askQuestions', 'execute/getTerminalOutput', 'execute/killTerminal', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'read/problems', 'read/readFile', 'read/terminalSelection', 'read/terminalLastCommand', 'read/getTaskOutput', 'agent', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'web', 'oraios/serena/activate_project', 'oraios/serena/check_onboarding_performed', 'oraios/serena/find_file', 'oraios/serena/find_referencing_symbols', 'oraios/serena/find_symbol', 'oraios/serena/get_current_config', 'oraios/serena/get_symbols_overview', 'oraios/serena/initial_instructions', 'oraios/serena/insert_after_symbol', 'oraios/serena/insert_before_symbol', 'oraios/serena/list_dir', 'oraios/serena/onboarding', 'oraios/serena/rename_symbol', 'oraios/serena/replace_symbol_body', 'oraios/serena/search_for_pattern', 'keyworks.key/key_open', 'keyworks.key/key_close', 'keyworks.key/key_term', 'keyworks.key/key_memory', 'keyworks.key/key_symbols', 'keyworks.key/key_file_info', 'keyworks.key/key_problems', 'keyworks.key/key_read_lines', 'keyworks.key/key_cpp', 'keyworks.key/key_subagent', 'keyworks.key/key_build']
 ---
 

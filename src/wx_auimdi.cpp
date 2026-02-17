@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxAuiMDIParentFrame inherits from wxFrame (wxTopLevelWindow).
+// wxAuiMDIChildFrame inherits from wxTDIChildFrame.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // ============================================================================

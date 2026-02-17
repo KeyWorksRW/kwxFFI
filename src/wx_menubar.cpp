@@ -128,4 +128,21 @@ extern "C"
     {
         self->SetLabel(*str);
     }
+
+    EXPORT bool wxMenuBar_IsEnabledTop(wxMenuBar* self, int pos)
+    {
+        return self->IsEnabledTop(pos);
+    }
+
+    EXPORT wxString* wxMenuBar_GetMenuLabelText(wxMenuBar* self, int pos)
+    {
+        wxString* result = new wxString();
+        *result = self->GetMenuLabelText(pos);
+        return result;
+    }
+
+    EXPORT void wxMenuBar_UpdateMenus(wxMenuBar* self)
+    {
+        self->UpdateMenus();
+    }
 }

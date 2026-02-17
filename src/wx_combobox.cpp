@@ -1,5 +1,12 @@
 #include "wrapper.h"
 
+// wxComboBox inherits from wxControl, wxItemContainer, and wxTextEntry.
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+//   wxTextEntry_*      — text editing, hints, margins, selection (see wx_textentry.cpp)
+
 extern "C"
 {
     EXPORT wxComboBox* wxComboBox_Create(wxWindow* parent, int id, wxString* text, int x, int y,

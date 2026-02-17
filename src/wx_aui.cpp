@@ -1,9 +1,15 @@
 #include "wrapper.h"
 #include <wx/tooltip.h>
 
+// wxAuiNotebook inherits from wxBookCtrlBase (wxControl).
+// wxAuiManager, wxAuiPaneInfo, and wxAuiDockArt are also wrapped here.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
-    /* wxAuiDefaultTabArt */
+    // wxAuiDefaultTabArt
 
     EXPORT void* wxAuiDefaultTabArt_Create()
     {
@@ -101,7 +107,7 @@ extern "C"
         return self->GetBestTabCtrlSize(wnd, *pages, wxSize(width, height));
     }
 
-    /* wxAuiToolBarEvent */
+    // wxAuiToolBarEvent
 
     EXPORT bool wxAuiToolBarEvent_IsDropDownClicked(wxAuiToolBarEvent* self)
     {
@@ -127,7 +133,7 @@ extern "C"
         return self->GetToolId();
     }
 
-    /* wxAuiToolBarItem */
+    // wxAuiToolBarItem
 
     EXPORT void* wxAuiToolBarItem_CreateDefault()
     {
@@ -349,7 +355,7 @@ extern "C"
         return self->GetAlignment();
     }
 
-    /* wxAuiToolBarArt */
+    // wxAuiToolBarArt
 
     EXPORT void* wxAuiToolBarArt_Clone(wxAuiToolBarArt* self)
     {
@@ -475,7 +481,7 @@ extern "C"
         return self->ShowDropDown(window, *items);
     }
 
-    /* wxAuiDefaultToolBarArt */
+    // wxAuiDefaultToolBarArt
 
     EXPORT void* wxAuiDefaultToolBarArt_Create()
     {
@@ -611,7 +617,7 @@ extern "C"
         return self->ShowDropDown(window, *items);
     }
 
-    /* wxAuiToolBar */
+    // wxAuiToolBar
 
     EXPORT void* wxAuiToolBar_CreateDefault()
     {
@@ -991,7 +997,7 @@ extern "C"
         return self->IsPaneValid(*pane);
     }
 
-    /* wxAuiNotebook */
+    // wxAuiNotebook
 
     EXPORT void* wxAuiNotebook_CreateDefault()
     {
@@ -1189,7 +1195,7 @@ extern "C"
         self->Split(page, direction);
     }
 
-    /* wxAuiNotebookEvent */
+    // wxAuiNotebookEvent
 
     EXPORT void* wxAuiNotebookEvent_Create(int commandType, int winid)
     {
@@ -1201,7 +1207,7 @@ extern "C"
         return self->GetDragSource();
     }
 
-    /* wxBookCtrlEvent */
+    // wxBookCtrlEvent
 
     EXPORT void* wxBookCtrlEvent_Create(int commandType, int winid, int nSel, int nOldSel)
     {
@@ -1218,7 +1224,7 @@ extern "C"
         return self->GetOldSelection();
     }
 
-    /* wxAuiTabContainerButton */
+    // wxAuiTabContainerButton
 
     EXPORT int wxAuiTabContainerButton_Id(wxAuiTabContainerButton* self)
     {
@@ -1254,7 +1260,7 @@ extern "C"
         return rect;
     }
 
-    /* wxAuiTabContainer */
+    // wxAuiTabContainer
 
     EXPORT void* wxAuiTabContainer_Create()
     {
@@ -1420,7 +1426,7 @@ extern "C"
         self->MakeTabVisible(tabPage, win);
     }
 
-    /* wxAuiTabCtrl */
+    // wxAuiTabCtrl
 
     EXPORT void wxAuiTabCtrl_SetArtProvider(wxAuiTabCtrl* self, wxAuiTabArt* artId)
     {
@@ -1579,7 +1585,7 @@ extern "C"
         self->MakeTabVisible(tabPage, win);
     }
 
-    /* wxAuiTabArt */
+    // wxAuiTabArt
 
     EXPORT void* wxAuiTabArt_Clone(wxAuiTabArt* self)
     {
@@ -1664,9 +1670,9 @@ extern "C"
         self->SetSizingInfo(wxSize(width, height), tab_count);
     }
 
-    /* wxAuiTabCtrll */
+    // wxAuiTabCtrll
 
-    /* wxAuiSimpleTabArt */
+    // wxAuiSimpleTabArt
 
     EXPORT void* wxAuiSimpleTabArt_Create()
     {
@@ -1764,7 +1770,7 @@ extern "C"
         return self->GetBestTabCtrlSize(wnd, *pages, wxSize(width, height));
     }
 
-    /* wxAuiManager - public member */
+    // wxAuiManager - public member
 
     EXPORT void* wxAuiManager_Create(wxWindow* managedWnd, int flags)
     {
@@ -1776,13 +1782,10 @@ extern "C"
         return self->DetachPane(window);
     }
 
-// BUGBUG: [Randalphwa - 10-13-2024] C functions cannot return a class.
-#if 0
-    EXPORT wxAuiPaneInfoArray wxAuiManager_GetAllPanes(wxAuiManager* self)
+    EXPORT wxAuiPaneInfoArray* wxAuiManager_GetAllPanes(wxAuiManager* self)
     {
-        return self->GetAllPanes();
+        return &self->GetAllPanes();
     }
-#endif
 
     EXPORT void* wxAuiManager_GetArtProvider(wxAuiManager* self)
     {
@@ -1914,7 +1917,7 @@ extern "C"
         return wxAuiManager::GetManager(window);
     }
 
-    /* wxAuiDockArt */
+    // wxAuiDockArt
 
     EXPORT void wxAuiDockArt_DrawBackground(wxAuiDockArt* self, wxDC* dc, wxWindow* window,
                                             int orientation, wxRect* rect)
@@ -1987,7 +1990,7 @@ extern "C"
         self->SetMetric(id, new_val);
     }
 
-    /* wxAuiPaneInfo */
+    // wxAuiPaneInfo
 
     EXPORT void* wxAuiPaneInfo_CreateDefault()
     {
@@ -2490,7 +2493,7 @@ extern "C"
         return out;
     }
 
-    /* wxAuiManagerEvent */
+    // wxAuiManagerEvent
 
     EXPORT void* wxAuiManagerEvent_Create(int type)
     {
@@ -2557,7 +2560,7 @@ extern "C"
         self->Veto(veto);
     }
 
-    /* wxBookCtrlBase */
+    // wxBookCtrlBase
 
     EXPORT bool wxBookCtrlBase_CreateFromDefault(wxAuiNotebook* self, wxWindow* parent, int winid,
                                                  int x, int y, int width, int height, long style)
@@ -2679,7 +2682,7 @@ extern "C"
         return (void*) self->GetImageList();
     }
 
-    /** wxAuiNotebookPage **/
+    // wxAuiNotebookPage
     EXPORT wxWindow* wxAuiNotebookPage_Window(wxAuiNotebookPage* self)
     {
         return self->window;
@@ -2718,8 +2721,8 @@ extern "C"
         return self->active;
     }
 
-    /** wxAuiNotebookPageArray **/
-    /** see wxWidgets dynarray.height for additional array functions **/
+    // wxAuiNotebookPageArray
+    // see wxWidgets dynarray.height for additional array functions
 
     EXPORT wxAuiNotebookPageArray* wxAuiNotebookPageArray_Create()
     {
@@ -2743,8 +2746,8 @@ extern "C"
         return page;
     }
 
-    /** wxAuiToolBarItemArray **/
-    /** see wxWidgets dynarray.height for additional array functions **/
+    // wxAuiToolBarItemArray
+    // see wxWidgets dynarray.height for additional array functions
     EXPORT wxAuiToolBarItemArray* wxAuiToolBarItemArray_Create()
     {
         return new wxAuiToolBarItemArray();
@@ -2766,8 +2769,8 @@ extern "C"
         *item = self->Item(index);
         return item;
     }
-    /** wxAuiPaneInfoArray **/
-    /** see wxWidgets dynarray.height for additional array functions **/
+    // wxAuiPaneInfoArray
+    // see wxWidgets dynarray.height for additional array functions
     EXPORT wxAuiPaneInfoArray* wxAuiPaneInfoArray_Create()
     {
         return new wxAuiPaneInfoArray();

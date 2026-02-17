@@ -5,7 +5,6 @@ bin/
 .private
 .serena
 .shared
-.vscode
 
 src/version.h
 src/version.rc

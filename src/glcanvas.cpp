@@ -1,11 +1,14 @@
 #include "wrapper.h"
+
 #include <wx/glcanvas.h>
 
-/*-----------------------------------------------------------------------------
-  We want to include the function signatures always -- even on
-  systems that don't support openGL. This means that every function body is
-  surrounded by #ifdef wxUSE_GLCANVAS directives :-(
------------------------------------------------------------------------------*/
+// wxGLCanvas inherits from wxWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
+// We want to include the function signatures always -- even on
+// systems that don't support openGL. This means that every function body is
+// surrounded by #ifdef wxUSE_GLCANVAS directives :-(
 #if defined(wxUSE_GLCANVAS) && (wxUSE_GLCANVAS == 0)
     #undef wxUSE_GLCANVAS
 #endif
@@ -21,17 +24,14 @@
 
 extern "C"
 {
-    /*-----------------------------------------------------------------------------
-      GLCanvas
-    -----------------------------------------------------------------------------*/
     EXPORT wxGLCanvas* wxGLCanvas_Create(wxWindow* parent, int windowID, int* attributes, int x,
                                          int y, int width,
                                          int height,  // TRect
                                          int style, wxString* title, wxPalette* palette)
     {
 #ifdef wxUSE_GLCANVAS
-        return new wxGLCanvas(parent, windowID, attributes, wxPoint(x, y), wxSize(width, height), style,
-                              (title ? *title : wxString("GLCanvas")),
+        return new wxGLCanvas(parent, windowID, attributes, wxPoint(x, y), wxSize(width, height),
+                              style, (title ? *title : wxString("GLCanvas")),
                               (palette ? *palette : wxNullPalette));
 #else
         return nullptr;

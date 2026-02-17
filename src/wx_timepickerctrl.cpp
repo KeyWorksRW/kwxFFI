@@ -1,6 +1,11 @@
 // wx_timepickerctrl.cpp - wxTimePickerCtrl wrappers
 #include "wrapper.h"
 
+// wxTimePickerCtrl inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxTimePickerCtrl* wxTimePickerCtrl_Create(wxWindow* parent, int id, int x, int y,

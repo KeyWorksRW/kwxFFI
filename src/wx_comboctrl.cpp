@@ -2,6 +2,12 @@
 #include <wx/combo.h>
 #include <wx/odcombo.h>
 
+// wxComboCtrl inherits from wxControl and wxTextEntry.
+// Additional methods available via:
+//   wxWindow_*    — base window methods (see wx_window.cpp)
+//   wxControl_*   — label, alignment (see wx_control.cpp)
+//   wxTextEntry_* — text editing, hints, margins, selection, auto-complete (see wx_textentry.cpp)
+
 extern "C"
 {
     // wxComboCtrl

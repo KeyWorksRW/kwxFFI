@@ -3,9 +3,6 @@
 
 extern "C"
 {
-    /*-----------------------------------------------------------------------------
-      Memory Input stream
-    -----------------------------------------------------------------------------*/
 
     EXPORT wxMemoryInputStream* wxMemoryInputStream_Create(void* data, int len)
     {
@@ -18,9 +15,6 @@ extern "C"
             delete self;
     }
 
-    /*-----------------------------------------------------------------------------
-      File Input stream
-    -----------------------------------------------------------------------------*/
 
     EXPORT wxFileInputStream* wxFileInputStream_Create(wxString* ofileName)
     {
@@ -38,9 +32,6 @@ extern "C"
         return self->IsOk();
     }
 
-    /*-----------------------------------------------------------------------------
-      File Output stream
-    -----------------------------------------------------------------------------*/
 
     EXPORT wxFileOutputStream* wxFileOutputStream_Create(wxString* ofileName)
     {

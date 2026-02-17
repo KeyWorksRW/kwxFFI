@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxColourDialog inherits from wxDialog (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT wxColourDialog* wxColourDialog_Create(wxWindow* parent, wxColourData* col)

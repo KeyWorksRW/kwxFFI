@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxControl is the base class for all controls.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void wxControl_SetLabel(wxControl* self, wxString* text)
@@ -17,5 +21,55 @@ extern "C"
     EXPORT void wxControl_Command(wxControl* self, wxCommandEvent* event)
     {
         self->Command(*event);
+    }
+
+    EXPORT void wxControl_SetLabelText(wxControl* self, wxString* text)
+    {
+        self->SetLabelText(*text);
+    }
+
+    EXPORT wxString* wxControl_GetLabelText(wxControl* self)
+    {
+        auto* result = new wxString();
+        *result = self->GetLabelText();
+        return result;
+    }
+
+    EXPORT bool wxControl_SetLabelMarkup(wxControl* self, wxString* markup)
+    {
+        return self->SetLabelMarkup(*markup);
+    }
+
+    EXPORT int wxControl_GetAlignment(wxControl* self)
+    {
+        return self->GetAlignment();
+    }
+
+    EXPORT void wxControl_GetSizeFromText(wxControl* self, wxString* text, int* w, int* h)
+    {
+        wxSize sz = self->GetSizeFromText(*text);
+        *w = sz.GetWidth();
+        *h = sz.GetHeight();
+    }
+
+    EXPORT void wxControl_GetSizeFromTextSize(wxControl* self, int xlen, int ylen, int* w, int* h)
+    {
+        wxSize sz = self->GetSizeFromTextSize(xlen, ylen);
+        *w = sz.GetWidth();
+        *h = sz.GetHeight();
+    }
+
+    EXPORT wxString* wxControl_RemoveMnemonics(wxString* str)
+    {
+        auto* result = new wxString();
+        *result = wxControl::RemoveMnemonics(*str);
+        return result;
+    }
+
+    EXPORT wxString* wxControl_EscapeMnemonics(wxString* str)
+    {
+        auto* result = new wxString();
+        *result = wxControl::EscapeMnemonics(*str);
+        return result;
     }
 }

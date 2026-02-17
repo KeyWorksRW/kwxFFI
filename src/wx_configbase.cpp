@@ -131,7 +131,6 @@ extern "C"
         return self->Write(*key, *value);
     }
 
-    // FIXME: just left for backward-compatibiliry. wxHaskell uses int as long now.
     EXPORT bool wxConfigBase_WriteInteger(wxConfigBase* self, wxString* key, int value)
     {
         return self->Write(*key, (long) value);

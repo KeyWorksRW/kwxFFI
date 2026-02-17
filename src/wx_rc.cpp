@@ -4,268 +4,6 @@
 #include <wx/html/htmlwin.h>
 #include <wx/xrc/xmlres.h>
 
-#ifdef wxUSE_STC
-    #include <wx/stc/stc.h>
-#endif
-
-class wxMDIParentFrameXmlHandler : public wxXmlResourceHandler
-{
-public:
-    wxMDIParentFrameXmlHandler();
-    virtual wxObject* DoCreateResource();
-    virtual bool CanHandle(wxXmlNode* node);
-};
-
-class wxMDIChildFrameXmlHandler : public wxXmlResourceHandler
-{
-public:
-    wxMDIChildFrameXmlHandler();
-    virtual wxObject* DoCreateResource();
-    virtual bool CanHandle(wxXmlNode* node);
-};
-
-class wxSplitterWindowXmlHandler : public wxXmlResourceHandler
-{
-public:
-    wxSplitterWindowXmlHandler();
-    virtual wxObject* DoCreateResource();
-    virtual bool CanHandle(wxXmlNode* node);
-};
-
-#ifdef wxUSE_STC
-class wxStyledTextCtrlXmlHandler : public wxXmlResourceHandler
-{
-public:
-    wxStyledTextCtrlXmlHandler();
-    virtual wxObject* DoCreateResource();
-    virtual bool CanHandle(wxXmlNode* node);
-};
-#endif
-
-class wxGridXmlHandler : public wxXmlResourceHandler
-{
-public:
-    wxGridXmlHandler();
-    virtual wxObject* DoCreateResource();
-    virtual bool CanHandle(wxXmlNode* node);
-};
-
-wxMDIParentFrameXmlHandler::wxMDIParentFrameXmlHandler() : wxXmlResourceHandler()
-{
-    XRC_ADD_STYLE(wxSTAY_ON_TOP);
-    XRC_ADD_STYLE(wxCAPTION);
-    XRC_ADD_STYLE(wxDEFAULT_DIALOG_STYLE);
-    XRC_ADD_STYLE(wxDEFAULT_FRAME_STYLE);
-    XRC_ADD_STYLE(wxSYSTEM_MENU);
-    XRC_ADD_STYLE(wxRESIZE_BORDER);
-
-    XRC_ADD_STYLE(wxFRAME_TOOL_WINDOW);
-    XRC_ADD_STYLE(wxFRAME_FLOAT_ON_PARENT);
-    XRC_ADD_STYLE(wxMAXIMIZE_BOX);
-    XRC_ADD_STYLE(wxMINIMIZE_BOX);
-    XRC_ADD_STYLE(wxSTAY_ON_TOP);
-
-    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
-    XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
-
-    AddWindowStyles();
-}
-
-wxObject* wxMDIParentFrameXmlHandler::DoCreateResource()
-{
-    XRC_MAKE_INSTANCE(frame, wxMDIParentFrame);
-
-    frame->Create(m_parentAsWindow, GetID(), GetText("title"), wxDefaultPosition, wxDefaultSize,
-                  GetStyle("style", wxDEFAULT_FRAME_STYLE), GetName());
-
-    if (HasParam("size"))
-        frame->SetClientSize(GetSize());
-    if (HasParam("pos"))
-        frame->Move(GetPosition());
-
-    SetupWindow(frame);
-
-    CreateChildren(frame);
-
-    if (GetBool("centered", FALSE))
-        frame->Centre();
-
-    return frame;
-}
-
-bool wxMDIParentFrameXmlHandler::CanHandle(wxXmlNode* node)
-{
-    return IsOfClass(node, "wxMDIParentFrame");
-}
-
-wxMDIChildFrameXmlHandler::wxMDIChildFrameXmlHandler() : wxXmlResourceHandler()
-{
-    XRC_ADD_STYLE(wxSTAY_ON_TOP);
-    XRC_ADD_STYLE(wxCAPTION);
-    XRC_ADD_STYLE(wxDEFAULT_DIALOG_STYLE);
-    XRC_ADD_STYLE(wxDEFAULT_FRAME_STYLE);
-    XRC_ADD_STYLE(wxSYSTEM_MENU);
-    XRC_ADD_STYLE(wxRESIZE_BORDER);
-
-    XRC_ADD_STYLE(wxFRAME_TOOL_WINDOW);
-    XRC_ADD_STYLE(wxFRAME_FLOAT_ON_PARENT);
-    XRC_ADD_STYLE(wxMAXIMIZE_BOX);
-    XRC_ADD_STYLE(wxMINIMIZE_BOX);
-    XRC_ADD_STYLE(wxSTAY_ON_TOP);
-
-    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
-    XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
-
-    AddWindowStyles();
-}
-
-wxObject* wxMDIChildFrameXmlHandler::DoCreateResource()
-{
-    XRC_MAKE_INSTANCE(frame, wxMDIChildFrame);
-
-    wxMDIParentFrame* prt = wxDynamicCast(m_parentAsWindow, wxMDIParentFrame);
-
-    if (prt == nullptr)
-    {
-        wxLogError("Error in resource: wxMDIChildFrame has no wxMDIParentFrame.");
-        return nullptr;
-    }
-
-    frame->Create(prt, GetID(), GetText("title"), wxDefaultPosition, wxDefaultSize,
-                  GetStyle("style", wxDEFAULT_FRAME_STYLE), GetName());
-
-    SetupWindow(frame);
-
-    CreateChildren(frame);
-
-    if (GetBool("centered", FALSE))
-        frame->Centre();
-
-    return frame;
-}
-
-bool wxMDIChildFrameXmlHandler::CanHandle(wxXmlNode* node)
-{
-    return IsOfClass(node, "wxMDIChildFrame");
-}
-
-wxSplitterWindowXmlHandler::wxSplitterWindowXmlHandler() : wxXmlResourceHandler()
-{
-    XRC_ADD_STYLE(wxSP_3D);
-    XRC_ADD_STYLE(wxSP_3DSASH);
-    XRC_ADD_STYLE(wxSP_BORDER);
-    XRC_ADD_STYLE(wxSP_NOBORDER);
-    XRC_ADD_STYLE(wxSP_PERMIT_UNSPLIT);
-    XRC_ADD_STYLE(wxSP_LIVE_UPDATE);
-
-    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
-
-    AddWindowStyles();
-}
-
-wxObject* wxSplitterWindowXmlHandler::DoCreateResource()
-{
-    XRC_MAKE_INSTANCE(frame, wxSplitterWindow);
-
-    frame->Create(m_parentAsWindow, GetID(), wxDefaultPosition, wxDefaultSize,
-                  GetStyle("style", wxSP_3D), GetName());
-
-    SetupWindow(frame);
-
-    CreateChildren(frame);
-
-    if (frame->GetChildren().GetCount() != 2)
-    {
-        wxLogError("Error in resource: Splitter window needs exactly two children.");
-        return nullptr;
-    }
-
-    frame->SetSplitMode(GetLong("splitmode", wxSPLIT_VERTICAL));
-    long sashpos = GetLong("sashposition", 100);
-
-    wxWindowList::compatibility_iterator node = frame->GetChildren().GetFirst();
-    wxWindow* wnd1 = node->GetData();
-    wxWindow* wnd2 = node->GetNext()->GetData();
-
-    if (frame->GetSplitMode() == wxSPLIT_VERTICAL)
-        frame->SplitVertically(wnd1, wnd2, sashpos);
-    else
-        frame->SplitHorizontally(wnd1, wnd2, sashpos);
-
-    return frame;
-}
-
-bool wxSplitterWindowXmlHandler::CanHandle(wxXmlNode* node)
-{
-    return IsOfClass(node, "wxSplitterWindow");
-}
-
-#ifdef wxUSE_STC
-wxStyledTextCtrlXmlHandler::wxStyledTextCtrlXmlHandler() : wxXmlResourceHandler()
-{
-    AddWindowStyles();
-}
-
-wxObject* wxStyledTextCtrlXmlHandler::DoCreateResource()
-{
-    XRC_MAKE_INSTANCE(frame, wxStyledTextCtrl);
-
-    frame->Create(m_parentAsWindow, GetID(), wxDefaultPosition, wxDefaultSize, GetStyle("style", 0),
-                  GetName());
-
-    if (HasParam("size"))
-        frame->SetSize(GetSize());
-    if (HasParam("pos"))
-        frame->Move(GetPosition());
-
-    SetupWindow(frame);
-
-    return frame;
-}
-
-bool wxStyledTextCtrlXmlHandler::CanHandle(wxXmlNode* node)
-{
-    return IsOfClass(node, "wxStyledTextCtrl");
-}
-#endif
-
-wxGridXmlHandler::wxGridXmlHandler() : wxXmlResourceHandler()
-{
-    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
-
-    AddWindowStyles();
-}
-
-wxObject* wxGridXmlHandler::DoCreateResource()
-{
-    wxGrid* grid = new wxGrid(m_parentAsWindow, GetID(), wxDefaultPosition, wxDefaultSize,
-                              GetStyle("style", wxWANTS_CHARS), GetName());
-
-    long cols = GetLong("numcols", 0);
-    long rows = GetLong("numrows", 0);
-
-    if (cols && rows)
-        grid->CreateGrid(cols, rows, (wxGrid::wxGridSelectionModes) GetLong("selmode", 0));
-
-    if (HasParam("size"))
-        grid->SetSize(GetSize());
-    if (HasParam("pos"))
-        grid->Move(GetPosition());
-
-    SetupWindow(grid);
-
-    return grid;
-}
-
-bool wxGridXmlHandler::CanHandle(wxXmlNode* node)
-{
-    return IsOfClass(node, "wxGrid");
-}
-
 static void InitZipFileSystem()
 {
     static bool done = false;
@@ -287,22 +25,12 @@ extern "C"
     EXPORT void wxXmlResource_InitAllHandlers(wxXmlResource* self)
     {
         self->InitAllHandlers();
-        self->AddHandler(new wxMDIParentFrameXmlHandler());
-        self->AddHandler(new wxMDIChildFrameXmlHandler());
-        self->AddHandler(new wxSplitterWindowXmlHandler());
-#ifdef wxUSE_STC
-        self->AddHandler(new wxStyledTextCtrlXmlHandler());
-#endif
-        self->AddHandler(new wxGridXmlHandler());
     }
 
     EXPORT wxXmlResource* wxXmlResource_Create(int flags)
     {
         wxXmlResource* self = wxXmlResource::Get();
-
-        // Calling the wxc variant of InitAllHandlers() ensures additional
-        // handlers for splitters etc. get initialized as well.
-        wxXmlResource_InitAllHandlers(self);
+        self->InitAllHandlers();
         self->SetFlags(flags);
         return self;
     }
@@ -435,9 +163,9 @@ extern "C"
 
 // BUILD_XRCGETCTRL_FN constructs functions for geting control pointers out of
 // window hierarchies created from XRC files. The functions themselves
-#define BUILD_XRCGETCTRL_FN(type)                                                                \
+#define BUILD_XRCGETCTRL_FN(type)                                                             \
     EXPORT wx##type* wxXmlResource_Get##type(wxWindow* win, wxString* strId)                  \
-    {                                                                                            \
+    {                                                                                         \
         return reinterpret_cast<wx##type*>(win->FindWindow(wxXmlResource::GetXRCID(*strId))); \
     }
     // Construct the XRC control getter functions
@@ -473,14 +201,11 @@ extern "C"
     BUILD_XRCGETCTRL_FN(SpinButton)
     BUILD_XRCGETCTRL_FN(SpinCtrl)
     BUILD_XRCGETCTRL_FN(SplitterWindow)
-#ifdef wxUSE_STC
-    BUILD_XRCGETCTRL_FN(StyledTextCtrl)
-#else
+    // StyledTextCtrl requires wx/stc/stc.h which may not be available
     EXPORT void* wxXmlResource_GetStyledTextCtrl(wxWindow* win, wxString* strId)
     {
-        return nullptr;
+        return win->FindWindow(wxXmlResource::GetXRCID(*strId));
     }
-#endif
     BUILD_XRCGETCTRL_FN(StaticBitmap)
     BUILD_XRCGETCTRL_FN(StaticBox)
     BUILD_XRCGETCTRL_FN(StaticLine)

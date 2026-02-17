@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxSplitterWindow inherits from wxWindow (not wxControl).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxSplitterWindow_Create(wxWindow* parent, int id, int x, int y, int width,
@@ -60,9 +64,6 @@ extern "C"
         return self->IsSplit();
     }
 
-    // Obsolete
-    // EWXWEXPORT(void,wxSplitterWindow_SetSashSize)(void* self,int width)
-
     EXPORT void wxSplitterWindow_SetBorderSize(void* self, int width)
     {
         ((wxSplitterWindow*) self)->SetBorderSize(width);
@@ -106,5 +107,25 @@ extern "C"
     EXPORT void wxSplitterWindow_SetSashGravity(void* self, double gravity)
     {
         return ((wxSplitterWindow*) self)->SetSashGravity(gravity);
+    }
+
+    EXPORT void wxSplitterWindow_UpdateSize(wxSplitterWindow* self)
+    {
+        self->UpdateSize();
+    }
+
+    EXPORT void wxSplitterWindow_SetSashInvisible(wxSplitterWindow* self, bool invisible)
+    {
+        self->SetSashInvisible(invisible);
+    }
+
+    EXPORT bool wxSplitterWindow_IsSashInvisible(wxSplitterWindow* self)
+    {
+        return self->IsSashInvisible();
+    }
+
+    EXPORT int wxSplitterWindow_GetDefaultSashSize(wxSplitterWindow* self)
+    {
+        return self->GetDefaultSashSize();
     }
 }

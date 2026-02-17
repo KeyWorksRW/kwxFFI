@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxScrolledWindow inherits from wxPanel (wxWindow, not wxControl).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxScrolledWindow_Create(wxWindow* parent, int id, int x, int y, int width,
@@ -111,5 +115,25 @@ extern "C"
     EXPORT void wxScrolledWindow_PrepareDC(void* self, wxDC* dc)
     {
         ((wxScrolledWindow*) self)->PrepareDC(*dc);
+    }
+
+    EXPORT int wxScrolledWindow_GetScrollLines(wxScrolledWindow* self, int orient)
+    {
+        return self->GetScrollLines(orient);
+    }
+
+    EXPORT bool wxScrolledWindow_IsScrollbarShown(wxScrolledWindow* self, int orient)
+    {
+        return self->IsScrollbarShown(orient);
+    }
+
+    EXPORT void wxScrolledWindow_DisableKeyboardScrolling(wxScrolledWindow* self)
+    {
+        self->DisableKeyboardScrolling();
+    }
+
+    EXPORT void wxScrolledWindow_GetViewStartPixels(wxScrolledWindow* self, int* x, int* y)
+    {
+        self->GetViewStartPixels(x, y);
     }
 }

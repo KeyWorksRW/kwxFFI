@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxDataViewListCtrl inherits from wxDataViewCtrl (wxControl).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     // Constructor
@@ -205,5 +210,12 @@ extern "C"
     EXPORT void wxVariantVector_Clear(wxVector<wxVariant>* vec)
     {
         vec->clear();
+    }
+
+    // --- Additional wxDataViewListCtrl methods ---
+
+    EXPORT bool wxDataViewListCtrl_IsRowSelected(wxDataViewListCtrl* self, unsigned row)
+    {
+        return self->IsRowSelected(row);
     }
 }

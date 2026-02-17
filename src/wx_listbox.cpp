@@ -1,5 +1,11 @@
 #include "wrapper.h"
 
+// wxListBox inherits from wxControl and wxItemContainer.
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+
 extern "C"
 {
     EXPORT void* wxListBox_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -112,5 +118,25 @@ extern "C"
     EXPORT void wxListBox_SetStringSelection(wxListBox* self, wxString* str, bool sel)
     {
         self->SetStringSelection(*str, sel);
+    }
+
+    EXPORT void wxListBox_EnsureVisible(wxListBox* self, int index)
+    {
+        self->EnsureVisible(index);
+    }
+
+    EXPORT int wxListBox_HitTest(wxListBox* self, int x, int y)
+    {
+        return self->HitTest(wxPoint(x, y));
+    }
+
+    EXPORT int wxListBox_GetTopItem(wxListBox* self)
+    {
+        return self->GetTopItem();
+    }
+
+    EXPORT int wxListBox_GetCountPerPage(wxListBox* self)
+    {
+        return self->GetCountPerPage();
     }
 }

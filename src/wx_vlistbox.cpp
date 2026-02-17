@@ -1,6 +1,10 @@
 #include "wrapper.h"
 #include <wx/vlbox.h>
 
+// wxVListBox inherits from wxWindow (via wxVScrolledCanvas).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 // wxVListBox is an abstract class - users override OnDrawItem and OnMeasureItem
 // We provide the navigation and selection methods
 

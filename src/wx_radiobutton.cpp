@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxRadioButton inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxRadioButton_Create(wxWindow* parent, int id, wxString* label, int x, int y,

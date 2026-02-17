@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxPanel inherits from wxWindow (not wxControl).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxPanel_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -26,5 +30,10 @@ extern "C"
     EXPORT void wxPanel_SetFocus(void* pObject)
     {
         ((wxPanel*) pObject)->SetFocus();
+    }
+
+    EXPORT void wxPanel_SetFocusIgnoringChildren(wxPanel* self)
+    {
+        self->SetFocusIgnoringChildren();
     }
 }

@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxStatusBar inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxStatusBar_Create(wxWindow* parent, int id, int x, int y, int width, int height,
@@ -48,5 +53,41 @@ extern "C"
     EXPORT int wxStatusBar_GetBorderY(wxStatusBar* self)
     {
         return self->GetBorderY();
+    }
+
+    EXPORT bool wxStatusBar_GetFieldRect(wxStatusBar* self, int i, int* x, int* y, int* w, int* h)
+    {
+        wxRect rect;
+        bool result = self->GetFieldRect(i, rect);
+        *x = rect.x;
+        *y = rect.y;
+        *w = rect.width;
+        *h = rect.height;
+        return result;
+    }
+
+    EXPORT void wxStatusBar_SetStatusStyles(wxStatusBar* self, int n, const int* styles)
+    {
+        self->SetStatusStyles(n, styles);
+    }
+
+    EXPORT void wxStatusBar_PushStatusText(wxStatusBar* self, wxString* text, int field)
+    {
+        self->PushStatusText(*text, field);
+    }
+
+    EXPORT void wxStatusBar_PopStatusText(wxStatusBar* self, int field)
+    {
+        self->PopStatusText(field);
+    }
+
+    EXPORT int wxStatusBar_GetStatusWidth(wxStatusBar* self, int n)
+    {
+        return self->GetStatusWidth(n);
+    }
+
+    EXPORT int wxStatusBar_GetStatusStyle(wxStatusBar* self, int n)
+    {
+        return self->GetStatusStyle(n);
     }
 }

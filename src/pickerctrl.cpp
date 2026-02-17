@@ -1,6 +1,11 @@
 #include "wrapper.h"
 #include <wx/clrpicker.h>
 
+// wxColourPickerCtrl inherits from wxControl (via wxPickerBase).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxColourPickerCtrl* wxColorPickerCtrl_Create(wxWindow* parent, int id,

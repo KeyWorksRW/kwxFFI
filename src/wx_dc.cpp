@@ -55,28 +55,24 @@ extern "C"
 
     EXPORT void wxDC_DrawLines(wxDC* self, int count, void* x, void* y, int xoffset, int yoffset)
     {
-        wxPoint* lst = (wxPoint*) malloc(count * sizeof(wxPoint));
+        auto lst = std::make_unique<wxPoint[]>(count);
 
         for (int i = 0; i < count; i++)
             lst[i] = wxPoint((int) ((intptr_t*) x)[i], (int) ((intptr_t*) y)[i]);
 
-        self->DrawLines(count, lst, (wxCoord) xoffset, (wxCoord) yoffset);
-
-        free(lst);
+        self->DrawLines(count, lst.get(), (wxCoord) xoffset, (wxCoord) yoffset);
     }
 
     EXPORT void wxDC_DrawPolygon(wxDC* self, int count, void* x, void* y, int xoffset, int yoffset,
                                  int fillStyle)
     {
         wxPolygonFillMode style = (wxPolygonFillMode) fillStyle;
-        wxPoint* lst = (wxPoint*) malloc(count * sizeof(wxPoint));
+        auto lst = std::make_unique<wxPoint[]>(count);
 
         for (int i = 0; i < count; i++)
             lst[i] = wxPoint(((intptr_t*) x)[i], ((intptr_t*) y)[i]);
 
-        self->DrawPolygon(count, lst, (wxCoord) xoffset, (wxCoord) yoffset, style);
-
-        free(lst);
+        self->DrawPolygon(count, lst.get(), (wxCoord) xoffset, (wxCoord) yoffset, style);
     }
 
     EXPORT void wxDC_DrawRectangle(wxDC* self, int x, int y, int width, int height)
@@ -693,32 +689,28 @@ extern "C"
                                      int xoffset, int yoffset, int fillStyle)
     {
         int* tmp = count;
-        int* cnt = new int[numPolygons];
-        int i, j;
+        auto cnt = std::make_unique<int[]>(numPolygons);
         int totalItems = 0;
         int item = 0;
 
         // Work out the size of wxPoint array required
-        for (i = 0; i < numPolygons; i++)
+        for (int i = 0; i < numPolygons; i++)
         {
             cnt[i] = *tmp++;
             totalItems += cnt[i];
         }
-        wxPoint* lst = new wxPoint[totalItems];
+        auto lst = std::make_unique<wxPoint[]>(totalItems);
 
-        for (i = 0; i < numPolygons; i++)
+        for (int i = 0; i < numPolygons; i++)
         {
-            for (j = 0; j < cnt[i]; j++)
+            for (int j = 0; j < cnt[i]; j++)
             {
                 lst[item] = wxPoint(((intptr_t*) x)[item], ((intptr_t*) y)[item]);
                 item++;
             }
         }
 
-        self->DrawPolyPolygon(numPolygons, cnt, lst, (wxCoord) xoffset, (wxCoord) yoffset,
-                              (wxPolygonFillMode) fillStyle);
-
-        free(lst);
-        delete cnt;
+        self->DrawPolyPolygon(numPolygons, cnt.get(), lst.get(), (wxCoord) xoffset,
+                              (wxCoord) yoffset, (wxPolygonFillMode) fillStyle);
     }
 }

@@ -1,6 +1,10 @@
 #include "wrapper.h"
 #include <wx/popupwin.h>
 
+// wxPopupWindow inherits from wxWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // wxPopupWindow

@@ -1,6 +1,11 @@
 #include "wrapper.h"
 #include <wx/tglbtn.h>
 
+// wxToggleButton inherits from wxControl (via wxAnyButton).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxToggleButton_Create(wxWindow* parent, int id, wxString* label, int x, int y,

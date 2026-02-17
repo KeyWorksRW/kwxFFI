@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxDocParentFrame and wxDocChildFrame inherit from wxFrame (wxTopLevelWindow).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // ============================================================================

@@ -77,6 +77,11 @@ extern "C"
         {
             wxArrayString items = ((wxTextValidator*) self)->GetIncludes();
             char** items_copy = (char**) malloc(sizeof(char*) * items.GetCount());
+            if (!items_copy)
+            {
+                *count = 0;
+                return nullptr;
+            }
 
             for (unsigned int i = 0; i < items.GetCount(); i++)
             {
@@ -106,6 +111,11 @@ extern "C"
         {
             wxArrayString items = ((wxTextValidator*) self)->GetExcludes();
             char** items_copy = (char**) malloc(sizeof(char*) * items.GetCount());
+            if (!items_copy)
+            {
+                *count = 0;
+                return nullptr;
+            }
 
             for (unsigned int i = 0; i < items.GetCount(); i++)
             {

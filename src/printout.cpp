@@ -1,14 +1,9 @@
 #include "wrapper.h"
+
 #include <wx/print.h>
 #include <wx/printdlg.h>
 #include <wx/wx.h>
 
-/*-----------------------------------------------------------------------------
-  Special wxPrintout class that sends events.
------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------
-  new event types
------------------------------------------------------------------------------*/
 BEGIN_DECLARE_EVENT_TYPES()
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_PRINT_BEGIN, 2000)
 DECLARE_LOCAL_EVENT_TYPE(wxEVT_PRINT_END, 2001)
@@ -58,9 +53,6 @@ extern "C"
     }
 }
 
-/*-----------------------------------------------------------------------------
-  Printout and events
------------------------------------------------------------------------------*/
 
 class wxcPrintout : public wxPrintout
 {
@@ -82,7 +74,7 @@ public:
     void SetPageLimits(int startPage, int endPage, int fromPage, int toPage);
     wxEvtHandler* GetEvtHandler();
 
-    /* virtual members */
+    // virtual members
     void GetPageInfo(int* startPage, int* endPage, int* fromPage, int* toPage);
     bool OnBeginDocument(int startPage, int endPage);
     void OnEndDocument();
@@ -121,9 +113,6 @@ public:
 
 IMPLEMENT_DYNAMIC_CLASS(wxcPrintEvent, wxEvent)
 
-/*-----------------------------------------------------------------------------
-  Print events
------------------------------------------------------------------------------*/
 wxcPrintEvent::wxcPrintEvent(wxEventType evtType, int id, wxcPrintout* printOut, int page,
                              int lastPage) : wxEvent(id, evtType)
 {
@@ -174,9 +163,6 @@ void wxcPrintEvent::SetPageLimits(int startPage, int endPage, int fromPage, int 
     }
 }
 
-/*-----------------------------------------------------------------------------
-  Printout
------------------------------------------------------------------------------*/
 wxcPrintout::wxcPrintout(const wxString& title) : wxPrintout(title)
 {
     m_startPage = 1;
@@ -269,9 +255,6 @@ bool wxcPrintout::HasPage(int page)
     return (page >= m_fromPage && page <= m_toPage);
 }
 
-/*-----------------------------------------------------------------------------
-  Wrappers
------------------------------------------------------------------------------*/
 extern "C"
 {
     EXPORT wxPrintDialogData* wxPrintDialog_GetPrintDialogData(wxPrintDialog* pObject)
@@ -332,9 +315,6 @@ extern "C"
         self->SetPageLimits(startPage, endPage, fromPage, toPage);
     }
 
-    /*-----------------------------------------------------------------------------
-      Printout
-    -----------------------------------------------------------------------------*/
     EXPORT wxString* wxPrintout_GetTitle(void* pObject)
     {
         wxString title = ((wxPrintout*) pObject)->GetTitle();

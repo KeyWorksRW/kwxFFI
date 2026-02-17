@@ -1,14 +1,3 @@
-/*==============================================================================
- * taskbaricon.cpp
- *
- * C wrapper for wxTaskbarIcon
- *
- * (C) 2002-2011 wxEiffel and wxHaskell contributors. See contributors.txt
- *
- * Licensed under the wxWidgets library license. see LICENSE.
- *
- *==============================================================================*/
-
 #include "wrapper.h"
 #include <wx/taskbar.h>
 
@@ -33,9 +22,6 @@ extern "C"
     // Wrappers
     ////////////////////////////////////////////////////////////////////////////////
 
-    /*-----------------------------------------------------------------------------
-      TaskBarIcon
-    -----------------------------------------------------------------------------*/
     EXPORT wxTaskBarIcon* wxTaskBarIcon_Create()
     {
         return new wxTaskBarIcon();

@@ -3,6 +3,10 @@
 
 #include "wrapper.h"
 
+// wxTreeListCtrl inherits from wxWindow (not wxControl).
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     // wxTreeListItem helper functions

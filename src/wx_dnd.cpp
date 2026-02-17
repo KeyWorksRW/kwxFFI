@@ -126,13 +126,12 @@ void kwxDropTarget::OnLeave()
 bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
 {
     bool result = false;
-    const char** arr = (const char**) malloc(sizeof(char*) * filenames.GetCount());
+    auto arr = std::make_unique<const char*[]>(filenames.GetCount());
 
     for (unsigned int i = 0; i < filenames.GetCount(); i++)
         arr[i] = filenames.Item(i).utf8_str().data();
 
-    result = func(obj, (long) x, (long) y, (void*) arr, (int) filenames.GetCount()) != 0;
-    free(arr);
+    result = func(obj, (long) x, (long) y, (void*) arr.get(), (int) filenames.GetCount()) != 0;
 
     return result;
 }
@@ -360,11 +359,12 @@ extern "C"
         ((wxDropTarget*) self)->SetDataObject((wxDataObject*) dataObject);
     }
 
-    EXPORT void* kwxDragDataObject_Create(void* self, wxString* format, void* fnGetDataSize, void* fnGetDataHere,
-                                          void* fnSetData)
+    EXPORT void* kwxDragDataObject_Create(void* self, wxString* format, void* fnGetDataSize,
+                                          void* fnGetDataHere, void* fnSetData)
     {
         return (void*) new kwxDragDataObject(self, *(format), (DataGetDataSize) fnGetDataSize,
-                                             (DataGetDataHere) fnGetDataHere, (DataSetData) fnSetData);
+                                             (DataGetDataHere) fnGetDataHere,
+                                             (DataSetData) fnSetData);
     }
 
     EXPORT void kwxDragDataObject_Delete(void* self)

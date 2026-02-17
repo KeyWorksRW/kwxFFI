@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxFrame inherits from wxTopLevelWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT bool wxTopLevelWindow_EnableCloseButton(wxTopLevelWindow* self, bool enable)
@@ -201,5 +205,90 @@ extern "C"
     EXPORT void wxTopLevelWindow_CenterOnScreen(wxTopLevelWindow* self, int direction)
     {
         self->CentreOnScreen(direction);
+    }
+
+    EXPORT void wxTopLevelWindow_Restore(wxTopLevelWindow* self)
+    {
+        self->Restore();
+    }
+
+    EXPORT bool wxTopLevelWindow_ShowFullScreen(wxTopLevelWindow* self, bool show, long style)
+    {
+        return self->ShowFullScreen(show, style);
+    }
+
+    EXPORT bool wxTopLevelWindow_IsFullScreen(wxTopLevelWindow* self)
+    {
+        return self->IsFullScreen();
+    }
+
+    EXPORT bool wxTopLevelWindow_EnableMaximizeButton(wxTopLevelWindow* self, bool enable)
+    {
+        return self->EnableMaximizeButton(enable);
+    }
+
+    EXPORT bool wxTopLevelWindow_EnableMinimizeButton(wxTopLevelWindow* self, bool enable)
+    {
+        return self->EnableMinimizeButton(enable);
+    }
+
+    EXPORT void wxTopLevelWindow_ShowWithoutActivating(wxTopLevelWindow* self)
+    {
+        self->ShowWithoutActivating();
+    }
+
+    EXPORT bool wxTopLevelWindow_ShouldPreventAppExit(wxTopLevelWindow* self)
+    {
+        return self->ShouldPreventAppExit();
+    }
+
+    EXPORT bool wxTopLevelWindow_SetContentProtection(wxTopLevelWindow* self, int contentProtection)
+    {
+        return self->SetContentProtection((wxContentProtection) contentProtection);
+    }
+
+    EXPORT void wxTopLevelWindow_OSXSetModified(wxTopLevelWindow* self, bool modified)
+    {
+        self->OSXSetModified(modified);
+    }
+
+    EXPORT bool wxTopLevelWindow_OSXIsModified(wxTopLevelWindow* self)
+    {
+        return self->OSXIsModified();
+    }
+
+    EXPORT void wxTopLevelWindow_SetRepresentedFilename(wxTopLevelWindow* self, wxString* filename)
+    {
+        self->SetRepresentedFilename(*filename);
+    }
+
+    EXPORT wxMenuItem* wxFrame_FindItemInMenuBar(wxFrame* self, int menuId)
+    {
+        return self->FindItemInMenuBar(menuId);
+    }
+
+    EXPORT void wxFrame_ProcessCommand(wxFrame* self, int id)
+    {
+        self->ProcessCommand(id);
+    }
+
+    EXPORT void wxFrame_SetStatusBarPane(wxFrame* self, int n)
+    {
+        self->SetStatusBarPane(n);
+    }
+
+    EXPORT int wxFrame_GetStatusBarPane(wxFrame* self)
+    {
+        return self->GetStatusBarPane();
+    }
+
+    EXPORT void wxFrame_PushStatusText(wxFrame* self, wxString* text, int field)
+    {
+        self->PushStatusText(*text, field);
+    }
+
+    EXPORT void wxFrame_PopStatusText(wxFrame* self, int field)
+    {
+        self->PopStatusText(field);
     }
 }

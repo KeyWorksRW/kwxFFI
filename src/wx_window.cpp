@@ -225,9 +225,6 @@ extern "C"
         self->SetExtraStyle(exStyle);
     }
 
-    // Obsolete
-    // EWXWEXPORT(void,wxWindow_MakeModal)(wxWindow* self,bool modal)
-
     EXPORT bool wxWindow_HasFocus(wxWindow* self)
     {
         return self->HasFocus();

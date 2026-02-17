@@ -1,5 +1,10 @@
 #include "wrapper.h"
 
+// wxToolBar inherits from wxControl (via wxToolBarBase).
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT wxToolBar* wxToolBar_Create(wxWindow* parent, int id, int x, int y, int width,
@@ -36,10 +41,6 @@ extern "C"
         // is created and used as the disabled image.
         self->AddTool(toolid, label, bitmap, bmpDisabled, wxITEM_NORMAL, shortHelp, longHelp, data);
     }
-
-    // Obsolete
-    // EWXWEXPORT(void,wxToolBar_AddToolEx)(wxToolBar* self,int id,wxBitmap* bmp1,wxBitmap*
-    // bmp2,bool tgl,int x,int y,wxObject* dat,wxString* shelp,wxString* lhelp)
 
     EXPORT bool wxToolBar_DeleteTool(wxToolBar* self, int id)
     {
@@ -121,10 +122,6 @@ extern "C"
         self->InsertSeparator((size_t) pos);
     }
 
-    // Obsolete
-    // EWXWEXPORT(void,wxToolBar_InsertTool)(wxToolBar* self,int pos,int id,wxBitmap* bmp1,wxBitmap*
-    // bmp2,bool tgl,wxObject* dat,wxString* shelp,wxString* lhelp)
-
     EXPORT bool wxToolBar_Realize(wxToolBar* self)
     {
         return self->Realize();
@@ -177,5 +174,100 @@ extern "C"
     EXPORT void wxToolBar_ToggleTool(wxToolBar* self, int id, bool val)
     {
         self->ToggleTool(id, val);
+    }
+
+    EXPORT void wxToolBar_AddCheckTool(wxToolBar* self, int toolid, wxString* label,
+                                       wxBitmap* bitmap, wxBitmap* bmpDisabled, wxString* shortHelp,
+                                       wxString* longHelp)
+    {
+        self->AddCheckTool(toolid, *label, *bitmap, bmpDisabled ? *bmpDisabled : wxNullBitmap,
+                           shortHelp ? *shortHelp : wxString(), longHelp ? *longHelp : wxString());
+    }
+
+    EXPORT void wxToolBar_AddRadioTool(wxToolBar* self, int toolid, wxString* label,
+                                       wxBitmap* bitmap, wxBitmap* bmpDisabled, wxString* shortHelp,
+                                       wxString* longHelp)
+    {
+        self->AddRadioTool(toolid, *label, *bitmap, bmpDisabled ? *bmpDisabled : wxNullBitmap,
+                           shortHelp ? *shortHelp : wxString(), longHelp ? *longHelp : wxString());
+    }
+
+    EXPORT void* wxToolBar_AddStretchableSpace(wxToolBar* self)
+    {
+        return (void*) self->AddStretchableSpace();
+    }
+
+    EXPORT void* wxToolBar_InsertStretchableSpace(wxToolBar* self, size_t pos)
+    {
+        return (void*) self->InsertStretchableSpace(pos);
+    }
+
+    EXPORT void wxToolBar_InsertTool(wxToolBar* self, size_t pos, int toolid, wxString* label,
+                                     wxBitmap* bitmap, wxBitmap* bmpDisabled, int kind,
+                                     wxString* shortHelp, wxString* longHelp)
+    {
+        self->InsertTool(pos, toolid, *label, *bitmap, bmpDisabled ? *bmpDisabled : wxNullBitmap,
+                         (wxItemKind) kind, shortHelp ? *shortHelp : wxString(),
+                         longHelp ? *longHelp : wxString());
+    }
+
+    EXPORT void wxToolBar_ClearTools(wxToolBar* self)
+    {
+        self->ClearTools();
+    }
+
+    EXPORT void* wxToolBar_FindControl(wxToolBar* self, int id)
+    {
+        return (void*) self->FindControl(id);
+    }
+
+    EXPORT void* wxToolBar_FindToolForPosition(wxToolBar* self, int x, int y)
+    {
+        return (void*) self->FindToolForPosition((wxCoord) x, (wxCoord) y);
+    }
+
+    EXPORT void* wxToolBar_FindById(wxToolBar* self, int id)
+    {
+        return (void*) self->FindById(id);
+    }
+
+    EXPORT int wxToolBar_GetToolPos(wxToolBar* self, int id)
+    {
+        return self->GetToolPos(id);
+    }
+
+    EXPORT int wxToolBar_GetToolSeparation(wxToolBar* self)
+    {
+        return self->GetToolSeparation();
+    }
+
+    EXPORT int wxToolBar_GetToolsCount(wxToolBar* self)
+    {
+        return (int) self->GetToolsCount();
+    }
+
+    EXPORT bool wxToolBar_IsVertical(wxToolBar* self)
+    {
+        return self->IsVertical();
+    }
+
+    EXPORT void wxToolBar_SetToolNormalBitmap(wxToolBar* self, int id, wxBitmap* bitmap)
+    {
+        self->SetToolNormalBitmap(id, *bitmap);
+    }
+
+    EXPORT void wxToolBar_SetToolDisabledBitmap(wxToolBar* self, int id, wxBitmap* bitmap)
+    {
+        self->SetToolDisabledBitmap(id, *bitmap);
+    }
+
+    EXPORT void wxToolBar_SetDropdownMenu(wxToolBar* self, int id, wxMenu* menu)
+    {
+        self->SetDropdownMenu(id, menu);
+    }
+
+    EXPORT void wxToolBar_SetToggle(wxToolBar* self, int id, bool toggle)
+    {
+        self->SetToggle(id, toggle);
     }
 }

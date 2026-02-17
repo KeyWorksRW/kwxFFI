@@ -1,5 +1,12 @@
 #include "wrapper.h"
 
+// wxBitmapComboBox inherits from wxComboBox (wxControl, wxItemContainer, and wxTextEntry).
+// Additional methods available via:
+//   wxWindow_*         — base window methods (see wx_window.cpp)
+//   wxControl_*        — label, alignment (see wx_control.cpp)
+//   wxItemContainer_*  — item management, selection (see wx_itemcontainer.cpp)
+//   wxTextEntry_*      — text editing, hints, margins, selection (see wx_textentry.cpp)
+
 extern "C"
 {
     EXPORT wxBitmapComboBox* wxBitmapComboBox_Create(wxWindow* parent, int id, wxString* value,

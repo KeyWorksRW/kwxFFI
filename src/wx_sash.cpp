@@ -1,5 +1,9 @@
 #include "wrapper.h"
 
+// wxSashWindow inherits from wxWindow.
+// Additional methods available via:
+//   wxWindow_* — base window methods (see wx_window.cpp)
+
 extern "C"
 {
     EXPORT void* wxSashWindow_Create(wxWindow* parent, int id, int x, int y, int width, int height,

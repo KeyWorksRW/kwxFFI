@@ -1,6 +1,11 @@
 #include "wrapper.h"
 #include <wx/slider.h>
 
+// wxSlider inherits from wxControl.
+// Additional methods available via:
+//   wxWindow_*  — base window methods (see wx_window.cpp)
+//   wxControl_* — label, alignment (see wx_control.cpp)
+
 extern "C"
 {
     EXPORT void* wxSlider_Create(wxWindow* parent, int id, int value, int min, int max, int x,
@@ -34,9 +39,6 @@ extern "C"
     {
         return ((wxSlider*) pObject)->GetMax();
     }
-
-    // Obsolete
-    // EWXWEXPORT(void,wxSlider_SetTickFreq)(void* pObject, int n, int pos)
 
     EXPORT int wxSlider_GetTickFreq(void* pObject)
     {
