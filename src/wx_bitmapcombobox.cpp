@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxBitmapComboBox inherits from wxComboBox (wxControl, wxItemContainer, and wxTextEntry).
 // Additional methods available via:

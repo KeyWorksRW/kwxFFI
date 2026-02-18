@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxTextCtrl inherits from wxControl and wxTextEntry.
 // Additional methods available via:
@@ -15,10 +15,10 @@ extern "C"
                                       style, wxDefaultValidator);
     }
 
-    EXPORT wxString* wxTextCtrl_GetValue(void* self)
+    EXPORT wxString* wxTextCtrl_GetValue(wxTextCtrl* self)
     {
         wxString* result = new wxString();
-        *result = ((wxTextCtrl*) self)->GetValue();
+        *result = self->GetValue();
         return result;
     }
 

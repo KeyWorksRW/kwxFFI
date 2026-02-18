@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/dcbuffer.h>
 #include <wx/dcmirror.h>
 #include <wx/metafile.h>
@@ -605,19 +605,19 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxMetafileDC_Close(void* self)
+    EXPORT void* wxMetafileDC_Close(wxMetafileDC* self)
     {
 #if defined(__WXGTK__)
         return nullptr;
 #else
-        return (void*) ((wxMetafileDC*) self)->Close();
+        return (void*) self->Close();
 #endif
     }
 
-    EXPORT void wxMetafileDC_Delete(void* self)
+    EXPORT void wxMetafileDC_Delete(wxMetafileDC* self)
     {
 #if !defined(__WXGTK__)
-        delete (wxMetafileDC*) self;
+        delete self;
 #endif
     }
 
@@ -635,37 +635,37 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMetafile_SetClipboard(void* self, int width, int height)
+    EXPORT bool wxMetafile_SetClipboard(wxMetafile* self, int width, int height)
     {
 #if defined(__WXGTK__)
         return false;
 #else
-        return ((wxMetafile*) self)->SetClipboard(width, height);
+        return self->SetClipboard(width, height);
 #endif
     }
 
-    EXPORT bool wxMetafile_Play(void* self, wxDC* dc)
+    EXPORT bool wxMetafile_Play(wxMetafile* self, wxDC* dc)
     {
 #if defined(__WXGTK__)
         return false;
 #else
-        return ((wxMetafile*) self)->Play(dc);
+        return self->Play(dc);
 #endif
     }
 
-    EXPORT bool wxMetafile_IsOk(void* self)
+    EXPORT bool wxMetafile_IsOk(wxMetafile* self)
     {
 #if defined(__WXGTK__)
         return false;
 #else
-        return ((wxMetafile*) self)->IsOk();
+        return self->IsOk();
 #endif
     }
 
-    EXPORT void wxMetafile_Delete(void* self)
+    EXPORT void wxMetafile_Delete(wxMetafile* self)
     {
 #if !defined(__WXGTK__)
-        delete (wxMetafile*) self;
+        delete self;
 #endif
     }
 

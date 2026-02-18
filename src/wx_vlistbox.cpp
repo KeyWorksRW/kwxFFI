@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/vlbox.h>
 
 // wxVListBox inherits from wxWindow (via wxVScrolledCanvas).

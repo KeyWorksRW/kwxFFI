@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #include <wx/filename.h>
 #include <wx/stdpaths.h>

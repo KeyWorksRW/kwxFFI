@@ -1,5 +1,5 @@
 // wxPropertySheetDialog - Property sheet dialog with book control
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxPropertySheetDialog inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:

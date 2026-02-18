@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // Print dialogs inherit from wxDialog (wxTopLevelWindow).
 // Additional methods available via:

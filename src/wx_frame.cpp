@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxFrame inherits from wxTopLevelWindow.
 // Additional methods available via:
@@ -36,7 +36,7 @@ extern "C"
 
     EXPORT void wxTopLevelWindow_Iconize(wxTopLevelWindow* self, bool iconize)
     {
-        ((wxTopLevelWindow*) self)->Iconize(iconize);
+        self->Iconize(iconize);
     }
 
     EXPORT bool wxTopLevelWindow_IsActive(wxTopLevelWindow* self)
@@ -54,49 +54,49 @@ extern "C"
         return self->IsMaximized();
     }
 
-    EXPORT void wxTopLevelWindow_Maximize(void* self, bool iconize)
+    EXPORT void wxTopLevelWindow_Maximize(wxTopLevelWindow* self, bool iconize)
     {
-        ((wxTopLevelWindow*) self)->Maximize(iconize);
+        self->Maximize(iconize);
     }
 
-    EXPORT void wxTopLevelWindow_RequestUserAttention(void* self, int flags)
+    EXPORT void wxTopLevelWindow_RequestUserAttention(wxTopLevelWindow* self, int flags)
     {
-        ((wxTopLevelWindow*) self)->RequestUserAttention(flags);
+        self->RequestUserAttention(flags);
     }
 
-    EXPORT void wxTopLevelWindow_SetDefaultButton(void* self, void* item)
+    EXPORT void wxTopLevelWindow_SetDefaultButton(wxTopLevelWindow* self, void* item)
     {
-        ((wxTopLevelWindow*) self)->SetDefaultItem((wxButton*) item);
+        self->SetDefaultItem((wxButton*) item);
     }
 
-    EXPORT void wxTopLevelWindow_SetDefaultItem(void* self, wxWindow* item)
+    EXPORT void wxTopLevelWindow_SetDefaultItem(wxTopLevelWindow* self, wxWindow* item)
     {
-        ((wxTopLevelWindow*) self)->SetDefaultItem(item);
+        self->SetDefaultItem(item);
     }
 
-    EXPORT void wxTopLevelWindow_SetIcon(void* self, wxIcon* icons)
+    EXPORT void wxTopLevelWindow_SetIcon(wxTopLevelWindow* self, wxIcon* icons)
     {
-        ((wxTopLevelWindow*) self)->SetIcon(*icons);
+        self->SetIcon(*icons);
     }
 
-    EXPORT void wxTopLevelWindow_SetIcons(void* self, void* icons)
+    EXPORT void wxTopLevelWindow_SetIcons(wxTopLevelWindow* self, void* icons)
     {
-        ((wxTopLevelWindow*) self)->SetIcons(*((wxIconBundle*) icons));
+        self->SetIcons(*((wxIconBundle*) icons));
     }
 
-    EXPORT void wxTopLevelWindow_SetMaxSize(void* self, int width, int height)
+    EXPORT void wxTopLevelWindow_SetMaxSize(wxTopLevelWindow* self, int width, int height)
     {
-        ((wxTopLevelWindow*) self)->SetMaxSize(wxSize(width, height));
+        self->SetMaxSize(wxSize(width, height));
     }
 
-    EXPORT void wxTopLevelWindow_SetMinSize(void* self, int width, int height)
+    EXPORT void wxTopLevelWindow_SetMinSize(wxTopLevelWindow* self, int width, int height)
     {
-        ((wxTopLevelWindow*) self)->SetMinSize(wxSize(width, height));
+        self->SetMinSize(wxSize(width, height));
     }
 
-    EXPORT void wxTopLevelWindow_SetTitle(void* self, wxString* title)
+    EXPORT void wxTopLevelWindow_SetTitle(wxTopLevelWindow* self, wxString* title)
     {
-        ((wxTopLevelWindow*) self)->SetTitle(*title);
+        self->SetTitle(*title);
     }
 
     EXPORT wxFrame* wxFrame_Create(wxWindow* parent, int id, wxString* title, int x, int y,

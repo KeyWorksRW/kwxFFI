@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -34,9 +34,9 @@ extern "C"
         return self->IsOk();
     }
 
-    EXPORT void wxPalette_Assign(void* self, void* palette)
+    EXPORT void wxPalette_Assign(wxPalette* self, void* palette)
     {
-        *((wxPalette*) self) = *((wxPalette*) palette);
+        *self = *((wxPalette*) palette);
     }
 
     EXPORT bool wxPalette_IsEqual(wxPalette* self, wxPalette* palette)

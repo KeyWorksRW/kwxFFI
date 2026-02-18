@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSearchCtrl inherits from wxControl and wxTextEntry.
 // Additional methods available via:

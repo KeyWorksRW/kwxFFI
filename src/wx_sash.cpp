@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSashWindow inherits from wxWindow.
 // Additional methods available via:

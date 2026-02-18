@@ -1,5 +1,5 @@
 // wx_ribbongallery.cpp - wxRibbonGallery wrapper
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxRibbonGallery inherits from wxControl (via wxRibbonControl).
 // Additional methods available via:

@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/snglinst.h>
 
 extern "C"
@@ -19,8 +19,8 @@ extern "C"
         return self->IsAnotherRunning();
     }
 
-    EXPORT void wxSingleInstanceChecker_Delete(void* self)
+    EXPORT void wxSingleInstanceChecker_Delete(wxSingleInstanceChecker* self)
     {
-        delete (wxSingleInstanceChecker*) self;
+        delete self;
     }
 }

@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxItemContainer/wxItemContainerImmutable is a mixin interface.
 // Because it is a non-primary base in a multiple-inheritance hierarchy,

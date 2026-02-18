@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxTextEntry is a mixin interface, not a concrete class.
 // Because wxTextEntry is a non-primary base in a multiple-inheritance hierarchy,

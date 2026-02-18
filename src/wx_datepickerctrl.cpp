@@ -1,5 +1,5 @@
 // wx_datepickerctrl.cpp - wxDatePickerCtrl wrappers
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxDatePickerCtrl inherits from wxControl.
 // Additional methods available via:

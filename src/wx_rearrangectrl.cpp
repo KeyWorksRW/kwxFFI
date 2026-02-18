@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxRearrangeList inherits from wxCheckListBox (wxControl and wxItemContainer).
 // wxRearrangeCtrl is a wxPanel container.

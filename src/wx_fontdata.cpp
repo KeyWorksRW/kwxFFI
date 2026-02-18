@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -7,14 +7,14 @@ extern "C"
         return (void*) new wxFontData();
     }
 
-    EXPORT void wxFontData_Delete(void* self)
+    EXPORT void wxFontData_Delete(wxFontData* self)
     {
-        delete (wxFontData*) self;
+        delete self;
     }
 
-    EXPORT void wxFontData_SetAllowSymbols(void* self, bool flag)
+    EXPORT void wxFontData_SetAllowSymbols(wxFontData* self, bool flag)
     {
-        ((wxFontData*) self)->SetAllowSymbols(flag);
+        self->SetAllowSymbols(flag);
     }
 
     EXPORT bool wxFontData_GetAllowSymbols(wxFontData* self)
@@ -22,19 +22,19 @@ extern "C"
         return self->GetAllowSymbols();
     }
 
-    EXPORT void wxFontData_SetColour(void* self, wxColour* colour)
+    EXPORT void wxFontData_SetColour(wxFontData* self, wxColour* colour)
     {
-        ((wxFontData*) self)->SetColour(*colour);
+        self->SetColour(*colour);
     }
 
-    EXPORT void wxFontData_GetColour(void* self, wxColour* ref)
+    EXPORT void wxFontData_GetColour(wxFontData* self, wxColour* ref)
     {
-        *ref = ((wxFontData*) self)->GetColour();
+        *ref = self->GetColour();
     }
 
-    EXPORT void wxFontData_SetShowHelp(void* self, bool flag)
+    EXPORT void wxFontData_SetShowHelp(wxFontData* self, bool flag)
     {
-        ((wxFontData*) self)->SetShowHelp(flag);
+        self->SetShowHelp(flag);
     }
 
     EXPORT bool wxFontData_GetShowHelp(wxFontData* self)
@@ -42,9 +42,9 @@ extern "C"
         return self->GetShowHelp();
     }
 
-    EXPORT void wxFontData_EnableEffects(void* self, bool flag)
+    EXPORT void wxFontData_EnableEffects(wxFontData* self, bool flag)
     {
-        ((wxFontData*) self)->EnableEffects(flag);
+        self->EnableEffects(flag);
     }
 
     EXPORT bool wxFontData_GetEnableEffects(wxFontData* self)
@@ -52,29 +52,29 @@ extern "C"
         return self->GetEnableEffects();
     }
 
-    EXPORT void wxFontData_SetInitialFont(void* self, wxFont* font)
+    EXPORT void wxFontData_SetInitialFont(wxFontData* self, wxFont* font)
     {
-        ((wxFontData*) self)->SetInitialFont(*font);
+        self->SetInitialFont(*font);
     }
 
-    EXPORT void wxFontData_GetInitialFont(void* self, wxFont* ref)
+    EXPORT void wxFontData_GetInitialFont(wxFontData* self, wxFont* ref)
     {
-        *ref = ((wxFontData*) self)->GetInitialFont();
+        *ref = self->GetInitialFont();
     }
 
-    EXPORT void wxFontData_SetChosenFont(void* self, wxFont* font)
+    EXPORT void wxFontData_SetChosenFont(wxFontData* self, wxFont* font)
     {
-        ((wxFontData*) self)->SetChosenFont(*font);
+        self->SetChosenFont(*font);
     }
 
-    EXPORT void wxFontData_GetChosenFont(void* self, wxFont* ref)
+    EXPORT void wxFontData_GetChosenFont(wxFontData* self, wxFont* ref)
     {
-        *ref = ((wxFontData*) self)->GetChosenFont();
+        *ref = self->GetChosenFont();
     }
 
-    EXPORT void wxFontData_SetRange(void* self, int minRange, int maxRange)
+    EXPORT void wxFontData_SetRange(wxFontData* self, int minRange, int maxRange)
     {
-        ((wxFontData*) self)->SetRange(minRange, maxRange);
+        self->SetRange(minRange, maxRange);
     }
 
     EXPORT int wxFontData_GetEncoding(wxFontData* self)
@@ -82,8 +82,8 @@ extern "C"
         return (int) self->GetEncoding();
     }
 
-    EXPORT void wxFontData_SetEncoding(void* self, int encoding)
+    EXPORT void wxFontData_SetEncoding(wxFontData* self, int encoding)
     {
-        ((wxFontData*) self)->SetEncoding((wxFontEncoding) encoding);
+        self->SetEncoding((wxFontEncoding) encoding);
     }
 }

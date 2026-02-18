@@ -1,5 +1,5 @@
 // wx_dirpickerctrl.cpp - wxDirPickerCtrl wrappers
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxDirPickerCtrl inherits from wxControl (via wxPickerBase).
 // Additional methods available via:

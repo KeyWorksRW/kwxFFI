@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxCheckListBox inherits from wxListBox (wxControl and wxItemContainer).
 // Additional methods available via:

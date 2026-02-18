@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxChoice inherits from wxControl and wxItemContainer.
 // Additional methods available via:

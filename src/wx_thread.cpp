@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -7,19 +7,19 @@ extern "C"
         return (void*) new wxCriticalSection();
     }
 
-    EXPORT void wxCriticalSection_Delete(void* self)
+    EXPORT void wxCriticalSection_Delete(wxCriticalSection* self)
     {
-        delete (wxCriticalSection*) self;
+        delete self;
     }
 
-    EXPORT void wxCriticalSection_Enter(void* self)
+    EXPORT void wxCriticalSection_Enter(wxCriticalSection* self)
     {
-        ((wxCriticalSection*) self)->Enter();
+        self->Enter();
     }
 
-    EXPORT void wxCriticalSection_Leave(void* self)
+    EXPORT void wxCriticalSection_Leave(wxCriticalSection* self)
     {
-        ((wxCriticalSection*) self)->Leave();
+        self->Leave();
     }
 
     EXPORT wxMutex* wxMutex_Create()
@@ -58,29 +58,29 @@ extern "C"
         return (void*) new wxCondition(*((wxMutex*) mutex));
     }
 
-    EXPORT void wxCondition_Delete(void* self)
+    EXPORT void wxCondition_Delete(wxCondition* self)
     {
-        delete (wxCondition*) self;
+        delete self;
     }
 
-    EXPORT void wxCondition_Wait(void* self)
+    EXPORT void wxCondition_Wait(wxCondition* self)
     {
-        ((wxCondition*) self)->Wait();
+        self->Wait();
     }
 
-    EXPORT int wxCondition_WaitFor(void* self, int sec, int nsec)
+    EXPORT int wxCondition_WaitFor(wxCondition* self, int sec, int nsec)
     {
-        return (int) ((wxCondition*) self)->WaitTimeout((unsigned long) nsec);
+        return (int) self->WaitTimeout((unsigned long) nsec);
     }
 
-    EXPORT void wxCondition_Signal(void* self)
+    EXPORT void wxCondition_Signal(wxCondition* self)
     {
-        ((wxCondition*) self)->Signal();
+        self->Signal();
     }
 
-    EXPORT void wxCondition_Broadcast(void* self)
+    EXPORT void wxCondition_Broadcast(wxCondition* self)
     {
-        ((wxCondition*) self)->Broadcast();
+        self->Broadcast();
     }
 
     EXPORT void wxMutexGui_Enter()

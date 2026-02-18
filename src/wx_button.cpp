@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxButton inherits from wxControl (via wxAnyButton).
 // Additional methods available via:

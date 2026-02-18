@@ -1,5 +1,5 @@
 // wxWrapSizer - Wrapping sizer that automatically wraps to next line
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {

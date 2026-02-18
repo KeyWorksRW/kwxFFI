@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxChoicebook inherits from wxBookCtrlBase (wxControl).
 // Additional methods available via:

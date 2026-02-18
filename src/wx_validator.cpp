@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -7,9 +7,9 @@ extern "C"
         return (void*) new wxValidator();
     }
 
-    EXPORT void wxValidator_Delete(void* self)
+    EXPORT void wxValidator_Delete(wxValidator* self)
     {
-        delete (wxValidator*) self;
+        delete self;
     }
 
     EXPORT bool wxValidator_Validate(wxValidator* self, wxWindow* parent)
@@ -27,14 +27,14 @@ extern "C"
         return self->TransferFromWindow();
     }
 
-    EXPORT void* wxValidator_GetWindow(void* self)
+    EXPORT void* wxValidator_GetWindow(wxValidator* self)
     {
-        return (void*) ((wxValidator*) self)->GetWindow();
+        return (void*) self->GetWindow();
     }
 
-    EXPORT void wxValidator_SetWindow(void* self, wxWindow* win)
+    EXPORT void wxValidator_SetWindow(wxValidator* self, wxWindow* win)
     {
-        ((wxValidator*) self)->SetWindow(win);
+        self->SetWindow(win);
     }
 
     // EWXWEXPORT(void,wxValidator_SetBellOnError)(bool doIt)
@@ -54,28 +54,28 @@ extern "C"
         return (int) self->GetStyle();
     }
 
-    EXPORT void wxTextValidator_SetStyle(void* self, int style)
+    EXPORT void wxTextValidator_SetStyle(wxTextValidator* self, int style)
     {
-        ((wxTextValidator*) self)->SetStyle((long) style);
+        self->SetStyle((long) style);
     }
 
-    EXPORT void wxTextValidator_SetIncludes(void* self, void* list, int count)
+    EXPORT void wxTextValidator_SetIncludes(wxTextValidator* self, void* list, int count)
     {
         wxArrayString str;
 
         for (int i = 0; i < count; i++)
             str.Add(((char**) list)[i]);
 
-        ((wxTextValidator*) self)->SetIncludes(str);
+        self->SetIncludes(str);
     }
 
-    EXPORT void* wxTextValidator_GetIncludes(void* self, int* count)
+    EXPORT void* wxTextValidator_GetIncludes(wxTextValidator* self, int* count)
     {
         void* retval = nullptr;
 
         if (count != nullptr)
         {
-            wxArrayString items = ((wxTextValidator*) self)->GetIncludes();
+            wxArrayString items = self->GetIncludes();
             char** items_copy = (char**) malloc(sizeof(char*) * items.GetCount());
             if (!items_copy)
             {
@@ -93,23 +93,23 @@ extern "C"
         return retval;
     }
 
-    EXPORT void wxTextValidator_SetExcludes(void* self, void* list, int count)
+    EXPORT void wxTextValidator_SetExcludes(wxTextValidator* self, void* list, int count)
     {
         wxArrayString str;
 
         for (int i = 0; i < count; i++)
             str.Add(((char**) list)[i]);
 
-        ((wxTextValidator*) self)->SetExcludes(str);
+        self->SetExcludes(str);
     }
 
-    EXPORT void* wxTextValidator_GetExcludes(void* self, int* count)
+    EXPORT void* wxTextValidator_GetExcludes(wxTextValidator* self, int* count)
     {
         void* retval = nullptr;
 
         if (count != nullptr)
         {
-            wxArrayString items = ((wxTextValidator*) self)->GetExcludes();
+            wxArrayString items = self->GetExcludes();
             char** items_copy = (char**) malloc(sizeof(char*) * items.GetCount());
             if (!items_copy)
             {
@@ -127,9 +127,9 @@ extern "C"
         return retval;
     }
 
-    EXPORT void* wxTextValidator_Clone(void* self)
+    EXPORT void* wxTextValidator_Clone(wxTextValidator* self)
     {
-        return (void*) ((wxTextValidator*) self)->Clone();
+        return (void*) self->Clone();
     }
 
     EXPORT bool wxTextValidator_TransferToWindow(wxTextValidator* self)
@@ -142,9 +142,9 @@ extern "C"
         return self->TransferFromWindow();
     }
 
-    EXPORT void wxTextValidator_OnChar(void* self, wxKeyEvent* event)
+    EXPORT void wxTextValidator_OnChar(wxTextValidator* self, wxKeyEvent* event)
     {
-        ((wxTextValidator*) self)->OnChar(*event);
+        self->OnChar(*event);
     }
 
     EXPORT void* kwxTextValidator_Create(void* self, void* func, void* text, long style)

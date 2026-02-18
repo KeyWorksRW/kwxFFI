@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #ifndef wxUSE_SVG
     #define wxUSE_SVG 1

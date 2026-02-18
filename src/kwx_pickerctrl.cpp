@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/clrpicker.h>
 
 // wxColourPickerCtrl inherits from wxControl (via wxPickerBase).

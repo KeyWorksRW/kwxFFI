@@ -2,7 +2,7 @@
 
 #include <wx/version.h>
 
-#include "wxffi_types.h"
+#include "kwx_types.h"
 
 TClass(wxAcceleratorTable) Null_AcceleratorTable();
 TClass(wxBitmap) Null_Bitmap();

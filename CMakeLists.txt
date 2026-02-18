@@ -276,7 +276,7 @@ else()
     add_library( kwxFFI STATIC ${FFI_SRC_FILES} ${FFI_HDR_FILES} )
 endif()
 
-target_precompile_headers( kwxFFI PRIVATE "include/wrapper.h" )
+target_precompile_headers( kwxFFI PRIVATE "include/kwx_wrapper.h" )
 
 # Force release runtime in Debug builds for shared DLL via target options
 if( MSVC AND KWXFFI_BUILD_SHARED )

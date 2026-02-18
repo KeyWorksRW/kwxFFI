@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -12,14 +12,14 @@ extern "C"
         delete self;
     }
 
-    EXPORT int wxImageList_GetImageCount(void* self)
+    EXPORT int wxImageList_GetImageCount(wxImageList* self)
     {
-        return ((wxImageList*) self)->GetImageCount();
+        return self->GetImageCount();
     }
 
-    EXPORT void wxImageList_GetSize(void* self, int index, int* width, int* height)
+    EXPORT void wxImageList_GetSize(wxImageList* self, int index, int* width, int* height)
     {
-        bool success = ((wxImageList*) self)->GetSize(index, *width, *height);
+        bool success = self->GetSize(index, *width, *height);
         if (!success)
         {
             *width = -1;
@@ -27,19 +27,19 @@ extern "C"
         };
     }
 
-    EXPORT int wxImageList_AddBitmap(void* self, wxBitmap* bitmap, wxBitmap* mask)
+    EXPORT int wxImageList_AddBitmap(wxImageList* self, wxBitmap* bitmap, wxBitmap* mask)
     {
-        return ((wxImageList*) self)->Add(*bitmap, *mask);
+        return self->Add(*bitmap, *mask);
     }
 
-    EXPORT int wxImageList_AddMasked(void* self, wxBitmap* bitmap, wxColour* maskColour)
+    EXPORT int wxImageList_AddMasked(wxImageList* self, wxBitmap* bitmap, wxColour* maskColour)
     {
-        return ((wxImageList*) self)->Add(*bitmap, *maskColour);
+        return self->Add(*bitmap, *maskColour);
     }
 
-    EXPORT int wxImageList_AddIcon(void* self, wxIcon* icon)
+    EXPORT int wxImageList_AddIcon(wxImageList* self, wxIcon* icon)
     {
-        return ((wxImageList*) self)->Add(*icon);
+        return self->Add(*icon);
     }
 
     EXPORT bool wxImageList_Replace(wxImageList* self, int index, wxBitmap* bitmap, wxBitmap* mask)

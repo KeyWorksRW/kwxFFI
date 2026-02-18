@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #include <wx/dialup.h>
 #include <wx/fswatcher.h>

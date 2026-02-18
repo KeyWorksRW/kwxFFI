@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxAuiMDIParentFrame inherits from wxFrame (wxTopLevelWindow).
 // wxAuiMDIChildFrame inherits from wxTDIChildFrame.

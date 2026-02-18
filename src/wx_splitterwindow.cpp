@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSplitterWindow inherits from wxWindow (not wxControl).
 // Additional methods available via:
@@ -12,29 +12,29 @@ extern "C"
         return new wxSplitterWindow(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT void* wxSplitterWindow_GetWindow1(void* self)
+    EXPORT void* wxSplitterWindow_GetWindow1(wxSplitterWindow* self)
     {
-        return (void*) ((wxSplitterWindow*) self)->GetWindow1();
+        return (void*) self->GetWindow1();
     }
 
-    EXPORT void* wxSplitterWindow_GetWindow2(void* self)
+    EXPORT void* wxSplitterWindow_GetWindow2(wxSplitterWindow* self)
     {
-        return (void*) ((wxSplitterWindow*) self)->GetWindow2();
+        return (void*) self->GetWindow2();
     }
 
-    EXPORT void wxSplitterWindow_SetSplitMode(void* self, int mode)
+    EXPORT void wxSplitterWindow_SetSplitMode(wxSplitterWindow* self, int mode)
     {
-        ((wxSplitterWindow*) self)->SetSplitMode(mode);
+        self->SetSplitMode(mode);
     }
 
-    EXPORT int wxSplitterWindow_GetSplitMode(void* self)
+    EXPORT int wxSplitterWindow_GetSplitMode(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetSplitMode();
+        return self->GetSplitMode();
     }
 
-    EXPORT void wxSplitterWindow_Initialize(void* self, wxWindow* window)
+    EXPORT void wxSplitterWindow_Initialize(wxSplitterWindow* self, wxWindow* window)
     {
-        ((wxSplitterWindow*) self)->Initialize(window);
+        self->Initialize(window);
     }
 
     EXPORT bool wxSplitterWindow_SplitVertically(wxSplitterWindow* self, wxWindow* window1,
@@ -43,20 +43,21 @@ extern "C"
         return self->SplitVertically(window1, window2, sashPosition);
     }
 
-    EXPORT int wxSplitterWindow_SplitHorizontally(void* self, wxWindow* window1, wxWindow* window2,
-                                                  int sashPosition)
+    EXPORT int wxSplitterWindow_SplitHorizontally(wxSplitterWindow* self, wxWindow* window1,
+                                                  wxWindow* window2, int sashPosition)
     {
-        return (int) ((wxSplitterWindow*) self)->SplitHorizontally(window1, window2, sashPosition);
+        return (int) self->SplitHorizontally(window1, window2, sashPosition);
     }
 
-    EXPORT int wxSplitterWindow_Unsplit(void* self, wxWindow* toRemove)
+    EXPORT int wxSplitterWindow_Unsplit(wxSplitterWindow* self, wxWindow* toRemove)
     {
-        return (int) ((wxSplitterWindow*) self)->Unsplit(toRemove);
+        return (int) self->Unsplit(toRemove);
     }
 
-    EXPORT int wxSplitterWindow_ReplaceWindow(void* self, wxWindow* winOld, wxWindow* winNew)
+    EXPORT int wxSplitterWindow_ReplaceWindow(wxSplitterWindow* self, wxWindow* winOld,
+                                              wxWindow* winNew)
     {
-        return (int) ((wxSplitterWindow*) self)->ReplaceWindow(winOld, winNew);
+        return (int) self->ReplaceWindow(winOld, winNew);
     }
 
     EXPORT bool wxSplitterWindow_IsSplit(wxSplitterWindow* self)
@@ -64,49 +65,49 @@ extern "C"
         return self->IsSplit();
     }
 
-    EXPORT void wxSplitterWindow_SetBorderSize(void* self, int width)
+    EXPORT void wxSplitterWindow_SetBorderSize(wxSplitterWindow* self, int width)
     {
-        ((wxSplitterWindow*) self)->SetBorderSize(width);
+        self->SetBorderSize(width);
     }
 
-    EXPORT int wxSplitterWindow_GetSashSize(void* self)
+    EXPORT int wxSplitterWindow_GetSashSize(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetSashSize();
+        return self->GetSashSize();
     }
 
-    EXPORT int wxSplitterWindow_GetBorderSize(void* self)
+    EXPORT int wxSplitterWindow_GetBorderSize(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetBorderSize();
+        return self->GetBorderSize();
     }
 
-    EXPORT void wxSplitterWindow_SetSashPosition(void* self, int position, bool redraw)
+    EXPORT void wxSplitterWindow_SetSashPosition(wxSplitterWindow* self, int position, bool redraw)
     {
-        ((wxSplitterWindow*) self)->SetSashPosition(position, redraw);
+        self->SetSashPosition(position, redraw);
     }
 
-    EXPORT int wxSplitterWindow_GetSashPosition(void* self)
+    EXPORT int wxSplitterWindow_GetSashPosition(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetSashPosition();
+        return self->GetSashPosition();
     }
 
-    EXPORT void wxSplitterWindow_SetMinimumPaneSize(void* self, int min)
+    EXPORT void wxSplitterWindow_SetMinimumPaneSize(wxSplitterWindow* self, int min)
     {
-        ((wxSplitterWindow*) self)->SetMinimumPaneSize(min);
+        self->SetMinimumPaneSize(min);
     }
 
-    EXPORT int wxSplitterWindow_GetMinimumPaneSize(void* self)
+    EXPORT int wxSplitterWindow_GetMinimumPaneSize(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetMinimumPaneSize();
+        return self->GetMinimumPaneSize();
     }
 
-    EXPORT double wxSplitterWindow_GetSashGravity(void* self)
+    EXPORT double wxSplitterWindow_GetSashGravity(wxSplitterWindow* self)
     {
-        return ((wxSplitterWindow*) self)->GetSashGravity();
+        return self->GetSashGravity();
     }
 
-    EXPORT void wxSplitterWindow_SetSashGravity(void* self, double gravity)
+    EXPORT void wxSplitterWindow_SetSashGravity(wxSplitterWindow* self, double gravity)
     {
-        return ((wxSplitterWindow*) self)->SetSashGravity(gravity);
+        return self->SetSashGravity(gravity);
     }
 
     EXPORT void wxSplitterWindow_UpdateSize(wxSplitterWindow* self)

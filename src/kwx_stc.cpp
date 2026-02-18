@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #include <wx/stc/stc.h>
 
@@ -47,7 +47,7 @@ extern "C"
     // Wrappers
     ////////////////////////////////////////////////////////////////////////////////
 
-#include "stc_gen.cpp"
+#include "kwx_stc_gen.cpp"
 
     // wxStyledTextCtrl
 

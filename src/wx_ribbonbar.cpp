@@ -1,5 +1,5 @@
 // wx_ribbonbar.cpp - wxRibbonBar wrapper
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxRibbonBar inherits from wxControl (via wxRibbonControl).
 // Additional methods available via:

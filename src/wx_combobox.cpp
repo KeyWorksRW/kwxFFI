@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxComboBox inherits from wxControl, wxItemContainer, and wxTextEntry.
 // Additional methods available via:

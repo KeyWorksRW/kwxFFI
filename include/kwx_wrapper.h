@@ -94,7 +94,7 @@
     #error "This code requires wxWidgets built with UTF-8 Unicode support"
 #endif
 
-#include "wxffi_def.h"
+#include "kwx_def.h"
 
 #define MAKE_EVENT_WRAPPER(evt)   \
     WXFFI_EXPORT(int, exp##evt)() \

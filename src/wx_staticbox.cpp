@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxStaticBox inherits from wxControl.
 // Additional methods available via:

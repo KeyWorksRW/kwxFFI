@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxRichTextCtrl inherits from wxControl and wxTextEntry.
 // Additional methods available via:
