@@ -1,5 +1,5 @@
 // wx_fontpickerctrl.cpp - wxFontPickerCtrl wrappers
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxFontPickerCtrl inherits from wxControl (via wxPickerBase).
 // Additional methods available via:

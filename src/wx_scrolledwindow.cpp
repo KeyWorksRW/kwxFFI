@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxScrolledWindow inherits from wxPanel (wxWindow, not wxControl).
 // Additional methods available via:
@@ -12,109 +12,111 @@ extern "C"
         return new wxScrolledWindow(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT void wxScrolledWindow_SetTargetWindow(void* self, wxWindow* target)
+    EXPORT void wxScrolledWindow_SetTargetWindow(wxScrolledWindow* self, wxWindow* target)
     {
-        ((wxScrolledWindow*) self)->SetTargetWindow(target);
+        self->SetTargetWindow(target);
     }
 
-    EXPORT void* wxScrolledWindow_GetTargetWindow(void* self)
+    EXPORT void* wxScrolledWindow_GetTargetWindow(wxScrolledWindow* self)
     {
-        return (void*) ((wxScrolledWindow*) self)->GetTargetWindow();
+        return (void*) self->GetTargetWindow();
     }
 
-    EXPORT void wxScrolledWindow_ShowScrollbars(void* self, int showh, int showv)
+    EXPORT void wxScrolledWindow_ShowScrollbars(wxScrolledWindow* self, int showh, int showv)
     {
-        ((wxScrolledWindow*) self)
-            ->ShowScrollbars((wxScrollbarVisibility) showh, (wxScrollbarVisibility) showv);
+        self->ShowScrollbars((wxScrollbarVisibility) showh, (wxScrollbarVisibility) showv);
     }
 
-    EXPORT void wxScrolledWindow_SetScrollbars(void* self, int pixelsPerUnitX, int pixelsPerUnitY,
-                                               int noUnitsX, int noUnitsY, int xPos, int yPos,
-                                               bool noRefresh)
+    EXPORT void wxScrolledWindow_SetScrollbars(wxScrolledWindow* self, int pixelsPerUnitX,
+                                               int pixelsPerUnitY, int noUnitsX, int noUnitsY,
+                                               int xPos, int yPos, bool noRefresh)
     {
-        ((wxScrolledWindow*) self)
-            ->SetScrollbars(pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY, xPos, yPos,
+        self->SetScrollbars(pixelsPerUnitX, pixelsPerUnitY, noUnitsX, noUnitsY, xPos, yPos,
                             noRefresh);
     }
 
-    EXPORT void wxScrolledWindow_Scroll(void* self, int x_pos, int y_pos)
+    EXPORT void wxScrolledWindow_Scroll(wxScrolledWindow* self, int x_pos, int y_pos)
     {
-        ((wxScrolledWindow*) self)->Scroll(x_pos, y_pos);
+        self->Scroll(x_pos, y_pos);
     }
 
-    EXPORT int wxScrolledWindow_GetScrollPageSize(void* self, int orient)
+    EXPORT int wxScrolledWindow_GetScrollPageSize(wxScrolledWindow* self, int orient)
     {
-        return ((wxScrolledWindow*) self)->GetScrollPageSize(orient);
+        return self->GetScrollPageSize(orient);
     }
 
-    EXPORT void wxScrolledWindow_SetScrollPageSize(void* self, int orient, int pageSize)
+    EXPORT void wxScrolledWindow_SetScrollPageSize(wxScrolledWindow* self, int orient, int pageSize)
     {
-        ((wxScrolledWindow*) self)->SetScrollPageSize(orient, pageSize);
+        self->SetScrollPageSize(orient, pageSize);
     }
 
-    EXPORT void wxScrolledWindow_GetScrollPixelsPerUnit(void* self, int* x_unit, int* y_unit)
+    EXPORT void wxScrolledWindow_GetScrollPixelsPerUnit(wxScrolledWindow* self, int* x_unit,
+                                                        int* y_unit)
     {
-        ((wxScrolledWindow*) self)->GetScrollPixelsPerUnit(x_unit, y_unit);
+        self->GetScrollPixelsPerUnit(x_unit, y_unit);
     }
 
-    EXPORT void wxScrolledWindow_EnableScrolling(void* self, bool x_scrolling, bool y_scrolling)
+    EXPORT void wxScrolledWindow_EnableScrolling(wxScrolledWindow* self, bool x_scrolling,
+                                                 bool y_scrolling)
     {
-        ((wxScrolledWindow*) self)->EnableScrolling(x_scrolling, y_scrolling);
+        self->EnableScrolling(x_scrolling, y_scrolling);
     }
 
-    EXPORT void wxScrolledWindow_GetViewStart(void* pObject, void* x, void* y)
+    EXPORT void wxScrolledWindow_GetViewStart(wxScrolledWindow* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) pObject)->GetViewStart((int*) x, (int*) y);
+        pObject->GetViewStart((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_ViewStart(void* pObject, void* x, void* y)
+    EXPORT void wxScrolledWindow_ViewStart(wxScrolledWindow* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) pObject)->GetViewStart((int*) x, (int*) y);
+        pObject->GetViewStart((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_GetVirtualSize(void* pObject, void* x, void* y)
+    EXPORT void wxScrolledWindow_GetVirtualSize(wxScrolledWindow* pObject, void* x, void* y)
     {
-        ((wxScrolledWindow*) pObject)->GetVirtualSize((int*) x, (int*) y);
+        pObject->GetVirtualSize((int*) x, (int*) y);
     }
 
-    EXPORT void wxScrolledWindow_SetScale(void* self, double xScale, double yScale)
+    EXPORT void wxScrolledWindow_SetScale(wxScrolledWindow* self, double xScale, double yScale)
     {
-        ((wxScrolledWindow*) self)->SetScale(xScale, yScale);
+        self->SetScale(xScale, yScale);
     }
 
-    EXPORT double wxScrolledWindow_GetScaleX(void* self)
+    EXPORT double wxScrolledWindow_GetScaleX(wxScrolledWindow* self)
     {
-        return ((wxScrolledWindow*) self)->GetScaleX();
+        return self->GetScaleX();
     }
 
-    EXPORT double wxScrolledWindow_GetScaleY(void* self)
+    EXPORT double wxScrolledWindow_GetScaleY(wxScrolledWindow* self)
     {
-        return ((wxScrolledWindow*) self)->GetScaleY();
+        return self->GetScaleY();
     }
 
-    EXPORT void wxScrolledWindow_CalcScrolledPosition(void* self, int x, int y, int* xx, int* yy)
+    EXPORT void wxScrolledWindow_CalcScrolledPosition(wxScrolledWindow* self, int x, int y, int* xx,
+                                                      int* yy)
     {
-        ((wxScrolledWindow*) self)->CalcScrolledPosition(x, y, xx, yy);
+        self->CalcScrolledPosition(x, y, xx, yy);
     }
 
-    EXPORT void wxScrolledWindow_CalcUnscrolledPosition(void* self, int x, int y, int* xx, int* yy)
+    EXPORT void wxScrolledWindow_CalcUnscrolledPosition(wxScrolledWindow* self, int x, int y,
+                                                        int* xx, int* yy)
     {
-        ((wxScrolledWindow*) self)->CalcUnscrolledPosition(x, y, xx, yy);
+        self->CalcUnscrolledPosition(x, y, xx, yy);
     }
 
-    EXPORT void wxScrolledWindow_AdjustScrollbars(void* self)
+    EXPORT void wxScrolledWindow_AdjustScrollbars(wxScrolledWindow* self)
     {
-        ((wxScrolledWindow*) self)->AdjustScrollbars();
+        self->AdjustScrollbars();
     }
 
-    EXPORT void wxScrolledWindow_OnDraw(void* self, wxDC* dc)
+    EXPORT void wxScrolledWindow_OnDraw(wxScrolledWindow* self, wxDC* dc)
     {
-        ((wxScrolledWindow*) self)->OnDraw(*dc);
+        self->OnDraw(*dc);
     }
 
-    EXPORT void wxScrolledWindow_PrepareDC(void* self, wxDC* dc)
+    EXPORT void wxScrolledWindow_PrepareDC(wxScrolledWindow* self, wxDC* dc)
     {
-        ((wxScrolledWindow*) self)->PrepareDC(*dc);
+        self->PrepareDC(*dc);
     }
 
     EXPORT int wxScrolledWindow_GetScrollLines(wxScrolledWindow* self, int orient)

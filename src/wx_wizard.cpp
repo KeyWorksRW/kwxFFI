@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxWizard inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:
@@ -51,29 +51,29 @@ extern "C"
         return (void*) new wxWizardPageSimple(parent, prev, next, bmp);
     }
 
-    EXPORT void* wxWizardPageSimple_GetPrev(void* self)
+    EXPORT void* wxWizardPageSimple_GetPrev(wxWizardPageSimple* self)
     {
-        return (void*) ((wxWizardPageSimple*) self)->GetPrev();
+        return (void*) self->GetPrev();
     }
 
-    EXPORT void* wxWizardPageSimple_GetNext(void* self)
+    EXPORT void* wxWizardPageSimple_GetNext(wxWizardPageSimple* self)
     {
-        return (void*) ((wxWizardPageSimple*) self)->GetNext();
+        return (void*) self->GetNext();
     }
 
-    EXPORT void wxWizardPageSimple_GetBitmap(void* self, wxBitmap* bitmap)
+    EXPORT void wxWizardPageSimple_GetBitmap(wxWizardPageSimple* self, wxBitmap* bitmap)
     {
-        *bitmap = ((wxWizardPageSimple*) self)->GetBitmap();
+        *bitmap = self->GetBitmap();
     }
 
-    EXPORT void wxWizardPageSimple_SetPrev(void* self, void* prev)
+    EXPORT void wxWizardPageSimple_SetPrev(wxWizardPageSimple* self, void* prev)
     {
-        ((wxWizardPageSimple*) self)->SetPrev((wxWizardPage*) prev);
+        self->SetPrev((wxWizardPage*) prev);
     }
 
-    EXPORT void wxWizardPageSimple_SetNext(void* self, void* next)
+    EXPORT void wxWizardPageSimple_SetNext(wxWizardPageSimple* self, void* next)
     {
-        ((wxWizardPageSimple*) self)->SetNext((wxWizardPage*) next);
+        self->SetNext((wxWizardPage*) next);
     }
 
     EXPORT bool wxWizardEvent_GetDirection(wxWizardEvent* self)

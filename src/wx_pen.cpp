@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -50,14 +50,14 @@ extern "C"
         return nullptr;
     }
 
-    EXPORT void wxPen_Delete(void* self)
+    EXPORT void wxPen_Delete(wxPen* self)
     {
-        delete (wxPen*) self;
+        delete self;
     }
 
-    EXPORT void wxPen_Assign(void* self, void* pen)
+    EXPORT void wxPen_Assign(wxPen* self, void* pen)
     {
-        *((wxPen*) self) = *((wxPen*) pen);
+        *self = *((wxPen*) pen);
     }
 
     EXPORT bool wxPen_IsEqual(wxPen* self, wxPen* pen)
@@ -70,86 +70,86 @@ extern "C"
         return self->IsOk();
     }
 
-    EXPORT void wxPen_SetColour(void* self, wxColour* col)
+    EXPORT void wxPen_SetColour(wxPen* self, wxColour* col)
     {
-        ((wxPen*) self)->SetColour(*col);
+        self->SetColour(*col);
     }
 
-    EXPORT void wxPen_SetColourSingle(void* self, wxUint8 r, wxUint8 g, wxUint8 b)
+    EXPORT void wxPen_SetColourSingle(wxPen* self, wxUint8 r, wxUint8 g, wxUint8 b)
     {
-        ((wxPen*) self)->SetColour(r, g, b);
+        self->SetColour(r, g, b);
     }
 
-    EXPORT void wxPen_SetWidth(void* self, int width)
+    EXPORT void wxPen_SetWidth(wxPen* self, int width)
     {
-        ((wxPen*) self)->SetWidth(width);
+        self->SetWidth(width);
     }
 
-    EXPORT void wxPen_SetStyle(void* self, int style)
+    EXPORT void wxPen_SetStyle(wxPen* self, int style)
     {
-        ((wxPen*) self)->SetStyle((wxPenStyle) style);
+        self->SetStyle((wxPenStyle) style);
     }
 
-    EXPORT void wxPen_SetStipple(void* self, wxBitmap* stipple)
+    EXPORT void wxPen_SetStipple(wxPen* self, wxBitmap* stipple)
     {
 #if !defined(__WXGTK__)
-        ((wxPen*) self)->SetStipple(*stipple);
+        self->SetStipple(*stipple);
 #endif
     }
 
-    EXPORT void wxPen_SetDashes(void* self, int nb_dashes, void* dash)
+    EXPORT void wxPen_SetDashes(wxPen* self, int nb_dashes, void* dash)
     {
-        ((wxPen*) self)->SetDashes(nb_dashes, (wxDash*) dash);
+        self->SetDashes(nb_dashes, (wxDash*) dash);
     }
 
-    EXPORT void wxPen_SetJoin(void* self, int join)
+    EXPORT void wxPen_SetJoin(wxPen* self, int join)
     {
         wxPenJoin joinStyle = (wxPenJoin) join;
-        ((wxPen*) self)->SetJoin(joinStyle);
+        self->SetJoin(joinStyle);
     }
 
-    EXPORT void wxPen_SetCap(void* self, int cap)
+    EXPORT void wxPen_SetCap(wxPen* self, int cap)
     {
         wxPenCap penCap = (wxPenCap) cap;
-        ((wxPen*) self)->SetCap(penCap);
+        self->SetCap(penCap);
     }
 
-    EXPORT void wxPen_GetColour(void* self, wxColour* ref)
+    EXPORT void wxPen_GetColour(wxPen* self, wxColour* ref)
     {
-        *ref = ((wxPen*) self)->GetColour();
+        *ref = self->GetColour();
     }
 
-    EXPORT int wxPen_GetWidth(void* self)
+    EXPORT int wxPen_GetWidth(wxPen* self)
     {
-        return ((wxPen*) self)->GetWidth();
+        return self->GetWidth();
     }
 
-    EXPORT int wxPen_GetStyle(void* self)
+    EXPORT int wxPen_GetStyle(wxPen* self)
     {
-        return ((wxPen*) self)->GetStyle();
+        return self->GetStyle();
     }
 
-    EXPORT int wxPen_GetJoin(void* self)
+    EXPORT int wxPen_GetJoin(wxPen* self)
     {
-        return (int) ((wxPen*) self)->GetJoin();
+        return (int) self->GetJoin();
     }
 
-    EXPORT int wxPen_GetCap(void* self)
+    EXPORT int wxPen_GetCap(wxPen* self)
     {
-        return (int) ((wxPen*) self)->GetCap();
+        return (int) self->GetCap();
     }
 
-    EXPORT int wxPen_GetDashes(void* self, void* ptr)
+    EXPORT int wxPen_GetDashes(wxPen* self, void* ptr)
     {
-        return ((wxPen*) self)->GetDashes((wxDash**) ptr);
+        return self->GetDashes((wxDash**) ptr);
     }
 
-    EXPORT void wxPen_GetStipple(void* self, wxBitmap* ref)
+    EXPORT void wxPen_GetStipple(wxPen* self, wxBitmap* ref)
     {
 #if defined(__WXGTK__)
         *ref = (GdkPixbuf*) nullptr;
 #else
-        *ref = *(((wxPen*) self)->GetStipple());
+        *ref = *(self->GetStipple());
 #endif
     }
 }

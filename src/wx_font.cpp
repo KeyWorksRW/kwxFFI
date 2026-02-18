@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/encconv.h>
 #include <wx/fontenum.h>
 #include <wx/fontmap.h>
@@ -218,9 +218,9 @@ extern "C"
         return (void*) new wxEncodingConverter();
     }
 
-    EXPORT void wxEncodingConverter_Delete(void* self)
+    EXPORT void wxEncodingConverter_Delete(wxEncodingConverter* self)
     {
-        delete (wxEncodingConverter*) self;
+        delete self;
     }
 
     EXPORT bool wxEncodingConverter_Init(wxEncodingConverter* self, int input_enc, int output_enc,
@@ -229,16 +229,15 @@ extern "C"
         return self->Init((wxFontEncoding) input_enc, (wxFontEncoding) output_enc, method);
     }
 
-    EXPORT void wxEncodingConverter_Convert(void* self, void* input, void* output)
+    EXPORT void wxEncodingConverter_Convert(wxEncodingConverter* self, void* input, void* output)
     {
-        ((wxEncodingConverter*) self)->Convert((const char*) input, (char*) output);
+        self->Convert((const char*) input, (char*) output);
     }
 
-    EXPORT int wxEncodingConverter_GetPlatformEquivalents(void* self, int enc, int platform,
-                                                          void* list)
+    EXPORT int wxEncodingConverter_GetPlatformEquivalents(wxEncodingConverter* self, int enc,
+                                                          int platform, void* list)
     {
-        wxFontEncodingArray arr =
-            ((wxEncodingConverter*) self)->GetPlatformEquivalents((wxFontEncoding) enc, platform);
+        wxFontEncodingArray arr = self->GetPlatformEquivalents((wxFontEncoding) enc, platform);
         if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
@@ -247,10 +246,9 @@ extern "C"
         return (int) arr.GetCount();
     }
 
-    EXPORT int wxEncodingConverter_GetAllEquivalents(void* self, int enc, void* list)
+    EXPORT int wxEncodingConverter_GetAllEquivalents(wxEncodingConverter* self, int enc, void* list)
     {
-        wxFontEncodingArray arr =
-            ((wxEncodingConverter*) self)->GetAllEquivalents((wxFontEncoding) enc);
+        wxFontEncodingArray arr = self->GetAllEquivalents((wxFontEncoding) enc);
         if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)

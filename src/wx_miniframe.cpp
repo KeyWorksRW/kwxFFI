@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxMiniFrame inherits from wxFrame (wxTopLevelWindow).
 // Additional methods available via:

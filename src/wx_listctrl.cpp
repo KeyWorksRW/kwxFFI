@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxListCtrl inherits from wxControl.
 // Additional methods available via:
@@ -17,8 +17,7 @@ extern "C"
 
     int wxCALLBACK ListCmp(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
     {
-        return ((kwxSort*) sortData)
-            ->fnc(((kwxSort*) sortData)->obj, (int) item1, (int) item2);
+        return ((kwxSort*) sortData)->fnc(((kwxSort*) sortData)->obj, (int) item1, (int) item2);
     }
 
     EXPORT wxListItem* wxListItem_Create()
@@ -209,9 +208,9 @@ extern "C"
         return (int) self->SetColumn(col, *item);
     }
 
-    EXPORT int wxListCtrl_GetColumnWidth(void* self, int col)
+    EXPORT int wxListCtrl_GetColumnWidth(wxListCtrl* self, int col)
     {
-        return ((wxListCtrl*) self)->GetColumnWidth(col);
+        return self->GetColumnWidth(col);
     }
 
     EXPORT bool wxListCtrl_SetColumnWidth(wxListCtrl* self, int col, int width)
@@ -249,9 +248,9 @@ extern "C"
         return self->SetItem((long) index, col, *label, imageId);
     }
 
-    EXPORT int wxListCtrl_GetItemState(void* self, int item, int stateMask)
+    EXPORT int wxListCtrl_GetItemState(wxListCtrl* self, int item, int stateMask)
     {
-        return ((wxListCtrl*) self)->GetItemState((long) item, (long) stateMask);
+        return self->GetItemState((long) item, (long) stateMask);
     }
 
     EXPORT bool wxListCtrl_SetItemState(wxListCtrl* self, int item, int state, int stateMask)
@@ -510,8 +509,8 @@ extern "C"
         self->RefreshItems(from, toPos);
     }
 
-    EXPORT bool wxListCtrl_GetSubItemRect(wxListCtrl* self, long item, long subItem, int* x,
-                                          int* y, int* width, int* height, int code)
+    EXPORT bool wxListCtrl_GetSubItemRect(wxListCtrl* self, long item, long subItem, int* x, int* y,
+                                          int* width, int* height, int code)
     {
         wxRect rect;
         bool result = self->GetSubItemRect(item, subItem, rect, code);

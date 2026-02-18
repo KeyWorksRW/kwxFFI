@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #include <wx/fs_zip.h>
 #include <wx/html/htmlwin.h>

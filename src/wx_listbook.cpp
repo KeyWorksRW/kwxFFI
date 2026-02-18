@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxListbook inherits from wxBookCtrlBase (wxControl).
 // Additional methods available via:

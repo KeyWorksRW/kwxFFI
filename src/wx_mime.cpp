@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/mimetype.h>
 
 extern "C"
@@ -53,11 +53,11 @@ extern "C"
         return result;
     }
 
-    EXPORT int wxFileType_GetMimeTypes(void* self, void* list)
+    EXPORT int wxFileType_GetMimeTypes(wxFileType* self, void* list)
     {
         wxArrayString arr;
 
-        if (((wxFileType*) self)->GetMimeTypes(arr) && list)
+        if (self->GetMimeTypes(arr) && list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
                 ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
@@ -66,11 +66,11 @@ extern "C"
         return arr.GetCount();
     }
 
-    EXPORT int wxFileType_GetExtensions(void* self, void* list)
+    EXPORT int wxFileType_GetExtensions(wxFileType* self, void* list)
     {
         wxArrayString arr;
 
-        if (((wxFileType*) self)->GetExtensions(arr) && list)
+        if (self->GetExtensions(arr) && list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
                 ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
@@ -119,8 +119,8 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxFileType_Delete(void* self)
+    EXPORT void wxFileType_Delete(wxFileType* self)
     {
-        delete (wxFileType*) self;
+        delete self;
     }
 }

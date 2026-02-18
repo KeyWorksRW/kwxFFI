@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/tipwin.h>
 
 // wxTipWindow inherits from wxWindow (via wxPopupTransientWindow).

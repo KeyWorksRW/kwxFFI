@@ -1,45 +1,45 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
-    EXPORT void* wxLayoutConstraints_left(void* self)
+    EXPORT void* wxLayoutConstraints_left(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->left);
+        return (void*) (&self->left);
     }
 
-    EXPORT void* wxLayoutConstraints_top(void* self)
+    EXPORT void* wxLayoutConstraints_top(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->top);
+        return (void*) (&self->top);
     }
 
-    EXPORT void* wxLayoutConstraints_right(void* self)
+    EXPORT void* wxLayoutConstraints_right(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->right);
+        return (void*) (&self->right);
     }
 
-    EXPORT void* wxLayoutConstraints_bottom(void* self)
+    EXPORT void* wxLayoutConstraints_bottom(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->bottom);
+        return (void*) (&self->bottom);
     }
 
-    EXPORT void* wxLayoutConstraints_width(void* self)
+    EXPORT void* wxLayoutConstraints_width(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->width);
+        return (void*) (&self->width);
     }
 
-    EXPORT void* wxLayoutConstraints_height(void* self)
+    EXPORT void* wxLayoutConstraints_height(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->height);
+        return (void*) (&self->height);
     }
 
-    EXPORT void* wxLayoutConstraints_centreX(void* self)
+    EXPORT void* wxLayoutConstraints_centreX(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->centreX);
+        return (void*) (&self->centreX);
     }
 
-    EXPORT void* wxLayoutConstraints_centreY(void* self)
+    EXPORT void* wxLayoutConstraints_centreY(wxLayoutConstraints* self)
     {
-        return (void*) (&((wxLayoutConstraints*) self)->centreY);
+        return (void*) (&self->centreY);
     }
 
     EXPORT void* wxLayoutConstraints_Create()
@@ -47,63 +47,67 @@ extern "C"
         return (void*) new wxLayoutConstraints();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_Set(void* self, int rel, wxWindowBase* otherW,
-                                                 int otherE, int val, int marg)
+    EXPORT void wxIndividualLayoutConstraint_Set(wxIndividualLayoutConstraint* self, int rel,
+                                                 wxWindowBase* otherW, int otherE, int val,
+                                                 int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)
-            ->Set((wxRelationship) rel, otherW, (wxEdge) otherE, val, marg);
+        self->Set((wxRelationship) rel, otherW, (wxEdge) otherE, val, marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_LeftOf(void* self, wxWindowBase* sibling, int marg)
+    EXPORT void wxIndividualLayoutConstraint_LeftOf(wxIndividualLayoutConstraint* self,
+                                                    wxWindowBase* sibling, int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)->LeftOf(sibling, (wxEdge) marg);
+        self->LeftOf(sibling, (wxEdge) marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_RightOf(void* self, wxWindowBase* sibling, int marg)
+    EXPORT void wxIndividualLayoutConstraint_RightOf(wxIndividualLayoutConstraint* self,
+                                                     wxWindowBase* sibling, int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)->RightOf(sibling, (wxEdge) marg);
+        self->RightOf(sibling, (wxEdge) marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_Above(void* self, wxWindow* sibling, int marg)
+    EXPORT void wxIndividualLayoutConstraint_Above(wxIndividualLayoutConstraint* self,
+                                                   wxWindow* sibling, int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)->Above(sibling, marg);
+        self->Above(sibling, marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_Below(void* self, wxWindow* sibling, int marg)
+    EXPORT void wxIndividualLayoutConstraint_Below(wxIndividualLayoutConstraint* self,
+                                                   wxWindow* sibling, int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)->Below(sibling, marg);
+        self->Below(sibling, marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SameAs(void* self, wxWindowBase* otherW, int edge,
-                                                    int marg)
+    EXPORT void wxIndividualLayoutConstraint_SameAs(wxIndividualLayoutConstraint* self,
+                                                    wxWindowBase* otherW, int edge, int marg)
     {
-        ((wxIndividualLayoutConstraint*) self)->SameAs(otherW, (wxEdge) edge, (wxEdge) marg);
+        self->SameAs(otherW, (wxEdge) edge, (wxEdge) marg);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_PercentOf(void* self, wxWindowBase* otherW, int which,
-                                                       int per)
+    EXPORT void wxIndividualLayoutConstraint_PercentOf(wxIndividualLayoutConstraint* self,
+                                                       wxWindowBase* otherW, int which, int per)
     {
-        ((wxIndividualLayoutConstraint*) self)->PercentOf(otherW, (wxEdge) which, per);
+        self->PercentOf(otherW, (wxEdge) which, per);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_Absolute(void* self, int val)
+    EXPORT void wxIndividualLayoutConstraint_Absolute(wxIndividualLayoutConstraint* self, int val)
     {
-        ((wxIndividualLayoutConstraint*) self)->Absolute(val);
+        self->Absolute(val);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_Unconstrained(void* self)
+    EXPORT void wxIndividualLayoutConstraint_Unconstrained(wxIndividualLayoutConstraint* self)
     {
-        ((wxIndividualLayoutConstraint*) self)->Unconstrained();
+        self->Unconstrained();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_AsIs(void* self)
+    EXPORT void wxIndividualLayoutConstraint_AsIs(wxIndividualLayoutConstraint* self)
     {
-        ((wxIndividualLayoutConstraint*) self)->AsIs();
+        self->AsIs();
     }
 
-    EXPORT void* wxIndividualLayoutConstraint_GetOtherWindow(void* self)
+    EXPORT void* wxIndividualLayoutConstraint_GetOtherWindow(wxIndividualLayoutConstraint* self)
     {
-        return (void*) ((wxIndividualLayoutConstraint*) self)->GetOtherWindow();
+        return (void*) self->GetOtherWindow();
     }
 
     EXPORT int wxIndividualLayoutConstraint_GetMyEdge(wxIndividualLayoutConstraint* self)
@@ -111,39 +115,40 @@ extern "C"
         return (int) self->GetMyEdge();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetEdge(void* self, int which)
+    EXPORT void wxIndividualLayoutConstraint_SetEdge(wxIndividualLayoutConstraint* self, int which)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetEdge((wxEdge) which);
+        self->SetEdge((wxEdge) which);
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetValue(void* self, int value)
+    EXPORT void wxIndividualLayoutConstraint_SetValue(wxIndividualLayoutConstraint* self, int value)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetValue(value);
+        self->SetValue(value);
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetMargin(void* self)
+    EXPORT int wxIndividualLayoutConstraint_GetMargin(wxIndividualLayoutConstraint* self)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetMargin();
+        return self->GetMargin();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetMargin(void* self, int margin)
+    EXPORT void wxIndividualLayoutConstraint_SetMargin(wxIndividualLayoutConstraint* self,
+                                                       int margin)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetMargin(margin);
+        self->SetMargin(margin);
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetValue(void* self)
+    EXPORT int wxIndividualLayoutConstraint_GetValue(wxIndividualLayoutConstraint* self)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetValue();
+        return self->GetValue();
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetPercent(void* self)
+    EXPORT int wxIndividualLayoutConstraint_GetPercent(wxIndividualLayoutConstraint* self)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetPercent();
+        return self->GetPercent();
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetOtherEdge(void* self)
+    EXPORT int wxIndividualLayoutConstraint_GetOtherEdge(wxIndividualLayoutConstraint* self)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetOtherEdge();
+        return self->GetOtherEdge();
     }
 
     EXPORT bool wxIndividualLayoutConstraint_GetDone(wxIndividualLayoutConstraint* self)
@@ -151,19 +156,20 @@ extern "C"
         return self->GetDone();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetDone(void* self, bool done)
+    EXPORT void wxIndividualLayoutConstraint_SetDone(wxIndividualLayoutConstraint* self, bool done)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetDone(done);
+        self->SetDone(done);
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetRelationship(void* self)
+    EXPORT int wxIndividualLayoutConstraint_GetRelationship(wxIndividualLayoutConstraint* self)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetRelationship();
+        return self->GetRelationship();
     }
 
-    EXPORT void wxIndividualLayoutConstraint_SetRelationship(void* self, int relationship)
+    EXPORT void wxIndividualLayoutConstraint_SetRelationship(wxIndividualLayoutConstraint* self,
+                                                             int relationship)
     {
-        ((wxIndividualLayoutConstraint*) self)->SetRelationship((wxRelationship) relationship);
+        self->SetRelationship((wxRelationship) relationship);
     }
 
     EXPORT bool wxIndividualLayoutConstraint_ResetIfWin(wxIndividualLayoutConstraint* self,
@@ -178,9 +184,9 @@ extern "C"
         return self->SatisfyConstraint((wxLayoutConstraints*) constraints, win);
     }
 
-    EXPORT int wxIndividualLayoutConstraint_GetEdge(void* self, int which, wxWindowBase* thisWin,
-                                                    wxWindowBase* other)
+    EXPORT int wxIndividualLayoutConstraint_GetEdge(wxIndividualLayoutConstraint* self, int which,
+                                                    wxWindowBase* thisWin, wxWindowBase* other)
     {
-        return ((wxIndividualLayoutConstraint*) self)->GetEdge((wxEdge) which, thisWin, other);
+        return self->GetEdge((wxEdge) which, thisWin, other);
     }
 }

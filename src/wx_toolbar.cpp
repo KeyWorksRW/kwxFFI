@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxToolBar inherits from wxControl (via wxToolBarBase).
 // Additional methods available via:

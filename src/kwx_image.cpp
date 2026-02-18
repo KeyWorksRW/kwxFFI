@@ -1,7 +1,7 @@
 #include <memory.h>
 #include <string.h>
 
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {

@@ -1,5 +1,5 @@
 // wxGridBagSizer - Grid bag sizer with precise cell positioning
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {

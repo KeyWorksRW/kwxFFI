@@ -1,5 +1,5 @@
 // wx_timepickerctrl.cpp - wxTimePickerCtrl wrappers
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxTimePickerCtrl inherits from wxControl.
 // Additional methods available via:

@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxListView inherits from wxListCtrl (wxControl).
 // Additional methods available via:

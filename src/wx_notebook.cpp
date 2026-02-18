@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxNotebook inherits from wxBookCtrlBase (wxControl).
 // Additional methods available via:
@@ -70,9 +70,9 @@ extern "C"
         self->SetImageList((wxImageList*) imageList);
     }
 
-    EXPORT void* wxNotebook_GetImageList(void* self)
+    EXPORT void* wxNotebook_GetImageList(wxNotebook* self)
     {
-        return (void*) ((wxNotebook*) self)->GetImageList();
+        return (void*) self->GetImageList();
     }
 
     EXPORT int wxNotebook_GetPageImage(wxNotebook* self, int nPage)

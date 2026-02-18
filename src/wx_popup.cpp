@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/popupwin.h>
 
 // wxPopupWindow inherits from wxWindow.

@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #include <wx/fs_zip.h>
 #include <wx/html/helpctrl.h>
@@ -23,19 +23,19 @@ extern "C"
         return (void*) new wxHtmlHelpController(style, parentWindow);
     }
 
-    EXPORT void wxHtmlHelpController_Delete(void* self)
+    EXPORT void wxHtmlHelpController_Delete(wxHtmlHelpController* self)
     {
-        delete (wxHtmlHelpController*) self;
+        delete self;
     }
 
-    EXPORT void wxHtmlHelpController_SetTitleFormat(void* self, wxString* format)
+    EXPORT void wxHtmlHelpController_SetTitleFormat(wxHtmlHelpController* self, wxString* format)
     {
-        ((wxHtmlHelpController*) self)->SetTitleFormat(*format);
+        self->SetTitleFormat(*format);
     }
 
-    EXPORT void wxHtmlHelpController_SetTempDir(void* self, wxString* path)
+    EXPORT void wxHtmlHelpController_SetTempDir(wxHtmlHelpController* self, wxString* path)
     {
-        ((wxHtmlHelpController*) self)->SetTempDir(*path);
+        self->SetTempDir(*path);
     }
 
     EXPORT bool wxHtmlHelpController_AddBook(wxHtmlHelpController* self, wxString* book,
@@ -70,26 +70,27 @@ extern "C"
         return self->KeywordSearch(*keyword, (wxHelpSearchMode) mode);
     }
 
-    EXPORT void* wxHtmlHelpController_GetFrame(void* self)
+    EXPORT void* wxHtmlHelpController_GetFrame(wxHtmlHelpController* self)
     {
-        return (void*) ((wxHtmlHelpController*) self)->GetFrame();
+        return (void*) self->GetFrame();
     }
 
-    EXPORT void wxHtmlHelpController_UseConfig(void* self, wxConfigBase* config, wxString* rootpath)
+    EXPORT void wxHtmlHelpController_UseConfig(wxHtmlHelpController* self, wxConfigBase* config,
+                                               wxString* rootpath)
     {
-        ((wxHtmlHelpController*) self)->UseConfig(config, *rootpath);
+        self->UseConfig(config, *rootpath);
     }
 
-    EXPORT void wxHtmlHelpController_ReadCustomization(void* self, wxConfigBase* cfg,
-                                                       wxString* path)
+    EXPORT void wxHtmlHelpController_ReadCustomization(wxHtmlHelpController* self,
+                                                       wxConfigBase* cfg, wxString* path)
     {
-        ((wxHtmlHelpController*) self)->ReadCustomization(cfg, *path);
+        self->ReadCustomization(cfg, *path);
     }
 
-    EXPORT void wxHtmlHelpController_WriteCustomization(void* self, wxConfigBase* cfg,
-                                                        wxString* path)
+    EXPORT void wxHtmlHelpController_WriteCustomization(wxHtmlHelpController* self,
+                                                        wxConfigBase* cfg, wxString* path)
     {
-        ((wxHtmlHelpController*) self)->WriteCustomization(cfg, *path);
+        self->WriteCustomization(cfg, *path);
     }
 
     EXPORT bool wxHtmlHelpController_Initialize(wxHtmlHelpController* self, wxString* file)
@@ -97,9 +98,10 @@ extern "C"
         return self->Initialize(*file);
     }
 
-    EXPORT void wxHtmlHelpController_SetViewer(void* self, wxString* viewer, int flags)
+    EXPORT void wxHtmlHelpController_SetViewer(wxHtmlHelpController* self, wxString* viewer,
+                                               int flags)
     {
-        ((wxHtmlHelpController*) self)->SetViewer(*viewer, (long) flags);
+        self->SetViewer(*viewer, (long) flags);
     }
 
     EXPORT bool wxHtmlHelpController_LoadFile(wxHtmlHelpController* self, wxString* file)
@@ -122,25 +124,23 @@ extern "C"
         return self->DisplayBlock((long) blockNo);
     }
 
-    EXPORT void wxHtmlHelpController_SetFrameParameters(void* self, wxString* title, int width,
-                                                        int height, int pos_x, int pos_y,
+    EXPORT void wxHtmlHelpController_SetFrameParameters(wxHtmlHelpController* self, wxString* title,
+                                                        int width, int height, int pos_x, int pos_y,
                                                         bool newFrameEachTime)
     {
-        ((wxHtmlHelpController*) self)
-            ->SetFrameParameters(*title, wxSize(width, height), wxPoint(pos_x, pos_y),
+        self->SetFrameParameters(*title, wxSize(width, height), wxPoint(pos_x, pos_y),
                                  newFrameEachTime);
     }
 
-    EXPORT void* wxHtmlHelpController_GetFrameParameters(void* self, void* title, int* width,
-                                                         int* height, int* pos_x, int* pos_y,
-                                                         int* newFrameEachTime)
+    EXPORT void* wxHtmlHelpController_GetFrameParameters(wxHtmlHelpController* self, void* title,
+                                                         int* width, int* height, int* pos_x,
+                                                         int* pos_y, int* newFrameEachTime)
     {
         void* result;
         wxPoint pos;
         wxSize size;
 
-        result = (void*) ((wxHtmlHelpController*) self)
-                     ->GetFrameParameters(&size, &pos, (bool*) newFrameEachTime);
+        result = (void*) self->GetFrameParameters(&size, &pos, (bool*) newFrameEachTime);
 
         *height = size.y;
         *width = size.x;

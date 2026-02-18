@@ -1,7 +1,7 @@
 // wx_treelistctrl.cpp
 // C wrapper for wxTreeListCtrl
 
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxTreeListCtrl inherits from wxWindow (not wxControl).
 // Additional methods available via:

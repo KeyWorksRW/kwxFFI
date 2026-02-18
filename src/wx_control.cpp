@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxControl is the base class for all controls.
 // Additional methods available via:

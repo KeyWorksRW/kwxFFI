@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxTreeCtrl inherits from wxControl and wxWithImages.
 // Additional methods available via:

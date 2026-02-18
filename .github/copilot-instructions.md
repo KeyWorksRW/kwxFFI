@@ -34,13 +34,13 @@ This FFI is designed to support the following language ports:
 
 ### Header Files (`include/`)
 
-#### `wxffi_def.h` - Export Macros
+#### `kwx_def.h` - Export Macros
 Defines export macros for cross-platform DLL/shared library building:
 - `EXPORT` - Used to mark functions for export
 - `WXFFI_EXPORT(TYPE, FUNC_NAME)` - Macro for declaring exported functions
 - `WXFFI_CONSTANT_INT/STR` - Macros for exposing constants
 
-#### `wxffi_types.h` - Type System
+#### `kwx_types.h` - Type System
 Defines type macros that add semantic meaning to C signatures for FFI generation:
 - `TClass(tp)` - Pointer to a wxWidgets class (compiles to `void*` or typed pointer)
 - `TSelf(tp)` - The 'self' or 'this' pointer for method calls
@@ -53,17 +53,17 @@ These macros enable:
 1. Tools to parse signatures and generate marshalling code for foreign languages
 2. Optional type-safe compilation with `WXC_USE_TYPED_INTERFACE`
 
-#### `wxffi_glue.h` - Function Declarations
+#### `kwx_glue.h` - Function Declarations
 The main header declaring all C wrapper functions:
 - **Event type exports**: `expEVT_*()` functions return wxWidgets event type IDs
 - **Key code exports**: `expK_*()` functions return key codes
 - **Class wrappers**: `wxClassName_MethodName()` function declarations
 - Grouped by class/functionality
 
-#### `wxffi_grid.h` - Grid Table Callbacks
+#### `kwx_grid.h` - Grid Table Callbacks
 Defines callback types and the `ELJGridTable` class for custom grid data sources.
 
-#### `wrapper.h` - C++ Implementation Support (Precompiled Header)
+#### `kwx_wrapper.h` - C++ Implementation Support (Precompiled Header)
 The precompiled header containing:
 - All necessary wxWidgets includes
 - Helper classes:
@@ -79,7 +79,7 @@ The precompiled header containing:
 Each `wx_*.cpp` file wraps a specific wxWidgets class or related group of classes. The pattern is:
 
 ```cpp
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
@@ -141,9 +141,9 @@ extern "C"
 
 When wrapping a new wxWidgets class:
 
-1. Add the wxWidgets header to `wrapper.h` if not already included
+1. Add the wxWidgets header to `kwx_wrapper.h` if not already included
 2. Create `src/wx_classname.cpp` following the pattern above
-3. Add declarations to `wxffi_glue.h`
+3. Add declarations to `kwx_glue.h`
 4. Add the source file to `files_list.cmake`
 
 For events, use `MAKE_EVENT_WRAPPER(EVT_NAME)` macro in the implementation.

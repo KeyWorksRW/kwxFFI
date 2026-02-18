@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 wxDragResult kwxTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {

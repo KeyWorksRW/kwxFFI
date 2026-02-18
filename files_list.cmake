@@ -1,29 +1,29 @@
 set( FFI_SRC_FILES
 
-    src/wrapper.cpp
+    src/kwx_wrapper.cpp
 
-    src/apppath.cpp
-    src/defs.cpp
-    src/dragimage.cpp
-    src/extra.cpp
+    src/kwx_apppath.cpp
+    src/kwx_defs.cpp
+    src/kwx_dragimage.cpp
+    src/kwx_extra.cpp
 
-    src/glcanvas.cpp
-    src/graphicscontext.cpp
-    src/hyperlinkctrl.cpp
-    src/image.cpp
-    src/mediactrl.cpp
-    src/pickerctrl.cpp
-    src/previewframe.cpp
-    src/printout.cpp
-    src/sckaddr.cpp
-    src/socket.cpp
-    src/sound.cpp
-    src/stc.cpp
-    src/std.cpp
-    src/stream.cpp
-    src/taskbaricon.cpp
-    src/textstream.cpp
-    src/treectrl.cpp
+    src/kwx_glcanvas.cpp
+    src/kwx_graphicscontext.cpp
+    src/kwx_hyperlinkctrl.cpp
+    src/kwx_image.cpp
+    src/kwx_mediactrl.cpp
+    src/kwx_pickerctrl.cpp
+    src/kwx_previewframe.cpp
+    src/kwx_printout.cpp
+    src/kwx_sckaddr.cpp
+    src/kwx_socket.cpp
+    src/kwx_sound.cpp
+    src/kwx_stc.cpp
+    src/kwx_std.cpp
+    src/kwx_stream.cpp
+    src/kwx_taskbaricon.cpp
+    src/kwx_textstream.cpp
+    src/kwx_treectrl.cpp
 
     src/wx_aboutbox.cpp
     src/wx_accelerator.cpp
@@ -175,9 +175,9 @@ set( FFI_SRC_FILES
 
 set( FFI_HDR_FILES
 
-    include/wrapper.h
-    include/wxffi_types.h
-    include/wxffi_def.h
-    include/wxffi_glue.h
-    include/wxffi_grid.h
+    include/kwx_wrapper.h
+    include/kwx_types.h
+    include/kwx_def.h
+    include/kwx_glue.h
+    include/kwx_grid.h
 )

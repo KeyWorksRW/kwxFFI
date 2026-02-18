@@ -1,7 +1,7 @@
 // wx_webview.cpp
 // C wrapper for wxWebView
 
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxWebView inherits from wxControl.
 // Additional methods available via:

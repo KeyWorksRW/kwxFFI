@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/cmdproc.h>
 #include <wx/docview.h>
 extern "C"

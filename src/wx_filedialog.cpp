@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxFileDialog inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:

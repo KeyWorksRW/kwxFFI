@@ -1,7 +1,7 @@
 // wx_collapsiblepane.cpp
 // C wrapper for wxCollapsiblePane
 
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxCollapsiblePane inherits from wxControl.
 // Additional methods available via:

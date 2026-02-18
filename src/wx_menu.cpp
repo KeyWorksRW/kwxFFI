@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxMenu inherits from wxEvtHandler.
 // Additional methods available via:

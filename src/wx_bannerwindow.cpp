@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxBannerWindow inherits from wxWindow (not wxControl).
 // Additional methods available via:

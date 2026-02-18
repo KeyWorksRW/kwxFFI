@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/vscroll.h>
 
 // wxVScrolledWindow inherits from wxWindow (via wxPanel).

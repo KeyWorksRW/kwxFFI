@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/combo.h>
 #include <wx/odcombo.h>
 

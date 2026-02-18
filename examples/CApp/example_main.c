@@ -12,7 +12,7 @@
 #include "kwxApp.h"
 #include <stdio.h>
 
-/* Forward declarations from kwxFFI - you'd include wxffi_glue.h in practice */
+/* Forward declarations from kwxFFI - you'd include kwx_glue.h in practice */
 extern void* wxFrame_Create(void* parent, int id, const char* title,
                             int x, int y, int width, int height, int style);
 extern void* wxButton_Create(void* parent, int id, const char* label,

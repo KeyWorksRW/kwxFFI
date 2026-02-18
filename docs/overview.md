@@ -51,11 +51,11 @@ C, however, has a well-defined calling convention that virtually every programmi
 
 | File | Purpose |
 |------|---------|
-| `wrapper.h` | Precompiled header with all wxWidgets includes and helper classes. Contains `wxClosure`, `wxCallback`, and derived classes for callbacks/events. |
-| `wxffi_def.h` | Export macros (`EXPORT`, `WXFFI_EXPORT`) for cross-platform DLL building. |
-| `wxffi_types.h` | Type macros that add semantic meaning to function signatures (`TClass`, `TString`, `TPoint`, etc.). Enables foreign language tools to generate proper marshalling code. |
-| `wxffi_glue.h` | All C wrapper function declarations. This is the main "API" header that foreign languages reference. |
-| `wxffi_grid.h` | Callback types and helper class for custom grid data sources. |
+| `kwx_wrapper.h` | Precompiled header with all wxWidgets includes and helper classes. Contains `wxClosure`, `wxCallback`, and derived classes for callbacks/events. |
+| `kwx_def.h` | Export macros (`EXPORT`, `WXFFI_EXPORT`) for cross-platform DLL building. |
+| `kwx_types.h` | Type macros that add semantic meaning to function signatures (`TClass`, `TString`, `TPoint`, etc.). Enables foreign language tools to generate proper marshalling code. |
+| `kwx_glue.h` | All C wrapper function declarations. This is the main "API" header that foreign languages reference. |
+| `kwx_grid.h` | Callback types and helper class for custom grid data sources. |
 
 ### Source Files (`src/`)
 
@@ -153,9 +153,9 @@ Several classes derive from wxWidgets classes to support callbacks:
 
 ## Adding New Wrappers
 
-1. **Add wxWidgets header** to `wrapper.h` if not already included
+1. **Add wxWidgets header** to `kwx_wrapper.h` if not already included
 2. **Create source file** `src/wx_classname.cpp` following the pattern above
-3. **Add declarations** to `wxffi_glue.h`
+3. **Add declarations** to `kwx_glue.h`
 4. **Register source file** in `files_list.cmake`
 5. **Build and test**
 

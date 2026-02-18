@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 #include <wx/tooltip.h>
 
 // wxAuiNotebook inherits from wxBookCtrlBase (wxControl).

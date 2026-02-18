@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxDocParentFrame and wxDocChildFrame inherit from wxFrame (wxTopLevelWindow).
 // Additional methods available via:

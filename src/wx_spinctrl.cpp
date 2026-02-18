@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSpinCtrl inherits from wxControl (via wxSpinButton on MSW).
 // Additional methods available via:

@@ -1,7 +1,7 @@
 // wx_propertygridmanager.cpp
 // C wrapper for wxPropertyGridManager
 
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxPropertyGridManager inherits from wxPanel (wxWindow).
 // Additional methods available via:

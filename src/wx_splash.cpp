@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSplashScreen inherits from wxTopLevelWindow.
 // Additional methods available via:

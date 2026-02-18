@@ -1,5 +1,5 @@
 // wx_filepickerctrl.cpp - wxFilePickerCtrl wrappers
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxFilePickerCtrl inherits from wxControl (via wxPickerBase).
 // Additional methods available via:

@@ -1,5 +1,5 @@
 // wx_ribbonpage.cpp - wxRibbonPage wrapper
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxRibbonPage inherits from wxControl (via wxRibbonControl).
 // Additional methods available via:

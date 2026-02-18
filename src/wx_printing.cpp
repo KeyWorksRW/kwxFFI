@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 #if !defined(__WXGTK__)
     #include <wx/dcprint.h>
@@ -73,13 +73,13 @@ extern "C"
     }
 
     EXPORT void* kwxPrintout_Create(void* title, void* self, void* fnBeginDocument,
-                                    void* fnEndDocument, void* fnBeginPrinting,
-                                    void* fnEndPrinting, void* fnPreparePrinting,
-                                    void* fnPrintPage, void* fnHasPage, void* DoOnPageInfo)
+                                    void* fnEndDocument, void* fnBeginPrinting, void* fnEndPrinting,
+                                    void* fnPreparePrinting, void* fnPrintPage, void* fnHasPage,
+                                    void* DoOnPageInfo)
     {
-        return (void*) new kwxPrintout(title, self, fnBeginDocument, fnEndDocument,
-                                       fnBeginPrinting, fnEndPrinting, fnPreparePrinting,
-                                       fnPrintPage, fnHasPage, DoOnPageInfo);
+        return (void*) new kwxPrintout(title, self, fnBeginDocument, fnEndDocument, fnBeginPrinting,
+                                       fnEndPrinting, fnPreparePrinting, fnPrintPage, fnHasPage,
+                                       DoOnPageInfo);
     }
     EXPORT void kwxPrintout_Delete(kwxPrintout* self)
     {
@@ -146,8 +146,8 @@ extern "C"
         return self->IsPreview();
     }
 
-    EXPORT void* wxPreviewCanvas_Create(void* preview, wxWindow* parent, int x, int y, int width, int height,
-                                        int style)
+    EXPORT void* wxPreviewCanvas_Create(void* preview, wxWindow* parent, int x, int y, int width,
+                                        int height, int style)
     {
         return (void*) new wxPreviewCanvas((wxPrintPreviewBase*) preview, parent, wxPoint(x, y),
                                            wxSize(width, height), (long) style);
@@ -197,10 +197,12 @@ extern "C"
     }
 
     EXPORT void* kwxPreviewControlBar_Create(void* preview, int buttons, wxWindow* parent,
-                                             void* title, int x, int y, int width, int height, int style)
+                                             void* title, int x, int y, int width, int height,
+                                             int style)
     {
         return (void*) new wxPreviewControlBar((wxPrintPreviewBase*) preview, (long) buttons,
-                                               parent, wxPoint(x, y), wxSize(width, height), (long) style);
+                                               parent, wxPoint(x, y), wxSize(width, height),
+                                               (long) style);
     }
 
     EXPORT void* wxPrintPreview_CreateFromDialogData(void* printout, void* printoutForPrinting,
@@ -347,10 +349,10 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxPostScriptPrintNativeData_Delete(void* self)
+    EXPORT void wxPostScriptPrintNativeData_Delete(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        delete (wxPostScriptPrintNativeData*) self;
+        delete self;
 #endif
     }
 
@@ -446,30 +448,30 @@ extern "C"
         self->SetQuality((wxPrintQuality) quality);
     }
 
-    EXPORT wxString* wxPrintData_GetPrinterCommand(void* self)
+    EXPORT wxString* wxPrintData_GetPrinterCommand(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        wxString tmp = ((wxPostScriptPrintNativeData*) self)->GetPrinterCommand();
+        wxString tmp = self->GetPrinterCommand();
         return new wxString(tmp);
 #else
         return nullptr;
 #endif
     }
 
-    EXPORT wxString* wxPrintData_GetPrinterOptions(void* self)
+    EXPORT wxString* wxPrintData_GetPrinterOptions(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        wxString tmp = ((wxPostScriptPrintNativeData*) self)->GetPrinterOptions();
+        wxString tmp = self->GetPrinterOptions();
         return new wxString(tmp);
 #else
         return nullptr;
 #endif
     }
 
-    EXPORT wxString* wxPrintData_GetPreviewCommand(void* self)
+    EXPORT wxString* wxPrintData_GetPreviewCommand(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        wxString tmp = ((wxPostScriptPrintNativeData*) self)->GetPreviewCommand();
+        wxString tmp = self->GetPreviewCommand();
         return new wxString(tmp);
 #else
         return nullptr;
@@ -482,47 +484,47 @@ extern "C"
         return new wxString(tmp);
     }
 
-    EXPORT wxString* wxPrintData_GetFontMetricPath(void* self)
+    EXPORT wxString* wxPrintData_GetFontMetricPath(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        wxString tmp = ((wxPostScriptPrintNativeData*) self)->GetFontMetricPath();
+        wxString tmp = self->GetFontMetricPath();
         return new wxString(tmp);
 #else
         return nullptr;
 #endif
     }
 
-    EXPORT double wxPrintData_GetPrinterScaleX(void* self)
+    EXPORT double wxPrintData_GetPrinterScaleX(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        return ((wxPostScriptPrintNativeData*) self)->GetPrinterScaleX();
+        return self->GetPrinterScaleX();
 #else
         return 0.0;
 #endif
     }
 
-    EXPORT double wxPrintData_GetPrinterScaleY(void* self)
+    EXPORT double wxPrintData_GetPrinterScaleY(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        return ((wxPostScriptPrintNativeData*) self)->GetPrinterScaleY();
+        return self->GetPrinterScaleY();
 #else
         return 0.0;
 #endif
     }
 
-    EXPORT int wxPrintData_GetPrinterTranslateX(void* self)
+    EXPORT int wxPrintData_GetPrinterTranslateX(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        return ((wxPostScriptPrintNativeData*) self)->GetPrinterTranslateX();
+        return self->GetPrinterTranslateX();
 #else
         return 0;
 #endif
     }
 
-    EXPORT int wxPrintData_GetPrinterTranslateY(void* self)
+    EXPORT int wxPrintData_GetPrinterTranslateY(wxPostScriptPrintNativeData* self)
     {
 #ifdef wxUSE_POSTSCRIPT
-        return ((wxPostScriptPrintNativeData*) self)->GetPrinterTranslateY();
+        return self->GetPrinterTranslateY();
 #else
         return 0;
 #endif
@@ -533,24 +535,24 @@ extern "C"
         return (int) self->GetPrintMode();
     }
 
-    EXPORT void wxPrintData_SetPrinterCommand(void* self, wxString* command)
+    EXPORT void wxPrintData_SetPrinterCommand(wxPostScriptPrintNativeData* self, wxString* command)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterCommand(*command);
+        self->SetPrinterCommand(*command);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterOptions(void* self, wxString* options)
+    EXPORT void wxPrintData_SetPrinterOptions(wxPostScriptPrintNativeData* self, wxString* options)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterOptions(*options);
+        self->SetPrinterOptions(*options);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPreviewCommand(void* self, wxString* command)
+    EXPORT void wxPrintData_SetPreviewCommand(wxPostScriptPrintNativeData* self, wxString* command)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPreviewCommand(*command);
+        self->SetPreviewCommand(*command);
 #endif
     }
 
@@ -559,63 +561,63 @@ extern "C"
         self->SetFilename(*filename);
     }
 
-    EXPORT void wxPrintData_SetFontMetricPath(void* self, wxString* path)
+    EXPORT void wxPrintData_SetFontMetricPath(wxPostScriptPrintNativeData* self, wxString* path)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetFontMetricPath(*path);
+        self->SetFontMetricPath(*path);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterScaleX(void* self, double x)
+    EXPORT void wxPrintData_SetPrinterScaleX(wxPostScriptPrintNativeData* self, double x)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterScaleX(x);
+        self->SetPrinterScaleX(x);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterScaleY(void* self, double y)
+    EXPORT void wxPrintData_SetPrinterScaleY(wxPostScriptPrintNativeData* self, double y)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterScaleY(y);
+        self->SetPrinterScaleY(y);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterScaling(void* self, double x, double y)
+    EXPORT void wxPrintData_SetPrinterScaling(wxPostScriptPrintNativeData* self, double x, double y)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterScaling(x, y);
+        self->SetPrinterScaling(x, y);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterTranslateX(void* self, int x)
+    EXPORT void wxPrintData_SetPrinterTranslateX(wxPostScriptPrintNativeData* self, int x)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterTranslateX((int) x);
+        self->SetPrinterTranslateX((int) x);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterTranslateY(void* self, int y)
+    EXPORT void wxPrintData_SetPrinterTranslateY(wxPostScriptPrintNativeData* self, int y)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterTranslateY((int) y);
+        self->SetPrinterTranslateY((int) y);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrinterTranslation(void* self, int x, int y)
+    EXPORT void wxPrintData_SetPrinterTranslation(wxPostScriptPrintNativeData* self, int x, int y)
     {
 #ifdef wxUSE_POSTSCRIPT
-        ((wxPostScriptPrintNativeData*) self)->SetPrinterTranslation((long) x, (long) y);
+        self->SetPrinterTranslation((long) x, (long) y);
 #endif
     }
 
-    EXPORT void wxPrintData_SetPrintMode(void* self, int printMode)
+    EXPORT void wxPrintData_SetPrintMode(wxPrintData* self, int printMode)
     {
-        ((wxPrintData*) self)->SetPrintMode((wxPrintMode) printMode);
+        self->SetPrintMode((wxPrintMode) printMode);
     }
 
-    EXPORT void wxPrintData_Assign(void* self, void* data)
+    EXPORT void wxPrintData_Assign(wxPrintData* self, void* data)
     {
-        *((wxPrintData*) self) = *((wxPrintData*) data);
+        *self = *((wxPrintData*) data);
     }
 
     EXPORT void* wxPrintDialogData_CreateDefault()
@@ -628,34 +630,34 @@ extern "C"
         return (void*) new wxPrintDialogData(*((wxPrintData*) printData));
     }
 
-    EXPORT void wxPrintDialogData_Delete(void* self)
+    EXPORT void wxPrintDialogData_Delete(wxPrintDialogData* self)
     {
-        delete (wxPrintDialogData*) self;
+        delete self;
     }
 
-    EXPORT int wxPrintDialogData_GetFromPage(void* self)
+    EXPORT int wxPrintDialogData_GetFromPage(wxPrintDialogData* self)
     {
-        return ((wxPrintDialogData*) self)->GetFromPage();
+        return self->GetFromPage();
     }
 
-    EXPORT int wxPrintDialogData_GetToPage(void* self)
+    EXPORT int wxPrintDialogData_GetToPage(wxPrintDialogData* self)
     {
-        return ((wxPrintDialogData*) self)->GetToPage();
+        return self->GetToPage();
     }
 
-    EXPORT int wxPrintDialogData_GetMinPage(void* self)
+    EXPORT int wxPrintDialogData_GetMinPage(wxPrintDialogData* self)
     {
-        return ((wxPrintDialogData*) self)->GetMinPage();
+        return self->GetMinPage();
     }
 
-    EXPORT int wxPrintDialogData_GetMaxPage(void* self)
+    EXPORT int wxPrintDialogData_GetMaxPage(wxPrintDialogData* self)
     {
-        return ((wxPrintDialogData*) self)->GetMaxPage();
+        return self->GetMaxPage();
     }
 
-    EXPORT int wxPrintDialogData_GetNoCopies(void* self)
+    EXPORT int wxPrintDialogData_GetNoCopies(wxPrintDialogData* self)
     {
-        return ((wxPrintDialogData*) self)->GetNoCopies();
+        return self->GetNoCopies();
     }
 
     EXPORT bool wxPrintDialogData_GetAllPages(wxPrintDialogData* self)
@@ -823,18 +825,18 @@ extern "C"
 #endif
     }
 
-    EXPORT void wxPrinterDC_Delete(void* self)
+    EXPORT void wxPrinterDC_Delete(wxPrinterDC* self)
     {
 #if !defined(__WXGTK__)
-        delete (wxPrinterDC*) self;
+        delete self;
 #endif
     }
 
-    EXPORT wxRect* wxPrinterDC_GetPaperRect(void* self)
+    EXPORT wxRect* wxPrinterDC_GetPaperRect(wxPrinterDC* self)
     {
 #if !defined(__WXGTK__)
         wxRect* rct = new wxRect();
-        *rct = ((wxPrinterDC*) self)->GetPaperRect();
+        *rct = self->GetPaperRect();
         return rct;
 #else
         return 0;

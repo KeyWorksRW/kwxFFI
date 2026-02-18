@@ -1,4 +1,4 @@
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 // wxSimpleHtmlListBox inherits from wxWindow and wxItemContainer (not wxControl).
 // Additional methods available via:

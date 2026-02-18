@@ -1,5 +1,5 @@
 // wxStdDialogButtonSizer - Standard dialog button sizer
-#include "wrapper.h"
+#include "kwx_wrapper.h"
 
 extern "C"
 {
