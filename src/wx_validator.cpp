@@ -85,7 +85,7 @@ extern "C"
 
             for (unsigned int i = 0; i < items.GetCount(); i++)
             {
-                items_copy[i] = strdup(items.Item(i).utf8_str().data());
+                items_copy[i] = strdup(items.Item(i).utf8_string().data());
             }
             retval = (void*) items_copy;
             *count = items.GetCount();
@@ -119,7 +119,7 @@ extern "C"
 
             for (unsigned int i = 0; i < items.GetCount(); i++)
             {
-                items_copy[i] = strdup(items.Item(i).utf8_str().data());
+                items_copy[i] = strdup(items.Item(i).utf8_string().data());
             }
             retval = (void*) items_copy;
             *count = items.GetCount();

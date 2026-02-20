@@ -71,7 +71,7 @@ extern "C"
 
     EXPORT bool wxUIActionSimulator_Text(wxUIActionSimulator* self, wxString* text)
     {
-        return self->Text(text->utf8_str().data());
+        return self->Text(text->utf8_string().data());
     }
 
     // Convenience: select all text in current control

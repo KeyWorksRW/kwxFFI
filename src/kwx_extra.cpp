@@ -1182,7 +1182,7 @@ extern "C"
     EXPORT int wxString_GetString(wxString* self, char* buffer)
     {
         if (buffer)
-            memcpy(buffer, self->utf8_str().data(), self->Length());
+            memcpy(buffer, self->utf8_string().data(), self->Length());
         return self->Length();
     }
 
@@ -1191,21 +1191,19 @@ extern "C"
         return self->length();
     }
 
-    EXPORT wxCharBuffer* wxString_GetUtf8(wxString* self)
+    EXPORT void* kwxUtf8Buffer_Create(wxString* self)
     {
-        wxCharBuffer* cb = new wxCharBuffer;
-        *cb = self->utf8_str();
-        return cb;
+        return new std::string(self->utf8_string());
     }
 
-    EXPORT utf8char* wxCharBuffer_DataUtf8(wxCharBuffer* cb)
+    EXPORT utf8char* kwxUtf8Buffer_Data(void* buf)
     {
-        return (utf8char*) cb->data();
+        return (utf8char*) static_cast<std::string*>(buf)->data();
     }
 
-    EXPORT void wxCharBuffer_Delete(wxCharBuffer* cb)
+    EXPORT void kwxUtf8Buffer_Delete(void* buf)
     {
-        delete cb;
+        delete static_cast<std::string*>(buf);
     }
     EXPORT void* wxPoint_Create(int x, int y)
     {
@@ -1870,7 +1868,7 @@ extern "C"
         if (buffer == nullptr)
         {
             wxString result = wxGetPasswordFromUser(message, caption, defaultText, parent);
-            resultBuffer = result.utf8_str().data();
+            resultBuffer = result.utf8_string();
             return static_cast<int>(resultBuffer.size());
         }
         else if (!resultBuffer.empty())
@@ -1894,7 +1892,7 @@ extern "C"
         {
             wxString result =
                 wxGetTextFromUser(message, caption, defaultText, parent, x, y, center != 0);
-            resultBuffer = result.utf8_str().data();
+            resultBuffer = result.utf8_string();
             return static_cast<int>(resultBuffer.size());
         }
         else if (!resultBuffer.empty())
@@ -2231,7 +2229,7 @@ extern "C"
 
     EXPORT void* wxLog_GetTimestamp(wxLog* self)
     {
-        return (void*) strdup((self->GetTimestamp()).utf8_str().data());
+        return (void*) strdup((self->GetTimestamp()).utf8_string().data());
     }
 
     EXPORT void LogError(wxString* message)

@@ -417,7 +417,7 @@ extern "C"
         if (lines)
         {
             for (int i = 0; i < result; i++)
-                ((const char**) lines)[i] = strdup(arr[i].utf8_str().data());
+                ((const char**) lines)[i] = strdup(arr[i].utf8_string().data());
         }
         return result;
     }

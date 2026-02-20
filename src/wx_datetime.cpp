@@ -419,7 +419,7 @@ extern "C"
                 remainStr += *parseOut;
 
             delete ((const char*) date);
-            return (void*) strdup(remainStr.utf8_str().data());
+            return (void*) strdup(remainStr.utf8_string().data());
         }
         else
             return nullptr;
@@ -439,7 +439,7 @@ extern "C"
                 remainStr += *parseOut;
 
             delete ((const char*) date);
-            return (void*) strdup(remainStr.utf8_str().data());
+            return (void*) strdup(remainStr.utf8_string().data());
         }
         else
             return nullptr;
@@ -457,7 +457,7 @@ extern "C"
                 remainStr += *parseOut;
 
             delete ((const char*) datetime);
-            return (void*) strdup(remainStr.utf8_str().data());
+            return (void*) strdup(remainStr.utf8_string().data());
         }
         else
             return nullptr;
@@ -475,7 +475,7 @@ extern "C"
                 remainStr += *parseOut;
 
             delete ((const char*) date);
-            return (void*) strdup(remainStr.utf8_str().data());
+            return (void*) strdup(remainStr.utf8_string().data());
         }
         else
             return nullptr;
@@ -493,7 +493,7 @@ extern "C"
                 remainStr += *parseOut;
 
             delete ((const char*) time);
-            return (void*) strdup(remainStr.utf8_str().data());
+            return (void*) strdup(remainStr.utf8_string().data());
         }
         else
             return nullptr;

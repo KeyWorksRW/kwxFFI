@@ -126,10 +126,14 @@ void kwxDropTarget::OnLeave()
 bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
 {
     bool result = false;
+    std::vector<std::string> strings(filenames.GetCount());
     auto arr = std::make_unique<const char*[]>(filenames.GetCount());
 
     for (unsigned int i = 0; i < filenames.GetCount(); i++)
-        arr[i] = filenames.Item(i).utf8_str().data();
+    {
+        strings[i] = filenames.Item(i).utf8_string();
+        arr[i] = strings[i].data();
+    }
 
     result = func(obj, (long) x, (long) y, (void*) arr.get(), (int) filenames.GetCount()) != 0;
 
@@ -138,7 +142,7 @@ bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& f
 
 bool kwxTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
 {
-    return func(obj, (long) x, (long) y, (void*) text.utf8_str().data()) != 0;
+    return func(obj, (long) x, (long) y, (void*) text.utf8_string().data()) != 0;
 }
 
 extern "C"
@@ -212,7 +216,7 @@ extern "C"
         if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
         }
         return arr.GetCount();
     }

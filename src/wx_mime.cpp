@@ -28,7 +28,7 @@ extern "C"
         if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
         }
 
         return result;
@@ -60,7 +60,7 @@ extern "C"
         if (self->GetMimeTypes(arr) && list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
         }
 
         return arr.GetCount();
@@ -73,7 +73,7 @@ extern "C"
         if (self->GetExtensions(arr) && list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
         }
 
         return arr.GetCount();

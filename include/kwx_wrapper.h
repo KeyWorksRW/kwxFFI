@@ -421,7 +421,7 @@ public:
 
     virtual bool OnExecute(const wxString& topic, char* data, int size, wxIPCFormat format)
     {
-        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_str().data(), data, size,
+        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_string().data(), data, size,
                                          (int) format) != 0 :
                              FALSE;
     };
@@ -430,39 +430,37 @@ public:
                             wxIPCFormat format)
     {
         return DoOnRequest ?
-                   DoOnRequest(kwxObject, (void*) topic.utf8_str().data(),
-                               (void*) item.utf8_str().data(), (void*) size, (int) format) :
+                   DoOnRequest(kwxObject, (void*) topic.utf8_string().data(),
+                               (void*) item.utf8_string().data(), (void*) size, (int) format) :
                    (char*) nullptr;
     };
 
     virtual bool OnPoke(const wxString& topic, const wxString& item, char* data, int size,
                         wxIPCFormat format)
     {
-        return DoOnPoke ? DoOnPoke(kwxObject, (void*) topic.utf8_str().data(),
-                                   (void*) item.utf8_str().data(), data, size, (int) format) :
+        return DoOnPoke ? DoOnPoke(kwxObject, (void*) topic.utf8_string().data(),
+                                   (void*) item.utf8_string().data(), data, size, (int) format) :
                           FALSE;
     };
 
     virtual bool OnStartAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStartAdvise ? DoOnStartAdvise(kwxObject, (void*) topic.utf8_str().data(),
-                                                 (void*) item.utf8_str().data()) :
+        return DoOnStartAdvise ? DoOnStartAdvise(kwxObject, (void*) topic.utf8_string().data(),
+                                                 (void*) item.utf8_string().data()) :
                                  FALSE;
     };
 
     virtual bool OnStopAdvise(const wxString& topic, const wxString& item)
     {
-        return DoOnStopAdvise ? DoOnStopAdvise(kwxObject, (void*) topic.utf8_str().data(),
-                                               (void*) item.utf8_str().data()) :
+        return DoOnStopAdvise ? DoOnStopAdvise(kwxObject, (void*) topic.utf8_string().data(),
+                                               (void*) item.utf8_string().data()) :
                                 FALSE;
     };
 
     virtual bool OnAdvise(const wxString& topic, const wxString& item, char* data, int size,
                           wxIPCFormat format)
     {
-        return DoOnAdvise ? DoOnAdvise(kwxObject, (void*) topic.utf8_str().data(),
-                                       (void*) item.utf8_str().data(), data, size, (int) format) :
-                            FALSE;
+        return DoOnAdvise ?&#10;                   DoOnAdvise(kwxObject, (void*) topic.utf8_string().data(),&#10;                              (void*) item.utf8_string().data(), data, size, (int) format) :&#10;                   FALSE;
     };
 
     virtual bool OnDisconnect()

@@ -5,7 +5,7 @@
 int copyStrToBuf(void* dst, wxString& src)
 {
     if (dst)
-        strcpy((char*) dst, src.utf8_str().data());
+        strcpy((char*) dst, src.utf8_string().data());
     return src.Length();
 }
 
