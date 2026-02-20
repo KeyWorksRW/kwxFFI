@@ -53,11 +53,10 @@ extern "C"
     }
 }
 
-
 class wxcPrintout : public wxPrintout
 {
 private:
-    DECLARE_DYNAMIC_CLASS(wxcPrintout)
+    wxDECLARE_DYNAMIC_CLASS(wxcPrintout);
 
 protected:
     int m_startPage;
@@ -85,12 +84,13 @@ public:
     bool HasPage(int page);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxcPrintout, wxPrintout)
+wxIMPLEMENT_DYNAMIC_CLASS(wxcPrintout, wxPrintout);
 
 class wxcPrintEvent : public wxEvent
 {
 private:
-    DECLARE_DYNAMIC_CLASS(wxcPrintEvent)
+    wxDECLARE_DYNAMIC_CLASS(wxcPrintEvent);
+
 private:
     wxcPrintout* m_printOut;
     int m_page;
@@ -111,7 +111,7 @@ public:
     void SetPageLimits(int startPage, int endPage, int fromPage, int toPage);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxcPrintEvent, wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxcPrintEvent, wxEvent);
 
 wxcPrintEvent::wxcPrintEvent(wxEventType evtType, int id, wxcPrintout* printOut, int page,
                              int lastPage) : wxEvent(id, evtType)

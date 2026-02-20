@@ -231,10 +231,6 @@ extern "C"
     {
         return (int) wxBORDER_SIMPLE;
     }
-    EXPORT int expwxTRANSPARENT_WINDOW()
-    {
-        return (int) wxTRANSPARENT_WINDOW;
-    }
     EXPORT int expwxBORDER_NONE()
     {
         return (int) wxBORDER_NONE;

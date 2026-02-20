@@ -23,11 +23,11 @@ public:
 
     virtual bool OnFacename(const wxString& facename)
     {
-        return func(kwxObject, (void*) facename.wchar_str()) != 0;
+        return func(kwxObject, (void*) facename.utf8_str().data()) != 0;
     }
     virtual bool OnFontEncoding(const wxString& WXUNUSED(facename), const wxString& encoding)
     {
-        return func(kwxObject, (void*) encoding.wchar_str()) != 0;
+        return func(kwxObject, (void*) encoding.utf8_str().data()) != 0;
     }
 };
 

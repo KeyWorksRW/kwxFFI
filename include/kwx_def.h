@@ -42,8 +42,8 @@
     {                                 \
         return (int) VAL;             \
     };
-#define WXFFI_CONSTANT_STR(NAME, VAL)                           \
-    WXFFI_EXPORT(wxString*, exp##NAME)()                        \
-    {                                                           \
-        return new wxString((const wchar_t*) VAL, wxConvLocal); \
+#define WXFFI_CONSTANT_STR(NAME, VAL)    \
+    WXFFI_EXPORT(wxString*, exp##NAME)() \
+    {                                    \
+        return new wxString(VAL);        \
     };

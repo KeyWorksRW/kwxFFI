@@ -26,14 +26,14 @@ public:
     virtual int OnCompareItems(const wxTreeItemId& item1, const wxTreeItemId& item2)
     {
         return kwxObject ? compare_func(kwxObject, (void*) &item1, (void*) &item2) :
-                              wxRemotelyScrolledTreeCtrl::OnCompareItems(item1, item2);
+                           wxRemotelyScrolledTreeCtrl::OnCompareItems(item1, item2);
     }
 };
 
 extern "C"
 {
-    EXPORT void* wxDynamicSashWindow_Create(void* parent, int id, int x, int y, int width, int height,
-                                            int style)
+    EXPORT void* wxDynamicSashWindow_Create(void* parent, int id, int x, int y, int width,
+                                            int height, int style)
     {
         return (void*) new wxDynamicSashWindow((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
                                                wxSize(width, height), (long) style);
@@ -54,8 +54,8 @@ extern "C"
         return (void*) ((wxDynamicSashWindow*) pObject)->GetVScrollBar((wxWindow*) child);
     }
 
-    EXPORT void* wxEditableListBox_Create(void* parent, int id, void* label, int x, int y, int width,
-                                          int height, int style)
+    EXPORT void* wxEditableListBox_Create(void* parent, int id, void* label, int x, int y,
+                                          int width, int height, int style)
     {
         return (void*) new wxEditableListBox((wxWindow*) parent, (wxWindowID) id,
                                              wxString::FromAscii((char*) label), wxPoint(x, y),
@@ -83,7 +83,7 @@ extern "C"
         if (ref)
         {
             for (unsigned int i = 0; i < list.GetCount(); i++)
-                ((char**) ref)[i] = strdup(list.Item(i).mb_str());
+                ((char**) ref)[i] = strdup(list.Item(i).utf8_str());
         }
 
         return list.GetCount();
@@ -119,7 +119,8 @@ extern "C"
         return (void*) ((wxEditableListBox*) pObject)->GetEditButton();
     }
 
-    EXPORT void* wxLEDNumberCtrl_Create(void* parent, int id, int x, int y, int width, int height, int style)
+    EXPORT void* wxLEDNumberCtrl_Create(void* parent, int id, int x, int y, int width, int height,
+                                        int style)
     {
         return (void*) new wxLEDNumberCtrl((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
                                            wxSize(width, height), (long) style);
@@ -164,14 +165,15 @@ extern "C"
     }
 
     EXPORT void* wxMultiCellItemHandle_CreateWithSize(void* pObject, int row, int column, int sizeX,
-                                                      int sizeY, int style, int wx, int wy, int align)
+                                                      int sizeY, int style, int wx, int wy,
+                                                      int align)
     {
-        return (void*) new wxMultiCellItemHandle(row, column, wxSize(sizeX, sizeY), (wxResizable) style,
-                                                 wxSize(wx, wy), align);
+        return (void*) new wxMultiCellItemHandle(row, column, wxSize(sizeX, sizeY),
+                                                 (wxResizable) style, wxSize(wx, wy), align);
     }
 
-    EXPORT void* wxMultiCellItemHandle_CreateWithStyle(void* pObject, int row, int column, int style,
-                                                       int wx, int wy, int align)
+    EXPORT void* wxMultiCellItemHandle_CreateWithStyle(void* pObject, int row, int column,
+                                                       int style, int wx, int wy, int align)
     {
         return (void*) new wxMultiCellItemHandle(row, column, (wxResizable) style, wxSize(wx, wy),
                                                  align);
@@ -248,9 +250,11 @@ extern "C"
         return (int) ((wxMultiCellSizer*) pObject)->SetDefaultCellSize(wxSize(width, height));
     }
 
-    EXPORT int wxMultiCellSizer_SetColumnWidth(void* pObject, int column, int colSize, int expandable)
+    EXPORT int wxMultiCellSizer_SetColumnWidth(void* pObject, int column, int colSize,
+                                               int expandable)
     {
-        return (int) ((wxMultiCellSizer*) pObject)->SetColumnWidth(column, colSize, expandable != 0);
+        return (int) ((wxMultiCellSizer*) pObject)
+            ->SetColumnWidth(column, colSize, expandable != 0);
     }
 
     EXPORT int wxMultiCellSizer_SetRowHeight(void* pObject, int row, int rowSize, int expandable)
@@ -275,7 +279,8 @@ extern "C"
 
     EXPORT void wxMultiCellCanvas_Add(void* pObject, void* win, int row, int col)
     {
-        ((wxMultiCellCanvas*) pObject)->Add((wxWindow*) win, (unsigned int) row, (unsigned int) col);
+        ((wxMultiCellCanvas*) pObject)
+            ->Add((wxWindow*) win, (unsigned int) row, (unsigned int) col);
     }
 
     EXPORT int wxMultiCellCanvas_MaxRows(void* pObject)
@@ -298,15 +303,16 @@ extern "C"
         ((wxMultiCellCanvas*) pObject)->SetMinCellSize(wxSize(width, height));
     }
 
-    EXPORT void* wxSplitterScrolledWindow_Create(void* parent, int id, int x, int y, int width, int height,
-                                                 int style)
+    EXPORT void* wxSplitterScrolledWindow_Create(void* parent, int id, int x, int y, int width,
+                                                 int height, int style)
     {
         return (void*) new wxSplitterScrolledWindow((wxWindow*) parent, (wxWindowID) id,
-                                                    wxPoint(x, y), wxSize(width, height), (long) style);
+                                                    wxPoint(x, y), wxSize(width, height),
+                                                    (long) style);
     }
 
-    EXPORT void* wxThinSplitterWindow_Create(void* parent, int id, int x, int y, int width, int height,
-                                             int style)
+    EXPORT void* wxThinSplitterWindow_Create(void* parent, int id, int x, int y, int width,
+                                             int height, int style)
     {
         return (void*) new wxThinSplitterWindow((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
                                                 wxSize(width, height), (long) style);
@@ -327,15 +333,15 @@ extern "C"
         ((wxThinSplitterWindow*) pObject)->DrawSash(*((wxDC*) dc));
     }
 
-    EXPORT void* wxTreeCompanionWindow_Create(void* parent, int id, int x, int y, int width, int height,
-                                              int style)
+    EXPORT void* wxTreeCompanionWindow_Create(void* parent, int id, int x, int y, int width,
+                                              int height, int style)
     {
         return (void*) new wxTreeCompanionWindow((wxWindow*) parent, (wxWindowID) id, wxPoint(x, y),
                                                  wxSize(width, height), (long) style);
     }
 
-    EXPORT void wxTreeCompanionWindow_DrawItem(void* pObject, void* dc, void* id, int x, int y, int width,
-                                               int height)
+    EXPORT void wxTreeCompanionWindow_DrawItem(void* pObject, void* dc, void* id, int x, int y,
+                                               int width, int height)
     {
         ((wxTreeCompanionWindow*) pObject)
             ->DrawItem(*((wxDC*) dc), *((wxTreeItemId*) id), wxRect(x, y, width, height));
@@ -351,11 +357,13 @@ extern "C"
         ((wxTreeCompanionWindow*) pObject)->SetTreeCtrl((wxRemotelyScrolledTreeCtrl*) treeCtrl);
     }
 
-    EXPORT void* wxRemotelyScrolledTreeCtrl_Create(void* pObject, void* compareFunc, void* parent, int id,
-                                                   int x, int y, int width, int height, int style)
+    EXPORT void* wxRemotelyScrolledTreeCtrl_Create(void* pObject, void* compareFunc, void* parent,
+                                                   int id, int x, int y, int width, int height,
+                                                   int style)
     {
-        return (void*) new kwxSCTreeControl(pObject, compareFunc, (wxWindow*) parent, (wxWindowID) id,
-                                            wxPoint(x, y), wxSize(width, height), (long) style);
+        return (void*) new kwxSCTreeControl(pObject, compareFunc, (wxWindow*) parent,
+                                            (wxWindowID) id, wxPoint(x, y), wxSize(width, height),
+                                            (long) style);
     }
 
     EXPORT void wxRemotelyScrolledTreeCtrl_Delete(void* pObject)
@@ -393,8 +401,8 @@ extern "C"
         ((kwxSCTreeControl*) pObject)->HideVScrollbar();
     }
 
-    EXPORT void wxRemotelyScrolledTreeCtrl_CalcTreeSize(void* pObject, void* x, void* y, void* width,
-                                                        void* height)
+    EXPORT void wxRemotelyScrolledTreeCtrl_CalcTreeSize(void* pObject, void* x, void* y,
+                                                        void* width, void* height)
     {
         wxRect rect;
         ((kwxSCTreeControl*) pObject)->CalcTreeSize(rect);
@@ -404,8 +412,8 @@ extern "C"
         *((int*) height) = rect.height;
     }
 
-    EXPORT void wxRemotelyScrolledTreeCtrl_CalcTreeSizeItem(void* pObject, void* id, void* x, void* y,
-                                                            void* width, void* height)
+    EXPORT void wxRemotelyScrolledTreeCtrl_CalcTreeSizeItem(void* pObject, void* id, void* x,
+                                                            void* y, void* width, void* height)
     {
         wxRect rect;
         ((kwxSCTreeControl*) pObject)->CalcTreeSize(*((wxTreeItemId*) id), rect);
