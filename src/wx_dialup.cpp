@@ -26,7 +26,7 @@ extern "C"
         if (list)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((char**) list)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
         }
 
         return arr.GetCount();

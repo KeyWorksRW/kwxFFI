@@ -72,7 +72,7 @@ extern "C"
         if (paths)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
         }
         return arr.GetCount();
     }
@@ -98,7 +98,7 @@ extern "C"
         if (paths)
         {
             for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_str().data());
+                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
         }
         return arr.GetCount();
     }

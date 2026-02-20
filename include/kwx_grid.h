@@ -67,7 +67,7 @@ public:
     wxString GetValue(int row, int col) { return (const char*) m_fnGetValue(kwxObject, row, col); };
     void SetValue(int row, int col, const wxString& s)
     {
-        m_fnSetValue(kwxObject, row, col, (void*) s.utf8_str().data());
+        m_fnSetValue(kwxObject, row, col, (void*) s.utf8_string().data());
     };
     bool IsEmptyCell(int row, int col) { return m_fnIsEmptyCell(kwxObject, row, col) != 0; };
 
@@ -93,11 +93,11 @@ public:
 
     void SetRowLabelValue(int row, const wxString& s)
     {
-        m_fnSetRowLabelValue(kwxObject, row, (void*) s.utf8_str().data());
+        m_fnSetRowLabelValue(kwxObject, row, (void*) s.utf8_string().data());
     };
     void SetColLabelValue(int col, const wxString& s)
     {
-        m_fnSetColLabelValue(kwxObject, col, (void*) s.utf8_str().data());
+        m_fnSetColLabelValue(kwxObject, col, (void*) s.utf8_string().data());
     };
     wxString GetRowLabelValue(int row)
     {

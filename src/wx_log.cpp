@@ -128,7 +128,7 @@ extern "C"
     EXPORT void* kwxLog_GetTimestamp(kwxLog* self)
     {
         wxString retVal = self->GetTimestamp();
-        return (void*) strdup(retVal.utf8_str().data());
+        return (void*) strdup(retVal.utf8_string().data());
     }
 
     EXPORT int kwxSysErrorCode()

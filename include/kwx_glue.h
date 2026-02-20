@@ -1928,12 +1928,7 @@ TClassDefExtend(wxButton, wxControl) TClass(wxButton)
     wxButton_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                     TRect(left, top, width, height), int style);
 int wxButton_SetBackgroundColour(TSelf(wxButton) pObject, TClass(wxColour) colour);
-void wxButton_SetDefault(TSelf(wxButton) pObject);
-
-TClassDefExtend(wxCSConv, wxMBConv)
-
-    TClassDefExtend(wxCalculateLayoutEvent, wxEvent) TClass(wxCalculateLayoutEvent)
-        wxCalculateLayoutEvent_Create(int id);
+void wxButton_SetDefault(TSelf(wxButton) pObject);&#10;&#10;TClassDefExtend(wxCalculateLayoutEvent, wxEvent) TClass(wxCalculateLayoutEvent)&#10;    wxCalculateLayoutEvent_Create(int id);
 int wxCalculateLayoutEvent_GetFlags(TSelf(wxCalculateLayoutEvent) pObject);
 TClass(wxRect) wxCalculateLayoutEvent_GetRect(TSelf(wxCalculateLayoutEvent) pObject);
 void wxCalculateLayoutEvent_SetFlags(TSelf(wxCalculateLayoutEvent) pObject, int flags);
@@ -4146,22 +4141,7 @@ TClassDefExtend(wxLogGUI, wxLog)
 
                     TClassDefExtend(wxLogTextCtrl, wxLog)
 
-                        TClassDefExtend(wxLogWindow, wxLogPassThrough)
-
-                            TClassDef(wxLongLong)
-
-                                TClassDef(wxMBConv)
-
-                                    TClassDefExtend(wxMBConvFile, wxMBConv)
-
-                                        TClassDefExtend(wxMBConvUTF7, wxMBConv)
-
-                                            TClassDefExtend(wxMBConvUTF8, wxMBConv)
-
-                                                TClassDefExtend(
-                                                    wxMDIChildFrame,
-                                                    wxFrame) void wxMDIChildFrame_Activate(TSelf(wxMDIChildFrame)
-                                                                                               pObject);
+                        TClassDefExtend(wxLogWindow, wxLogPassThrough)&#10;&#10;                            TClassDefExtend(wxMDIChildFrame, wxFrame) void wxMDIChildFrame_Activate(&#10;                                TSelf(wxMDIChildFrame) pObject);
 TClass(wxMDIChildFrame)
     wxMDIChildFrame_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                            TRect(left, top, width, height), int style);
@@ -4478,7 +4458,6 @@ int wxMultiCellSizer_SetRowHeight(TSelf(wxMultiCellSizer) pObject, int row, int 
 
 TClassDef(wxMutex) TClass(wxMutex) wxMutex_Create();
 void wxMutex_Delete(TSelf(wxMutex) pObject);
-TBool wxMutex_IsLocked(TSelf(wxMutex) pObject);
 int wxMutex_Lock(TSelf(wxMutex) pObject);
 int wxMutex_TryLock(TSelf(wxMutex) pObject);
 int wxMutex_Unlock(TSelf(wxMutex) pObject);
@@ -5932,15 +5911,8 @@ void wxSashWindow_SetMinimumSizeY(TSelf(wxSashWindow) pObject, int min);
 void wxSashWindow_SetSashBorder(TSelf(wxSashWindow) pObject, int edge, TBool border);
 void wxSashWindow_SetSashVisible(TSelf(wxSashWindow) pObject, int edge, TBool sash);
 
-TClassDef(wxScopedArray)
-
-    TClassDef(wxScopedPtr)
-
-        TClassDefExtend(wxScreenDC, wxDC) TClass(wxScreenDC) wxScreenDC_Create();
+TClassDefExtend(wxScreenDC, wxDC) TClass(wxScreenDC) wxScreenDC_Create();
 void wxScreenDC_Delete(TSelf(wxScreenDC) pObject);
-TBool wxScreenDC_EndDrawingOnTop(TSelf(wxScreenDC) pObject);
-TBool wxScreenDC_StartDrawingOnTop(TSelf(wxScreenDC) pObject, TRect(x, y, width, height));
-TBool wxScreenDC_StartDrawingOnTopOfWin(TSelf(wxScreenDC) pObject, TClass(wxWindow) win);
 
 TClassDefExtend(wxScrollBar, wxControl) TClass(wxScrollBar)
     wxScrollBar_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height), int style);

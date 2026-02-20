@@ -258,7 +258,8 @@ void wxInputSinkEvent::Read(wxInputStream* input)
 class kwxHtmlWindow : public wxHtmlWindow
 {
 private:
-    DECLARE_DYNAMIC_CLASS(kwxHtmlWindow)
+    wxDECLARE_DYNAMIC_CLASS(kwxHtmlWindow);
+
 public:
     kwxHtmlWindow() : wxHtmlWindow() {};
     kwxHtmlWindow(wxWindow*, wxWindowID id, const wxPoint&, const wxSize& size, long style,
@@ -271,12 +272,13 @@ public:
     void OnSetTitle(const wxString& title);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(kwxHtmlWindow, wxHtmlWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(kwxHtmlWindow, wxHtmlWindow);
 
 class kwxHtmlEvent : public wxCommandEvent
 {
 private:
-    DECLARE_DYNAMIC_CLASS(kwxHtmlEvent)
+    wxDECLARE_DYNAMIC_CLASS(kwxHtmlEvent);
+
 private:
     const wxMouseEvent* m_mouseEvent;
     const wxHtmlCell* m_htmlCell;
@@ -295,7 +297,7 @@ public:
     wxPoint GetLogicalPosition();
 };
 
-IMPLEMENT_DYNAMIC_CLASS(kwxHtmlEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(kwxHtmlEvent, wxCommandEvent);
 
 kwxHtmlWindow::kwxHtmlWindow(wxWindow* prt, wxWindowID id, const wxPoint& pt, const wxSize& size,
                              long style, const wxString& title) :
@@ -635,511 +637,424 @@ static const char* defineDefs[] = {
 };
 
 static const char* useDefs[] = {
-#ifdef wxUSE_UNIX
+#if wxUSE_UNIX
     "UNIX",
 #endif
-#ifdef wxUSE_NANOX
-    "NANOX",
-#endif
-#ifdef wxUSE_NATIVE_STATUSBAR
+#if wxUSE_NATIVE_STATUSBAR
     "NATIVE_STATUSBAR",
 #endif
-#ifdef wxUSE_OWNER_DRAWN
+#if wxUSE_OWNER_DRAWN
     "OWNER_DRAWN",
 #endif
-#ifdef wxUSE_OWNER_DRAWN
+#if wxUSE_OWNER_DRAWN
     "OWNER_DRAWN",
 #endif
-#ifdef wxUSE_RICHEDIT
+#if wxUSE_RICHEDIT
     "RICHEDIT",
 #endif
-#ifdef wxUSE_RICHEDIT
+#if wxUSE_RICHEDIT
     "RICHEDIT",
 #endif
-#ifdef wxUSE_REGEX
+#if wxUSE_REGEX
     "REGEX",
 #endif
-#ifdef wxUSE_ZLIB
+#if wxUSE_ZLIB
     "ZLIB",
 #endif
-#ifdef wxUSE_LIBPNG
+#if wxUSE_LIBPNG
     "LIBPNG",
 #endif
-#ifdef wxUSE_LIBJPEG
+#if wxUSE_LIBJPEG
     "LIBJPEG",
 #endif
-#ifdef wxUSE_LIBTIFF
+#if wxUSE_LIBTIFF
     "LIBTIFF",
 #endif
-#ifdef wxUSE_ODBC
-    "ODBC",
-#endif
-#ifdef wxUSE_FREETYPE
+#if wxUSE_FREETYPE
     "FREETYPE",
 #endif
-#ifdef wxUSE_THREADS
+#if wxUSE_THREADS
     "THREADS",
 #endif
 #if defined(wxcREFUSE_OPENGL)
     #undef wxUSE_OPENGL
     #undef wxUSE_GLCANVAS
 #endif
-#ifdef wxUSE_OPENGL
+#if wxUSE_OPENGL
     "OPENGL",
 #endif
-#ifdef wxUSE_GLCANVAS
+#if wxUSE_GLCANVAS
     "GLCANVAS",
 #endif
-#ifdef wxUSE_GUI
+#if wxUSE_GUI
     "GUI",
 #endif
-#ifdef wxUSE_NOGUI
-    "NOGUI",
-#endif
-#ifdef wxUSE_ON_FATAL_EXCEPTION
+#if wxUSE_ON_FATAL_EXCEPTION
     "ON_FATAL_EXCEPTION",
 #endif
-#ifdef wxUSE_SNGLINST_CHECKER
+#if wxUSE_SNGLINST_CHECKER
     "SNGLINST_CHECKER",
 #endif
-#ifdef wxUSE_CONSTRAINTS
+#if wxUSE_CONSTRAINTS
     "CONSTRAINTS",
 #endif
-#ifdef wxUSE_VALIDATORS
+#if wxUSE_VALIDATORS
     "VALIDATORS",
 #endif
-#ifdef wxUSE_CONTROLS
+#if wxUSE_CONTROLS
     "CONTROLS",
 #endif
-#ifdef wxUSE_POPUPWIN
+#if wxUSE_POPUPWIN
     "POPUPWIN",
 #endif
-#ifdef wxUSE_TIPWINDOW
+#if wxUSE_TIPWINDOW
     "TIPWINDOW",
 #endif
-#ifdef wxUSE_ACCEL
+#if wxUSE_ACCEL
     "ACCEL",
 #endif
-#ifdef wxUSE_CALENDARCTRL
+#if wxUSE_CALENDARCTRL
     "CALENDARCTRL",
 #endif
-#ifdef wxUSE_FILEDLG
+#if wxUSE_FILEDLG
     "FILEDLG",
 #endif
-#ifdef wxUSE_FINDREPLDLG
+#if wxUSE_FINDREPLDLG
     "FINDREPLDLG",
 #endif
-#ifdef wxUSE_FONTDLG
+#if wxUSE_FONTDLG
     "FONTDLG",
 #endif
-#ifdef wxUSE_MIMETYPE
+#if wxUSE_MIMETYPE
     "MIMETYPE",
 #endif
-#ifdef wxUSE_SYSTEM_OPTIONS
+#if wxUSE_SYSTEM_OPTIONS
     "SYSTEM_OPTIONS",
 #endif
-#ifdef wxUSE_MSGDLG
+#if wxUSE_MSGDLG
     "MSGDLG",
 #endif
-#ifdef wxUSE_NUMBERDLG
+#if wxUSE_NUMBERDLG
     "NUMBERDLG",
 #endif
-#ifdef wxUSE_TEXTDLG
+#if wxUSE_TEXTDLG
     "TEXTDLG",
 #endif
-#ifdef wxUSE_STARTUP_TIPS
+#if wxUSE_STARTUP_TIPS
     "STARTUP_TIPS",
 #endif
-#ifdef wxUSE_PROGRESSDLG
+#if wxUSE_PROGRESSDLG
     "PROGRESSDLG",
 #endif
-#ifdef wxUSE_CHOICEDLG
+#if wxUSE_CHOICEDLG
     "CHOICEDLG",
 #endif
-#ifdef wxUSE_COLOURDLG
+#if wxUSE_COLOURDLG
     "COLOURDLG",
 #endif
-#ifdef wxUSE_DIRDLG
+#if wxUSE_DIRDLG
     "DIRDLG",
 #endif
-#ifdef wxUSE_DRAGIMAGE
+#if wxUSE_DRAGIMAGE
     "DRAGIMAGE",
 #endif
-#ifdef wxUSE_PROPSHEET
-    "PROPSHEET",
-#endif
-#ifdef wxUSE_WIZARDDLG
-    "WIZARDDLG",
-#endif
-#ifdef wxUSE_SPLASH
+#if wxUSE_SPLASH
     "SPLASH",
 #endif
-#ifdef wxUSE_JOYSTICK
+#if wxUSE_JOYSTICK
     "JOYSTICK",
 #endif
-#ifdef wxUSE_BUTTON
+#if wxUSE_BUTTON
     "BUTTON",
 #endif
-#ifdef wxUSE_CARET
+#if wxUSE_CARET
     "CARET",
 #endif
-#ifdef wxUSE_BMPBUTTON
+#if wxUSE_BMPBUTTON
     "BMPBUTTON",
 #endif
-#ifdef wxUSE_CHECKBOX
+#if wxUSE_CHECKBOX
     "CHECKBOX",
 #endif
-#ifdef wxUSE_CHECKLISTBOX
+#if wxUSE_CHECKLISTBOX
     "CHECKLISTBOX",
 #endif
-#ifdef wxUSE_COMBOBOX
+#if wxUSE_COMBOBOX
     "COMBOBOX",
 #endif
-#ifdef wxUSE_CHOICE
+#if wxUSE_CHOICE
     "CHOICE",
 #endif
-#ifdef wxUSE_GAUGE
+#if wxUSE_GAUGE
     "GAUGE",
 #endif
-#ifdef wxUSE_GRID
+#if wxUSE_GRID
     "GRID",
 #endif
-#ifdef wxUSE_NEW_GRID
-    "NEW_GRID",
-#endif
-#ifdef wxUSE_IMAGLIST
+#if wxUSE_IMAGLIST
     "IMAGLIST",
 #endif
-#ifdef wxUSE_LISTBOX
+#if wxUSE_LISTBOX
     "LISTBOX",
 #endif
-#ifdef wxUSE_LISTCTRL
+#if wxUSE_LISTCTRL
     "LISTCTRL",
 #endif
-#ifdef wxUSE_MENUS
+#if wxUSE_MENUS
     "MENUS",
 #endif
-#ifdef wxUSE_NOTEBOOK
+#if wxUSE_NOTEBOOK
     "NOTEBOOK",
 #endif
-#ifdef wxUSE_RADIOBOX
+#if wxUSE_RADIOBOX
     "RADIOBOX",
 #endif
-#ifdef wxUSE_RADIOBTN
+#if wxUSE_RADIOBTN
     "RADIOBTN",
 #endif
-#ifdef wxUSE_SASH
+#if wxUSE_SASH
     "SASH",
 #endif
-#ifdef wxUSE_SCROLLBAR
+#if wxUSE_SCROLLBAR
     "SCROLLBAR",
 #endif
-#ifdef wxUSE_SLIDER
+#if wxUSE_SLIDER
     "SLIDER",
 #endif
-#ifdef wxUSE_SPINBTN
+#if wxUSE_SPINBTN
     "SPINBTN",
 #endif
-#ifdef wxUSE_SPINCTRL
+#if wxUSE_SPINCTRL
     "SPINCTRL",
 #endif
-#ifdef wxUSE_SPLITTER
+#if wxUSE_SPLITTER
     "SPLITTER",
 #endif
-#ifdef wxUSE_STATBMP
+#if wxUSE_STATBMP
     "STATBMP",
 #endif
-#ifdef wxUSE_STATBOX
+#if wxUSE_STATBOX
     "STATBOX",
 #endif
-#ifdef wxUSE_STATLINE
+#if wxUSE_STATLINE
     "STATLINE",
 #endif
-#ifdef wxUSE_STATTEXT
+#if wxUSE_STATTEXT
     "STATTEXT",
 #endif
-#ifdef wxUSE_STATUSBAR
+#if wxUSE_STATUSBAR
     "STATUSBAR",
 #endif
-#ifdef wxUSE_TOGGLEBTN
+#if wxUSE_TOGGLEBTN
     "TOGGLEBTN",
 #endif
-#ifdef wxUSE_TAB_DIALOG
-    "TAB_DIALOG",
-#endif
-#ifdef wxUSE_TABDIALOG
-    "TABDIALOG",
-#endif
-#ifdef wxUSE_TEXTCTRL
+#if wxUSE_TEXTCTRL
     "TEXTCTRL",
 #endif
-#ifdef wxUSE_TOOLBAR
+#if wxUSE_TOOLBAR
     "TOOLBAR",
 #endif
-#ifdef wxUSE_TOOLBAR_NATIVE
+#if wxUSE_TOOLBAR_NATIVE
     "TOOLBAR_NATIVE",
 #endif
-#ifdef wxUSE_TOOLBAR_SIMPLE
-    "TOOLBAR_SIMPLE",
-#endif
-#ifdef wxUSE_BUTTONBAR
-    "BUTTONBAR",
-#endif
-#ifdef wxUSE_TREELAYOUT
-    "TREELAYOUT",
-#endif
-#ifdef wxUSE_TREECTRL
+#if wxUSE_TREECTRL
     "TREECTRL",
 #endif
-#ifdef wxUSE_LONGLONG
+#if wxUSE_LONGLONG
     "LONGLONG",
 #endif
-#ifdef wxUSE_GEOMETRY
+#if wxUSE_GEOMETRY
     "GEOMETRY",
 #endif
-#ifdef wxUSE_CMDLINE_PARSER
+#if wxUSE_CMDLINE_PARSER
     "CMDLINE_PARSER",
 #endif
-#ifdef wxUSE_DATETIME
+#if wxUSE_DATETIME
     "DATETIME",
 #endif
-#ifdef wxUSE_FILE
+#if wxUSE_FILE
     "FILE",
 #endif
-#ifdef wxUSE_FFILE
+#if wxUSE_FFILE
     "FFILE",
 #endif
-#ifdef wxUSE_FSVOLUME
+#if wxUSE_FSVOLUME
     "FSVOLUME",
 #endif
-#ifdef wxUSE_TEXTBUFFER
+#if wxUSE_TEXTBUFFER
     "TEXTBUFFER",
 #endif
-#ifdef wxUSE_TEXTFILE
+#if wxUSE_TEXTFILE
     "TEXTFILE",
 #endif
-#ifdef wxUSE_LOG
+#if wxUSE_LOG
     "LOG",
 #endif
-#ifdef wxUSE_LOGWINDOW
+#if wxUSE_LOGWINDOW
     "LOGWINDOW",
 #endif
-#ifdef wxUSE_LOGGUI
+#if wxUSE_LOGGUI
     "LOGGUI",
 #endif
-#ifdef wxUSE_LOG_DIALOG
+#if wxUSE_LOG_DIALOG
     "LOG_DIALOG",
 #endif
-#ifdef wxUSE_STOPWATCH
+#if wxUSE_STOPWATCH
     "STOPWATCH",
 #endif
-#ifdef wxUSE_TIMEDATE
-    "TIMEDATE",
-#endif
-#ifdef wxUSE_WAVE
-    "WAVE",
-#endif
-#ifdef wxUSE_SOUND
+#if wxUSE_SOUND
     "SOUND",
 #endif
-#ifdef wxUSE_CONFIG
+#if wxUSE_CONFIG
     "CONFIG",
 #endif
-#ifdef wxUSE_FONTMAP
+#if wxUSE_FONTMAP
     "FONTMAP",
 #endif
-#ifdef wxUSE_INTL
+#if wxUSE_INTL
     "INTL",
 #endif
-#ifdef wxUSE_PROTOCOL
+#if wxUSE_PROTOCOL
     "PROTOCOL",
 #endif
-#ifdef wxUSE_PROTOCOL_FILE
+#if wxUSE_PROTOCOL_FILE
     "PROTOCOL_FILE",
 #endif
-#ifdef wxUSE_PROTOCOL_FTP
+#if wxUSE_PROTOCOL_FTP
     "PROTOCOL_FTP",
 #endif
-#ifdef wxUSE_PROTOCOL_HTTP
+#if wxUSE_PROTOCOL_HTTP
     "PROTOCOL_HTTP",
 #endif
-#ifdef wxUSE_STREAMS
+#if wxUSE_STREAMS
     "STREAMS",
 #endif
-#ifdef wxUSE_SOCKETS
+#if wxUSE_SOCKETS
     "SOCKETS",
 #endif
-#ifdef wxUSE_DIALUP_MANAGER
+#if wxUSE_DIALUP_MANAGER
     "DIALUP_MANAGER",
 #endif
-#ifdef wxUSE_STD_IOSTREAM
+#if wxUSE_STD_IOSTREAM
     "STD_IOSTREAM",
 #endif
-#ifdef wxUSE_DYNLIB_CLASS
+#if wxUSE_DYNLIB_CLASS
     "DYNLIB_CLASS",
 #endif
-#ifdef wxUSE_DYNAMIC_LOADER
+#if wxUSE_DYNAMIC_LOADER
     "DYNAMIC_LOADER",
 #endif
-#ifdef wxUSE_TIMER
+#if wxUSE_TIMER
     "TIMER",
 #endif
-#ifdef wxUSE_AFM_FOR_POSTSCRIPT
-    "AFM_FOR_POSTSCRIPT",
-#endif
-#ifdef wxUSE_NORMALIZED_PS_FONTS
-    "NORMALIZED_PS_FONTS",
-#endif
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
     "POSTSCRIPT",
 #endif
-#ifdef wxUSE_WCHAR_T
-    "WCHAR_T",
-#endif
-#ifdef wxUSE_UNICODE
+#if wxUSE_UNICODE
     "UNICODE",
 #endif
-#ifdef wxUSE_UNICODE_MSLU
-    "UNICODE_MSLU",
-#endif
-#ifdef wxUSE_URL
+#if wxUSE_URL
     "URL",
 #endif
-#ifdef wxUSE_WCSRTOMBS
+#if wxUSE_WCSRTOMBS
     "WCSRTOMBS",
 #endif
-#ifdef wxUSE_EXPERIMENTAL_
-    "EXPERIMENTAL_PRINTF",
-#endif
-#ifdef wxUSE_IPC
+#if wxUSE_IPC
     "IPC",
 #endif
-#ifdef wxUSE_X_RESOURCES
-    "X_RESOURCES",
-#endif
-#ifdef wxUSE_CLIPBOARD
+#if wxUSE_CLIPBOARD
     "CLIPBOARD",
 #endif
-#ifdef wxUSE_DATAOBJ
+#if wxUSE_DATAOBJ
     "DATAOBJ",
 #endif
-#ifdef wxUSE_TOOLTIPS
+#if wxUSE_TOOLTIPS
     "TOOLTIPS",
 #endif
-#ifdef wxUSE_DRAG_AND_DROP
+#if wxUSE_DRAG_AND_DROP
     "DRAG_AND_DROP",
 #endif
-#ifdef wxUSE_OLE
+#if wxUSE_OLE
     "OLE",
 #endif
-#ifdef wxUSE_SPLINES
+#if wxUSE_SPLINES
     "SPLINES",
 #endif
-#ifdef wxUSE_MDI_ARCHITECTURE
+#if wxUSE_MDI_ARCHITECTURE
     "MDI_ARCHITECTURE",
 #endif
-#ifdef wxUSE_DOC_VIEW_ARCHITECTURE
+#if wxUSE_DOC_VIEW_ARCHITECTURE
     "DOC_VIEW_ARCHITECTURE",
 #endif
-#ifdef wxUSE_PRINTING_ARCHITECTURE
+#if wxUSE_PRINTING_ARCHITECTURE
     "PRINTING_ARCHITECTURE",
 #endif
-#ifdef wxUSE_PROLOGIO
-    "PROLOGIO",
-#endif
-#ifdef wxUSE_RESOURCES
-    "RESOURCES",
-#endif
-#ifdef wxUSE_WX_RESOURCES
-    "WX_RESOURCES",
-#endif
-#ifdef wxUSE_HELP
+#if wxUSE_HELP
     "HELP",
 #endif
-#ifdef wxUSE_WXHTML_HELP
+#if wxUSE_WXHTML_HELP
     "WXHTML_HELP",
 #endif
-#ifdef wxUSE_MS_HTML_HELP
+#if wxUSE_MS_HTML_HELP
     "MS_HTML_HELP",
 #endif
-#ifdef wxUSE_IOSTREAMH
-    "IOSTREAMH",
-#endif
-#ifdef wxUSE_APPLE_IEEE
-    "APPLE_IEEE",
-#endif
-#ifdef wxUSE_MEMORY_TRACING
-    "MEMORY_TRACING",
-#endif
-#ifdef wxUSE_DEBUG_NEW_ALWAYS
-    "DEBUG_NEW_ALWAYS",
-#endif
-#ifdef wxUSE_DEBUG_CONTEXT
-    "DEBUG_CONTEXT",
-#endif
-#ifdef wxUSE_GLOBAL_MEMORY_OPERATORS
-    "GLOBAL_MEMORY_OPERATORS",
-#endif
-#ifdef wxUSE_SPLINES
+#if wxUSE_SPLINES
     "SPLINES",
 #endif
-#ifdef wxUSE_DYNAMIC_CLASSES
-    "DYNAMIC_CLASSES",
-#endif
-#ifdef wxUSE_METAFILE
+#if wxUSE_METAFILE
     "METAFILE",
 #endif
-#ifdef wxUSE_ENH_METAFILE
+#if wxUSE_ENH_METAFILE
     "ENH_METAFILE",
 #endif
-#ifdef wxUSE_MINIFRAME
+#if wxUSE_MINIFRAME
     "MINIFRAME",
 #endif
-#ifdef wxUSE_HTML
+#if wxUSE_HTML
     "HTML",
 #endif
-#ifdef wxUSE_FILESYSTEM
+#if wxUSE_FILESYSTEM
     "FILESYSTEM",
 #endif
-#ifdef wxUSE_FS_INET
+#if wxUSE_FS_INET
     "FS_INET",
 #endif
-#ifdef wxUSE_FS_ZIP
+#if wxUSE_FS_ZIP
     "FS_ZIP",
 #endif
-#ifdef wxUSE_BUSYINFO
+#if wxUSE_BUSYINFO
     "BUSYINFO",
 #endif
-#ifdef wxUSE_ZIPSTREAM
+#if wxUSE_ZIPSTREAM
     "ZIPSTREAM",
 #endif
-#ifdef wxUSE_PALETTE
+#if wxUSE_PALETTE
     "PALETTE",
 #endif
-#ifdef wxUSE_IMAGE
+#if wxUSE_IMAGE
     "IMAGE",
 #endif
-#ifdef wxUSE_GIF
+#if wxUSE_GIF
     "GIF",
 #endif
-#ifdef wxUSE_PCX
+#if wxUSE_PCX
     "PCX",
 #endif
-#ifdef wxUSE_IFF
+#if wxUSE_IFF
     "IFF",
 #endif
-#ifdef wxUSE_PNM
+#if wxUSE_PNM
     "PNM",
 #endif
-#ifdef wxUSE_XPM
+#if wxUSE_XPM
     "XPM",
 #endif
-#ifdef wxUSE_ICO_CUR
+#if wxUSE_ICO_CUR
     "ICO_CUR",
 #endif
 
 // detect using optional libraries in the contrib hierarchy.
-#ifdef wxUSE_STC
+#if wxUSE_STC
     "STC",
 #endif
     nullptr
@@ -1166,7 +1081,7 @@ extern "C"
 
     EXPORT wxString* wxString_CreateUTF8(utf8char* buffer)
     {
-        return new wxString(buffer, wxConvUTF8);
+        return new wxString(buffer);
     }
 
     EXPORT wxString* wxString_CreateLen(char* buffer, int len)
@@ -1182,7 +1097,7 @@ extern "C"
     EXPORT int wxString_GetString(wxString* self, char* buffer)
     {
         if (buffer)
-            memcpy(buffer, self->utf8_str().data(), self->Length());
+            memcpy(buffer, self->utf8_string().data(), self->Length());
         return self->Length();
     }
 
@@ -1191,21 +1106,19 @@ extern "C"
         return self->length();
     }
 
-    EXPORT wxCharBuffer* wxString_GetUtf8(wxString* self)
+    EXPORT void* kwxUtf8Buffer_Create(wxString* self)
     {
-        wxCharBuffer* cb = new wxCharBuffer;
-        *cb = self->utf8_str();
-        return cb;
+        return new std::string(self->utf8_string());
     }
 
-    EXPORT utf8char* wxCharBuffer_DataUtf8(wxCharBuffer* cb)
+    EXPORT utf8char* kwxUtf8Buffer_Data(void* buf)
     {
-        return (utf8char*) cb->data();
+        return (utf8char*) static_cast<std::string*>(buf)->data();
     }
 
-    EXPORT void wxCharBuffer_Delete(wxCharBuffer* cb)
+    EXPORT void kwxUtf8Buffer_Delete(void* buf)
     {
-        delete cb;
+        delete static_cast<std::string*>(buf);
     }
     EXPORT void* wxPoint_Create(int x, int y)
     {
@@ -1870,7 +1783,7 @@ extern "C"
         if (buffer == nullptr)
         {
             wxString result = wxGetPasswordFromUser(message, caption, defaultText, parent);
-            resultBuffer = result.utf8_str().data();
+            resultBuffer = result.utf8_string();
             return static_cast<int>(resultBuffer.size());
         }
         else if (!resultBuffer.empty())
@@ -1894,7 +1807,7 @@ extern "C"
         {
             wxString result =
                 wxGetTextFromUser(message, caption, defaultText, parent, x, y, center != 0);
-            resultBuffer = result.utf8_str().data();
+            resultBuffer = result.utf8_string();
             return static_cast<int>(resultBuffer.size());
         }
         else if (!resultBuffer.empty())
@@ -2231,7 +2144,7 @@ extern "C"
 
     EXPORT void* wxLog_GetTimestamp(wxLog* self)
     {
-        return (void*) strdup((self->GetTimestamp()).utf8_str().data());
+        return (void*) strdup((self->GetTimestamp()).utf8_string().data());
     }
 
     EXPORT void LogError(wxString* message)

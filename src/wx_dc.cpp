@@ -531,22 +531,6 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxScreenDC_StartDrawingOnTopOfWin(wxScreenDC* self, wxWindow* win)
-    {
-        return self->StartDrawingOnTop(win);
-    }
-
-    EXPORT bool wxScreenDC_StartDrawingOnTop(wxScreenDC* self, int x, int y, int width, int height)
-    {
-        wxRect rect(x, y, width, height);
-        return self->StartDrawingOnTop(&rect);
-    }
-
-    EXPORT bool wxScreenDC_EndDrawingOnTop(wxScreenDC* self)
-    {
-        return self->EndDrawingOnTop();
-    }
-
     EXPORT wxBufferedDC* wxBufferedDC_CreateByDCAndSize(wxDC* dc, int width, int hight, int style)
     {
         return new wxBufferedDC(dc, wxSize(width, hight), style);

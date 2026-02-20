@@ -21,7 +21,7 @@ extern "C"
     EXPORT void* wxLocale_GetLocale(wxLocale* self)
     {
         wxString retVal = self->GetLocale();
-        return (void*) strdup(retVal.utf8_str().data());
+        return (void*) strdup(retVal.utf8_string().data());
     }
 
     EXPORT void wxLocale_AddCatalogLookupPathPrefix(wxLocale* self, void* prefix)
@@ -42,7 +42,7 @@ extern "C"
     EXPORT void* wxLocale_GetString(wxLocale* self, void* szOrigString, void* szDomain)
     {
         wxString retVal = self->GetString((const char*) szOrigString, (const char*) szDomain);
-        return (void*) strdup(retVal.utf8_str().data());
+        return (void*) strdup(retVal.utf8_string().data());
     }
 
     EXPORT wxString* wxLocale_GetName(void* pObject)
@@ -60,6 +60,6 @@ extern "C"
     EXPORT void* wxGetkwxTranslation(void* text)
     {
         wxString retVal = wxGetTranslation((const char*) text);
-        return (void*) strdup(retVal.utf8_str().data());
+        return (void*) strdup(retVal.utf8_string().data());
     }
 }

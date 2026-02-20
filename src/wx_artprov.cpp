@@ -17,8 +17,8 @@ protected:
     {
         if (kwxObject)
         {
-            void* res = cb(kwxObject, (void*) id.wchar_str(), (void*) client.wchar_str(),
-                           size.GetWidth(), size.GetHeight());
+            void* res = cb(kwxObject, (void*) id.utf8_str().data(),
+                           (void*) client.utf8_str().data(), size.GetWidth(), size.GetHeight());
 
             if (res)
                 return (*((wxBitmap*) res));
