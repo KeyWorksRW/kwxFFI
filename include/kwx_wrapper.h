@@ -421,7 +421,8 @@ public:
 
     virtual bool OnExecute(const wxString& topic, char* data, int size, wxIPCFormat format)
     {
-        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_stringing().data(), data,&#10;                                         size, (int) format) != 0 :
+        return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_string().data(), data, size,
+                                         (int) format) != 0 :
                              false;
     };
 
