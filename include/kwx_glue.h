@@ -1,7 +1,5 @@
 #pragma once
 
-#include <wx/version.h>
-
 #include "kwx_types.h"
 
 TClass(wxAcceleratorTable) Null_AcceleratorTable();
@@ -1928,7 +1926,9 @@ TClassDefExtend(wxButton, wxControl) TClass(wxButton)
     wxButton_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                     TRect(left, top, width, height), int style);
 int wxButton_SetBackgroundColour(TSelf(wxButton) pObject, TClass(wxColour) colour);
-void wxButton_SetDefault(TSelf(wxButton) pObject);&#10;&#10;TClassDefExtend(wxCalculateLayoutEvent, wxEvent) TClass(wxCalculateLayoutEvent)&#10;    wxCalculateLayoutEvent_Create(int id);
+void wxButton_SetDefault(TSelf(wxButton) pObject);
+TClassDefExtend(wxCalculateLayoutEvent, wxEvent) TClass(wxCalculateLayoutEvent)
+    wxCalculateLayoutEvent_Create(int id);
 int wxCalculateLayoutEvent_GetFlags(TSelf(wxCalculateLayoutEvent) pObject);
 TClass(wxRect) wxCalculateLayoutEvent_GetRect(TSelf(wxCalculateLayoutEvent) pObject);
 void wxCalculateLayoutEvent_SetFlags(TSelf(wxCalculateLayoutEvent) pObject, int flags);
@@ -4141,7 +4141,10 @@ TClassDefExtend(wxLogGUI, wxLog)
 
                     TClassDefExtend(wxLogTextCtrl, wxLog)
 
-                        TClassDefExtend(wxLogWindow, wxLogPassThrough)&#10;&#10;                            TClassDefExtend(wxMDIChildFrame, wxFrame) void wxMDIChildFrame_Activate(&#10;                                TSelf(wxMDIChildFrame) pObject);
+                        TClassDefExtend(wxLogWindow, wxLogPassThrough)
+
+                            TClassDefExtend(wxMDIChildFrame, wxFrame) void wxMDIChildFrame_Activate(
+                                TSelf(wxMDIChildFrame) pObject);
 TClass(wxMDIChildFrame)
     wxMDIChildFrame_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                            TRect(left, top, width, height), int style);
