@@ -47,12 +47,6 @@ extern "C"
         return (int) self->Unlock();
     }
 
-    EXPORT bool wxMutex_IsLocked(wxMutex* self)
-    {
-        // IsLocked() was removed in wxWidgets 2.4+
-        return false;
-    }
-
     EXPORT void* wxCondition_Create(void* mutex)
     {
         return (void*) new wxCondition(*((wxMutex*) mutex));

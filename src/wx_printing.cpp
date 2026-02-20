@@ -4,16 +4,10 @@
     #include <wx/dcprint.h>
 #endif
 
-#if defined(wxUSE_POSTSCRIPT) && (wxUSE_POSTSCRIPT == 0)
-    #undef wxUSE_POSTSCRIPT
-#endif
-
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
     #include <wx/dcps.h>
     #include <wx/generic/prntdlgg.h>
-#endif
-
-#ifndef wxUSE_POSTSCRIPT
+#else
     #define wxPostScriptDC void
 #endif
 
@@ -342,7 +336,7 @@ extern "C"
 
     EXPORT void* wxPostScriptPrintNativeData_Create()
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return (void*) new wxPostScriptPrintNativeData();
 #else
         return nullptr;
@@ -351,7 +345,7 @@ extern "C"
 
     EXPORT void wxPostScriptPrintNativeData_Delete(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         delete self;
 #endif
     }
@@ -450,7 +444,7 @@ extern "C"
 
     EXPORT wxString* wxPrintData_GetPrinterCommand(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         wxString tmp = self->GetPrinterCommand();
         return new wxString(tmp);
 #else
@@ -460,7 +454,7 @@ extern "C"
 
     EXPORT wxString* wxPrintData_GetPrinterOptions(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         wxString tmp = self->GetPrinterOptions();
         return new wxString(tmp);
 #else
@@ -470,7 +464,7 @@ extern "C"
 
     EXPORT wxString* wxPrintData_GetPreviewCommand(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         wxString tmp = self->GetPreviewCommand();
         return new wxString(tmp);
 #else
@@ -486,7 +480,7 @@ extern "C"
 
     EXPORT wxString* wxPrintData_GetFontMetricPath(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         wxString tmp = self->GetFontMetricPath();
         return new wxString(tmp);
 #else
@@ -496,7 +490,7 @@ extern "C"
 
     EXPORT double wxPrintData_GetPrinterScaleX(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return self->GetPrinterScaleX();
 #else
         return 0.0;
@@ -505,7 +499,7 @@ extern "C"
 
     EXPORT double wxPrintData_GetPrinterScaleY(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return self->GetPrinterScaleY();
 #else
         return 0.0;
@@ -514,7 +508,7 @@ extern "C"
 
     EXPORT int wxPrintData_GetPrinterTranslateX(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return self->GetPrinterTranslateX();
 #else
         return 0;
@@ -523,7 +517,7 @@ extern "C"
 
     EXPORT int wxPrintData_GetPrinterTranslateY(wxPostScriptPrintNativeData* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return self->GetPrinterTranslateY();
 #else
         return 0;
@@ -537,21 +531,21 @@ extern "C"
 
     EXPORT void wxPrintData_SetPrinterCommand(wxPostScriptPrintNativeData* self, wxString* command)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterCommand(*command);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterOptions(wxPostScriptPrintNativeData* self, wxString* options)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterOptions(*options);
 #endif
     }
 
     EXPORT void wxPrintData_SetPreviewCommand(wxPostScriptPrintNativeData* self, wxString* command)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPreviewCommand(*command);
 #endif
     }
@@ -563,49 +557,49 @@ extern "C"
 
     EXPORT void wxPrintData_SetFontMetricPath(wxPostScriptPrintNativeData* self, wxString* path)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetFontMetricPath(*path);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterScaleX(wxPostScriptPrintNativeData* self, double x)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterScaleX(x);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterScaleY(wxPostScriptPrintNativeData* self, double y)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterScaleY(y);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterScaling(wxPostScriptPrintNativeData* self, double x, double y)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterScaling(x, y);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterTranslateX(wxPostScriptPrintNativeData* self, int x)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterTranslateX((int) x);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterTranslateY(wxPostScriptPrintNativeData* self, int y)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterTranslateY((int) y);
 #endif
     }
 
     EXPORT void wxPrintData_SetPrinterTranslation(wxPostScriptPrintNativeData* self, int x, int y)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         self->SetPrinterTranslation((long) x, (long) y);
 #endif
     }
@@ -787,7 +781,7 @@ extern "C"
 
     EXPORT wxPostScriptDC* wxPostScriptDC_Create(wxPrintData* printData)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return new wxPostScriptDC(*printData);
 #else
         return nullptr;
@@ -796,7 +790,7 @@ extern "C"
 
     EXPORT void wxPostScriptDC_Delete(wxPostScriptDC* self)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         if (self)
             delete self;
 #endif
@@ -809,7 +803,7 @@ extern "C"
 
     EXPORT int wxPostScriptDC_GetResolution(wxPostScriptDC* self, int ppi)
     {
-#ifdef wxUSE_POSTSCRIPT
+#if wxUSE_POSTSCRIPT
         return self->GetResolution();
 #else
         return 0;

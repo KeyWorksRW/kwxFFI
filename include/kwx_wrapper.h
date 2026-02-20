@@ -423,7 +423,7 @@ public:
     {
         return DoOnExecute ? DoOnExecute(kwxObject, (void*) topic.utf8_string().data(), data, size,
                                          (int) format) != 0 :
-                             FALSE;
+                             false;
     };
 
     virtual char* OnRequest(const wxString& topic, const wxString& item, int* size,
@@ -440,27 +440,30 @@ public:
     {
         return DoOnPoke ? DoOnPoke(kwxObject, (void*) topic.utf8_string().data(),
                                    (void*) item.utf8_string().data(), data, size, (int) format) :
-                          FALSE;
+                          false;
     };
 
     virtual bool OnStartAdvise(const wxString& topic, const wxString& item)
     {
         return DoOnStartAdvise ? DoOnStartAdvise(kwxObject, (void*) topic.utf8_string().data(),
                                                  (void*) item.utf8_string().data()) :
-                                 FALSE;
+                                 false;
     };
 
     virtual bool OnStopAdvise(const wxString& topic, const wxString& item)
     {
         return DoOnStopAdvise ? DoOnStopAdvise(kwxObject, (void*) topic.utf8_string().data(),
                                                (void*) item.utf8_string().data()) :
-                                FALSE;
+                                false;
     };
 
     virtual bool OnAdvise(const wxString& topic, const wxString& item, char* data, int size,
                           wxIPCFormat format)
     {
-        return DoOnAdvise ?&#10;                   DoOnAdvise(kwxObject, (void*) topic.utf8_string().data(),&#10;                              (void*) item.utf8_string().data(), data, size, (int) format) :&#10;                   FALSE;
+        return DoOnAdvise ?
+                   DoOnAdvise(kwxObject, (void*) topic.utf8_string().data(),
+                              (void*) item.utf8_string().data(), data, size, (int) format) :
+                   false;
     };
 
     virtual bool OnDisconnect()
@@ -626,7 +629,7 @@ public:
 
 class kwxTreeControl : public wxTreeCtrl
 {
-    DECLARE_DYNAMIC_CLASS(kwxTreeControl)
+    wxDECLARE_DYNAMIC_CLASS(kwxTreeControl);
 
 private:
     TreeCompareFunc compare_func;
@@ -643,7 +646,7 @@ public:
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                    long style = wxTR_HAS_BUTTONS | wxTR_LINES_AT_ROOT,
                    const wxValidator& validator = wxDefaultValidator,
-                   const wxString& name = wxT("wxTreeCtrl")) :
+                   const wxString& name = "wxTreeCtrl") :
         wxTreeCtrl(parent, id, pos, size, style, validator, name)
     {
         kwxObject = pObject;

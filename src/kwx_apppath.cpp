@@ -4,8 +4,8 @@
 #include <wx/stdpaths.h>
 
 #ifdef __WXMAC__
-    #include <dlfcn.h> // dlsym
-    #include <limits.h> // PATH_MAX
+    #include <dlfcn.h>   // dlsym
+    #include <limits.h>  // PATH_MAX
     #include <mach-o/dyld.h>
 typedef int (*NSGetExecutablePathProcPtr)(char* buf, size_t* bufsize);
 #endif
@@ -34,7 +34,7 @@ wxString GetApplicationPath()
             ((NSGetExecutablePathProcPtr) addrOf_NSGetExecutablePath)(buf, &bufLen);
             if (buf[0] != 0)
             {
-                path = wxString(buf, wxConvUTF8);
+                path = wxString(buf);
                 found = true;
                 return path;
             }
