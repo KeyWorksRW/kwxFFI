@@ -1,0 +1,652 @@
+#include "class_parser.h"
+
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <string>
+#include <unordered_set>
+
+namespace kwxgen
+{
+
+    namespace
+    {
+
+        // Trim leading and trailing whitespace.
+        std::string Trim(const std::string& s)
+        {
+            auto b = s.find_first_not_of(" \t\r\n");
+            if (b == std::string::npos)
+                return {};
+            auto e = s.find_last_not_of(" \t\r\n");
+            return s.substr(b, e - b + 1);
+        }
+
+        // Check if parentheses are balanced in the given string.
+        bool ParensBalanced(const std::string& s)
+        {
+            int depth = 0;
+            for (char c: s)
+            {
+                if (c == '(')
+                    ++depth;
+                else if (c == ')')
+                    --depth;
+                if (depth < 0)
+                    return false;
+            }
+            return depth == 0;
+        }
+
+        // Parse a macro-wrapped type like "TClass(wxWindow)" into macro_name and macro_arg.
+        // Returns true if it matched a macro form.
+        bool ParseMacroType(const std::string& type, std::string& macro_name,
+                            std::string& macro_arg)
+        {
+            // Match: WORD(CONTENT) where CONTENT may contain nested parens
+            // e.g. TClass(wxWindow), TSelf(wxButton), TRect(x, y, w, h)
+            auto paren = type.find('(');
+            if (paren == std::string::npos || type.back() != ')')
+            {
+                macro_name.clear();
+                macro_arg.clear();
+                return false;
+            }
+            std::string prefix = type.substr(0, paren);
+            // prefix must be a valid identifier
+            if (prefix.empty() || !(std::isalpha(prefix[0]) || prefix[0] == '_'))
+            {
+                macro_name.clear();
+                macro_arg.clear();
+                return false;
+            }
+            macro_name = prefix;
+            macro_arg = type.substr(paren + 1, type.size() - paren - 2);
+            return true;
+        }
+
+        // Split a parameter list string by commas, respecting parenthesized groups.
+        std::vector<std::string> SplitParams(const std::string& paramStr)
+        {
+            std::vector<std::string> result;
+            int depth = 0;
+            size_t start = 0;
+            for (size_t i = 0; i < paramStr.size(); ++i)
+            {
+                if (paramStr[i] == '(')
+                    ++depth;
+                else if (paramStr[i] == ')')
+                    --depth;
+                else if (paramStr[i] == ',' && depth == 0)
+                {
+                    std::string token = Trim(paramStr.substr(start, i - start));
+                    if (!token.empty())
+                        result.push_back(token);
+                    start = i + 1;
+                }
+            }
+            // Last token
+            if (start < paramStr.size())
+            {
+                std::string token = Trim(paramStr.substr(start));
+                if (!token.empty())
+                    result.push_back(token);
+            }
+            return result;
+        }
+
+        // Parse a single parameter token like "TClass(wxWindow) parent" or "int flags".
+        Param ParseOneParam(const std::string& token)
+        {
+            Param p;
+
+            // Try macro form: "MacroName(args) paramName" or "MacroName(args)"
+            // Find the closing paren of the macro
+            auto paren_open = token.find('(');
+            if (paren_open != std::string::npos)
+            {
+                // Find the matching close paren
+                int depth = 0;
+                size_t paren_close = std::string::npos;
+                for (size_t i = paren_open; i < token.size(); ++i)
+                {
+                    if (token[i] == '(')
+                        ++depth;
+                    else if (token[i] == ')')
+                    {
+                        --depth;
+                        if (depth == 0)
+                        {
+                            paren_close = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (paren_close != std::string::npos)
+                {
+                    std::string prefix = token.substr(0, paren_open);
+                    // Check if prefix is a valid macro identifier
+                    bool is_macro =
+                        !prefix.empty() && (std::isalpha(prefix[0]) || prefix[0] == '_');
+                    for (size_t i = 1; is_macro && i < prefix.size(); ++i)
+                        is_macro = std::isalnum(prefix[i]) || prefix[i] == '_';
+
+                    if (is_macro)
+                    {
+                        p.macro_name = prefix;
+                        p.macro_arg = token.substr(paren_open + 1, paren_close - paren_open - 1);
+                        p.raw_type = prefix + "(" + p.macro_arg + ")";
+
+                        // Check for param name after closing paren
+                        std::string rest = Trim(token.substr(paren_close + 1));
+                        if (!rest.empty())
+                        {
+                            // Could be "* name" for pointer, or just "name"
+                            if (rest[0] == '*')
+                            {
+                                p.raw_type += "*";
+                                rest = Trim(rest.substr(1));
+                            }
+                            p.param_name = rest;
+                        }
+                        return p;
+                    }
+                }
+            }
+
+            // Plain type: "int flags", "void* pointer", "double value", etc.
+            auto last_space = token.rfind(' ');
+            if (last_space != std::string::npos)
+            {
+                std::string maybe_name = Trim(token.substr(last_space + 1));
+                std::string maybe_type = Trim(token.substr(0, last_space));
+
+                // Check if maybe_name looks like an identifier (and isn't a keyword/type)
+                bool is_ident =
+                    !maybe_name.empty() && (std::isalpha(maybe_name[0]) || maybe_name[0] == '_');
+                for (size_t i = 1; is_ident && i < maybe_name.size(); ++i)
+                    is_ident = std::isalnum(maybe_name[i]) || maybe_name[i] == '_';
+
+                static const std::unordered_set<std::string> type_keywords = { "int",    "void",
+                                                                               "double", "float",
+                                                                               "char",   "long" };
+                if (is_ident && type_keywords.find(maybe_name) == type_keywords.end())
+                {
+                    p.raw_type = maybe_type;
+                    p.param_name = maybe_name;
+                    return p;
+                }
+            }
+
+            // No parameter name — type only
+            p.raw_type = token;
+            return p;
+        }
+
+        // Find the function parameter list opening paren, scanning backwards from the
+        // semicolon. Returns the position of the matching '(' for the ')' that precedes ';'.
+        // This correctly skips over macro parens in the return type, e.g.:
+        //   TClass(wxButton) wxButton_Create(TClass(wxWindow) parent, ...);
+        size_t FindFuncParenOpen(const std::string& line, size_t semicolon_pos)
+        {
+            // Find the ')' just before the semicolon
+            size_t paren_close = std::string::npos;
+            for (size_t i = semicolon_pos; i != std::string::npos; --i)
+            {
+                if (line[i] == ')')
+                {
+                    paren_close = i;
+                    break;
+                }
+                if (i == 0)
+                    break;
+            }
+            if (paren_close == std::string::npos)
+                return std::string::npos;
+
+            // Walk backwards from paren_close to find matching '('
+            int depth = 0;
+            for (size_t i = paren_close; i != std::string::npos; --i)
+            {
+                if (line[i] == ')')
+                    ++depth;
+                else if (line[i] == '(')
+                {
+                    --depth;
+                    if (depth == 0)
+                        return i;
+                }
+                if (i == 0)
+                    break;
+            }
+            return std::string::npos;
+        }
+
+        // Parse a function declaration from a string like:
+        //   "TClass(wxButton) wxButton_Create(TClass(wxWindow) parent, int id, ...)"
+        // (without the trailing semicolon)
+        // Returns true on success.
+        bool ParseFunctionDecl(const std::string& decl_str, const std::string& current_class,
+                               FunctionDecl& out)
+        {
+            // Find the function parameter list
+            auto semicolon = decl_str.rfind(';');
+            if (semicolon == std::string::npos)
+            {
+                // No semicolon — try without (might have been stripped)
+                semicolon = decl_str.size();
+            }
+
+            // Find the matching open paren for the function parameters
+            auto func_paren_open = FindFuncParenOpen(decl_str, semicolon - 1);
+            if (func_paren_open == std::string::npos)
+                return false;
+
+            // Find the matching close paren
+            size_t func_paren_close = std::string::npos;
+            {
+                int depth = 0;
+                for (size_t i = func_paren_open; i < decl_str.size(); ++i)
+                {
+                    if (decl_str[i] == '(')
+                        ++depth;
+                    else if (decl_str[i] == ')')
+                    {
+                        --depth;
+                        if (depth == 0)
+                        {
+                            func_paren_close = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (func_paren_close == std::string::npos)
+                return false;
+
+            // Extract: prefix (return type + func name) and parameter list
+            std::string prefix = Trim(decl_str.substr(0, func_paren_open));
+            std::string param_str =
+                Trim(decl_str.substr(func_paren_open + 1, func_paren_close - func_paren_open - 1));
+
+            if (prefix.empty())
+                return false;
+
+            // Split prefix into return type and function name.
+            // The function name is the last token. Return type may include macro parens.
+            std::string func_name;
+            std::string return_type_str;
+
+            // Check if prefix ends with ')' — return type is a macro like TClass(wxFoo)
+            auto last_close = prefix.rfind(')');
+            auto last_space = prefix.rfind(' ');
+
+            if (last_close != std::string::npos &&
+                (last_space == std::string::npos || last_close > last_space))
+            {
+                // The function name follows a macro return type.
+                // Find the end of the macro: walk forward from last_close to find func name.
+                std::string after_macro = Trim(prefix.substr(last_close + 1));
+                if (after_macro.empty())
+                {
+                    // The entire prefix is the function name (no return type) — unlikely,
+                    // but handle it. Actually this means the return type IS the macro and there's
+                    // no separate func name after it. This shouldn't happen for well-formed decls.
+                    return false;
+                }
+                func_name = after_macro;
+                return_type_str = Trim(prefix.substr(0, last_close + 1));
+            }
+            else if (last_space != std::string::npos)
+            {
+                // Simple case: "void wxButton_SetDefault" or "int wxButton_GetId"
+                func_name = Trim(prefix.substr(last_space + 1));
+                return_type_str = Trim(prefix.substr(0, last_space));
+            }
+            else
+            {
+                // Single word — function name with no explicit return type
+                // (shouldn't happen in valid C declarations, but handle gracefully)
+                func_name = prefix;
+                return_type_str = "int";  // default assumption
+            }
+
+            if (func_name.empty())
+                return false;
+
+            // Check for pointer in func_name: e.g., "void*" as return followed by func name
+            // Handle "void* wxConnection_Request" where last_space split gives func "wxConn..."
+            // and return "void*" — this should already work with the space split above.
+
+            // Split function name into class prefix and method name
+            auto underscore = func_name.find('_');
+            if (underscore != std::string::npos)
+            {
+                out.class_name = func_name.substr(0, underscore);
+                out.method_name = func_name.substr(underscore + 1);
+            }
+            else
+            {
+                // No underscore — bare function name (e.g., PopProvider, kwxMessageBox)
+                out.class_name = current_class;
+                out.method_name = func_name;
+            }
+
+            // Parse return type for macro info
+            out.return_type = return_type_str;
+            ParseMacroType(return_type_str, out.return_macro, out.return_arg);
+
+            // Parse parameters
+            if (!param_str.empty())
+            {
+                auto tokens = SplitParams(param_str);
+                for (auto& tok: tokens)
+                    out.params.push_back(ParseOneParam(tok));
+            }
+
+            // Compute flags
+            out.is_constructor = out.method_name == "Create" || out.method_name.find("Create") == 0;
+            out.is_destructor = out.method_name == "Delete";
+            out.has_self = !out.params.empty() && out.params[0].macro_name == "TSelf";
+
+            return true;
+        }
+
+        // Extract TClassDef or TClassDefExtend from the beginning of a logical line.
+        // Returns the position AFTER the closing ')' of the class def macro, or string::npos
+        // if no class def is found. Populates class_name and parent_name.
+        size_t ExtractClassDef(const std::string& line, std::string& class_name,
+                               std::string& parent_name)
+        {
+            class_name.clear();
+            parent_name.clear();
+
+            // Try TClassDefExtend(Name, Parent)
+            std::string marker_ext = "TClassDefExtend(";
+            std::string marker_def = "TClassDef(";
+
+            auto pos = line.find(marker_ext);
+            bool is_extend = (pos != std::string::npos);
+            if (!is_extend)
+                pos = line.find(marker_def);
+            if (pos == std::string::npos)
+                return std::string::npos;
+
+            size_t paren_start = pos + (is_extend ? marker_ext.size() : marker_def.size()) - 1;
+
+            // Find the matching closing paren
+            int depth = 0;
+            size_t paren_close = std::string::npos;
+            for (size_t i = paren_start; i < line.size(); ++i)
+            {
+                if (line[i] == '(')
+                    ++depth;
+                else if (line[i] == ')')
+                {
+                    --depth;
+                    if (depth == 0)
+                    {
+                        paren_close = i;
+                        break;
+                    }
+                }
+            }
+            if (paren_close == std::string::npos)
+                return std::string::npos;
+
+            // Extract content between parens
+            std::string content = Trim(line.substr(paren_start + 1, paren_close - paren_start - 1));
+
+            if (is_extend)
+            {
+                // Split on comma: "Name, Parent"
+                auto comma = content.find(',');
+                if (comma != std::string::npos)
+                {
+                    class_name = Trim(content.substr(0, comma));
+                    parent_name = Trim(content.substr(comma + 1));
+                }
+                else
+                {
+                    class_name = content;
+                }
+            }
+            else
+            {
+                class_name = content;
+            }
+
+            return paren_close + 1;
+        }
+
+        // Check if a logical line is a standalone class definition (no function content after
+        // the TClassDef closing paren).
+        bool IsStandaloneClassDef(const std::string& line)
+        {
+            std::string class_name, parent_name;
+            size_t after_classdef = ExtractClassDef(line, class_name, parent_name);
+            if (after_classdef == std::string::npos)
+                return false;
+            // If nothing follows the class def (or only whitespace), it's standalone
+            std::string remainder = Trim(line.substr(after_classdef));
+            return remainder.empty();
+        }
+
+        // Walk the parent hierarchy to check if a class derives from a target class.
+        bool DerivesFrom(const std::string& class_name, const std::string& target,
+                         const std::unordered_map<std::string, std::string>& parent_map,
+                         int max_depth = 50)
+        {
+            std::string current = class_name;
+            for (int i = 0; i < max_depth; ++i)
+            {
+                if (current == target)
+                    return true;
+                auto it = parent_map.find(current);
+                if (it == parent_map.end() || it->second.empty())
+                    return false;
+                current = it->second;
+            }
+            return false;
+        }
+
+    }  // anonymous namespace
+
+    ClassParseResult ParseClasses(const std::filesystem::path& filePath)
+    {
+        ClassParseResult result;
+
+        std::ifstream file(filePath);
+        if (!file.is_open())
+        {
+            std::cerr << "Error: cannot open " << filePath << "\n";
+            return result;
+        }
+
+        // Read all lines
+        std::vector<std::string> lines;
+        {
+            std::string line;
+            while (std::getline(file, line))
+                lines.push_back(line);
+        }
+
+        // Phase 1: Build logical lines by joining continuations.
+        // A logical line is complete when parentheses are balanced AND either:
+        //   - It ends with ';'  (function declaration)
+        //   - It's a standalone class definition (TClassDef/TClassDefExtend with no function)
+        std::vector<std::string> logical_lines;
+        std::string buffer;
+
+        auto FlushBuffer = [&]()
+        {
+            if (!buffer.empty())
+            {
+                logical_lines.push_back(buffer);
+                buffer.clear();
+            }
+        };
+
+        for (auto& raw_line: lines)
+        {
+            std::string stripped = Trim(raw_line);
+
+            // Skip preprocessor directives and empty lines
+            if (stripped.empty())
+            {
+                // Empty line: flush any pending standalone class def
+                if (!buffer.empty() && ParensBalanced(buffer))
+                {
+                    FlushBuffer();
+                }
+                continue;
+            }
+            if (stripped[0] == '#')
+                continue;
+
+            // Accumulate into buffer
+            if (buffer.empty())
+                buffer = stripped;
+            else
+                buffer += " " + stripped;
+
+            // Check completeness
+            if (ParensBalanced(buffer))
+            {
+                // Check if it ends with ';' (complete function declaration)
+                if (buffer.back() == ';')
+                {
+                    FlushBuffer();
+                }
+                else if (IsStandaloneClassDef(buffer))
+                {
+                    // Standalone class definition — flush immediately
+                    FlushBuffer();
+                }
+                // Otherwise, keep accumulating (next line may add function content)
+            }
+            // If parens unbalanced, keep accumulating
+        }
+        // Flush any remaining buffer
+        FlushBuffer();
+
+        // Phase 2: Process logical lines into ClassInfo structures.
+        ClassInfo* current_class = nullptr;
+        size_t total_methods = 0;
+
+        for (auto& ll: logical_lines)
+        {
+            std::string class_name, parent_name;
+            size_t after_classdef = ExtractClassDef(ll, class_name, parent_name);
+
+            if (after_classdef != std::string::npos)
+            {
+                // Found a class definition — start a new class
+                ClassInfo cls;
+                cls.name = class_name;
+                cls.parent = parent_name;
+                result.classes.push_back(std::move(cls));
+                current_class = &result.classes.back();
+
+                // Record in parent_map
+                if (!parent_name.empty())
+                    result.parent_map[class_name] = parent_name;
+
+                // Check for function declaration on the same line after the class def
+                std::string remainder = Trim(ll.substr(after_classdef));
+                if (!remainder.empty())
+                {
+                    // There may be one or more function declarations separated by ';'
+                    // But typically there's at most one complete function on the same line
+                    // as the class def (the rest continue on subsequent lines).
+
+                    // Check if remainder contains a complete function (ends with ';')
+                    if (remainder.back() == ';')
+                    {
+                        // Could contain multiple functions separated by ';' on the same line?
+                        // In practice, the file has at most one function per logical line.
+                        // But handle multiple just in case.
+                        size_t pos = 0;
+                        while (pos < remainder.size())
+                        {
+                            auto semi = remainder.find(';', pos);
+                            if (semi == std::string::npos)
+                                break;
+
+                            std::string func_str = Trim(remainder.substr(pos, semi - pos + 1));
+                            if (!func_str.empty())
+                            {
+                                FunctionDecl decl;
+                                if (ParseFunctionDecl(func_str, class_name, decl))
+                                {
+                                    current_class->methods.push_back(std::move(decl));
+                                    ++total_methods;
+                                }
+                                else
+                                {
+                                    std::cerr << "  Warning: unparsed function in class "
+                                              << class_name << ": " << func_str << "\n";
+                                }
+                            }
+                            pos = semi + 1;
+                        }
+                    }
+                    else
+                    {
+                        // Incomplete function — shouldn't happen after joining
+                        std::cerr << "  Warning: incomplete function after class def " << class_name
+                                  << ": " << remainder << "\n";
+                    }
+                }
+                // else: empty class definition — no methods
+            }
+            else if (current_class)
+            {
+                // Function declaration belonging to the current class
+                // May contain multiple semicolon-separated declarations
+                size_t pos = 0;
+                while (pos < ll.size())
+                {
+                    auto semi = ll.find(';', pos);
+                    if (semi == std::string::npos)
+                        break;
+
+                    std::string func_str = Trim(ll.substr(pos, semi - pos + 1));
+                    if (!func_str.empty())
+                    {
+                        FunctionDecl decl;
+                        if (ParseFunctionDecl(func_str, current_class->name, decl))
+                        {
+                            current_class->methods.push_back(std::move(decl));
+                            ++total_methods;
+                        }
+                        else
+                        {
+                            std::cerr << "  Warning: unparsed function: " << func_str << "\n";
+                        }
+                    }
+                    pos = semi + 1;
+                }
+            }
+            else
+            {
+                // Function before any class def — shouldn't happen in kwx_classes.h
+                std::cerr << "  Warning: function before any class definition: " << ll << "\n";
+            }
+        }
+
+        // Phase 3: Resolve inheritance hierarchy flags.
+        for (auto& cls: result.classes)
+        {
+            cls.is_window_derived = DerivesFrom(cls.name, "wxWindow", result.parent_map);
+            cls.is_object_derived = DerivesFrom(cls.name, "wxObject", result.parent_map);
+        }
+
+        std::cerr << "  Classes:        " << result.classes.size() << "\n";
+        std::cerr << "  Total methods:  " << total_methods << "\n";
+
+        return result;
+    }
+
+}  // namespace kwxgen

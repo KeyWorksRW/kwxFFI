@@ -179,5 +179,9 @@ set( FFI_HDR_FILES
     include/kwx_types.h
     include/kwx_def.h
     include/kwx_glue.h
+    include/kwx_events.h
+    include/kwx_keys.h
+    include/kwx_constants.h
+    include/kwx_classes.h
     include/kwx_grid.h
 )
