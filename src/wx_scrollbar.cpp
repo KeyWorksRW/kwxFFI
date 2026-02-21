@@ -43,4 +43,6 @@ extern "C"
     {
         self->SetScrollbar(position, thumbSize, range, pageSize, refresh);
     }
+
+    MAKE_EVENT_WRAPPER(EVT_SCROLLBAR)
 }

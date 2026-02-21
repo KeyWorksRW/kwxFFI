@@ -9,6 +9,11 @@ bin/
 src/version.h
 src/version.rc
 
+# generated languages -- temporarily useful for testing
+
+generated/rust/
+tools/kwxgen/lang/
+
 # cmake
 CMakeFiles/
 build/

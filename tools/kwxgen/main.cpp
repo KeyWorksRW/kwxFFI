@@ -1,0 +1,348 @@
+#include "class_parser.h"
+#include "constants_parser.h"
+#include "defs_parser.h"
+#include "emitter.h"
+#include "events_parser.h"
+#include "json_dump.h"
+#include "keys_parser.h"
+#include "lang/lang_fortran.h"
+#include "lang/lang_go.h"
+#include "lang/lang_julia.h"
+#include "lang/lang_luajit.h"
+#include "lang/lang_perl.h"
+#include "lang/lang_rust.h"
+#include "model.h"
+#include "verify.h"
+
+#include <filesystem>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace fs = std::filesystem;
+
+static void PrintUsage(const char* progName)
+{
+    std::cerr << "Usage:\n"
+              << "  " << progName << " parse    --headers <dir> --defs <file> [--out <file>]\n"
+              << "  " << progName
+              << " generate --headers <dir> --defs <file> --lang <lang> --out <dir>\n"
+              << "  " << progName
+              << " verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>\n"
+              << "  " << progName << " diff     --headers <dir> --manifest <file>\n"
+              << "  " << progName << " langs\n";
+}
+
+struct Args
+{
+    std::string command;
+    std::string headers_dir;
+    std::string defs_file;
+    std::string out_path;  // file for parse, dir for generate
+    std::string lang;
+    std::string verify_dir;
+    std::string manifest_file;
+};
+
+static bool ParseArgs(int argc, char* argv[], Args& args)
+{
+    if (argc < 2)
+        return false;
+
+    args.command = argv[1];
+
+    for (int i = 2; i < argc; ++i)
+    {
+        std::string arg = argv[i];
+        if (arg == "--headers" && i + 1 < argc)
+            args.headers_dir = argv[++i];
+        else if (arg == "--defs" && i + 1 < argc)
+            args.defs_file = argv[++i];
+        else if (arg == "--out" && i + 1 < argc)
+            args.out_path = argv[++i];
+        else if (arg == "--lang" && i + 1 < argc)
+            args.lang = argv[++i];
+        else if (arg == "--dir" && i + 1 < argc)
+            args.verify_dir = argv[++i];
+        else if (arg == "--manifest" && i + 1 < argc)
+            args.manifest_file = argv[++i];
+        else
+        {
+            std::cerr << "Unknown argument: " << arg << "\n";
+            return false;
+        }
+    }
+    return true;
+}
+
+// -------------------------------------------------------------------------
+// Emitter registry
+// -------------------------------------------------------------------------
+
+static std::vector<std::unique_ptr<kwxgen::LanguageEmitter>> CreateEmitters()
+{
+    std::vector<std::unique_ptr<kwxgen::LanguageEmitter>> emitters;
+    emitters.push_back(std::make_unique<kwxgen::FortranEmitter>());
+    emitters.push_back(std::make_unique<kwxgen::GoEmitter>());
+    emitters.push_back(std::make_unique<kwxgen::JuliaEmitter>());
+    emitters.push_back(std::make_unique<kwxgen::LuaJITEmitter>());
+    emitters.push_back(std::make_unique<kwxgen::PerlEmitter>());
+    emitters.push_back(std::make_unique<kwxgen::RustEmitter>());
+    return emitters;
+}
+
+static kwxgen::LanguageEmitter*
+    FindEmitter(const std::vector<std::unique_ptr<kwxgen::LanguageEmitter>>& emitters,
+                const std::string& name)
+{
+    for (auto& e: emitters)
+    {
+        if (e->Name() == name)
+            return e.get();
+    }
+    return nullptr;
+}
+
+// -------------------------------------------------------------------------
+// Parsers
+// -------------------------------------------------------------------------
+
+static kwxgen::ParsedFFI RunParsers(const fs::path& headersDir, const fs::path& defsFile)
+{
+    kwxgen::ParsedFFI ffi;
+
+    // Parse events
+    auto eventsFile = headersDir / "kwx_events.h";
+    if (fs::exists(eventsFile))
+    {
+        ffi.events = kwxgen::ParseEvents(eventsFile);
+        std::cerr << "  Events:         " << ffi.events.size() << "\n";
+    }
+    else
+    {
+        std::cerr << "  Warning: " << eventsFile << " not found\n";
+    }
+
+    // Parse keys
+    auto keysFile = headersDir / "kwx_keys.h";
+    if (fs::exists(keysFile))
+    {
+        ffi.keys = kwxgen::ParseKeys(keysFile);
+        std::cerr << "  Keys:           " << ffi.keys.size() << "\n";
+    }
+    else
+    {
+        std::cerr << "  Warning: " << keysFile << " not found\n";
+    }
+
+    // Parse defs constants
+    if (fs::exists(defsFile))
+    {
+        ffi.constants = kwxgen::ParseDefs(defsFile);
+        std::cerr << "  Defs constants: " << ffi.constants.size() << "\n";
+    }
+    else
+    {
+        std::cerr << "  Warning: " << defsFile << " not found\n";
+    }
+
+    // Parse constants header (free functions + WXFFI_EXPORT constants)
+    auto constantsFile = headersDir / "kwx_constants.h";
+    if (fs::exists(constantsFile))
+    {
+        auto cResult = kwxgen::ParseConstants(constantsFile);
+        ffi.free_functions = std::move(cResult.free_functions);
+        // Merge WXFFI_EXPORT constants into the constants list
+        for (auto& c: cResult.constants)
+            ffi.constants.push_back(std::move(c));
+        std::cerr << "  Free functions: " << ffi.free_functions.size() << "\n";
+        std::cerr << "  Header consts:  " << cResult.constants.size()
+                  << " (merged into constants total: " << ffi.constants.size() << ")\n";
+    }
+    else
+    {
+        std::cerr << "  Warning: " << constantsFile << " not found\n";
+    }
+
+    // Parse classes
+    auto classesFile = headersDir / "kwx_classes.h";
+    if (fs::exists(classesFile))
+    {
+        auto cResult = kwxgen::ParseClasses(classesFile);
+        ffi.classes = std::move(cResult.classes);
+        ffi.parent_map = std::move(cResult.parent_map);
+    }
+    else
+    {
+        std::cerr << "  Warning: " << classesFile << " not found\n";
+    }
+
+    return ffi;
+}
+
+int main(int argc, char* argv[])
+{
+    Args args;
+    if (!ParseArgs(argc, argv, args))
+    {
+        PrintUsage(argc > 0 ? argv[0] : "kwxgen");
+        return 1;
+    }
+
+    if (args.command == "parse")
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::cerr << "Error: 'parse' requires --headers and --defs\n";
+            return 1;
+        }
+
+        std::cerr << "Parsing...\n";
+        auto ffi = RunParsers(args.headers_dir, args.defs_file);
+
+        if (args.out_path.empty() || args.out_path == "-")
+        {
+            kwxgen::DumpJson(ffi, std::cout);
+        }
+        else
+        {
+            if (!kwxgen::DumpJsonToFile(ffi, args.out_path))
+                return 1;
+            std::cerr << "JSON written to " << args.out_path << "\n";
+        }
+        return 0;
+    }
+
+    if (args.command == "generate")
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::cerr << "Error: 'generate' requires --headers and --defs\n";
+            return 1;
+        }
+        if (args.lang.empty())
+        {
+            std::cerr << "Error: 'generate' requires --lang\n";
+            return 1;
+        }
+        if (args.out_path.empty())
+        {
+            std::cerr << "Error: 'generate' requires --out\n";
+            return 1;
+        }
+
+        auto emitters = CreateEmitters();
+        auto* emitter = FindEmitter(emitters, args.lang);
+        if (!emitter)
+        {
+            std::cerr << "Error: unknown language '" << args.lang << "'\n";
+            std::cerr << "Available: ";
+            for (auto& e: emitters)
+                std::cerr << e->Name() << " ";
+            std::cerr << "\n";
+            return 1;
+        }
+
+        std::cerr << "Parsing...\n";
+        auto ffi = RunParsers(args.headers_dir, args.defs_file);
+
+        std::cerr << "Generating " << args.lang << " bindings...\n";
+        emitter->Generate(ffi, args.out_path);
+        return 0;
+    }
+
+    if (args.command == "verify")
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::cerr << "Error: 'verify' requires --headers and --defs\n";
+            return 1;
+        }
+        if (args.lang.empty())
+        {
+            std::cerr << "Error: 'verify' requires --lang\n";
+            return 1;
+        }
+        if (args.verify_dir.empty())
+        {
+            std::cerr << "Error: 'verify' requires --dir\n";
+            return 1;
+        }
+
+        auto emitters = CreateEmitters();
+        auto* emitter = FindEmitter(emitters, args.lang);
+        if (!emitter)
+        {
+            std::cerr << "Error: unknown language '" << args.lang << "'\n";
+            return 1;
+        }
+
+        // Generate into a temp directory, then compare with the reference dir
+        auto tempDir = fs::temp_directory_path() / "kwxgen_verify";
+        fs::remove_all(tempDir);
+        fs::create_directories(tempDir);
+
+        std::cerr << "Parsing...\n";
+        auto ffi = RunParsers(args.headers_dir, args.defs_file);
+
+        std::cerr << "Generating to temp dir: " << tempDir << "\n";
+        emitter->Generate(ffi, tempDir);
+
+        std::cerr << "Verifying against: " << args.verify_dir << "\n";
+        auto vResult = kwxgen::VerifyGeneratedFiles(tempDir, args.verify_dir);
+
+        if (vResult.success)
+        {
+            std::cout << "Verify: OK — all generated files match.\n";
+        }
+        else
+        {
+            std::cout << "Verify: DIFFERENCES FOUND\n";
+            for (auto& msg: vResult.messages)
+                std::cout << "  " << msg << "\n";
+            if (!vResult.missing_files.empty())
+            {
+                std::cout << "  Missing files in generated output:\n";
+                for (auto& f: vResult.missing_files)
+                    std::cout << "    " << f << "\n";
+            }
+            if (!vResult.extra_files.empty())
+            {
+                std::cout << "  Extra files in generated output:\n";
+                for (auto& f: vResult.extra_files)
+                    std::cout << "    " << f << "\n";
+            }
+            if (!vResult.mismatched_files.empty())
+            {
+                std::cout << "  Mismatched files:\n";
+                for (auto& f: vResult.mismatched_files)
+                    std::cout << "    " << f << "\n";
+            }
+        }
+
+        // Clean up temp dir
+        fs::remove_all(tempDir);
+
+        return vResult.success ? 0 : 1;
+    }
+
+    if (args.command == "diff")
+    {
+        std::cerr << "Error: 'diff' is not yet implemented\n";
+        return 1;
+    }
+
+    if (args.command == "langs")
+    {
+        auto emitters = CreateEmitters();
+        std::cout << "Available language backends:\n";
+        for (auto& e: emitters)
+            std::cout << "  " << e->Name() << "\n";
+        return 0;
+    }
+
+    std::cerr << "Unknown command: " << args.command << "\n";
+    PrintUsage(argv[0]);
+    return 1;
+}

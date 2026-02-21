@@ -1,0 +1,64 @@
+#include "defs_parser.h"
+
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <string>
+
+namespace kwxgen
+{
+
+    std::vector<ConstantDecl> ParseDefs(const std::filesystem::path& filePath)
+    {
+        std::vector<ConstantDecl> results;
+        std::ifstream file(filePath);
+        if (!file.is_open())
+        {
+            std::cerr << "Error: cannot open " << filePath << "\n";
+            return results;
+        }
+
+        // Pattern 1: EXPORT int expwxNAME()
+        std::regex re_int(R"(^\s*EXPORT\s+int\s+(expwx(\w+))\s*\(\s*\))");
+
+        // Pattern 2: EXPORT wxString* expwxNAME()
+        std::regex re_str(R"(^\s*EXPORT\s+wxString\*\s+(expwx(\w+))\s*\(\s*\))");
+
+        // Pattern 3: EXPORT const TYPE* expwxNAME()
+        // Captures: 1=const TYPE*, 2=TYPE, 3=full func name, 4=suffix after "expwx"
+        std::regex re_const(R"(^\s*EXPORT\s+(const\s+(\w+)\*)\s+(expwx(\w+))\s*\(\s*\))");
+
+        std::string line;
+        while (std::getline(file, line))
+        {
+            std::smatch m;
+            if (std::regex_search(line, m, re_int))
+            {
+                ConstantDecl decl;
+                decl.export_name = m[1].str();
+                decl.constant_name = m[2].str();
+                decl.return_type = "int";
+                results.push_back(std::move(decl));
+            }
+            else if (std::regex_search(line, m, re_str))
+            {
+                ConstantDecl decl;
+                decl.export_name = m[1].str();
+                decl.constant_name = m[2].str();
+                decl.return_type = "wxString*";
+                results.push_back(std::move(decl));
+            }
+            else if (std::regex_search(line, m, re_const))
+            {
+                ConstantDecl decl;
+                decl.export_name = m[3].str();
+                decl.constant_name = m[4].str();
+                // Normalize: "const wxColour*" with no space before *
+                decl.return_type = "const " + m[2].str() + "*";
+                results.push_back(std::move(decl));
+            }
+        }
+        return results;
+    }
+
+}  // namespace kwxgen

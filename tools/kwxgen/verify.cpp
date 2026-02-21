@@ -1,0 +1,109 @@
+#include "verify.h"
+
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <set>
+#include <sstream>
+
+namespace fs = std::filesystem;
+
+namespace kwxgen
+{
+
+    namespace
+    {
+
+        std::string ReadFileContents(const fs::path& path)
+        {
+            std::ifstream in(path, std::ios::binary);
+            if (!in.is_open())
+                return {};
+            std::ostringstream ss;
+            ss << in.rdbuf();
+            return ss.str();
+        }
+
+    }  // anonymous namespace
+
+    VerifyResult VerifyGeneratedFiles(const fs::path& genDir, const fs::path& refDir)
+    {
+        VerifyResult result;
+
+        if (!fs::exists(genDir))
+        {
+            result.success = false;
+            result.messages.push_back("Generated directory does not exist: " + genDir.string());
+            return result;
+        }
+
+        if (!fs::exists(refDir))
+        {
+            result.success = false;
+            result.messages.push_back("Reference directory does not exist: " + refDir.string());
+            return result;
+        }
+
+        // Collect filenames in each directory (non-recursive, *.go files only)
+        std::set<std::string> genFiles;
+        std::set<std::string> refFiles;
+
+        for (auto& entry: fs::directory_iterator(genDir))
+        {
+            if (entry.is_regular_file() && entry.path().extension() == ".go")
+                genFiles.insert(entry.path().filename().string());
+        }
+
+        for (auto& entry: fs::directory_iterator(refDir))
+        {
+            if (entry.is_regular_file() && entry.path().extension() == ".go")
+                refFiles.insert(entry.path().filename().string());
+        }
+
+        // Files in genDir but not in refDir
+        for (auto& f: genFiles)
+        {
+            if (refFiles.find(f) == refFiles.end())
+                result.extra_files.push_back(f);
+        }
+
+        // Files in refDir but not in genDir
+        for (auto& f: refFiles)
+        {
+            if (genFiles.find(f) == genFiles.end())
+                result.missing_files.push_back(f);
+        }
+
+        // Files in both — compare content
+        for (auto& f: genFiles)
+        {
+            if (refFiles.find(f) != refFiles.end())
+            {
+                auto genContent = ReadFileContents(genDir / f);
+                auto refContent = ReadFileContents(refDir / f);
+                if (genContent != refContent)
+                    result.mismatched_files.push_back(f);
+            }
+        }
+
+        result.success = result.missing_files.empty() && result.extra_files.empty() &&
+                         result.mismatched_files.empty();
+
+        if (!result.success)
+        {
+            if (!result.missing_files.empty())
+                result.messages.push_back("Missing " + std::to_string(result.missing_files.size()) +
+                                          " file(s) in generated output");
+            if (!result.extra_files.empty())
+                result.messages.push_back("Extra " + std::to_string(result.extra_files.size()) +
+                                          " file(s) in generated output");
+            if (!result.mismatched_files.empty())
+                result.messages.push_back(std::to_string(result.mismatched_files.size()) +
+                                          " file(s) differ from reference");
+        }
+
+        return result;
+    }
+
+}  // namespace kwxgen

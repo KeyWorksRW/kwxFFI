@@ -1375,4 +1375,6 @@ extern "C"
     {
         self->SetControl(ctrl);
     }
+
+    MAKE_EVENT_WRAPPER(EVT_GRID_CELL_CHANGE)
 }
