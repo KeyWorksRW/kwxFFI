@@ -24,15 +24,9 @@ The sections below detail the exact steps for each language.
 
 ### Go (kwxGO)
 
-**Prerequisites:** CMake 3.20+, a C++17 compiler, Go 1.21+, cgo enabled.
+**Prerequisites:** CMake 3.30+, a C++17 compiler.
 
-**Step 1 — Add kwxFFI as a submodule** (or set `KWXFFI_SOURCE_DIR` to a checkout):
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Build kwxgen in your CMakeLists.txt:**
+**Step 1 — Build kwxgen in your CMakeLists.txt:**
 
 ```cmake
 set(KWXFFI_DIR ${CMAKE_SOURCE_DIR}/extern/kwxFFI)
@@ -76,22 +70,16 @@ kwxgen verify --headers extern/kwxFFI/include \
 
 ### LuaJIT (kwxLuaJIT)
 
-**Prerequisites:** CMake 3.20+ and a C++17 compiler to build kwxgen; LuaJIT 2.1+ at runtime.
+**Prerequisites:** CMake 3.30+ and a C++17 compiler to build kwxgen
 
-**Step 1 — Clone kwxFFI** (submodule or adjacent checkout):
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Build kwxgen** (standalone, no CMake integration required for pure-Lua projects):
+**Step 1 — Build kwxgen** (standalone, no CMake integration required for pure-Lua projects):
 
 ```sh
 cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
 cmake --build build/kwxgen
 ```
 
-**Step 3 — Generate bindings:**
+**Step 2 — Generate bindings:**
 
 ```sh
 build/kwxgen/kwxgen generate \
@@ -113,22 +101,16 @@ local wx = require("wx.kwxffi")
 
 ### Julia (kwxJulia)
 
-**Prerequisites:** CMake 3.20+ and a C++17 compiler; Julia 1.9+.
+**Prerequisites:** CMake 3.30+ and a C++17 compiler.
 
-**Step 1 — Clone kwxFFI:**
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Build kwxgen:**
+**Step 1 — Build kwxgen:**
 
 ```sh
 cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
 cmake --build build/kwxgen
 ```
 
-**Step 3 — Generate bindings** (typically from `deps/build.jl` or a Makefile):
+**Step 2 — Generate bindings** (typically from `deps/build.jl` or a Makefile):
 
 ```sh
 build/kwxgen/kwxgen generate \
@@ -152,15 +134,9 @@ Regenerate any time kwxFFI is updated; commit the generated files alongside hand
 
 ### Rust (kwxRust)
 
-**Prerequisites:** CMake 3.20+ and a C++17 compiler; Rust stable + Cargo.
+**Prerequisites:** CMake 3.30+ and a C++17 compiler
 
-**Step 1 — Clone kwxFFI:**
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Invoke kwxgen from `build.rs`:**
+**Step 1 — Invoke kwxgen from `build.rs`:**
 
 ```rust
 fn main() {
@@ -198,15 +174,9 @@ pub use gen::button::Button;
 
 ### Perl (kwxPerl)
 
-**Prerequisites:** CMake 3.20+ and a C++17 compiler; Perl 5.32+ with `FFI::Platypus` 2.00+.
+**Prerequisites:** CMake 3.30+ and a C++17 compiler; Perl 5.32+ with `FFI::Platypus` 2.00+.
 
-**Step 1 — Clone kwxFFI:**
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Build kwxgen and generate** (from `Makefile.PL` or a setup script):
+**Step 1 — Build kwxgen and generate** (from `Makefile.PL` or a setup script):
 
 ```sh
 cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
@@ -232,15 +202,9 @@ my $btn = Wx::Gen::Button->Create($parent, -1, "OK", ...);
 
 ### Fortran (kwxFortran)
 
-**Prerequisites:** CMake 3.20+ and a C++17 compiler; gfortran 10+ or Intel ifx.
+**Prerequisites:** CMake 3.30+ and a C++17 compiler
 
-**Step 1 — Clone kwxFFI:**
-
-```sh
-git submodule add https://github.com/KeyWorksRW/kwxFFI extern/kwxFFI
-```
-
-**Step 2 — Build kwxgen and generate** (from CMakeLists.txt or a script):
+**Step 1 — Build kwxgen and generate** (from CMakeLists.txt or a script):
 
 ```sh
 cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
@@ -267,10 +231,6 @@ use wx_events
 ## Re-generating After kwxFFI Updates
 
 When kwxFFI adds new classes or changes signatures:
-
-```sh
-# Pull latest kwxFFI
-git -C extern/kwxFFI pull
 
 # Rebuild kwxgen (in case the generator itself changed)
 cmake --build build/kwxgen
