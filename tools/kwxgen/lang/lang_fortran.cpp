@@ -2,9 +2,9 @@
 
 #include "fortran_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <set>
 #include <vector>
@@ -137,7 +137,7 @@ namespace kwxgen
 
         // Fortran generates a single module file containing all interface declarations.
         auto path = outDir / "kwxffi_gen.f90";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";

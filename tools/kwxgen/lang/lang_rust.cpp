@@ -2,10 +2,10 @@
 
 #include "rust_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <set>
 #include <vector>
@@ -536,7 +536,7 @@ namespace kwxgen
     void RustEmitter::GenerateCargoToml(const fs::path& outDir)
     {
         auto path = outDir / "Cargo.toml";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -565,7 +565,7 @@ namespace kwxgen
     void RustEmitter::GenerateSys(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "sys.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -685,7 +685,7 @@ namespace kwxgen
     void RustEmitter::GenerateTraits(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "traits.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -762,7 +762,7 @@ namespace kwxgen
     void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "events.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -801,7 +801,7 @@ namespace kwxgen
     void RustEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "keys.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -836,7 +836,7 @@ namespace kwxgen
     void RustEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "constants.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -879,7 +879,7 @@ namespace kwxgen
             return;
 
         auto path = srcDir / "freefuncs.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -966,7 +966,7 @@ namespace kwxgen
 
             auto fileName = RustFileName(cls.name);
             auto path = srcDir / fileName;
-            std::ofstream out(path);
+            ConditionalFileWriter out(path);
             if (!out.is_open())
             {
                 std::cerr << "Error: cannot create " << path << "\n";
@@ -1210,7 +1210,7 @@ namespace kwxgen
     void RustEmitter::GenerateLib(const ParsedFFI& ffi, const fs::path& srcDir)
     {
         auto path = srcDir / "lib.rs";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";

@@ -2,9 +2,9 @@
 
 #include "julia_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -159,7 +159,7 @@ namespace kwxgen
     void JuliaEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "events_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -190,7 +190,7 @@ namespace kwxgen
     void JuliaEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "keys_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -221,7 +221,7 @@ namespace kwxgen
     void JuliaEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "constants_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -261,7 +261,7 @@ namespace kwxgen
     void JuliaEmitter::GenerateClasses(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "classes_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -310,7 +310,7 @@ namespace kwxgen
             return;
 
         auto path = outDir / "freefuncs_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -338,7 +338,7 @@ namespace kwxgen
     void JuliaEmitter::GenerateModule(const fs::path& outDir)
     {
         auto path = outDir / "KwxFFI_gen.jl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";

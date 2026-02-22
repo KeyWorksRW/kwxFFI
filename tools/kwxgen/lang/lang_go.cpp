@@ -2,10 +2,10 @@
 
 #include "go_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -81,9 +81,15 @@ namespace kwxgen
         }
 
         // Go filename: "wxButton" → "button_gen.go"
+        // Only strip the "wx" prefix — kwx/ELJ classes keep their prefix to
+        // avoid collisions (e.g. kwxDropTarget vs wxDropTarget).
         std::string GoFileName(const std::string& className)
         {
-            return ToLower(StripPrefix(className)) + "_gen.go";
+            std::string stripped = className;
+            if (className.size() > 2 && className[0] == 'w' && className[1] == 'x' &&
+                std::isupper(static_cast<unsigned char>(className[2])))
+                stripped = className.substr(2);
+            return ToLower(stripped) + "_gen.go";
         }
 
         // Receiver variable: "Button" → "o", "TextCtrl" → "o"
@@ -702,7 +708,7 @@ namespace kwxgen
         GenerateKeys(ffi, outDir);
         GenerateClassFiles(ffi, outDir);
 
-        std::cerr << "Go: generated " << (4 + ffi.classes.size()) << " files in " << outDir << "\n";
+        std::cerr << "Go: checked " << (4 + ffi.classes.size()) << " files in " << outDir << "\n";
     }
 
     VerifyResult GoEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* dir */)
@@ -720,7 +726,7 @@ namespace kwxgen
     void GoEmitter::GenerateHelpers(const fs::path& outDir)
     {
         auto path = outDir / "helpers_gen.go";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -741,7 +747,11 @@ namespace kwxgen
         out << "\treturn 0\n";
         out << "}\n";
 
-        std::cerr << "  helpers_gen.go:   utility functions\n";
+        out.Flush();
+        std::cerr << "  helpers_gen.go:   utility functions";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
     }
 
     // -------------------------------------------------------------------------
@@ -751,7 +761,7 @@ namespace kwxgen
     void GoEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "constants_gen.go";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -817,7 +827,11 @@ namespace kwxgen
             out << ")\n";
         }
 
-        std::cerr << "  constants_gen.go: " << ffi.constants.size() << " constants\n";
+        out.Flush();
+        std::cerr << "  constants_gen.go: " << ffi.constants.size() << " constants";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
     }
 
     // -------------------------------------------------------------------------
@@ -827,7 +841,7 @@ namespace kwxgen
     void GoEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "events_gen.go";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -856,7 +870,11 @@ namespace kwxgen
         }
         out << ")\n";
 
-        std::cerr << "  events_gen.go:    " << ffi.events.size() << " events\n";
+        out.Flush();
+        std::cerr << "  events_gen.go:    " << ffi.events.size() << " events";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
     }
 
     // -------------------------------------------------------------------------
@@ -866,7 +884,7 @@ namespace kwxgen
     void GoEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "keys_gen.go";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -895,7 +913,11 @@ namespace kwxgen
         }
         out << ")\n";
 
-        std::cerr << "  keys_gen.go:      " << ffi.keys.size() << " keys\n";
+        out.Flush();
+        std::cerr << "  keys_gen.go:      " << ffi.keys.size() << " keys";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
     }
 
     // -------------------------------------------------------------------------
@@ -905,6 +927,7 @@ namespace kwxgen
     void GoEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& outDir)
     {
         size_t fileCount = 0;
+        size_t writtenCount = 0;
         size_t methodCount = 0;
         size_t skippedMethods = 0;
 
@@ -915,7 +938,7 @@ namespace kwxgen
 
             auto fileName = GoFileName(cls.name);
             auto path = outDir / fileName;
-            std::ofstream out(path);
+            ConditionalFileWriter out(path);
             if (!out.is_open())
             {
                 std::cerr << "Error: cannot create " << path << "\n";
@@ -923,6 +946,8 @@ namespace kwxgen
             }
 
             EmitClassFile(out, cls, ffi);
+            if (out.Flush())
+                ++writtenCount;
             ++fileCount;
 
             for (auto& m: cls.methods)
@@ -937,6 +962,8 @@ namespace kwxgen
         std::cerr << "  class files:      " << fileCount << " files, " << methodCount << " methods";
         if (skippedMethods > 0)
             std::cerr << " (" << skippedMethods << " skipped)";
+        std::cerr << " [" << writtenCount << " written, " << (fileCount - writtenCount)
+                  << " unchanged]";
         std::cerr << "\n";
     }
 

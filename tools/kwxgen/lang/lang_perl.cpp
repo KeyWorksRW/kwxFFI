@@ -2,9 +2,9 @@
 
 #include "perl_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <vector>
 
@@ -116,7 +116,7 @@ namespace kwxgen
     void PerlEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_events_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -149,7 +149,7 @@ namespace kwxgen
     void PerlEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_keys_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -182,7 +182,7 @@ namespace kwxgen
     void PerlEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_constants_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -216,7 +216,7 @@ namespace kwxgen
     void PerlEmitter::GenerateClasses(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_classes_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -267,7 +267,7 @@ namespace kwxgen
             return;
 
         auto path = outDir / "kwxffi_freefuncs_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -297,7 +297,7 @@ namespace kwxgen
     void PerlEmitter::GenerateInit(const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_gen.pl";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";

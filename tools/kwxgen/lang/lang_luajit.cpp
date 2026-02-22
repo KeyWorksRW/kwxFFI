@@ -2,9 +2,9 @@
 
 #include "luajit_type_map.h"
 
+#include "file_writer.h"
 #include <algorithm>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -117,7 +117,7 @@ namespace kwxgen
     void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_events_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -152,7 +152,7 @@ namespace kwxgen
     void LuaJITEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_keys_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -187,7 +187,7 @@ namespace kwxgen
     void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_constants_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -224,7 +224,7 @@ namespace kwxgen
     void LuaJITEmitter::GenerateClasses(const ParsedFFI& ffi, const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_classes_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -275,7 +275,7 @@ namespace kwxgen
             return;
 
         auto path = outDir / "kwxffi_freefuncs_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
@@ -307,7 +307,7 @@ namespace kwxgen
     void LuaJITEmitter::GenerateInit(const fs::path& outDir)
     {
         auto path = outDir / "kwxffi_gen.lua";
-        std::ofstream out(path);
+        ConditionalFileWriter out(path);
         if (!out.is_open())
         {
             std::cerr << "Error: cannot create " << path << "\n";
