@@ -1,0 +1,323 @@
+#include "lang_fortran.h"
+
+#include "fortran_type_map.h"
+
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <set>
+#include <vector>
+
+namespace fs = std::filesystem;
+
+namespace kwxgen
+{
+
+    namespace
+    {
+
+        // Build a C function name from a FunctionDecl.
+        std::string CFuncName(const FunctionDecl& f)
+        {
+            if (f.class_name.empty())
+                return f.method_name;
+            return f.class_name + "_" + f.method_name;
+        }
+
+        // Emit a single Fortran interface declaration for a C function.
+        // Handles both subroutines (void return) and functions (non-void return).
+        void EmitFortranInterface(std::ostream& out, const std::string& cName,
+                                  const FortranReturnInfo& retInfo,
+                                  const std::vector<FortranParam>& params)
+        {
+            auto imports = CollectImports(params, retInfo);
+
+            if (retInfo.is_void)
+            {
+                // Subroutine
+                out << "    subroutine " << cName << "(";
+                for (size_t i = 0; i < params.size(); ++i)
+                {
+                    if (i > 0)
+                        out << ", ";
+                    out << params[i].name;
+                }
+                out << ") &\n";
+                out << "        bind(C, name='" << cName << "')\n";
+            }
+            else
+            {
+                // Function with return type
+                out << "    " << retInfo.fortran_type << " function " << cName << "(";
+                for (size_t i = 0; i < params.size(); ++i)
+                {
+                    if (i > 0)
+                        out << ", ";
+                    out << params[i].name;
+                }
+                out << ") &\n";
+                out << "        bind(C, name='" << cName << "')\n";
+            }
+
+            // Import statement
+            if (!imports.empty())
+            {
+                out << "      import :: ";
+                bool first = true;
+                for (const auto& sym: imports)
+                {
+                    if (!first)
+                        out << ", ";
+                    out << sym;
+                    first = false;
+                }
+                out << "\n";
+            }
+
+            // Parameter declarations
+            for (const auto& p: params)
+            {
+                out << "      " << p.fortran_type << ", value :: " << p.name << "\n";
+            }
+
+            if (retInfo.is_void)
+                out << "    end subroutine\n";
+            else
+                out << "    end function\n";
+        }
+
+        // Emit an interface declaration from a FunctionDecl.
+        void EmitFunctionInterface(std::ostream& out, const FunctionDecl& f)
+        {
+            std::string cName = CFuncName(f);
+            FortranReturnInfo retInfo = FortranReturnType(f.return_type, f.return_macro);
+
+            std::vector<FortranParam> fParams;
+            for (const auto& p: f.params)
+            {
+                auto expanded = ExpandParamToFortran(p);
+                for (auto& fp: expanded)
+                    fParams.push_back(std::move(fp));
+            }
+
+            EmitFortranInterface(out, cName, retInfo, fParams);
+        }
+
+        // Check if a function declaration looks valid (skip malformed ones).
+        bool IsValidFunction(const FunctionDecl& f)
+        {
+            if (f.return_type.find("//") != std::string::npos ||
+                f.return_type.find("/*") != std::string::npos ||
+                f.return_type.find("*/") != std::string::npos)
+                return false;
+            if (f.method_name.find("//") != std::string::npos ||
+                f.method_name.find("/*") != std::string::npos)
+                return false;
+            if (f.method_name.empty())
+                return false;
+            for (const auto& p: f.params)
+            {
+                if (p.raw_type.find("//") != std::string::npos ||
+                    p.raw_type.find("/*") != std::string::npos)
+                    return false;
+            }
+            return true;
+        }
+
+    }  // anonymous namespace
+
+    // -------------------------------------------------------------------------
+    // FortranEmitter public interface
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::Generate(const ParsedFFI& ffi, const fs::path& outDir)
+    {
+        fs::create_directories(outDir);
+
+        // Fortran generates a single module file containing all interface declarations.
+        auto path = outDir / "kwxffi_gen.f90";
+        std::ofstream out(path);
+        if (!out.is_open())
+        {
+            std::cerr << "Error: cannot create " << path << "\n";
+            return;
+        }
+
+        out << "! Code generated by kwxgen. DO NOT EDIT.\n";
+        out << "module kwxffi\n";
+        out << "  use, intrinsic :: iso_c_binding\n";
+        out << "  implicit none\n\n";
+        out << "  interface\n\n";
+
+        GenerateEvents(ffi, out);
+        GenerateKeys(ffi, out);
+        GenerateConstants(ffi, out);
+        GenerateClasses(ffi, out);
+        GenerateFreeFunctions(ffi, out);
+
+        out << "  end interface\n\n";
+        out << "end module kwxffi\n";
+
+        std::cerr << "Fortran: generated kwxffi_gen.f90 in " << outDir << "\n";
+    }
+
+    VerifyResult FortranEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* dir */)
+    {
+        VerifyResult result;
+        result.success = false;
+        result.messages.push_back("Fortran verify: use 'kwxgen verify' command instead");
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Events
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::GenerateEvents(const ParsedFFI& ffi, std::ostream& out)
+    {
+        out << "    ! Events\n\n";
+
+        auto sorted = ffi.events;
+        std::sort(sorted.begin(), sorted.end(),
+                  [](const EventDecl& a, const EventDecl& b)
+                  {
+                      return a.event_name < b.event_name;
+                  });
+
+        for (const auto& e: sorted)
+        {
+            out << "    integer(c_int) function " << e.export_name << "() &\n";
+            out << "        bind(C, name='" << e.export_name << "')\n";
+            out << "      import :: c_int\n";
+            out << "    end function\n\n";
+        }
+
+        std::cerr << "  Events:           " << ffi.events.size() << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // Keys
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::GenerateKeys(const ParsedFFI& ffi, std::ostream& out)
+    {
+        out << "    ! Keys\n\n";
+
+        auto sorted = ffi.keys;
+        std::sort(sorted.begin(), sorted.end(),
+                  [](const KeyDecl& a, const KeyDecl& b)
+                  {
+                      return a.key_name < b.key_name;
+                  });
+
+        for (const auto& k: sorted)
+        {
+            out << "    integer(c_int) function " << k.export_name << "() &\n";
+            out << "        bind(C, name='" << k.export_name << "')\n";
+            out << "      import :: c_int\n";
+            out << "    end function\n\n";
+        }
+
+        std::cerr << "  Keys:             " << ffi.keys.size() << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // Constants
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::GenerateConstants(const ParsedFFI& ffi, std::ostream& out)
+    {
+        out << "    ! Constants\n\n";
+
+        auto sorted = ffi.constants;
+        std::sort(sorted.begin(), sorted.end(),
+                  [](const ConstantDecl& a, const ConstantDecl& b)
+                  {
+                      return a.export_name < b.export_name;
+                  });
+
+        for (const auto& c: sorted)
+        {
+            std::string fType;
+            std::string importSym;
+            if (c.return_type.find('*') != std::string::npos)
+            {
+                fType = "type(c_ptr)";
+                importSym = "c_ptr";
+            }
+            else
+            {
+                fType = "integer(c_int)";
+                importSym = "c_int";
+            }
+
+            out << "    " << fType << " function " << c.export_name << "() &\n";
+            out << "        bind(C, name='" << c.export_name << "')\n";
+            out << "      import :: " << importSym << "\n";
+            out << "    end function\n\n";
+        }
+
+        std::cerr << "  Constants:        " << ffi.constants.size() << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // Classes
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::GenerateClasses(const ParsedFFI& ffi, std::ostream& out)
+    {
+        size_t methodCount = 0;
+        size_t skippedCount = 0;
+
+        for (const auto& cls: ffi.classes)
+        {
+            if (cls.methods.empty())
+                continue;
+
+            out << "    ! " << cls.name << "\n\n";
+
+            for (const auto& f: cls.methods)
+            {
+                if (!IsValidFunction(f))
+                {
+                    ++skippedCount;
+                    continue;
+                }
+                EmitFunctionInterface(out, f);
+                out << "\n";
+                ++methodCount;
+            }
+        }
+
+        std::cerr << "  Class methods:    " << methodCount;
+        if (skippedCount > 0)
+            std::cerr << " (" << skippedCount << " skipped)";
+        std::cerr << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // Free Functions
+    // -------------------------------------------------------------------------
+
+    void FortranEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, std::ostream& out)
+    {
+        if (ffi.free_functions.empty())
+            return;
+
+        out << "    ! Free functions\n\n";
+
+        size_t count = 0;
+        for (const auto& f: ffi.free_functions)
+        {
+            if (!IsValidFunction(f))
+                continue;
+            EmitFunctionInterface(out, f);
+            out << "\n";
+            ++count;
+        }
+
+        std::cerr << "  Free functions:   " << count << "\n";
+    }
+
+}  // namespace kwxgen
