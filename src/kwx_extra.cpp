@@ -1593,15 +1593,6 @@ extern "C"
         return new wxMenuItem(nullptr, id, *text, *helpstr, (wxItemKind) itemkind, submenu);
     }
 
-    EXPORT void wxMenu_AppendRadioItem(wxMenu* self, int id, wxString* text, wxString* help)
-    {
-#ifdef wxHAS_RADIO_MENU_ITEMS
-        self->AppendRadioItem(id, *text, *help);
-#else
-        self->AppendCheckItem(id, *text, *help);
-#endif
-    }
-
     EXPORT bool wxProcess_IsErrorAvailable(wxProcess* self)
     {
         return self->IsErrorAvailable();
