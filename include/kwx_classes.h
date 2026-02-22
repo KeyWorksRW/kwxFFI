@@ -1517,9 +1517,11 @@ void wxCloseEvent_SetCanVeto(TSelf(wxCloseEvent) pObject, TBool canVeto);
 void wxCloseEvent_SetLoggingOff(TSelf(wxCloseEvent) pObject, TBool logOff);
 void wxCloseEvent_Veto(TSelf(wxCloseEvent) pObject, TBool veto);
 
-TClassDefExtend(wxClosure, wxObject)
+TClassDefExtend(wxClosure, wxObject) TClass(wxClosure)
+    wxClosure_Create(TClosureFun fun, void* data);
+void* wxClosure_GetData(TSelf(wxClosure) pObject);
 
-    TClassDefExtend(wxColour, wxObject) TUInt8 wxColour_Alpha(TSelf(wxColour) pObject);
+TClassDefExtend(wxColour, wxObject) TUInt8 wxColour_Alpha(TSelf(wxColour) pObject);
 void wxColour_Assign(TSelf(wxColour) pObject, void* other);
 TUInt8 wxColour_Blue(TSelf(wxColour) pObject);
 void wxColour_Copy(TSelf(wxColour) pObject, void* other);
@@ -1589,6 +1591,7 @@ void wxComboBox_SetEditable(TSelf(wxComboBox) pObject, TBool editable);
 void wxComboBox_SetInsertionPoint(TSelf(wxComboBox) pObject, int pos);
 void wxComboBox_SetInsertionPointEnd(TSelf(wxComboBox) pObject);
 void wxComboBox_SetSelection(TSelf(wxComboBox) pObject, int index);
+void wxComboBox_SetString(TSelf(wxComboBox) pObject, int index, TClass(wxString) str);
 void wxComboBox_SetTextSelection(TSelf(wxComboBox) pObject, int from, int toPos);
 
 TClassDefExtend(wxCommand, wxObject)
@@ -3663,6 +3666,8 @@ void wxMenu_SetTitle(TSelf(wxMenu) pObject, TClass(wxString) title);
 void wxMenu_UpdateUI(TSelf(wxMenu) pObject, void* source);
 void wxMenu_AppendCheckItem(TSelf(wxMenu) pObject, int id, TClass(wxString) text,
                             TClass(wxString) help);
+void wxMenu_AppendRadioItem(TSelf(wxMenu) pObject, int id, TClass(wxString) text,
+                            TClass(wxString) help);
 void wxMenu_InsertSeparator(TSelf(wxMenu) pObject, size_t pos);
 void wxMenu_InsertCheckItem(TSelf(wxMenu) pObject, size_t pos, int id, TClass(wxString) text,
                             TClass(wxString) help);
@@ -5718,26 +5723,27 @@ TClassDef(wxStreamBuffer)
 
     TClassDef(wxStreamToTextRedirector)
 
-        TClassDef(wxString)
+        TClassDef(wxString) TClass(wxString) wxString_Create(TString buffer);
+TClass(wxString) wxString_CreateUTF8(TString buffer);
+TClass(wxString) wxString_CreateLen(TString buffer, int len);
+void wxString_Delete(TSelf(wxString) pObject);
+int wxString_GetString(TSelf(wxString) pObject, TStringOut buffer);
+size_t wxString_Length(TSelf(wxString) pObject);
 
-            TClassDef(wxStringBuffer)
+TClassDef(wxStringBuffer)
 
-                TClassDefExtend(wxStringClientData, wxClientData)
+    TClassDefExtend(wxStringClientData, wxClientData)
 
-                    TClassDefExtend(wxStringList, wxList)
+        TClassDefExtend(wxStringList, wxList)
 
-                        TClassDefExtend(wxStringTokenizer, wxObject)
+            TClassDefExtend(wxStringTokenizer, wxObject)
 
-                            TClassDefExtend(wxSysColourChangedEvent, wxEvent)
+                TClassDefExtend(wxSysColourChangedEvent, wxEvent)
 
-                                TClassDefExtend(wxSystemOptions, wxObject)
+                    TClassDefExtend(wxSystemOptions, wxObject)
 
-                                    TClassDefExtend(
-                                        wxSystemSettings,
-                                        wxObject) void wxSystemSettings_GetColour(int index,
-                                                                                  TClassRef(
-                                                                                      wxColour)
-                                                                                      ref);
+                        TClassDefExtend(wxSystemSettings, wxObject) void wxSystemSettings_GetColour(
+                            int index, TClassRef(wxColour) ref);
 void wxSystemSettings_GetFont(int index, TClassRef(wxFont) ref);
 int wxSystemSettings_GetMetric(int index);
 int wxSystemSettings_GetScreenType();

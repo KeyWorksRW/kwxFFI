@@ -246,6 +246,11 @@ extern "C"
         self->AppendCheckItem(id, *text, help ? *help : wxString());
     }
 
+    EXPORT void wxMenu_AppendRadioItem(wxMenu* self, int id, wxString* text, wxString* help)
+    {
+        self->AppendRadioItem(id, *text, help ? *help : wxString());
+    }
+
     EXPORT void wxMenu_InsertSeparator(wxMenu* self, size_t pos)
     {
         self->InsertSeparator(pos);

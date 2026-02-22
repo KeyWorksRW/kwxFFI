@@ -28,6 +28,24 @@ namespace kwxgen
             return f.class_name + "_" + f.method_name;
         }
 
+        // Transform a C export name (with "exp" prefix) into an idiomatic Fortran name.
+        //   expwxFOO     -> wxFOO      (strip "exp")
+        //   expEVT_FOO   -> wxEVT_FOO  (replace "exp" with "wx")
+        //   expK_FOO     -> WXK_FOO    (replace "exp" with "WX")
+        //   expOther     -> Other      (strip "exp" fallback)
+        std::string FortranName(const std::string& exportName)
+        {
+            if (exportName.compare(0, 5, "expwx") == 0)
+                return exportName.substr(3);  // strip "exp" -> "wxFOO"
+            if (exportName.compare(0, 7, "expEVT_") == 0)
+                return "wx" + exportName.substr(3);  // "expEVT_X" -> "wxEVT_X"
+            if (exportName.compare(0, 5, "expK_") == 0)
+                return "WX" + exportName.substr(3);  // "expK_X" -> "WXK_X"
+            if (exportName.compare(0, 3, "exp") == 0)
+                return exportName.substr(3);  // strip "exp"
+            return exportName;
+        }
+
         // Emit a single Fortran interface declaration for a C function.
         // Handles both subroutines (void return) and functions (non-void return).
         void EmitFortranInterface(std::ostream& out, const std::string& cName,
@@ -190,7 +208,8 @@ namespace kwxgen
 
         for (const auto& e: sorted)
         {
-            out << "    integer(c_int) function " << e.export_name << "() &\n";
+            auto fname = FortranName(e.export_name);
+            out << "    integer(c_int) function " << fname << "() &\n";
             out << "        bind(C, name='" << e.export_name << "')\n";
             out << "      import :: c_int\n";
             out << "    end function\n\n";
@@ -216,7 +235,8 @@ namespace kwxgen
 
         for (const auto& k: sorted)
         {
-            out << "    integer(c_int) function " << k.export_name << "() &\n";
+            auto fname = FortranName(k.export_name);
+            out << "    integer(c_int) function " << fname << "() &\n";
             out << "        bind(C, name='" << k.export_name << "')\n";
             out << "      import :: c_int\n";
             out << "    end function\n\n";
@@ -255,7 +275,8 @@ namespace kwxgen
                 importSym = "c_int";
             }
 
-            out << "    " << fType << " function " << c.export_name << "() &\n";
+            auto fname = FortranName(c.export_name);
+            out << "    " << fType << " function " << fname << "() &\n";
             out << "        bind(C, name='" << c.export_name << "')\n";
             out << "      import :: " << importSym << "\n";
             out << "    end function\n\n";

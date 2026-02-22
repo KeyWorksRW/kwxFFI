@@ -476,7 +476,9 @@ namespace kwxgen
         std::string BuildCCall(const FunctionDecl& f, const std::string& receiverExpr,
                                const std::vector<std::vector<GoParam>>& paramGroups)
         {
-            std::string call = "C." + f.class_name + "_" + f.method_name + "(";
+            std::string cName =
+                f.class_name.empty() ? f.method_name : f.class_name + "_" + f.method_name;
+            std::string call = "C." + cName + "(";
             bool first = true;
 
             // If has_self, the receiver is the first arg

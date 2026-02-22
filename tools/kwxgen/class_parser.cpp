@@ -331,8 +331,10 @@ namespace kwxgen
             }
             else
             {
-                // No underscore — bare function name (e.g., PopProvider, kwxMessageBox)
-                out.class_name = current_class;
+                // No underscore — bare function name (e.g., PopProvider, kwxMessageBox).
+                // These are free functions (or static methods exported without a class prefix),
+                // so leave class_name empty so CFuncName() returns just the function name.
+                out.class_name = {};
                 out.method_name = func_name;
             }
 
