@@ -111,6 +111,15 @@ namespace kwxgen
             return (it != keywords.end()) ? it->second : name;
         }
 
+        // Ensure a Go identifier doesn't start with a digit (illegal in Go).
+        // e.g. "3STATE" → "X3STATE"
+        std::string SafeGoIdentifier(const std::string& name)
+        {
+            if (!name.empty() && std::isdigit(static_cast<unsigned char>(name[0])))
+                return "X" + name;
+            return name;
+        }
+
         // Split comma-separated macro arg: "x, y" → {"x", "y"}
         std::vector<std::string> SplitMacroArg(const std::string& arg)
         {
@@ -565,7 +574,7 @@ namespace kwxgen
             }
 
             // Method signature
-            out << "func (" << recv << " *" << goClassName << ") " << f.method_name << "(";
+            out << "func (" << recv << " *" << goClassName << ") " << SafeGoIdentifier(f.method_name) << "(";  // SafeGoIdentifier: prefix names starting with a digit
             bool first = true;
             for (auto& group: paramGroups)
             {
