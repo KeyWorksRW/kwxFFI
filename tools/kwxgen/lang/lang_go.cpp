@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <vector>
 
@@ -92,6 +93,24 @@ namespace kwxgen
             return "o";
         }
 
+        // Go reserved keywords that cannot be used as parameter names.
+        // Returns a safe replacement, or the original name if not a keyword.
+        std::string RenameGoKeyword(const std::string& name)
+        {
+            static const std::unordered_map<std::string, std::string> keywords = {
+                { "type", "typ" },        { "select", "sel" }, { "range", "rng" },
+                { "map", "mp" },          { "func", "fn" },    { "var", "v" },
+                { "chan", "ch" },         { "go", "g" },       { "defer", "deferVal" },
+                { "switch", "sw" },       { "case", "cs" },    { "default", "def" },
+                { "interface", "iface" }, { "struct", "st" },  { "package", "pkg" },
+                { "import", "imp" },      { "return", "ret" }, { "break", "brk" },
+                { "continue", "cont" },   { "for", "loop" },   { "if", "cond" },
+                { "else", "alt" },        { "goto", "jmp" },   { "fallthrough", "ft" },
+            };
+            auto it = keywords.find(name);
+            return (it != keywords.end()) ? it->second : name;
+        }
+
         // Split comma-separated macro arg: "x, y" → {"x", "y"}
         std::vector<std::string> SplitMacroArg(const std::string& arg)
         {
@@ -142,16 +161,22 @@ namespace kwxgen
             if (p.macro_name == "TPoint" || p.macro_name == "TSize" || p.macro_name == "TRect" ||
                 p.macro_name == "TVector")
             {
-                for (auto& n: SplitMacroArg(p.macro_arg))
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
                     result.push_back({ n, "int", "C.int(" + n + ")", "", "", false });
+                }
                 return result;
             }
 
             if (p.macro_name == "TPointLong" || p.macro_name == "TSizeLong" ||
                 p.macro_name == "TRectLong" || p.macro_name == "TVectorLong")
             {
-                for (auto& n: SplitMacroArg(p.macro_arg))
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
                     result.push_back({ n, "int", "C.long(" + n + ")", "", "", false });
+                }
                 return result;
             }
 
@@ -161,22 +186,31 @@ namespace kwxgen
                 p.macro_name == "TRectOutVoid" || p.macro_name == "TVectorOutVoid")
             {
                 // Output geometry parameters — pass as unsafe.Pointer for each component
-                for (auto& n: SplitMacroArg(p.macro_arg))
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
                     result.push_back({ n, "unsafe.Pointer", n, "", "", true });
+                }
                 return result;
             }
 
             if (p.macro_name == "TSizeOutDouble")
             {
-                for (auto& n: SplitMacroArg(p.macro_arg))
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
                     result.push_back({ n, "unsafe.Pointer", n, "", "", true });
+                }
                 return result;
             }
 
             if (p.macro_name == "TColorRGB")
             {
-                for (auto& n: SplitMacroArg(p.macro_arg))
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
                     result.push_back({ n, "int", "C.uchar(" + n + ")", "", "", false });
+                }
                 return result;
             }
 
@@ -187,22 +221,24 @@ namespace kwxgen
                 auto names = SplitMacroArg(p.macro_arg);
                 if (names.size() >= 2)
                 {
-                    result.push_back({ names[0], "int", "C.int(" + names[0] + ")", "", "", false });
-                    result.push_back({ names[1], "unsafe.Pointer", names[1], "", "", true });
+                    auto n0 = RenameGoKeyword(names[0]);
+                    auto n1 = RenameGoKeyword(names[1]);
+                    result.push_back({ n0, "int", "C.int(" + n0 + ")", "", "", false });
+                    result.push_back({ n1, "unsafe.Pointer", n1, "", "", true });
                 }
                 return result;
             }
 
             if (p.macro_name == "TArrayObjectOutVoid")
             {
-                std::string name = p.param_name.empty() ? "arr" : p.param_name;
+                std::string name = RenameGoKeyword(p.param_name.empty() ? "arr" : p.param_name);
                 result.push_back({ name, "unsafe.Pointer", name, "", "", true });
                 return result;
             }
 
             // Single parameter
             GoParam gp;
-            gp.name = p.param_name.empty() ? "arg" : p.param_name;
+            gp.name = RenameGoKeyword(p.param_name.empty() ? "arg" : p.param_name);
 
             if (p.macro_name == "TClass" && p.macro_arg == "wxString")
             {
@@ -441,7 +477,20 @@ namespace kwxgen
             return call;
         }
 
-        // Emit a constructor function: NewClassName(...)
+        // Build a disambiguated Go constructor name from the C method name.
+        // "Create" → "New" + goClassName, e.g. "NewBitmap"
+        // "CreateEmpty" → "New" + goClassName + "Empty", e.g. "NewBitmapEmpty"
+        // "CreateFromData" → "New" + goClassName + "FromData", e.g. "NewBitmapFromData"
+        std::string GoConstructorName(const std::string& goClassName, const std::string& methodName)
+        {
+            std::string suffix;
+            if (methodName.size() > 6 && methodName.substr(0, 6) == "Create")
+                suffix = methodName.substr(6);  // e.g., "Empty", "FromData", "Load"
+            // "Create" alone → empty suffix
+            return "New" + goClassName + suffix;
+        }
+
+        // Emit a constructor function: NewClassName(...) or NewClassNameSuffix(...)
         void EmitConstructor(std::ostream& out, const ClassInfo& cls, const FunctionDecl& f,
                              const std::string& goClassName, bool isWindowDerived)
         {
@@ -454,8 +503,9 @@ namespace kwxgen
                 paramGroups.push_back(ConvertParam(p));
             }
 
-            // Function signature
-            out << "func New" << goClassName << "(";
+            // Function signature — disambiguate overloaded Create* methods
+            std::string funcName = GoConstructorName(goClassName, f.method_name);
+            out << "func " << funcName << "(";
             bool first = true;
             for (auto& group: paramGroups)
             {
@@ -492,14 +542,7 @@ namespace kwxgen
 
             // Create and return Go object
             out << "\tobj := &" << goClassName << "{}\n";
-            if (isWindowDerived)
-            {
-                out << "\tobj.SetPtr(unsafe.Pointer(ptr))\n";
-            }
-            else
-            {
-                out << "\tobj.ptr = unsafe.Pointer(ptr)\n";
-            }
+            out << "\tobj.SetPtr(unsafe.Pointer(ptr))\n";
             out << "\treturn obj\n";
             out << "}\n\n";
         }
@@ -907,16 +950,29 @@ namespace kwxgen
 
         out << "\n";
 
-        // Type definition
+        // Type definition — embed parent type from class hierarchy
         if (isWindowDerived)
         {
             out << "type " << goClassName << " struct{ BaseWindow }\n\n";
         }
         else
         {
-            out << "type " << goClassName << " struct{ ptr unsafe.Pointer }\n\n";
-            // Add Ptr() method for non-window types
-            out << "func (o *" << goClassName << ") Ptr() unsafe.Pointer { return o.ptr }\n\n";
+            // Determine the Go embedded type from the parent class.
+            // If parent is known and wrapped, embed it; otherwise fall back to BaseObject.
+            std::string embedType = "BaseObject";
+            if (!cls.parent.empty())
+            {
+                std::string goParent = StripPrefix(cls.parent);
+                // Check the parent is a real wrapped class (exists in ffi.classes)
+                bool parentWrapped = std::any_of(ffi.classes.begin(), ffi.classes.end(),
+                                                 [&](const ClassInfo& c)
+                                                 {
+                                                     return c.name == cls.parent;
+                                                 });
+                if (parentWrapped)
+                    embedType = goParent;
+            }
+            out << "type " << goClassName << " struct{ " << embedType << " }\n\n";
         }
 
         // Emit methods
