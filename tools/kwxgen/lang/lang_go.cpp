@@ -574,7 +574,9 @@ namespace kwxgen
             }
 
             // Method signature
-            out << "func (" << recv << " *" << goClassName << ") " << SafeGoIdentifier(f.method_name) << "(";  // SafeGoIdentifier: prefix names starting with a digit
+            out << "func (" << recv << " *" << goClassName << ") "
+                << SafeGoIdentifier(f.method_name)
+                << "(";  // SafeGoIdentifier: prefix names starting with a digit
             bool first = true;
             for (auto& group: paramGroups)
             {
