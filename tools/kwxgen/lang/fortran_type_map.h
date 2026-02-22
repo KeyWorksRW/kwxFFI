@@ -80,7 +80,8 @@ namespace kwxgen
             info.import_sym = "c_int";
             return info;
         }
-        if (return_type == "unsigned long" || return_type == "wxUIntPtr")
+        if (return_type == "unsigned long" || return_type == "wxUIntPtr" ||
+            return_type == "uintptr_t")
         {
             info.fortran_type = "integer(c_long)";
             info.import_sym = "c_long";
@@ -322,7 +323,7 @@ namespace kwxgen
             result.push_back({ "integer(c_long)", "c_long", name });
         else if (raw == "unsigned" || raw == "unsigned int")
             result.push_back({ "integer(c_int)", "c_int", name });
-        else if (raw == "unsigned long" || raw == "wxUIntPtr")
+        else if (raw == "unsigned long" || raw == "wxUIntPtr" || raw == "uintptr_t")
             result.push_back({ "integer(c_long)", "c_long", name });
         else if (raw == "double")
             result.push_back({ "real(c_double)", "c_double", name });

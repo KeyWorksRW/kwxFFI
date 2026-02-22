@@ -61,6 +61,8 @@ namespace kwxgen
             return "c_uint";
         if (return_type == "unsigned long" || return_type == "wxUIntPtr")
             return "c_ulong";
+        if (return_type == "uintptr_t")
+            return "usize";
         if (return_type == "double")
             return "c_double";
         if (return_type == "float")
@@ -242,6 +244,8 @@ namespace kwxgen
             result.push_back({ "c_uint", name });
         else if (raw == "unsigned long" || raw == "wxUIntPtr")
             result.push_back({ "c_ulong", name });
+        else if (raw == "uintptr_t")
+            result.push_back({ "usize", name });
         else if (raw == "double")
             result.push_back({ "c_double", name });
         else if (raw == "float")

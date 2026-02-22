@@ -4247,11 +4247,11 @@ void wxDataViewListCtrl_RowToItem(TSelf(wxDataViewListCtrl) pObject, int row,
 int wxDataViewListCtrl_GetSelectedRow(TSelf(wxDataViewListCtrl) pObject);
 void wxDataViewListCtrl_SelectRow(TSelf(wxDataViewListCtrl) pObject, unsigned int row);
 void wxDataViewListCtrl_UnselectRow(TSelf(wxDataViewListCtrl) pObject, unsigned int row);
-void wxDataViewListCtrl_AppendItem(TSelf(wxDataViewListCtrl) pObject, void* values, wxUIntPtr data);
+void wxDataViewListCtrl_AppendItem(TSelf(wxDataViewListCtrl) pObject, void* values, uintptr_t data);
 void wxDataViewListCtrl_PrependItem(TSelf(wxDataViewListCtrl) pObject, void* values,
-                                    wxUIntPtr data);
+                                    uintptr_t data);
 void wxDataViewListCtrl_InsertItem(TSelf(wxDataViewListCtrl) pObject, unsigned int row,
-                                   void* values, wxUIntPtr data);
+                                   void* values, uintptr_t data);
 void wxDataViewListCtrl_DeleteItem(TSelf(wxDataViewListCtrl) pObject, unsigned int row);
 void wxDataViewListCtrl_DeleteAllItems(TSelf(wxDataViewListCtrl) pObject);
 void wxDataViewListCtrl_SetValue(TSelf(wxDataViewListCtrl) pObject, TClass(wxVariant) value,
@@ -4267,8 +4267,8 @@ void wxDataViewListCtrl_SetToggleValue(TSelf(wxDataViewListCtrl) pObject, TBool 
 TBool wxDataViewListCtrl_GetToggleValue(TSelf(wxDataViewListCtrl) pObject, unsigned int row,
                                         unsigned int col);
 void wxDataViewListCtrl_SetItemData(TSelf(wxDataViewListCtrl) pObject, TClass(wxDataViewItem) item,
-                                    wxUIntPtr data);
-wxUIntPtr wxDataViewListCtrl_GetItemData(TSelf(wxDataViewListCtrl) pObject,
+                                    uintptr_t data);
+uintptr_t wxDataViewListCtrl_GetItemData(TSelf(wxDataViewListCtrl) pObject,
                                          TClass(wxDataViewItem) item);
 int wxDataViewListCtrl_GetItemCount(TSelf(wxDataViewListCtrl) pObject);
 TBool wxDataViewListCtrl_IsRowSelected(TSelf(wxDataViewListCtrl) pObject, unsigned row);

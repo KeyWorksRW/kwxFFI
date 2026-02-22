@@ -338,6 +338,11 @@ namespace kwxgen
                     gp.go_type = "uint";
                     gp.cgo_expr = "C.ulong(" + gp.name + ")";
                 }
+                else if (raw == "uintptr_t")
+                {
+                    gp.go_type = "uintptr";
+                    gp.cgo_expr = "C.uintptr_t(" + gp.name + ")";
+                }
                 else if (raw == "double")
                 {
                     gp.go_type = "float64";
@@ -411,6 +416,8 @@ namespace kwxgen
             if (f.return_type == "unsigned" || f.return_type == "unsigned int" ||
                 f.return_type == "wxUIntPtr" || f.return_type == "unsigned long")
                 return "uint";
+            if (f.return_type == "uintptr_t")
+                return "uintptr";
             if (f.return_type == "double")
                 return "float64";
             if (f.return_type == "float")

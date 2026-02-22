@@ -38,6 +38,8 @@ namespace kwxgen
             return "Cuint";
         if (return_type == "unsigned long" || return_type == "wxUIntPtr")
             return "Culong";
+        if (return_type == "uintptr_t")
+            return "Culong";
         if (return_type == "double")
             return "Cdouble";
         if (return_type == "float")
@@ -211,6 +213,8 @@ namespace kwxgen
         else if (raw == "unsigned" || raw == "unsigned int")
             result.push_back({ "Cuint", name });
         else if (raw == "unsigned long" || raw == "wxUIntPtr")
+            result.push_back({ "Culong", name });
+        else if (raw == "uintptr_t")
             result.push_back({ "Culong", name });
         else if (raw == "double")
             result.push_back({ "Cdouble", name });

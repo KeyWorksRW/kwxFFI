@@ -215,6 +215,8 @@ namespace kwxgen
                 return "u32";
             if (f.return_type == "unsigned long" || f.return_type == "wxUIntPtr")
                 return "u64";
+            if (f.return_type == "uintptr_t")
+                return "usize";
             if (f.return_type == "double")
                 return "f64";
             if (f.return_type == "float")
@@ -445,6 +447,11 @@ namespace kwxgen
                 {
                     sp.safe_type = "u64";
                     sp.ffi_expr = sp.name + " as c_ulong";
+                }
+                else if (raw == "uintptr_t")
+                {
+                    sp.safe_type = "usize";
+                    sp.ffi_expr = sp.name + " as usize";
                 }
                 else if (raw == "double")
                 {

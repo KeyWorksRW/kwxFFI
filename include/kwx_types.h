@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>  // uint8_t, uint32_t, int64_t, intptr_t, uintptr_t
+#include <time.h>    // time_t
+
 /* Types: we use standard pre-processor definitions to add more
    type information to the C signatures. These 'types' can be
    either read by other tools to automatically generate a marshalling

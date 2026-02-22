@@ -39,6 +39,8 @@ namespace kwxgen
             return "unsigned int";
         if (return_type == "unsigned long" || return_type == "wxUIntPtr")
             return "unsigned long";
+        if (return_type == "uintptr_t")
+            return "uintptr_t";
         if (return_type == "double")
             return "double";
         if (return_type == "float")
@@ -213,6 +215,8 @@ namespace kwxgen
             result.push_back({ "unsigned int", name });
         else if (raw == "unsigned long" || raw == "wxUIntPtr")
             result.push_back({ "unsigned long", name });
+        else if (raw == "uintptr_t")
+            result.push_back({ "uintptr_t", name });
         else if (raw == "double")
             result.push_back({ "double", name });
         else if (raw == "float")
