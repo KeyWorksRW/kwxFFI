@@ -5,7 +5,7 @@
 
 #include "luajit_type_map.h"
 
-#include "file_writer.h"
+#include "../file_writer.h"
 #include <algorithm>
 #include <filesystem>
 #include <iostream>

@@ -232,6 +232,19 @@ namespace kwxgen
             return result;
         }
 
+        // String types: TString = char* input, TStringOut = char* output buffer
+        if (p.raw_type == "TString")
+        {
+            result.push_back(
+                { "*const c_char", RustEscapeName(p.param_name.empty() ? "str_" : p.param_name) });
+            return result;
+        }
+        if (p.raw_type == "TStringOut")
+        {
+            result.push_back(
+                { "*mut c_char", RustEscapeName(p.param_name.empty() ? "buf" : p.param_name) });
+            return result;
+        }
         // Plain C types
         std::string name = RustEscapeName(p.param_name.empty() ? "arg" : p.param_name);
         std::string raw = p.raw_type;

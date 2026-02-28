@@ -29,6 +29,12 @@ void* wxGetkwxTranslation(TStringVoid text);
 void wxMutexGui_Enter();
 void wxMutexGui_Leave();
 
+// UTF-8 buffer helper — wraps a wxString's UTF-8 content for safe extraction.
+// Usage: buf = kwxUtf8Buffer_Create(str); data = kwxUtf8Buffer_Data(buf);
+// kwxUtf8Buffer_Delete(buf);
+void* kwxUtf8Buffer_Create(TClass(wxString) str);
+TString kwxUtf8Buffer_Data(void* buf);
+void kwxUtf8Buffer_Delete(void* buf);
 
 WXFFI_EXPORT(int, expRIBBON_BAR_DEFAULT_STYLE)();
 WXFFI_EXPORT(int, expRIBBON_BAR_FOLDBAR_STYLE)();

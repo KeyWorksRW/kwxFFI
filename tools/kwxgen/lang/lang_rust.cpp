@@ -5,7 +5,7 @@
 
 #include "rust_type_map.h"
 
-#include "file_writer.h"
+#include "../file_writer.h"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
@@ -422,6 +422,18 @@ namespace kwxgen
             else if (p.raw_type == "TUInt8")
             {
                 sp.safe_type = "u8";
+                sp.ffi_expr = sp.name;
+            }
+            else if (p.raw_type == "TString")
+            {
+                // char* input: &str — safe Rust callers pass a CStr/pointer
+                sp.safe_type = "*const c_char";
+                sp.ffi_expr = sp.name;
+            }
+            else if (p.raw_type == "TStringOut")
+            {
+                // char* output buffer
+                sp.safe_type = "*mut c_char";
                 sp.ffi_expr = sp.name;
             }
             else

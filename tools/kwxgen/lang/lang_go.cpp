@@ -5,7 +5,7 @@
 
 #include "go_type_map.h"
 
-#include "file_writer.h"
+#include "../file_writer.h"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
@@ -313,6 +313,23 @@ namespace kwxgen
             {
                 gp.go_type = "uint8";
                 gp.cgo_expr = "C.uchar(" + gp.name + ")";
+            }
+            else if (p.raw_type == "TString")
+            {
+                // char* input: Go string → C.CString (caller must free)
+                gp.go_type = "string";
+                std::string cstrVar = "c" + Capitalize(gp.name);
+                gp.pre_call = cstrVar + " := C.CString(" + gp.name +
+                              "); defer C.free(unsafe.Pointer(" + cstrVar + "))";
+                gp.cgo_expr = cstrVar;
+                gp.needs_unsafe = true;
+            }
+            else if (p.raw_type == "TStringOut")
+            {
+                // char* output buffer: pass as unsafe.Pointer
+                gp.go_type = "unsafe.Pointer";
+                gp.cgo_expr = gp.name;
+                gp.needs_unsafe = true;
             }
             else
             {

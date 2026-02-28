@@ -248,9 +248,16 @@ namespace kwxgen
 
         while (std::getline(file, line))
         {
-            // Skip preprocessor and blank lines
+            // Skip preprocessor, comment, and blank lines
             if (line.empty() || line[0] == '#')
                 continue;
+            // Skip single-line comments
+            {
+                auto f = line.find_first_not_of(" \t");
+                if (f != std::string::npos && line.size() >= f + 2 && line[f] == '/' &&
+                    line[f + 1] == '/')
+                    continue;
+            }
 
             // Check for WXFFI_EXPORT constant
             std::smatch m;

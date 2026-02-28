@@ -28,7 +28,9 @@ namespace kwxgen
             return "Ptr{Cvoid}";
         if (return_type == "TBool" || return_type == "TBoolInt")
             return "Cint";
-        if (return_type == "TString" || return_type == "TStringOut" || return_type == "TStringVoid")
+        if (return_type == "TString" || return_type == "TStringOut")
+            return "Cstring";
+        if (return_type == "TStringVoid")
             return "Ptr{Cvoid}";
         if (return_type == "int" || return_type == "TArrayLen" || return_type == "TByteStringLen")
             return "Cint";
@@ -202,6 +204,17 @@ namespace kwxgen
             return result;
         }
 
+        // String types: TString = char* input, TStringOut = char* output buffer
+        if (p.raw_type == "TString")
+        {
+            result.push_back({ "Cstring", p.param_name.empty() ? "str" : p.param_name });
+            return result;
+        }
+        if (p.raw_type == "TStringOut")
+        {
+            result.push_back({ "Ptr{UInt8}", p.param_name.empty() ? "buf" : p.param_name });
+            return result;
+        }
         // Plain C types
         std::string name = p.param_name.empty() ? "arg" : p.param_name;
         std::string raw = p.raw_type;
