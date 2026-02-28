@@ -1,7 +1,7 @@
 ---
 description: 'kwxFFI — C wrapper layer for wxWidgets
 model: Claude Sonnet 4.6
-tools: [vscode/askQuestions, execute/getTerminalOutput, execute/killTerminal, execute/runTask, execute/createAndRunTask, execute/runInTerminal, read/problems, read/readFile, read/terminalSelection, read/terminalLastCommand, read/getTaskOutput, agent/runSubagent, edit/createDirectory, edit/createFile, edit/editFiles, web/fetch, web/githubRepo, oraios/serena/activate_project, oraios/serena/check_onboarding_performed, oraios/serena/find_file, oraios/serena/find_referencing_symbols, oraios/serena/find_symbol, oraios/serena/get_current_config, oraios/serena/get_symbols_overview, oraios/serena/initial_instructions, oraios/serena/insert_after_symbol, oraios/serena/insert_before_symbol, oraios/serena/list_dir, oraios/serena/onboarding, oraios/serena/rename_symbol, oraios/serena/replace_symbol_body, oraios/serena/search_for_pattern, keyworks.key/key_open, keyworks.key/key_close, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_problems, keyworks.key/key_read_lines, keyworks.key/key_cpp, keyworks.key/key_subagent, keyworks.key/key_build]
+tools: [vscode/askQuestions, agent, web, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_cpp, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file]
 ---
 
 # kwxFFI Agent
@@ -20,49 +20,54 @@ Read ./.shared/kwxffi-architecture.md for the full architecture reference.
 - **Clarify ambiguity**: When requirements are unclear, ask for clarification before proceeding
 - **Direct communication**: No apologies or hedging language
 
-## ⛔ MANDATORY: Use `key_*` Tools — Non-Negotiable
+## `key_*` Tool Reference
 
-**The `key_*` tools were built by agents, for agents.** They are purpose-designed to:
+**This agent has NO standard Copilot tools.** All file reading, editing, terminal commands, and code navigation use `key_*` tools exclusively. These run without user permission, return structured minimal output, and execute in the background.
 
-- **Run without user permission** — no security prompt, no "Allow" dialog, no blocking
-- **Return structured, minimal output** — dramatically lower token cost than raw terminal
-- **Execute in the background** — the user is never interrupted
-- **Include a built-in bug-reporting mechanism** — if a `key_*` tool doesn't do what you need, report it so it gets fixed; do NOT work around it by falling back to standard tools
+| Task | Tool |
+|------|------|
+| **Read files** | `key_read_file` |
+| **Edit existing files** | `key_edit_file` |
+| **Create new files** | `key_create_file` |
+| **Terminal commands** (git, gh, pwsh, scripts) | `key_term` |
+| **Build commands** (compile, package) | `key_build` |
+| **Check file size/line count** | `key_file_info` |
+| **Symbol lookup/navigation** | `key_symbols` |
+| **Search files for patterns** | `key_grep` |
+| **Open file in editor** | `key_open` |
+| **Rename symbols** | `key_rename_symbol` |
+| **Persist data across sessions** | `key_memory` |
 
-Standard tools like `run_in_terminal`, `runInTerminal`, and `read_file` require the user to click "Allow" in a security dialog or produce bloated output that wastes tokens and money. **Every time you use a standard tool instead of its `key_*` equivalent, you are forcing the user to babysit you and paying more for worse results.**
-
-### ⛔ Tool Routing — No Exceptions
-
-| Task | ALWAYS Use | NEVER Use |
-|------|-----------|-----------|
-| **Any terminal command** (git, gh, pwsh, scripts) | `key_term` | `run_in_terminal` / `runInTerminal` / `execute` tools |
-| **Build the project** | `key_build` | `run_in_terminal` / `runInTerminal` / `key_term` |
-| **Read specific lines** | `key_read_lines` | `read_file` (unless you need broad initial context) |
-| **Check file size/line count** | `key_file_info` | `read_file` just to see how big a file is |
-| **Symbol lookup/navigation** | `key_symbols` | Serena (unless LSP is unavailable for the file type) |
-| **Open file in editor** | `key_open` | — |
-| **Persist data across sessions** | `key_memory` | — |
-
-**If you catch yourself about to call `run_in_terminal`, STOP.** Use `key_term` or `key_build` instead.
-
-### `key_build` Details
-- Returns: success/fail, error/warning/note counts, duration
-- Messages only populated on errors (or with `captureAll: true`)
-- Example: `key_build("ninja -C build -f build-Debug.ninja")`
+If a `key_*` tool doesn't do what you need, report it as a bug — do NOT attempt workarounds.
 
 ### `key_symbols` Details
 For large files, use progressive refinement:
 1. **Count first**: `key_symbols(file, action: "overview", countOnly: true)`
 2. If count < 50: full mode; 50-200: `compact: true` (60-80% smaller); >200: use `kinds` filter
 3. Set `maxOutputChars: 10000` to prevent oversized responses
-4. Fall back to Serena only if `key_symbols` returns empty or no language server exists
+4. Fall back to `key_grep` for text-based search if `key_symbols` returns empty or no language server exists
 
-### `key_read_lines` Details
+### `key_read_file` Details
 Minimize token consumption with targeted reads:
-1. `key_file_info` → Check file size and line count first
+1. `key_file_info` → Check file size and line count first for potentially large files
 2. `key_symbols` → Get symbol locations (line numbers)
-3. `key_read_lines` → Read only the specific lines you need
-4. `read_file` → Last resort, only for initial broad understanding
+3. `key_read_file(file, startLine, endLine)` → Read only the specific lines you need
+4. `key_read_file(file, ranges: [[a,b],[c,d]])` → Read multiple ranges in one call
+
+### `key_edit_file` Details
+Use line numbers from `key_read_file` output. Multiple edits applied atomically:
+
+| Mode | Required fields | Notes |
+|------|----------------|-------|
+| **Replace lines** | `startLine`, `endLine`, `newText` | Inclusive; `newText` replaces those lines |
+| **Delete lines** | `startLine`, `endLine` | Omit `newText` entirely |
+| **Insert before line** | `insertBefore`, `newText` | Use `totalLines+1` to append at end |
+| **String match** | `oldString`, `newText` | Fallback when line numbers are uncertain; must match exactly once |
+
+- `readAfter: [[start, end]]` — reads post-edit lines inline, eliminates a follow-up `key_read_file`
+- `save: true` — saves file after editing (default: leaves dirty/undoable)
+- `show: true` — forces file open in editor tab
+- Overlapping edits within a single call are rejected
 
 ## Error Handling
 - **Build failures**: Read the error, locate the source, fix it, rebuild
