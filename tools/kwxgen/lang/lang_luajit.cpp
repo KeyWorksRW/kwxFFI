@@ -58,7 +58,10 @@ namespace kwxgen
             {
                 auto expanded = ExpandParamToC(p);
                 for (auto& cp: expanded)
+                {
+                    cp.name = LuaEscapeName(cp.name);
                     cParams.push_back(std::move(cp));
+                }
             }
 
             EmitCDecl(out, retType, funcName, cParams);

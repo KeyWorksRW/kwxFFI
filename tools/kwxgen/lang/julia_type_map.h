@@ -18,6 +18,24 @@ namespace kwxgen
         std::string name;        // parameter name
     };
 
+    // Julia reserved keywords that cannot be used as parameter names.
+    inline std::string JuliaEscapeName(const std::string& name)
+    {
+        if (name == "baremodule" || name == "begin" || name == "break" || name == "catch" ||
+            name == "const" || name == "continue" || name == "do" || name == "else" ||
+            name == "elseif" || name == "end" || name == "export" || name == "false" ||
+            name == "finally" || name == "for" || name == "function" || name == "global" ||
+            name == "if" || name == "import" || name == "in" || name == "let" || name == "local" ||
+            name == "macro" || name == "module" || name == "mutable" || name == "new" ||
+            name == "outer" || name == "quote" || name == "return" || name == "struct" ||
+            name == "true" || name == "try" || name == "using" || name == "where" ||
+            name == "while" || name == "abstract" || name == "primitive" || name == "type")
+        {
+            return name + "_";
+        }
+        return name;
+    }
+
     // Convert a return type to its Julia ccall type equivalent.
     inline std::string JuliaReturnType(const std::string& return_type,
                                        const std::string& return_macro)

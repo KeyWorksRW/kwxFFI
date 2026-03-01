@@ -18,6 +18,23 @@ namespace kwxgen
         std::string name;           // parameter name (for comments only)
     };
 
+    // Perl reserved words that must be avoided as parameter names.
+    // While Perl currently only uses type strings in output (not param names),
+    // we escape defensively for forward compatibility.
+    inline std::string PerlEscapeName(const std::string& name)
+    {
+        if (name == "do" || name == "else" || name == "elsif" || name == "for" ||
+            name == "foreach" || name == "if" || name == "last" || name == "local" ||
+            name == "my" || name == "next" || name == "no" || name == "our" || name == "package" ||
+            name == "print" || name == "redo" || name == "return" || name == "say" ||
+            name == "sub" || name == "unless" || name == "until" || name == "use" ||
+            name == "while")
+        {
+            return name + "_";
+        }
+        return name;
+    }
+
     // Convert a return type to its FFI::Platypus equivalent.
     inline std::string PerlReturnType(const std::string& return_type,
                                       const std::string& return_macro)

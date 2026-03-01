@@ -57,7 +57,10 @@ namespace kwxgen
             {
                 auto expanded = ExpandParamToPerl(p);
                 for (auto& pp: expanded)
+                {
+                    pp.name = PerlEscapeName(pp.name);
                     pParams.push_back(std::move(pp));
+                }
             }
 
             EmitAttach(out, funcName, pParams, retType);

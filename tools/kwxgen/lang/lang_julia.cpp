@@ -100,7 +100,10 @@ namespace kwxgen
             {
                 auto expanded = ExpandParamToJulia(p);
                 for (auto& jp: expanded)
+                {
+                    jp.name = JuliaEscapeName(jp.name);
                     jParams.push_back(std::move(jp));
+                }
             }
 
             EmitCCallWrapper(out, cName, cName, retType, jParams);

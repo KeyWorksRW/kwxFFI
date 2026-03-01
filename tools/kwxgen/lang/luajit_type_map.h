@@ -19,6 +19,22 @@ namespace kwxgen
         std::string name;    // parameter name
     };
 
+    // Lua/LuaJIT reserved keywords that must be avoided as parameter names.
+    // While ffi.cdef blocks use C syntax, we escape defensively for forward compatibility.
+    inline std::string LuaEscapeName(const std::string& name)
+    {
+        if (name == "and" || name == "break" || name == "do" || name == "else" ||
+            name == "elseif" || name == "end" || name == "false" || name == "for" ||
+            name == "function" || name == "goto" || name == "if" || name == "in" ||
+            name == "local" || name == "nil" || name == "not" || name == "or" || name == "repeat" ||
+            name == "return" || name == "then" || name == "true" || name == "until" ||
+            name == "while")
+        {
+            return name + "_";
+        }
+        return name;
+    }
+
     // Convert a return type to its plain C equivalent for ffi.cdef.
     inline std::string LuaJITReturnType(const std::string& return_type,
                                         const std::string& return_macro)
