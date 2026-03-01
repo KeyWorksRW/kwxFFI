@@ -21,8 +21,13 @@ namespace kwxgen
             return results;
         }
 
-        // Matches: "int expEVT_NAME();"
-        std::regex re(R"(^\s*int\s+(expEVT_(\w+))\s*\(\s*\)\s*;)");
+        // Matches (both forms after exp_wxEVT_* rename):
+        //   int exp_wxEVT_NAME();
+        //   WXFFI_EXPORT(int, exp_wxEVT_NAME)();
+        // Group 1 = export_name ("exp_wxEVT_BUTTON")
+        // Group 2 = EVT_ suffix  ("EVT_BUTTON")  => event_name = "wx" + group2
+        std::regex re(
+            R"(^\s*(?:int|WXFFI_EXPORT\s*\(\s*int\s*,)\s*(exp_wx(EVT_\w+))\s*\)?\s*\(\s*\)\s*;)");
         std::string line;
         while (std::getline(file, line))
         {
@@ -30,8 +35,8 @@ namespace kwxgen
             if (std::regex_search(line, m, re))
             {
                 EventDecl decl;
-                decl.export_name = m[1].str();          // "expEVT_BUTTON"
-                decl.event_name = "EVT_" + m[2].str();  // "EVT_BUTTON"
+                decl.export_name = m[1].str();        // "exp_wxEVT_BUTTON"
+                decl.event_name = "wx" + m[2].str();  // "wxEVT_BUTTON"
                 results.push_back(std::move(decl));
             }
         }

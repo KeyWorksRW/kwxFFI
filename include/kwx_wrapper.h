@@ -96,10 +96,10 @@
 
 #include "kwx_def.h"
 
-#define MAKE_EVENT_WRAPPER(evt)   \
-    WXFFI_EXPORT(int, exp##evt)() \
-    {                             \
-        return (int) wx##evt;     \
+#define MAKE_EVENT_WRAPPER(evt)      \
+    WXFFI_EXPORT(int, exp_wx##evt)() \
+    {                                \
+        return (int) wx##evt;        \
     }
 #define MAKE_UNDEF_EVENT_WRAPPER(evt) \
     WXFFI_EXPORT(int, exp##evt)()     \
