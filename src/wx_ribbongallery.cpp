@@ -141,17 +141,17 @@ extern "C"
     }
 
     // Events
-    EXPORT int exp_wxEVT_RIBBONGALLERY_HOVER_CHANGED()
+    EXPORT int exp_EVT_RIBBONGALLERY_HOVER_CHANGED()
     {
         return wxEVT_RIBBONGALLERY_HOVER_CHANGED;
     }
 
-    EXPORT int exp_wxEVT_RIBBONGALLERY_SELECTED()
+    EXPORT int exp_EVT_RIBBONGALLERY_SELECTED()
     {
         return wxEVT_RIBBONGALLERY_SELECTED;
     }
 
-    EXPORT int exp_wxEVT_RIBBONGALLERY_CLICKED()
+    EXPORT int exp_EVT_RIBBONGALLERY_CLICKED()
     {
         return wxEVT_RIBBONGALLERY_CLICKED;
     }

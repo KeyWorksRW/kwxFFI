@@ -101,6 +101,11 @@
     {                                \
         return (int) wx##evt;        \
     }
+#define MAKE_EVT_WRAPPER(evt)          \
+    WXFFI_EXPORT(int, exp_EVT_##evt)() \
+    {                                  \
+        return (int) wx##evt;          \
+    }
 #define MAKE_UNDEF_EVENT_WRAPPER(evt) \
     WXFFI_EXPORT(int, exp##evt)()     \
     {                                 \

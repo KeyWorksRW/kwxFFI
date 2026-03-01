@@ -10,7 +10,6 @@
 
 namespace kwxgen
 {
-
     std::vector<EventDecl> ParseEvents(const std::filesystem::path& filePath)
     {
         std::vector<EventDecl> results;
@@ -21,13 +20,14 @@ namespace kwxgen
             return results;
         }
 
-        // Matches (both forms after exp_wxEVT_* rename):
-        //   int exp_wxEVT_NAME();
-        //   WXFFI_EXPORT(int, exp_wxEVT_NAME)();
-        // Group 1 = export_name ("exp_wxEVT_BUTTON")
-        // Group 2 = EVT_ suffix  ("EVT_BUTTON")  => event_name = "wx" + group2
+        // Matches both event export forms:
+        //   int exp_wxEVT_NAME();                    (normal wx events)
+        //   WXFFI_EXPORT(int, exp_wxEVT_NAME)();     (normal — WXFFI form)
+        //   WXFFI_EXPORT(int, exp_EVT_NAME)();       (non-wx events: ribbon etc.)
+        // Group 1 = full export_name ("exp_wxEVT_BUTTON" or "exp_EVT_RIBBONBAR_*")
+        // Group 2 = EVT_ suffix      ("EVT_BUTTON")  => event_name = "wx" + group2
         std::regex re(
-            R"(^\s*(?:int|WXFFI_EXPORT\s*\(\s*int\s*,)\s*(exp_wx(EVT_\w+))\s*\)?\s*\(\s*\)\s*;)");
+            R"(^\s*(?:int|WXFFI_EXPORT\s*\(\s*int\s*,)\s*(exp_(?:wx)?(EVT_\w+))\s*\)?\s*\(\s*\)\s*;)");
         std::string line;
         while (std::getline(file, line))
         {
@@ -35,12 +35,11 @@ namespace kwxgen
             if (std::regex_search(line, m, re))
             {
                 EventDecl decl;
-                decl.export_name = m[1].str();        // "exp_wxEVT_BUTTON"
-                decl.event_name = "wx" + m[2].str();  // "wxEVT_BUTTON"
+                decl.export_name = m[1].str();        // "exp_wxEVT_BUTTON" / "exp_EVT_RIBBONBAR_*"
+                decl.event_name = "wx" + m[2].str();  // "wxEVT_BUTTON" / "wxEVT_RIBBONBAR_*"
                 results.push_back(std::move(decl));
             }
         }
         return results;
     }
-
 }  // namespace kwxgen

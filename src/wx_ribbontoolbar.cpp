@@ -242,12 +242,12 @@ extern "C"
     }
 
     // Events
-    EXPORT int exp_wxEVT_RIBBONTOOLBAR_CLICKED()
+    EXPORT int exp_EVT_RIBBONTOOLBAR_CLICKED()
     {
         return wxEVT_RIBBONTOOLBAR_CLICKED;
     }
 
-    EXPORT int exp_wxEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED()
+    EXPORT int exp_EVT_RIBBONTOOLBAR_DROPDOWN_CLICKED()
     {
         return wxEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED;
     }
