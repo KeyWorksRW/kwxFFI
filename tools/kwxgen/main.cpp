@@ -34,7 +34,10 @@ static void PrintUsage(const char* progName)
               << "  " << progName
               << " verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>\n"
               << "  " << progName << " diff     --headers <dir> --manifest <file>\n"
-              << "  " << progName << " langs\n";
+              << "  " << progName << " langs\n"
+              << "\nGlobal options (for generate/verify):\n"
+              << "  --libname <name>   Runtime shared-library name in generated bindings (default: "
+                 "kwxFFI)\n";
 }
 
 struct Args
@@ -46,6 +49,7 @@ struct Args
     std::string lang;
     std::string verify_dir;
     std::string manifest_file;
+    std::string lib_name = "kwxFFI";  // --libname
 };
 
 static bool ParseArgs(int argc, char* argv[], Args& args)
@@ -70,6 +74,8 @@ static bool ParseArgs(int argc, char* argv[], Args& args)
             args.verify_dir = argv[++i];
         else if (arg == "--manifest" && i + 1 < argc)
             args.manifest_file = argv[++i];
+        else if (arg == "--libname" && i + 1 < argc)
+            args.lib_name = argv[++i];
         else
         {
             std::cerr << "Unknown argument: " << arg << "\n";
@@ -203,6 +209,7 @@ int main(int argc, char* argv[])
 
         std::cerr << "Parsing...\n";
         auto ffi = RunParsers(args.headers_dir, args.defs_file);
+        ffi.lib_name = args.lib_name;
 
         if (args.out_path.empty() || args.out_path == "-")
         {
@@ -249,6 +256,7 @@ int main(int argc, char* argv[])
 
         std::cerr << "Parsing...\n";
         auto ffi = RunParsers(args.headers_dir, args.defs_file);
+        ffi.lib_name = args.lib_name;
 
         std::cerr << "Generating " << args.lang << " bindings...\n";
         emitter->Generate(ffi, args.out_path);
@@ -288,6 +296,7 @@ int main(int argc, char* argv[])
 
         std::cerr << "Parsing...\n";
         auto ffi = RunParsers(args.headers_dir, args.defs_file);
+        ffi.lib_name = args.lib_name;
 
         std::cerr << "Generating to temp dir: " << tempDir << "\n";
         emitter->Generate(ffi, tempDir);

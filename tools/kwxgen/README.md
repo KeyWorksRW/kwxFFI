@@ -309,6 +309,7 @@ Parses the headers and generates binding source files for the specified language
 | `--defs <file>` | Path to `src/kwx_defs.cpp` |
 | `--lang <lang>` | Target language (see `kwxgen langs`) |
 | `--out <dir>` | Output directory for generated files |
+| `--libname <name>` | Runtime shared-lib name embedded in bindings (default: `kwxFFI`) |
 
 ### `verify` — Verify existing bindings
 

@@ -64,6 +64,7 @@ namespace kwxgen
         std::vector<ConstantDecl> constants;
         std::vector<FunctionDecl> free_functions;  // Null_*, kwxSysErrorCode, etc.
         std::unordered_map<std::string, std::string> parent_map;
+        std::string lib_name = "kwxFFI";  // Runtime DLL/shared-lib name (overridden by --libname)
     };
 
 }  // namespace kwxgen

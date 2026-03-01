@@ -145,7 +145,7 @@ namespace kwxgen
         GenerateConstants(ffi, outDir);
         GenerateClasses(ffi, outDir);
         GenerateFreeFunctions(ffi, outDir);
-        GenerateModule(outDir);
+        GenerateModule(outDir, ffi.lib_name);
 
         std::cerr << "Julia: generated 6 files in " << outDir << "\n";
     }
@@ -341,7 +341,7 @@ namespace kwxgen
     // KwxFFI_gen.jl — Julia module that includes all generated files
     // -------------------------------------------------------------------------
 
-    void JuliaEmitter::GenerateModule(const fs::path& outDir)
+    void JuliaEmitter::GenerateModule(const fs::path& outDir, const std::string& libName)
     {
         auto path = outDir / "KwxFFI_gen.jl";
         ConditionalFileWriter out(path);
@@ -353,7 +353,7 @@ namespace kwxgen
 
         WriteGeneratedHeader(out);
         out << "module KwxFFI\n\n";
-        out << "const libkwxFFI = \"kwxFFI\"\n\n";
+        out << "const libkwxFFI = \"" << libName << "\"\n\n";
         out << "include(\"events_gen.jl\")\n";
         out << "include(\"keys_gen.jl\")\n";
         out << "include(\"constants_gen.jl\")\n";

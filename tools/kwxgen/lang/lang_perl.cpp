@@ -102,7 +102,7 @@ namespace kwxgen
         GenerateConstants(ffi, outDir);
         GenerateClasses(ffi, outDir);
         GenerateFreeFunctions(ffi, outDir);
-        GenerateInit(outDir);
+        GenerateInit(outDir, ffi.lib_name);
 
         std::cerr << "Perl: generated 6 files in " << outDir << "\n";
     }
@@ -300,7 +300,7 @@ namespace kwxgen
     // kwxffi_gen.pl — main entry point, sets up FFI::Platypus and loads sub-files
     // -------------------------------------------------------------------------
 
-    void PerlEmitter::GenerateInit(const fs::path& outDir)
+    void PerlEmitter::GenerateInit(const fs::path& outDir, const std::string& libName)
     {
         auto path = outDir / "kwxffi_gen.pl";
         ConditionalFileWriter out(path);
@@ -319,7 +319,7 @@ namespace kwxgen
         out << "use strict;\n";
         out << "use warnings;\n";
         out << "use FFI::Platypus 2.00;\n\n";
-        out << "our $ffi = FFI::Platypus->new( api => 2, lib => 'kwxFFI' );\n\n";
+        out << "our $ffi = FFI::Platypus->new( api => 2, lib => '" << libName << "' );\n\n";
         out << "require 'kwxffi_events_gen.pl';\n";
         out << "require 'kwxffi_keys_gen.pl';\n";
         out << "require 'kwxffi_constants_gen.pl';\n";
