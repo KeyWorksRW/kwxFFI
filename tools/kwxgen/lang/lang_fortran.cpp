@@ -29,12 +29,15 @@ namespace kwxgen
         }
 
         // Transform a C export name (with "exp" prefix) into an idiomatic Fortran name.
-        //   expwxFOO     -> wxFOO      (strip "exp")
-        //   expEVT_FOO   -> wxEVT_FOO  (replace "exp" with "wx")
-        //   expK_FOO     -> WXK_FOO    (replace "exp" with "WX")
-        //   expOther     -> Other      (strip "exp" fallback)
+        //   exp_wxEVT_FOO -> wxEVT_FOO  (strip "exp_")
+        //   expwxFOO      -> wxFOO      (strip "exp")
+        //   expEVT_FOO    -> wxEVT_FOO  (replace "exp" with "wx")
+        //   expK_FOO      -> WXK_FOO    (replace "exp" with "WX")
+        //   expOther      -> Other      (strip "exp" fallback)
         std::string FortranName(const std::string& exportName)
         {
+            if (exportName.compare(0, 6, "exp_wx") == 0)
+                return exportName.substr(4);  // "exp_wxEVT_X" -> "wxEVT_X"
             if (exportName.compare(0, 5, "expwx") == 0)
                 return exportName.substr(3);  // strip "exp" -> "wxFOO"
             if (exportName.compare(0, 7, "expEVT_") == 0)
@@ -99,7 +102,8 @@ namespace kwxgen
             // Parameter declarations
             for (const auto& p: params)
             {
-                out << "      " << p.fortran_type << ", value :: " << p.name << "\n";
+                out << "      " << p.fortran_type << (p.pass_by_value ? ", value" : "")
+                    << " :: " << p.name << "\n";
             }
 
             if (retInfo.is_void)
