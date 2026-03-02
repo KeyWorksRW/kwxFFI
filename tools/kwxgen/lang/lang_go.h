@@ -2,6 +2,8 @@
 
 #include "../emitter.h"
 
+#include <unordered_set>
+
 namespace kwxgen
 {
 
@@ -20,7 +22,8 @@ namespace kwxgen
         void GenerateClassFiles(const ParsedFFI& ffi, const std::filesystem::path& outDir);
 
         // Emit a single class file: classname_gen.go
-        void EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi);
+        void EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi,
+                           const std::unordered_set<std::string>& wrappedClasses);
     };
 
 }  // namespace kwxgen

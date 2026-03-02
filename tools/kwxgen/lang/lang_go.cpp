@@ -10,7 +10,6 @@
 #include <cctype>
 #include <filesystem>
 #include <iostream>
-#include <set>
 #include <sstream>
 #include <vector>
 
@@ -25,6 +24,8 @@ namespace kwxgen
 
     namespace
     {
+
+        constexpr size_t kFixedFileCount = 4;  // helpers, constants, events, keys
 
         void WriteGeneratedHeader(std::ostream& out)
         {
@@ -64,11 +65,14 @@ namespace kwxgen
         // Strip common prefixes: "wxButton" → "Button", "kwxFoo" → "Foo", "ELJBar" → "Bar"
         std::string StripPrefix(const std::string& name)
         {
-            if (name.size() > 2 && name[0] == 'w' && name[1] == 'x' && std::isupper(name[2]))
+            if (name.size() > 2 && name[0] == 'w' && name[1] == 'x' &&
+                std::isupper(static_cast<unsigned char>(name[2])))
                 return name.substr(2);
-            if (name.size() > 3 && name.substr(0, 3) == "kwx" && std::isupper(name[3]))
+            if (name.size() > 3 && name.substr(0, 3) == "kwx" &&
+                std::isupper(static_cast<unsigned char>(name[3])))
                 return name.substr(3);
-            if (name.size() > 3 && name.substr(0, 3) == "ELJ" && std::isupper(name[3]))
+            if (name.size() > 3 && name.substr(0, 3) == "ELJ" &&
+                std::isupper(static_cast<unsigned char>(name[3])))
                 return name.substr(3);
             return name;
         }
@@ -95,12 +99,8 @@ namespace kwxgen
             return ToLower(stripped) + "_gen.go";
         }
 
-        // Receiver variable: "Button" → "o", "TextCtrl" → "o"
-        // Using uniform "o" to avoid name collisions with parameter names.
-        std::string ReceiverVar(const std::string& /*goClassName*/)
-        {
-            return "o";
-        }
+        // Receiver variable: uniform "o" to avoid name collisions with parameter names.
+        constexpr const char* kReceiverVar = "o";
 
         // Go reserved keywords that cannot be used as parameter names.
         // Returns a safe replacement, or the original name if not a keyword.
@@ -244,6 +244,11 @@ namespace kwxgen
                     result.push_back({ n0, "int", "C.int(" + n0 + ")", "", "", false });
                     result.push_back({ n1, "unsafe.Pointer", n1, "", "", true });
                 }
+                else
+                {
+                    std::cerr << "Warning: " << p.macro_name << " macro_arg '" << p.macro_arg
+                              << "' has fewer than 2 components — skipping\n";
+                }
                 return result;
             }
 
@@ -319,8 +324,8 @@ namespace kwxgen
                 // char* input: Go string → C.CString (caller must free)
                 gp.go_type = "string";
                 std::string cstrVar = "c" + Capitalize(gp.name);
-                gp.pre_call = cstrVar + " := C.CString(" + gp.name +
-                              "); defer C.free(unsafe.Pointer(" + cstrVar + "))";
+                gp.pre_call = cstrVar + " := C.CString(" + gp.name + ")";
+                gp.defer_call = "defer C.free(unsafe.Pointer(" + cstrVar + "))";
                 gp.cgo_expr = cstrVar;
                 gp.needs_unsafe = true;
             }
@@ -536,7 +541,7 @@ namespace kwxgen
 
         // Emit a constructor function: NewClassName(...) or NewClassNameSuffix(...)
         void EmitConstructor(std::ostream& out, const ClassInfo& cls, const FunctionDecl& f,
-                             const std::string& goClassName, bool isWindowDerived)
+                             const std::string& goClassName)
         {
             // Collect Go params (excluding TSelf since constructors typically don't have it)
             std::vector<std::vector<GoParam>> paramGroups;
@@ -595,9 +600,8 @@ namespace kwxgen
         void EmitMethod(std::ostream& out, const ClassInfo& cls, const FunctionDecl& f,
                         const std::string& goClassName)
         {
-            std::string recv = ReceiverVar(goClassName);
+            std::string recv(kReceiverVar);
             std::string goRetType = GoReturnType(f, goClassName);
-            bool isWindowDerived = cls.is_window_derived;
 
             // Collect non-self Go params
             std::vector<std::vector<GoParam>> paramGroups;
@@ -737,7 +741,8 @@ namespace kwxgen
         GenerateKeys(ffi, outDir);
         GenerateClassFiles(ffi, outDir);
 
-        std::cerr << "Go: checked " << (4 + ffi.classes.size()) << " files in " << outDir << "\n";
+        std::cerr << "Go: checked " << (kFixedFileCount + ffi.classes.size()) << " files in "
+                  << outDir << "\n";
     }
 
     VerifyResult GoEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* dir */)
@@ -969,6 +974,12 @@ namespace kwxgen
         size_t methodCount = 0;
         size_t skippedMethods = 0;
 
+        // Build lookup set for O(1) parent-class checks in EmitClassFile
+        std::unordered_set<std::string> wrappedClasses;
+        wrappedClasses.reserve(ffi.classes.size());
+        for (auto& c: ffi.classes)
+            wrappedClasses.insert(c.name);
+
         for (auto& cls: ffi.classes)
         {
             if (cls.methods.empty())
@@ -983,7 +994,7 @@ namespace kwxgen
                 continue;
             }
 
-            EmitClassFile(out, cls, ffi);
+            EmitClassFile(out, cls, ffi, wrappedClasses);
             if (out.Flush())
                 ++writtenCount;
             ++fileCount;
@@ -1005,7 +1016,8 @@ namespace kwxgen
         std::cerr << "\n";
     }
 
-    void GoEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi)
+    void GoEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi,
+                                  const std::unordered_set<std::string>& wrappedClasses)
     {
         std::string goClassName = StripPrefix(cls.name);
         bool isWindowDerived = cls.is_window_derived;
@@ -1039,13 +1051,7 @@ namespace kwxgen
             if (!cls.parent.empty())
             {
                 std::string goParent = StripPrefix(cls.parent);
-                // Check the parent is a real wrapped class (exists in ffi.classes)
-                bool parentWrapped = std::any_of(ffi.classes.begin(), ffi.classes.end(),
-                                                 [&](const ClassInfo& c)
-                                                 {
-                                                     return c.name == cls.parent;
-                                                 });
-                if (parentWrapped)
+                if (wrappedClasses.count(cls.parent))
                     embedType = goParent;
             }
             out << "type " << goClassName << " struct{ " << embedType << " }\n\n";
@@ -1064,12 +1070,12 @@ namespace kwxgen
 
             if (isTrueConstructor)
             {
-                EmitConstructor(out, cls, f, goClassName, isWindowDerived);
+                EmitConstructor(out, cls, f, goClassName);
             }
             else if (f.is_destructor)
             {
                 // Delete method
-                std::string recv = ReceiverVar(goClassName);
+                std::string recv(kReceiverVar);
                 out << "func (" << recv << " *" << goClassName << ") Delete() {\n";
                 out << "\tC." << f.class_name << "_Delete(" << recv << ".Ptr())\n";
                 out << "}\n\n";

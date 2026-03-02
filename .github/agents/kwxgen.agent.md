@@ -1,7 +1,7 @@
 ---
 description: 'kwxgen — Multi-language binding generator for kwxFFI'
 model: Claude Sonnet 4.6
-tools: [vscode/askQuestions, agent/runSubagent, web/fetch, web/githubRepo, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_bookmark, keyworks.key/key_edit_file, keyworks.key/key_create_file, keyworks.key/key_create_directory]
+tools: [vscode/askQuestions, agent/runSubagent, web/fetch, web/githubRepo, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file, keyworks.key/key_create_file, keyworks.key/key_create_directory]
 ---
 
 # kwxgen Agent
@@ -268,37 +268,39 @@ kwxgen's output is consumed by 6 language repos. When modifying emitter logic:
 
 **NEVER close an issue.**
 
-## Building kwxgen
+## ⚠️ CRITICAL: Build After Every Edit
 
-kwxgen is standalone C++17 with zero external dependencies:
+**You MUST build kwxgen after every code change.** Use `key_build` — never `key_term` for builds.
 
-```sh
-# Configure (one-time)
-cmake -S tools/kwxgen -B tools/kwxgen/build -G Ninja
-
-# Build
-cmake --build tools/kwxgen/build
-
-# Run
-tools/kwxgen/build/kwxgen parse --headers include --defs src/kwx_defs.cpp
 ```
+key_build("ninja -f build.ninja", cwd: "tools/kwxgen/build")
+```
+
+**Do NOT move on to the next edit until the build succeeds.** If it fails, read the errors, fix them, and rebuild. Untested changes that break compilation waste the user's time.
+
+## ⛔ MANDATORY: Configure Before First Build
+
+If `tools/kwxgen/build/build.ninja` does not exist, configure first:
+
+```
+key_term("cmake -S tools/kwxgen -B tools/kwxgen/build -G Ninja")
+```
+
+Then build with `key_build` as above.
 
 ## Testing Changes
 
-After modifying parser or emitter code:
+After modifying parser or emitter code, build first, then test:
 
-```sh
-# 1. Build
-cmake --build tools/kwxgen/build
+```
+# Parse and inspect counts
+key_term("tools/kwxgen/build/kwxgen parse --headers include --defs src/kwx_defs.cpp")
 
-# 2. Parse and inspect counts
-tools/kwxgen/build/kwxgen parse --headers include --defs src/kwx_defs.cpp --out /dev/stdout | python -m json.tool
+# Generate to temp dir and inspect
+key_term("tools/kwxgen/build/kwxgen generate --headers include --defs src/kwx_defs.cpp --lang go --out $env:TEMP/kwxgen_test/")
 
-# 3. Generate to temp dir and inspect
-tools/kwxgen/build/kwxgen generate --headers include --defs src/kwx_defs.cpp --lang go --out /tmp/kwxgen_test/
-
-# 4. Verify against existing bindings (if available)
-tools/kwxgen/build/kwxgen verify --headers include --defs src/kwx_defs.cpp --lang go --dir ../kwxGO/wx/
+# Verify against existing bindings (if available)
+key_term("tools/kwxgen/build/kwxgen verify --headers include --defs src/kwx_defs.cpp --lang go --dir ../kwxGO/wx/")
 ```
 
 Expected counts (approximate):

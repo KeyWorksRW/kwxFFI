@@ -19,6 +19,10 @@ namespace kwxgen
         void GenerateClasses(const ParsedFFI& ffi, const std::filesystem::path& outDir);
         void GenerateFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& outDir);
         void GenerateModule(const std::filesystem::path& outDir, const std::string& libName);
+
+        // Idiomatic per-class Julia wrappers (structs + constructors + methods)
+        void GenerateIdiomaticClasses(const ParsedFFI& ffi, const std::filesystem::path& outDir);
+        void EmitIdiomaticClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi);
     };
 
 }  // namespace kwxgen
