@@ -12,8 +12,8 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRibbonBar* wxRibbonBar_Create(wxWindow* parent, int id, int x, int y, int width, int height,
-                                           int style)
+    EXPORT wxRibbonBar* wxRibbonBar_Create(wxWindow* parent, int id, int x, int y, int width,
+                                           int height, int style)
     {
         return new wxRibbonBar(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
@@ -133,5 +133,51 @@ extern "C"
     WXFFI_EXPORT(int, expRIBBON_BAR_SHOW_HELP_BUTTON)()
     {
         return wxRIBBON_BAR_SHOW_HELP_BUTTON;
+    }
+
+    // Events
+    EXPORT int expEVT_RIBBONBAR_PAGE_CHANGED()
+    {
+        return wxEVT_RIBBONBAR_PAGE_CHANGED;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_PAGE_CHANGING()
+    {
+        return wxEVT_RIBBONBAR_PAGE_CHANGING;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TAB_MIDDLE_DOWN()
+    {
+        return wxEVT_RIBBONBAR_TAB_MIDDLE_DOWN;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TAB_MIDDLE_UP()
+    {
+        return wxEVT_RIBBONBAR_TAB_MIDDLE_UP;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TAB_RIGHT_DOWN()
+    {
+        return wxEVT_RIBBONBAR_TAB_RIGHT_DOWN;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TAB_RIGHT_UP()
+    {
+        return wxEVT_RIBBONBAR_TAB_RIGHT_UP;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TAB_LEFT_DCLICK()
+    {
+        return wxEVT_RIBBONBAR_TAB_LEFT_DCLICK;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_TOGGLED()
+    {
+        return wxEVT_RIBBONBAR_TOGGLED;
+    }
+
+    EXPORT int expEVT_RIBBONBAR_HELP_CLICK()
+    {
+        return wxEVT_RIBBONBAR_HELP_CLICK;
     }
 }

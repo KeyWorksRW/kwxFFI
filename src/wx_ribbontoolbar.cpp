@@ -12,8 +12,8 @@
 extern "C"
 {
     // Constructor
-    EXPORT wxRibbonToolBar* wxRibbonToolBar_Create(wxWindow* parent, int id, int x, int y, int width,
-                                                   int height, int style)
+    EXPORT wxRibbonToolBar* wxRibbonToolBar_Create(wxWindow* parent, int id, int x, int y,
+                                                   int width, int height, int style)
     {
         return new wxRibbonToolBar(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
@@ -242,12 +242,12 @@ extern "C"
     }
 
     // Events
-    EXPORT int exp_EVT_RIBBONTOOLBAR_CLICKED()
+    EXPORT int expEVT_RIBBONTOOLBAR_CLICKED()
     {
         return wxEVT_RIBBONTOOLBAR_CLICKED;
     }
 
-    EXPORT int exp_EVT_RIBBONTOOLBAR_DROPDOWN_CLICKED()
+    EXPORT int expEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED()
     {
         return wxEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED;
     }

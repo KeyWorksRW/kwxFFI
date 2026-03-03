@@ -156,7 +156,8 @@ extern "C"
         return self->GetButtonCount();
     }
 
-    EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetItem(wxRibbonButtonBar* self, size_t index)
+    EXPORT wxRibbonButtonBarButtonBase* wxRibbonButtonBar_GetItem(wxRibbonButtonBar* self,
+                                                                  size_t index)
     {
         return self->GetItem(index);
     }
@@ -235,12 +236,12 @@ extern "C"
     }
 
     // Events
-    EXPORT int exp_EVT_RIBBONBUTTONBAR_CLICKED()
+    EXPORT int expEVT_RIBBONBUTTONBAR_CLICKED()
     {
         return wxEVT_RIBBONBUTTONBAR_CLICKED;
     }
 
-    EXPORT int exp_EVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED()
+    EXPORT int expEVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED()
     {
         return wxEVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED;
     }

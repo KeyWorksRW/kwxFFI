@@ -117,4 +117,10 @@ extern "C"
     {
         return wxRIBBON_PANEL_FLEXIBLE;
     }
+
+    // Events
+    EXPORT int expEVT_RIBBONPANEL_EXTBUTTON_ACTIVATED()
+    {
+        return wxEVT_RIBBONPANEL_EXTBUTTON_ACTIVATED;
+    }
 }
