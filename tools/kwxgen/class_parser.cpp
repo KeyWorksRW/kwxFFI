@@ -477,6 +477,46 @@ namespace kwxgen
                 lines.push_back(line);
         }
 
+        // Pre-process: strip C and C++ comments from all lines.
+        // This prevents commented-out declarations from being parsed as real functions.
+        {
+            bool in_block_comment = false;
+            for (auto& line: lines)
+            {
+                std::string result;
+                result.reserve(line.size());
+                for (size_t i = 0; i < line.size(); ++i)
+                {
+                    if (in_block_comment)
+                    {
+                        if (line[i] == '*' && i + 1 < line.size() && line[i + 1] == '/')
+                        {
+                            in_block_comment = false;
+                            ++i;  // skip '/'
+                        }
+                        // else: inside block comment, discard character
+                    }
+                    else
+                    {
+                        if (line[i] == '/' && i + 1 < line.size())
+                        {
+                            if (line[i + 1] == '/')
+                            {
+                                break;  // rest of line is a comment
+                            }
+                            else if (line[i + 1] == '*')
+                            {
+                                in_block_comment = true;
+                                ++i;  // skip '*'
+                                continue;
+                            }
+                        }
+                        result += line[i];
+                    }
+                }
+                line = std::move(result);
+            }
+        }
         // Phase 1: Build logical lines by joining continuations.
         // A logical line is complete when parentheses are balanced AND either:
         //   - It ends with ';'  (function declaration)

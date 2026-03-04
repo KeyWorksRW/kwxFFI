@@ -2487,67 +2487,6 @@ int wxFrame_GetStatusBarPane(TSelf(wxFrame) pObject);
 void wxFrame_PushStatusText(TSelf(wxFrame) pObject, TClass(wxString) text, int field);
 void wxFrame_PopStatusText(TSelf(wxFrame) pObject, int field);
 
-TClassDefExtend(wxFrameLayout,
-                wxEvtHandler) void wxFrameLayout_Activate(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_AddBar(TSelf(wxFrameLayout) pObject, void* pBarWnd, void* dimInfo, int alignment,
-                          int rowNo, int columnPos, TStringVoid name, int spyEvents, int state);
-void wxFrameLayout_AddPlugin(TSelf(wxFrameLayout) pObject, void* pPlInfo, int paneMask);
-void wxFrameLayout_AddPluginBefore(TSelf(wxFrameLayout) pObject, void* pNextPlInfo, void* pPlInfo,
-                                   int paneMask);
-void wxFrameLayout_ApplyBarProperties(TSelf(wxFrameLayout) pObject, void* pBar);
-void wxFrameLayout_CaptureEventsForPane(TSelf(wxFrameLayout) pObject, void* toPane);
-void wxFrameLayout_CaptureEventsForPlugin(TSelf(wxFrameLayout) pObject, void* pPlugin);
-TClass(wxFrameLayout) wxFrameLayout_Create(void* pParentFrame, void* pFrameClient, int activateNow);
-void wxFrameLayout_Deactivate(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_Delete(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_DestroyBarWindows(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_EnableFloating(TSelf(wxFrameLayout) pObject, TBool enable);
-void* wxFrameLayout_FindBarByName(TSelf(wxFrameLayout) pObject, TStringVoid name);
-void* wxFrameLayout_FindBarByWindow(TSelf(wxFrameLayout) pObject, void* pWnd);
-void* wxFrameLayout_FindPlugin(TSelf(wxFrameLayout) pObject, void* pPlInfo);
-void wxFrameLayout_FirePluginEvent(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-int wxFrameLayout_GetBars(TSelf(wxFrameLayout) pObject, void* ref);
-int wxFrameLayout_GetClientHeight(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_GetClientRect(TSelf(wxFrameLayout) pObject, TRectOutVoid(x, y, width, height));
-int wxFrameLayout_GetClientWidth(TSelf(wxFrameLayout) pObject);
-void* wxFrameLayout_GetFrameClient(TSelf(wxFrameLayout) pObject);
-void* wxFrameLayout_GetPane(TSelf(wxFrameLayout) pObject, int alignment);
-void wxFrameLayout_GetPaneProperties(TSelf(wxFrameLayout) pObject, void* props, int alignment);
-void* wxFrameLayout_GetParentFrame(TSelf(wxFrameLayout) pObject);
-void* wxFrameLayout_GetTopPlugin(TSelf(wxFrameLayout) pObject);
-void* wxFrameLayout_GetUpdatesManager(TSelf(wxFrameLayout) pObject);
-TBool wxFrameLayout_HasTopPlugin(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_HideBarWindows(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_InverseVisibility(TSelf(wxFrameLayout) pObject, void* pBar);
-void wxFrameLayout_OnLButtonDown(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnLButtonUp(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnLDblClick(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnMouseMove(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnRButtonDown(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnRButtonUp(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_OnSize(TSelf(wxFrameLayout) pObject, TClass(wxEvent) event);
-void wxFrameLayout_PopAllPlugins(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_PopPlugin(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_PushDefaultPlugins(TSelf(wxFrameLayout) pObject);
-void wxFrameLayout_PushPlugin(TSelf(wxFrameLayout) pObject, void* pPugin);
-void wxFrameLayout_RecalcLayout(TSelf(wxFrameLayout) pObject, int repositionBarsNow);
-int wxFrameLayout_RedockBar(TSelf(wxFrameLayout) pObject, void* pBar, TRect(x, y, width, height),
-                            void* pToPane, int updateNow);
-void wxFrameLayout_RefreshNow(TSelf(wxFrameLayout) pObject, int recalcLayout);
-void wxFrameLayout_ReleaseEventsFromPane(TSelf(wxFrameLayout) pObject, void* fromPane);
-void wxFrameLayout_ReleaseEventsFromPlugin(TSelf(wxFrameLayout) pObject, void* pPlugin);
-void wxFrameLayout_RemoveBar(TSelf(wxFrameLayout) pObject, void* pBar);
-void wxFrameLayout_RemovePlugin(TSelf(wxFrameLayout) pObject, void* pPlInfo);
-void wxFrameLayout_SetBarState(TSelf(wxFrameLayout) pObject, void* pBar, int newStatem,
-                               int updateNow);
-void wxFrameLayout_SetFrameClient(TSelf(wxFrameLayout) pObject, void* pFrameClient);
-void wxFrameLayout_SetMargins(TSelf(wxFrameLayout) pObject, int top, int bottom, int left,
-                              int right, int paneMask);
-void wxFrameLayout_SetPaneBackground(TSelf(wxFrameLayout) pObject, TClass(wxColour) colour);
-void wxFrameLayout_SetPaneProperties(TSelf(wxFrameLayout) pObject, void* props, int paneMask);
-void wxFrameLayout_SetTopPlugin(TSelf(wxFrameLayout) pObject, void* pPlugin);
-void wxFrameLayout_SetUpdatesManager(TSelf(wxFrameLayout) pObject, void* pUMgr);
-
 TClassDefExtend(wxGDIObject, wxObject)
 
     TClassDefExtend(wxGLCanvas, wxScrolledWindow)
