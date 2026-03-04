@@ -7,12 +7,12 @@ kwxFFI provides C-language wrapper functions around wxWidgets C++ classes, enabl
 ### Target Languages
 
 This FFI is designed to support the following language ports:
-- ../kwxFortran
-- ../kwxGO
+- ../kwxFortran-dev
+- ../kwxGO-dev
 - ../kwxJulia
-- ../kwxLuaJit
-- ../kwxPerl
-- ../kwxRust
+- ../kwxLuaJit-dev
+- ../kwxPerl-dev
+- ../kwxRust-dev
 
 ### Key Design Decisions
 
@@ -25,7 +25,7 @@ This FFI is designed to support the following language ports:
 
 - **CMake-based build**: Uses CMake with FetchContent to automatically download and build wxWidgets 3.3+
 - **wxWidgets headers location**: After building, wxWidgets headers are in `build/_deps/wxwidgets-src/include`
-- **wxWidgets platform setup headers**: 
+- **wxWidgets platform setup headers**:
   - Windows: `build/_deps/wxwidgets-build/lib/vc_x64_lib/mswu`
   - macOS: `build/_deps/wxwidgets-build/lib/osx_cocoa-unicode-static`
   - Linux: `build/_deps/wxwidgets-build/lib/gtk3_unixu-3.3/include`
