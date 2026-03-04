@@ -1,6 +1,5 @@
-# kwxFFI
+# kwxJulia
 
-C-language wrapper functions around wxWidgets C++ classes, enabling foreign languages to use wxWidgets for building GUI applications.
 
 ## ⚠️ Warning: Not Production Ready
 
