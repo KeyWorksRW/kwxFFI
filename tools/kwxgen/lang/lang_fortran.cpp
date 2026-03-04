@@ -786,16 +786,17 @@ contains
         window%ptr = c_null_ptr
     end subroutine
 
-    subroutine wx_window_close(window, force)
+    function wx_window_close(window, force) result(closed)
         class(wxWindow_t), intent(in) :: window
         logical, intent(in), optional :: force
-        integer(c_int) :: c_force, result_
+        logical :: closed
+        integer(c_int) :: c_force
         c_force = 0_c_int
         if (present(force)) then
             if (force) c_force = 1_c_int
         end if
-        result_ = wxWindow_Close(window%ptr, c_force)
-    end subroutine
+        closed = (wxWindow_Close(window%ptr, c_force) /= 0)
+    end function
 
     !--- Hierarchy ---
 
@@ -940,16 +941,17 @@ contains
         result_ = wxWindow_Hide(frame%ptr)
     end subroutine
 
-    subroutine wx_frame_close(frame, force)
+    function wx_frame_close(frame, force) result(closed)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: force
-        integer(c_int) :: c_force, result_
+        logical :: closed
+        integer(c_int) :: c_force
         c_force = 0_c_int
         if (present(force)) then
             if (force) c_force = 1_c_int
         end if
-        result_ = wxWindow_Close(frame%ptr, c_force)
-    end subroutine
+        closed = (wxWindow_Close(frame%ptr, c_force) /= 0)
+    end function
 
     !--- Status bar ---
 
