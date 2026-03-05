@@ -627,8 +627,6 @@ module wx_window
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi
-    use kwx_constants, only: wxBOTH
-    use wx_string, only: to_wxstring, from_wxstring, wxString_Delete
     implicit none
     private
 
@@ -681,13 +679,13 @@ contains
     subroutine wx_window_enable(window)
         class(wxWindow_t), intent(in) :: window
         integer(c_int) :: result_
-        result_ = wxWindow_Enable(window%ptr, 1_c_int)
+        result_ = wxWindow_Enable(window%ptr)
     end subroutine
 
     subroutine wx_window_disable(window)
         class(wxWindow_t), intent(in) :: window
         integer(c_int) :: result_
-        result_ = wxWindow_Enable(window%ptr, 0_c_int)
+        result_ = wxWindow_Disable(window%ptr)
     end subroutine
 
     function wx_window_is_enabled(window) result(enabled)
@@ -714,7 +712,7 @@ contains
     subroutine wx_window_move(window, x, y)
         class(wxWindow_t), intent(in) :: window
         integer, intent(in) :: x, y
-        call wxWindow_Move(window%ptr, int(x, c_int), int(y, c_int))
+        call wxWindow_Move(window%ptr, int(x, c_int), int(y, c_int), 0_c_int)
     end subroutine
 
     function wx_window_get_id(window) result(id)
@@ -782,7 +780,7 @@ contains
     function wx_window_destroy(window) result(destroyed)
         class(wxWindow_t), intent(inout) :: window
         logical :: destroyed
-        destroyed = (wxWindow_DestroyWindow(window%ptr) /= 0)
+        destroyed = (wxWindow_Destroy(window%ptr) /= 0)
         window%ptr = c_null_ptr
     end function
 
@@ -854,8 +852,7 @@ module wx_frame
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi
-    use kwx_constants, only: wxID_ANY, wxDEFAULT_FRAME_STYLE, wxBOTH
-    use wx_string, only: to_wxstring, from_wxstring, wxString_Delete
+    use wx_string, only: to_wxstring, from_wxstring
     implicit none
     private
 
@@ -1076,13 +1073,13 @@ contains
     subroutine wx_frame_iconize(frame, iconize)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: iconize
-        integer(c_int) :: c_ico
+        integer(c_int) :: c_ico, dummy
         c_ico = 1_c_int
         if (present(iconize)) then
             c_ico = 0_c_int
             if (iconize) c_ico = 1_c_int
         end if
-        call wxTopLevelWindow_Iconize(frame%ptr, c_ico)
+        dummy = wxTopLevelWindow_Iconize(frame%ptr, c_ico)
     end subroutine
 
     function wx_frame_is_maximized(frame) result(maximized)
@@ -1207,8 +1204,7 @@ module wx_controls
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi
-    use kwx_constants, only: wxID_ANY, wxTAB_TRAVERSAL
-    use wx_string, only: to_wxstring, from_wxstring, wxString_Delete
+    use wx_string, only: to_wxstring, from_wxstring
     implicit none
     private
 
@@ -1223,7 +1219,6 @@ module wx_controls
     public :: wx_text_ctrl_write_text, wx_text_ctrl_append_text
     public :: wx_text_ctrl_is_modified, wx_text_ctrl_is_editable
     public :: wx_text_ctrl_get_number_of_lines
-    public :: wx_text_ctrl_set_hint
 
     ! wxStaticText
     public :: wx_static_text_create
@@ -1300,8 +1295,7 @@ contains
 
     subroutine wx_button_set_default(button)
         type(wxButton_t), intent(in) :: button
-        type(c_ptr) :: result_
-        result_ = wxButton_SetDefault(button%ptr)
+        call wxButton_SetDefault(button%ptr)
     end subroutine
 
     !--- wxTextCtrl ---
@@ -1411,15 +1405,6 @@ contains
         nlines = int(wxTextCtrl_GetNumberOfLines(ctrl%ptr))
     end function
 
-    function wx_text_ctrl_set_hint(ctrl, hint) result(ok)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: hint
-        logical :: ok
-        type(c_ptr) :: hint_ptr
-        hint_ptr = to_wxstring(hint)
-        ok = (wxTextCtrl_SetHint(ctrl%ptr, hint_ptr) /= 0)
-        call wxString_Delete(hint_ptr)
-    end function
 
         )";  // end first raw string chunk
         out << R"(
@@ -1619,9 +1604,8 @@ contains
         type(wxChoice_t), intent(in) :: choice
         character(len=*), intent(in) :: item
         type(c_ptr) :: item_ptr
-        integer(c_int) :: result_
         item_ptr = to_wxstring(item)
-        result_ = wxChoice_Append(choice%ptr, item_ptr)
+        call wxChoice_Append(choice%ptr, item_ptr)
         call wxString_Delete(item_ptr)
     end subroutine
 
@@ -1720,9 +1704,8 @@ contains
         type(wxListBox_t), intent(in) :: lb
         character(len=*), intent(in) :: item
         type(c_ptr) :: item_ptr
-        integer(c_int) :: result_
         item_ptr = to_wxstring(item)
-        result_ = wxListBox_Append(lb%ptr, item_ptr)
+        call wxListBox_Append(lb%ptr, item_ptr)
         call wxString_Delete(item_ptr)
     end subroutine
 
@@ -1842,9 +1825,8 @@ contains
         type(wxComboBox_t), intent(in) :: cb
         character(len=*), intent(in) :: item
         type(c_ptr) :: item_ptr
-        integer(c_int) :: result_
         item_ptr = to_wxstring(item)
-        result_ = wxComboBox_Append(cb%ptr, item_ptr)
+        call wxComboBox_Append(cb%ptr, item_ptr)
         call wxString_Delete(item_ptr)
     end subroutine
 
@@ -1943,8 +1925,7 @@ module wx_menus
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi
-    use kwx_constants, only: wxID_ANY, wxITEM_NORMAL
-    use wx_string, only: to_wxstring, from_wxstring, wxString_Delete
+    use wx_string, only: to_wxstring, from_wxstring
     implicit none
     private
 
@@ -2364,7 +2345,7 @@ module wx_events
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi, wxClosure_C_ptr => wxClosure_Create
-    use wx_string, only: from_wxstring, wxString_Delete
+    use wx_string, only: from_wxstring
     implicit none
     private
 
@@ -2447,7 +2428,7 @@ contains
         c_type = int(event_type, c_int)
 
         dummy = wxEvtHandler_Disconnect(window%ptr, c_first, c_last, &
-            c_type, c_null_ptr)
+            c_type, -1_c_int)
     end subroutine
 
     !--- Base event accessors ---
@@ -2578,8 +2559,7 @@ module wx_dialogs
     use, intrinsic :: iso_c_binding
     use kwx_types
     use kwxffi
-    use kwx_constants, only: wxOK, wxICON_INFORMATION
-    use wx_string, only: to_wxstring, wxString_Delete
+    use wx_string, only: to_wxstring
     implicit none
     private
 
