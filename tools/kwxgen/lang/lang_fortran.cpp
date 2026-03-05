@@ -2271,14 +2271,13 @@ contains
         class(wxWindow_t), intent(in) :: window
         integer, intent(in), optional :: proportion, flag, border
         integer(c_int) :: c_prop, c_flag, c_border
-        type(c_ptr) :: result_
         c_prop = 0_c_int
         if (present(proportion)) c_prop = int(proportion, c_int)
         c_flag = 0_c_int
         if (present(flag)) c_flag = int(flag, c_int)
         c_border = 0_c_int
         if (present(border)) c_border = int(border, c_int)
-        result_ = wxSizer_AddWindow(sizer%ptr, window%ptr, &
+        call wxSizer_AddWindow(sizer%ptr, window%ptr, &
             c_prop, c_flag, c_border, c_null_ptr)
     end subroutine
 
@@ -2287,14 +2286,13 @@ contains
         class(wxSizer_t), intent(in) :: child
         integer, intent(in), optional :: proportion, flag, border
         integer(c_int) :: c_prop, c_flag, c_border
-        type(c_ptr) :: result_
         c_prop = 0_c_int
         if (present(proportion)) c_prop = int(proportion, c_int)
         c_flag = 0_c_int
         if (present(flag)) c_flag = int(flag, c_int)
         c_border = 0_c_int
         if (present(border)) c_border = int(border, c_int)
-        result_ = wxSizer_AddSizer(sizer%ptr, child%ptr, &
+        call wxSizer_AddSizer(sizer%ptr, child%ptr, &
             c_prop, c_flag, c_border, c_null_ptr)
     end subroutine
 
@@ -2304,14 +2302,13 @@ contains
         integer, intent(in) :: width, height
         integer, intent(in), optional :: proportion, flag, border
         integer(c_int) :: c_prop, c_flag, c_border
-        type(c_ptr) :: result_
         c_prop = 0_c_int
         if (present(proportion)) c_prop = int(proportion, c_int)
         c_flag = 0_c_int
         if (present(flag)) c_flag = int(flag, c_int)
         c_border = 0_c_int
         if (present(border)) c_border = int(border, c_int)
-        result_ = wxSizer_Add(sizer%ptr, int(width, c_int), &
+        call wxSizer_Add(sizer%ptr, int(width, c_int), &
             int(height, c_int), c_prop, c_flag, c_border, c_null_ptr)
     end subroutine
 
@@ -2319,10 +2316,9 @@ contains
         class(wxSizer_t), intent(in) :: sizer
         integer, intent(in), optional :: proportion
         integer(c_int) :: c_prop
-        type(c_ptr) :: result_
         c_prop = 1_c_int
         if (present(proportion)) c_prop = int(proportion, c_int)
-        result_ = wxSizer_AddStretchSpacer(sizer%ptr, c_prop)
+        call wxSizer_AddStretchSpacer(sizer%ptr, c_prop)
     end subroutine
 
     subroutine wx_sizer_layout(sizer)
@@ -2333,8 +2329,7 @@ contains
     subroutine wx_sizer_fit(sizer, window)
         class(wxSizer_t), intent(in) :: sizer
         class(wxWindow_t), intent(in) :: window
-        type(c_ptr) :: result_
-        result_ = wxSizer_Fit(sizer%ptr, window%ptr)
+        call wxSizer_Fit(sizer%ptr, window%ptr)
     end subroutine
 
     subroutine wx_sizer_set_size_hints(sizer, window)
