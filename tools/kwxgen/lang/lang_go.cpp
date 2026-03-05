@@ -99,6 +99,55 @@ namespace kwxgen
             return ToLower(stripped) + "_gen.go";
         }
 
+        bool IsFixedGoGeneratedFile(const std::string& filename)
+        {
+            return filename == "helpers_gen.go" || filename == "constants_gen.go" ||
+                   filename == "events_gen.go" || filename == "keys_gen.go";
+        }
+
+        bool EndsWith(const std::string& value, const std::string& suffix)
+        {
+            if (value.size() < suffix.size())
+                return false;
+            return value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+        }
+
+        size_t RemoveStaleGoClassFiles(const fs::path& outDir,
+                                       const std::unordered_set<std::string>& expectedClassFiles)
+        {
+            if (!fs::exists(outDir))
+                return 0;
+
+            size_t removed = 0;
+            for (const auto& entry: fs::directory_iterator(outDir))
+            {
+                if (!entry.is_regular_file())
+                    continue;
+
+                const auto filename = entry.path().filename().string();
+                if (!EndsWith(filename, "_gen.go"))
+                    continue;
+                if (IsFixedGoGeneratedFile(filename))
+                    continue;
+                if (expectedClassFiles.count(filename) != 0)
+                    continue;
+
+                std::error_code ec;
+                fs::remove(entry.path(), ec);
+                if (ec)
+                {
+                    std::cerr << "Warning: failed to remove stale generated file " << entry.path()
+                              << ": " << ec.message() << "\n";
+                }
+                else
+                {
+                    ++removed;
+                }
+            }
+
+            return removed;
+        }
+
         // Receiver variable: uniform "o" to avoid name collisions with parameter names.
         constexpr const char* kReceiverVar = "o";
 
@@ -980,12 +1029,17 @@ namespace kwxgen
         for (auto& c: ffi.classes)
             wrappedClasses.insert(c.name);
 
+        std::unordered_set<std::string> expectedClassFiles;
+        expectedClassFiles.reserve(ffi.classes.size());
+
         for (auto& cls: ffi.classes)
         {
             if (cls.methods.empty())
                 continue;
 
             auto fileName = GoFileName(cls.name);
+            expectedClassFiles.insert(fileName);
+
             auto path = outDir / fileName;
             ConditionalFileWriter out(path);
             if (!out.is_open())
@@ -1008,12 +1062,16 @@ namespace kwxgen
             }
         }
 
+        const size_t removedStale = RemoveStaleGoClassFiles(outDir, expectedClassFiles);
+
         std::cerr << "  class files:      " << fileCount << " files, " << methodCount << " methods";
         if (skippedMethods > 0)
             std::cerr << " (" << skippedMethods << " skipped)";
         std::cerr << " [" << writtenCount << " written, " << (fileCount - writtenCount)
-                  << " unchanged]";
-        std::cerr << "\n";
+                  << " unchanged";
+        if (removedStale > 0)
+            std::cerr << ", " << removedStale << " stale removed";
+        std::cerr << "]\n";
     }
 
     void GoEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi,
