@@ -761,7 +761,7 @@ contains
         integer(c_int) :: dir
         dir = wxBOTH()
         if (present(direction)) dir = int(direction, c_int)
-        call wxWindow_CentreOnParent(window%ptr, dir)
+        call wxWindow_CenterOnParent(window%ptr, dir)
     end subroutine
 
     subroutine wx_window_fit(window)
@@ -1040,7 +1040,7 @@ contains
         integer(c_int) :: dir
         dir = wxBOTH()
         if (present(direction)) dir = int(direction, c_int)
-        call wxWindow_CentreOnParent(frame%ptr, dir)
+        call wxWindow_CenterOnParent(frame%ptr, dir)
     end subroutine
 
     subroutine wx_frame_set_size(frame, width, height)
@@ -1218,6 +1218,7 @@ module wx_controls
     public :: wx_text_ctrl_write_text, wx_text_ctrl_append_text
     public :: wx_text_ctrl_is_modified, wx_text_ctrl_is_editable
     public :: wx_text_ctrl_get_number_of_lines
+    public :: wx_text_ctrl_set_hint
 
     ! wxStaticText
     public :: wx_static_text_create
@@ -1403,6 +1404,16 @@ contains
         integer :: nlines
         nlines = int(wxTextCtrl_GetNumberOfLines(ctrl%ptr))
     end function
+
+    subroutine wx_text_ctrl_set_hint(ctrl, hint)
+        type(wxTextCtrl_t), intent(in) :: ctrl
+        character(len=*), intent(in) :: hint
+        type(c_ptr) :: hint_ptr
+        integer(c_int) :: res
+        hint_ptr = to_wxstring(hint)
+        res = wxTextEntry_SetHint(ctrl%ptr, hint_ptr)
+        call wxString_Delete(hint_ptr)
+    end subroutine
 
 
         )";  // end first raw string chunk
@@ -1968,7 +1979,7 @@ contains
 
     subroutine wx_menu_delete(menu)
         type(wxMenu_t), intent(inout) :: menu
-        call wxMenu_Delete(menu%ptr)
+        call wxMenu_DeletePointer(menu%ptr)
         menu%ptr = c_null_ptr
     end subroutine
 
