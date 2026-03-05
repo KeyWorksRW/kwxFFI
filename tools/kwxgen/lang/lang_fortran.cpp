@@ -926,29 +926,28 @@ contains
 
     !--- Show/hide/close ---
 
-    function wx_frame_show(frame) result(shown)
+    subroutine wx_frame_show(frame)
         type(wxFrame_t), intent(in) :: frame
-        logical :: shown
-        shown = (wxWindow_Show(frame%ptr) /= 0)
-    end function
+        integer(c_int) :: dummy
+        dummy = wxWindow_Show(frame%ptr)
+    end subroutine
 
-    function wx_frame_hide(frame) result(hidden)
+    subroutine wx_frame_hide(frame)
         type(wxFrame_t), intent(in) :: frame
-        logical :: hidden
-        hidden = (wxWindow_Hide(frame%ptr) /= 0)
-    end function
+        integer(c_int) :: dummy
+        dummy = wxWindow_Hide(frame%ptr)
+    end subroutine
 
-    function wx_frame_close(frame, force) result(closed)
+    subroutine wx_frame_close(frame, force)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: force
-        logical :: closed
-        integer(c_int) :: c_force
+        integer(c_int) :: c_force, dummy
         c_force = 0_c_int
         if (present(force)) then
             if (force) c_force = 1_c_int
         end if
-        closed = (wxWindow_Close(frame%ptr, c_force) /= 0)
-    end function
+        dummy = wxWindow_Close(frame%ptr, c_force)
+    end subroutine
 
     !--- Status bar ---
 
@@ -2063,16 +2062,16 @@ contains
         menubar%ptr = wxMenuBar_Create(0_c_int)
     end function
 
-    function wx_menubar_append(menubar, menu, title) result(ok)
+    subroutine wx_menubar_append(menubar, menu, title)
         type(wxMenuBar_t), intent(in) :: menubar
         type(wxMenu_t), intent(in) :: menu
         character(len=*), intent(in) :: title
-        logical :: ok
+        integer(c_int) :: dummy
         type(c_ptr) :: title_ptr
         title_ptr = to_wxstring(title)
-        ok = (wxMenuBar_Append(menubar%ptr, menu%ptr, title_ptr) /= 0)
+        dummy = wxMenuBar_Append(menubar%ptr, menu%ptr, title_ptr)
         call wxString_Delete(title_ptr)
-    end function
+    end subroutine
 
     function wx_menubar_get_menu_count(menubar) result(n)
         type(wxMenuBar_t), intent(in) :: menubar
