@@ -9,6 +9,9 @@ bin/
 src/version.h
 src/version.rc
 
+# created by kwxgeen to test creating language files
+%TEMP%/
+
 # cmake
 CMakeFiles/
 build/
