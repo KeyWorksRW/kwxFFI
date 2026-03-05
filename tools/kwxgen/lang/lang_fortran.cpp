@@ -1230,8 +1230,8 @@ module wx_controls
     public :: wx_checkbox_get_value, wx_checkbox_set_value
 
     ! wxRadioButton
-    public :: wx_radio_button_create
-    public :: wx_radio_button_get_value, wx_radio_button_set_value
+    public :: wx_radiobutton_create
+    public :: wx_radiobutton_get_value, wx_radiobutton_set_value
 
     ! wxChoice
     public :: wx_choice_create, wx_choice_append
@@ -1522,7 +1522,7 @@ contains
 
     !--- wxRadioButton ---
 
-    function wx_radio_button_create(label, parent, id, x, y, width, height, &
+    function wx_radiobutton_create(label, parent, id, x, y, width, height, &
             style) result(rb)
         character(len=*), intent(in) :: label
         class(wxWindow_t), intent(in) :: parent
@@ -1554,13 +1554,13 @@ contains
         call wxString_Delete(label_ptr)
     end function
 
-    function wx_radio_button_get_value(rb) result(selected)
+    function wx_radiobutton_get_value(rb) result(selected)
         type(wxRadioButton_t), intent(in) :: rb
         logical :: selected
         selected = (wxRadioButton_GetValue(rb%ptr) /= 0)
     end function
 
-    subroutine wx_radio_button_set_value(rb, selected)
+    subroutine wx_radiobutton_set_value(rb, selected)
         type(wxRadioButton_t), intent(in) :: rb
         logical, intent(in) :: selected
         integer(c_int) :: val
