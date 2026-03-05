@@ -666,17 +666,17 @@ contains
 
     !--- Visibility and state ---
 
-    subroutine wx_window_show(window)
+    function wx_window_show(window) result(shown)
         class(wxWindow_t), intent(in) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_Show(window%ptr)
-    end subroutine
+        logical :: shown
+        shown = (wxWindow_Show(window%ptr) /= 0)
+    end function
 
-    subroutine wx_window_hide(window)
+    function wx_window_hide(window) result(hidden)
         class(wxWindow_t), intent(in) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_Hide(window%ptr)
-    end subroutine
+        logical :: hidden
+        hidden = (wxWindow_Hide(window%ptr) /= 0)
+    end function
 
     subroutine wx_window_enable(window)
         class(wxWindow_t), intent(in) :: window
@@ -771,20 +771,20 @@ contains
         call wxWindow_Fit(window%ptr)
     end subroutine
 
-    subroutine wx_window_layout(window)
+    function wx_window_layout(window) result(ok)
         class(wxWindow_t), intent(in) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_Layout(window%ptr)
-    end subroutine
+        logical :: ok
+        ok = (wxWindow_Layout(window%ptr) /= 0)
+    end function
 
     !--- Destruction ---
 
-    subroutine wx_window_destroy(window)
+    function wx_window_destroy(window) result(destroyed)
         class(wxWindow_t), intent(inout) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_DestroyWindow(window%ptr)
+        logical :: destroyed
+        destroyed = (wxWindow_DestroyWindow(window%ptr) /= 0)
         window%ptr = c_null_ptr
-    end subroutine
+    end function
 
     function wx_window_close(window, force) result(closed)
         class(wxWindow_t), intent(in) :: window
@@ -929,17 +929,17 @@ contains
 
     !--- Show/hide/close ---
 
-    subroutine wx_frame_show(frame)
+    function wx_frame_show(frame) result(shown)
         type(wxFrame_t), intent(in) :: frame
-        integer(c_int) :: result_
-        result_ = wxWindow_Show(frame%ptr)
-    end subroutine
+        logical :: shown
+        shown = (wxWindow_Show(frame%ptr) /= 0)
+    end function
 
-    subroutine wx_frame_hide(frame)
+    function wx_frame_hide(frame) result(hidden)
         type(wxFrame_t), intent(in) :: frame
-        integer(c_int) :: result_
-        result_ = wxWindow_Hide(frame%ptr)
-    end subroutine
+        logical :: hidden
+        hidden = (wxWindow_Hide(frame%ptr) /= 0)
+    end function
 
     function wx_frame_close(frame, force) result(closed)
         type(wxFrame_t), intent(in) :: frame
@@ -1097,18 +1097,19 @@ contains
         iconized = (wxTopLevelWindow_IsIconized(frame%ptr) /= 0)
     end function
 
-    subroutine wx_frame_show_full_screen(frame, show, style)
+    function wx_frame_show_full_screen(frame, show, style) result(ok)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in) :: show
         integer(c_long), intent(in), optional :: style
-        integer(c_int) :: c_show, result_
+        logical :: ok
+        integer(c_int) :: c_show
         integer(c_long) :: c_style
         c_show = 0_c_int
         if (show) c_show = 1_c_int
         c_style = 0_c_long
         if (present(style)) c_style = style
-        result_ = wxTopLevelWindow_ShowFullScreen(frame%ptr, c_show, c_style)
-    end subroutine
+        ok = (wxTopLevelWindow_ShowFullScreen(frame%ptr, c_show, c_style) /= 0)
+    end function
 
     function wx_frame_is_full_screen(frame) result(full)
         type(wxFrame_t), intent(in) :: frame
@@ -1140,41 +1141,44 @@ contains
         active = (wxTopLevelWindow_IsActive(frame%ptr) /= 0)
     end function
 
-    subroutine wx_frame_enable_close_button(frame, enable)
+    function wx_frame_enable_close_button(frame, enable) result(ok)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: enable
-        integer(c_int) :: c_en, result_
+        logical :: ok
+        integer(c_int) :: c_en
         c_en = 1_c_int
         if (present(enable)) then
             c_en = 0_c_int
             if (enable) c_en = 1_c_int
         end if
-        result_ = wxTopLevelWindow_EnableCloseButton(frame%ptr, c_en)
-    end subroutine
+        ok = (wxTopLevelWindow_EnableCloseButton(frame%ptr, c_en) /= 0)
+    end function
 
-    subroutine wx_frame_enable_maximize_button(frame, enable)
+    function wx_frame_enable_maximize_button(frame, enable) result(ok)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: enable
-        integer(c_int) :: c_en, result_
+        logical :: ok
+        integer(c_int) :: c_en
         c_en = 1_c_int
         if (present(enable)) then
             c_en = 0_c_int
             if (enable) c_en = 1_c_int
         end if
-        result_ = wxTopLevelWindow_EnableMaximizeButton(frame%ptr, c_en)
-    end subroutine
+        ok = (wxTopLevelWindow_EnableMaximizeButton(frame%ptr, c_en) /= 0)
+    end function
 
-    subroutine wx_frame_enable_minimize_button(frame, enable)
+    function wx_frame_enable_minimize_button(frame, enable) result(ok)
         type(wxFrame_t), intent(in) :: frame
         logical, intent(in), optional :: enable
-        integer(c_int) :: c_en, result_
+        logical :: ok
+        integer(c_int) :: c_en
         c_en = 1_c_int
         if (present(enable)) then
             c_en = 0_c_int
             if (enable) c_en = 1_c_int
         end if
-        result_ = wxTopLevelWindow_EnableMinimizeButton(frame%ptr, c_en)
-    end subroutine
+        ok = (wxTopLevelWindow_EnableMinimizeButton(frame%ptr, c_en) /= 0)
+    end function
 
     subroutine wx_frame_request_user_attention(frame, flags)
         type(wxFrame_t), intent(in) :: frame
@@ -1407,15 +1411,15 @@ contains
         nlines = int(wxTextCtrl_GetNumberOfLines(ctrl%ptr))
     end function
 
-    subroutine wx_text_ctrl_set_hint(ctrl, hint)
+    function wx_text_ctrl_set_hint(ctrl, hint) result(ok)
         type(wxTextCtrl_t), intent(in) :: ctrl
         character(len=*), intent(in) :: hint
+        logical :: ok
         type(c_ptr) :: hint_ptr
-        integer(c_int) :: result_
         hint_ptr = to_wxstring(hint)
-        result_ = wxTextCtrl_SetHint(ctrl%ptr, hint_ptr)
+        ok = (wxTextCtrl_SetHint(ctrl%ptr, hint_ptr) /= 0)
         call wxString_Delete(hint_ptr)
-    end subroutine
+    end function
 
         )";  // end first raw string chunk
         out << R"(
@@ -2078,16 +2082,16 @@ contains
         menubar%ptr = wxMenuBar_Create(0_c_int)
     end function
 
-    subroutine wx_menubar_append(menubar, menu, title)
+    function wx_menubar_append(menubar, menu, title) result(ok)
         type(wxMenuBar_t), intent(in) :: menubar
         type(wxMenu_t), intent(in) :: menu
         character(len=*), intent(in) :: title
+        logical :: ok
         type(c_ptr) :: title_ptr
-        integer(c_int) :: result_
         title_ptr = to_wxstring(title)
-        result_ = wxMenuBar_Append(menubar%ptr, menu%ptr, title_ptr)
+        ok = (wxMenuBar_Append(menubar%ptr, menu%ptr, title_ptr) /= 0)
         call wxString_Delete(title_ptr)
-    end subroutine
+    end function
 
     function wx_menubar_get_menu_count(menubar) result(n)
         type(wxMenuBar_t), intent(in) :: menubar
