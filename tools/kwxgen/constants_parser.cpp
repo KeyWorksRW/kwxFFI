@@ -2,7 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "constants_parser.h"
-
+#include "parser_utils.h"
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -13,109 +13,6 @@ namespace kwxgen
 
     namespace
     {
-
-        // Parse a simple macro type like "TClass(wxWindow)" into macro_name="TClass",
-        // macro_arg="wxWindow" Returns true if the type was a macro form, false for plain types
-        // like "int", "void*".
-        bool ParseMacroType(const std::string& type, std::string& macro_name,
-                            std::string& macro_arg)
-        {
-            std::regex re_macro(R"(^(\w+)\((.+)\)$)");
-            std::smatch m;
-            if (std::regex_match(type, m, re_macro))
-            {
-                macro_name = m[1].str();
-                macro_arg = m[2].str();
-                return true;
-            }
-            macro_name.clear();
-            macro_arg.clear();
-            return false;
-        }
-
-        // Split a parameter list string by commas, respecting parenthesized groups.
-        // "TClass(wxImage) src, TClass(wxImage) dest, int flags"
-        // → ["TClass(wxImage) src", "TClass(wxImage) dest", "int flags"]
-        std::vector<std::string> SplitParams(const std::string& paramStr)
-        {
-            std::vector<std::string> result;
-            int depth = 0;
-            size_t start = 0;
-            for (size_t i = 0; i < paramStr.size(); ++i)
-            {
-                if (paramStr[i] == '(')
-                    ++depth;
-                else if (paramStr[i] == ')')
-                    --depth;
-                else if (paramStr[i] == ',' && depth == 0)
-                {
-                    std::string token = paramStr.substr(start, i - start);
-                    // Trim whitespace
-                    auto b = token.find_first_not_of(" \t");
-                    auto e = token.find_last_not_of(" \t");
-                    if (b != std::string::npos)
-                        result.push_back(token.substr(b, e - b + 1));
-                    start = i + 1;
-                }
-            }
-            // Last token
-            if (start < paramStr.size())
-            {
-                std::string token = paramStr.substr(start);
-                auto b = token.find_first_not_of(" \t");
-                auto e = token.find_last_not_of(" \t");
-                if (b != std::string::npos)
-                    result.push_back(token.substr(b, e - b + 1));
-            }
-            return result;
-        }
-
-        // Parse a single parameter token like "TClass(wxWindow) parent" or "int flags" into a
-        // Param.
-        Param ParseOneParam(const std::string& token)
-        {
-            Param p;
-
-            // Try macro form: "TClass(wxFoo) name" or "TClass(wxFoo)"
-            std::regex re_macro_param(R"(^(\w+)\(([^)]+)\)\s*(\w*)$)");
-            std::smatch m;
-            if (std::regex_match(token, m, re_macro_param))
-            {
-                p.macro_name = m[1].str();
-                p.macro_arg = m[2].str();
-                p.param_name = m[3].str();
-                p.raw_type = p.macro_name + "(" + p.macro_arg + ")";
-                return p;
-            }
-
-            // Plain type: "int flags", "void* pointer", "int"
-            // Find last whitespace-separated word as param name (if there are at least two words)
-            auto last_space = token.rfind(' ');
-            if (last_space != std::string::npos)
-            {
-                std::string maybe_name = token.substr(last_space + 1);
-                std::string maybe_type = token.substr(0, last_space);
-                // Trim trailing spaces from type
-                auto e = maybe_type.find_last_not_of(" \t");
-                if (e != std::string::npos)
-                    maybe_type = maybe_type.substr(0, e + 1);
-
-                // Check if maybe_name looks like an identifier (not a pointer suffix)
-                if (std::regex_match(maybe_name, std::regex(R"(^\w+$)")) && maybe_name != "int" &&
-                    maybe_name != "void" && maybe_name != "double" && maybe_name != "float")
-                {
-                    p.raw_type = maybe_type;
-                    p.param_name = maybe_name;
-                    // Handle pointer types like "void*" or "void *"
-                    // Handle type pointers: "void* name" → raw_type="void*"
-                    return p;
-                }
-            }
-
-            // No parameter name — type only
-            p.raw_type = token;
-            return p;
-        }
 
         // Parse a single-line free function declaration.
         // Returns true if parsed, false otherwise.

@@ -2,28 +2,17 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "class_parser.h"
+#include "parser_utils.h"
 
 #include <fstream>
 #include <iostream>
-#include <regex>
 #include <string>
-#include <unordered_set>
 
 namespace kwxgen
 {
 
     namespace
     {
-
-        // Trim leading and trailing whitespace.
-        std::string Trim(const std::string& s)
-        {
-            auto b = s.find_first_not_of(" \t\r\n");
-            if (b == std::string::npos)
-                return {};
-            auto e = s.find_last_not_of(" \t\r\n");
-            return s.substr(b, e - b + 1);
-        }
 
         // Check if parentheses are balanced in the given string.
         bool ParensBalanced(const std::string& s)
@@ -39,152 +28,6 @@ namespace kwxgen
                     return false;
             }
             return depth == 0;
-        }
-
-        // Parse a macro-wrapped type like "TClass(wxWindow)" into macro_name and macro_arg.
-        // Returns true if it matched a macro form.
-        bool ParseMacroType(const std::string& type, std::string& macro_name,
-                            std::string& macro_arg)
-        {
-            // Match: WORD(CONTENT) where CONTENT may contain nested parens
-            // e.g. TClass(wxWindow), TSelf(wxButton), TRect(x, y, w, h)
-            auto paren = type.find('(');
-            if (paren == std::string::npos || type.back() != ')')
-            {
-                macro_name.clear();
-                macro_arg.clear();
-                return false;
-            }
-            std::string prefix = type.substr(0, paren);
-            // prefix must be a valid identifier
-            if (prefix.empty() || !(std::isalpha(prefix[0]) || prefix[0] == '_'))
-            {
-                macro_name.clear();
-                macro_arg.clear();
-                return false;
-            }
-            macro_name = prefix;
-            macro_arg = type.substr(paren + 1, type.size() - paren - 2);
-            return true;
-        }
-
-        // Split a parameter list string by commas, respecting parenthesized groups.
-        std::vector<std::string> SplitParams(const std::string& paramStr)
-        {
-            std::vector<std::string> result;
-            int depth = 0;
-            size_t start = 0;
-            for (size_t i = 0; i < paramStr.size(); ++i)
-            {
-                if (paramStr[i] == '(')
-                    ++depth;
-                else if (paramStr[i] == ')')
-                    --depth;
-                else if (paramStr[i] == ',' && depth == 0)
-                {
-                    std::string token = Trim(paramStr.substr(start, i - start));
-                    if (!token.empty())
-                        result.push_back(token);
-                    start = i + 1;
-                }
-            }
-            // Last token
-            if (start < paramStr.size())
-            {
-                std::string token = Trim(paramStr.substr(start));
-                if (!token.empty())
-                    result.push_back(token);
-            }
-            return result;
-        }
-
-        // Parse a single parameter token like "TClass(wxWindow) parent" or "int flags".
-        Param ParseOneParam(const std::string& token)
-        {
-            Param p;
-
-            // Try macro form: "MacroName(args) paramName" or "MacroName(args)"
-            // Find the closing paren of the macro
-            auto paren_open = token.find('(');
-            if (paren_open != std::string::npos)
-            {
-                // Find the matching close paren
-                int depth = 0;
-                size_t paren_close = std::string::npos;
-                for (size_t i = paren_open; i < token.size(); ++i)
-                {
-                    if (token[i] == '(')
-                        ++depth;
-                    else if (token[i] == ')')
-                    {
-                        --depth;
-                        if (depth == 0)
-                        {
-                            paren_close = i;
-                            break;
-                        }
-                    }
-                }
-
-                if (paren_close != std::string::npos)
-                {
-                    std::string prefix = token.substr(0, paren_open);
-                    // Check if prefix is a valid macro identifier
-                    bool is_macro =
-                        !prefix.empty() && (std::isalpha(prefix[0]) || prefix[0] == '_');
-                    for (size_t i = 1; is_macro && i < prefix.size(); ++i)
-                        is_macro = std::isalnum(prefix[i]) || prefix[i] == '_';
-
-                    if (is_macro)
-                    {
-                        p.macro_name = prefix;
-                        p.macro_arg = token.substr(paren_open + 1, paren_close - paren_open - 1);
-                        p.raw_type = prefix + "(" + p.macro_arg + ")";
-
-                        // Check for param name after closing paren
-                        std::string rest = Trim(token.substr(paren_close + 1));
-                        if (!rest.empty())
-                        {
-                            // Could be "* name" for pointer, or just "name"
-                            if (rest[0] == '*')
-                            {
-                                p.raw_type += "*";
-                                rest = Trim(rest.substr(1));
-                            }
-                            p.param_name = rest;
-                        }
-                        return p;
-                    }
-                }
-            }
-
-            // Plain type: "int flags", "void* pointer", "double value", etc.
-            auto last_space = token.rfind(' ');
-            if (last_space != std::string::npos)
-            {
-                std::string maybe_name = Trim(token.substr(last_space + 1));
-                std::string maybe_type = Trim(token.substr(0, last_space));
-
-                // Check if maybe_name looks like an identifier (and isn't a keyword/type)
-                bool is_ident =
-                    !maybe_name.empty() && (std::isalpha(maybe_name[0]) || maybe_name[0] == '_');
-                for (size_t i = 1; is_ident && i < maybe_name.size(); ++i)
-                    is_ident = std::isalnum(maybe_name[i]) || maybe_name[i] == '_';
-
-                static const std::unordered_set<std::string> type_keywords = { "int",    "void",
-                                                                               "double", "float",
-                                                                               "char",   "long" };
-                if (is_ident && type_keywords.find(maybe_name) == type_keywords.end())
-                {
-                    p.raw_type = maybe_type;
-                    p.param_name = maybe_name;
-                    return p;
-                }
-            }
-
-            // No parameter name — type only
-            p.raw_type = token;
-            return p;
         }
 
         // Find the function parameter list opening paren, scanning backwards from the
@@ -351,7 +194,7 @@ namespace kwxgen
             }
 
             // Compute flags
-            out.is_constructor = out.method_name == "Create" || out.method_name.find("Create") == 0;
+            out.is_constructor = out.method_name.find("Create") == 0;
             out.is_destructor = out.method_name == "Delete";
             out.has_self = !out.params.empty() && out.params[0].macro_name == "TSelf";
 
@@ -483,8 +326,8 @@ namespace kwxgen
             bool in_block_comment = false;
             for (auto& line: lines)
             {
-                std::string result;
-                result.reserve(line.size());
+                std::string stripped_line;
+                stripped_line.reserve(line.size());
                 for (size_t i = 0; i < line.size(); ++i)
                 {
                     if (in_block_comment)
@@ -511,10 +354,10 @@ namespace kwxgen
                                 continue;
                             }
                         }
-                        result += line[i];
+                        stripped_line += line[i];
                     }
                 }
-                line = std::move(result);
+                line = std::move(stripped_line);
             }
         }
         // Phase 1: Build logical lines by joining continuations.
@@ -577,8 +420,24 @@ namespace kwxgen
         FlushBuffer();
 
         // Phase 2: Process logical lines into ClassInfo structures.
-        ClassInfo* current_class = nullptr;
+        // Use indices into result.classes (not raw pointers) so that push_back-induced
+        // reallocation never dangles our tracking variable.
+        size_t current_class_idx = SIZE_MAX;  // sentinel — no current class yet
         size_t total_methods = 0;
+
+        // Find an existing ClassInfo by name, or create one.  Returns its index.
+        auto GetOrCreateClassIdx = [&](const std::string& name,
+                                       const std::string& parent = "") -> size_t
+        {
+            for (size_t i = 0; i < result.classes.size(); ++i)
+                if (result.classes[i].name == name)
+                    return i;
+            ClassInfo cls;
+            cls.name = name;
+            cls.parent = parent;
+            result.classes.push_back(std::move(cls));
+            return result.classes.size() - 1;
+        };
 
         for (auto& ll: logical_lines)
         {
@@ -587,31 +446,20 @@ namespace kwxgen
 
             if (after_classdef != std::string::npos)
             {
-                // Found a class definition — start a new class
-                ClassInfo cls;
-                cls.name = class_name;
-                cls.parent = parent_name;
-                result.classes.push_back(std::move(cls));
-                current_class = &result.classes.back();
-
-                // Record in parent_map
+                // Found a class definition — start a new class (or re-open an existing one)
+                current_class_idx = GetOrCreateClassIdx(class_name, parent_name);
                 if (!parent_name.empty())
+                {
+                    result.classes[current_class_idx].parent = parent_name;
                     result.parent_map[class_name] = parent_name;
+                }
 
-                // Check for function declaration on the same line after the class def
+                // Check for function declarations on the same line after the class def
                 std::string remainder = Trim(ll.substr(after_classdef));
                 if (!remainder.empty())
                 {
-                    // There may be one or more function declarations separated by ';'
-                    // But typically there's at most one complete function on the same line
-                    // as the class def (the rest continue on subsequent lines).
-
-                    // Check if remainder contains a complete function (ends with ';')
                     if (remainder.back() == ';')
                     {
-                        // Could contain multiple functions separated by ';' on the same line?
-                        // In practice, the file has at most one function per logical line.
-                        // But handle multiple just in case.
                         size_t pos = 0;
                         while (pos < remainder.size())
                         {
@@ -625,7 +473,8 @@ namespace kwxgen
                                 FunctionDecl decl;
                                 if (ParseFunctionDecl(func_str, class_name, decl))
                                 {
-                                    current_class->methods.push_back(std::move(decl));
+                                    result.classes[current_class_idx].methods.push_back(
+                                        std::move(decl));
                                     ++total_methods;
                                 }
                                 else
@@ -639,17 +488,17 @@ namespace kwxgen
                     }
                     else
                     {
-                        // Incomplete function — shouldn't happen after joining
                         std::cerr << "  Warning: incomplete function after class def " << class_name
                                   << ": " << remainder << "\n";
                     }
                 }
-                // else: empty class definition — no methods
             }
-            else if (current_class)
+            else if (current_class_idx != SIZE_MAX)
             {
-                // Function declaration belonging to the current class
-                // May contain multiple semicolon-separated declarations
+                // No class-def marker on this line — parse functions and route by prefix.
+                // When a function's ClassName_ prefix differs from the current class, it means
+                // that class has no TClassDef marker in the header.  Auto-create a ClassInfo
+                // for it and make it current so subsequent methods land in the right place.
                 size_t pos = 0;
                 while (pos < ll.size())
                 {
@@ -661,9 +510,18 @@ namespace kwxgen
                     if (!func_str.empty())
                     {
                         FunctionDecl decl;
-                        if (ParseFunctionDecl(func_str, current_class->name, decl))
+                        if (ParseFunctionDecl(func_str, result.classes[current_class_idx].name,
+                                              decl))
                         {
-                            current_class->methods.push_back(std::move(decl));
+                            // Route to the class that matches the function's own prefix.
+                            size_t target_idx = current_class_idx;
+                            if (!decl.class_name.empty() &&
+                                decl.class_name != result.classes[current_class_idx].name)
+                            {
+                                target_idx = GetOrCreateClassIdx(decl.class_name);
+                                current_class_idx = target_idx;
+                            }
+                            result.classes[target_idx].methods.push_back(std::move(decl));
                             ++total_methods;
                         }
                         else

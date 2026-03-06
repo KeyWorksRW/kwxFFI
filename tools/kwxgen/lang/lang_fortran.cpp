@@ -3,9 +3,9 @@
 
 #include "lang_fortran.h"
 
-#include "fortran_type_map.h"
-
 #include "../file_writer.h"
+#include "fortran_type_map.h"
+#include "lang_common.h"
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
@@ -18,14 +18,6 @@ namespace kwxgen
 
     namespace
     {
-
-        // Build a C function name from a FunctionDecl.
-        std::string CFuncName(const FunctionDecl& f)
-        {
-            if (f.class_name.empty())
-                return f.method_name;
-            return f.class_name + "_" + f.method_name;
-        }
 
         // Transform a C export name (with "exp" prefix) into an idiomatic Fortran name.
         //   exp_wxEVT_FOO -> wxEVT_FOO  (strip "exp_")
@@ -126,27 +118,6 @@ namespace kwxgen
             }
 
             EmitFortranInterface(out, cName, retInfo, fParams);
-        }
-
-        // Check if a function declaration looks valid (skip malformed ones).
-        bool IsValidFunction(const FunctionDecl& f)
-        {
-            if (f.return_type.find("//") != std::string::npos ||
-                f.return_type.find("/*") != std::string::npos ||
-                f.return_type.find("*/") != std::string::npos)
-                return false;
-            if (f.method_name.find("//") != std::string::npos ||
-                f.method_name.find("/*") != std::string::npos)
-                return false;
-            if (f.method_name.empty())
-                return false;
-            for (const auto& p: f.params)
-            {
-                if (p.raw_type.find("//") != std::string::npos ||
-                    p.raw_type.find("/*") != std::string::npos)
-                    return false;
-            }
-            return true;
         }
 
     }  // anonymous namespace
