@@ -62,15 +62,31 @@ namespace kwxgen
         // Class generation helpers
         // -----------------------------------------------------------------
 
-        // Strip common prefixes: "wxButton" → "Button", "kwxFoo" → "Foo", "ELJBar" → "Bar"
+        // Strip common prefixes for Go type names:
+        //   "wxButton"       → "Button"       (strip 'wx')
+        //   "wxNewFoo"       → "WxNewFoo"     (keep prefix when stripped name starts with 'New'
+        //                                       to avoid collision with NewFoo() constructor fns)
+        //   "kwxDropTarget"  → "KwxDropTarget" (capitalise 'kwx' — do NOT strip it, or kwx*
+        //                                       classes collide with their wx* counterparts)
+        //   "ELJBar"         → "Bar"          (strip 'ELJ')
         std::string StripPrefix(const std::string& name)
         {
             if (name.size() > 2 && name[0] == 'w' && name[1] == 'x' &&
                 std::isupper(static_cast<unsigned char>(name[2])))
-                return name.substr(2);
+            {
+                std::string stripped = name.substr(2);
+                // If stripping 'wx' leaves a name starting with 'New', it will collide
+                // with NewFoo() constructor functions emitted for other wx* classes.
+                // e.g. wxNewBitmapButton → keep as WxNewBitmapButton.
+                if (stripped.size() >= 3 && stripped.substr(0, 3) == "New")
+                    return "Wx" + stripped;
+                return stripped;
+            }
+            // kwx* classes: capitalise to "Kwx" rather than stripping, so that
+            // kwxDropTarget → KwxDropTarget ≠ DropTarget (from wxDropTarget).
             if (name.size() > 3 && name.substr(0, 3) == "kwx" &&
                 std::isupper(static_cast<unsigned char>(name[3])))
-                return name.substr(3);
+                return "Kwx" + name.substr(3);
             if (name.size() > 3 && name.substr(0, 3) == "ELJ" &&
                 std::isupper(static_cast<unsigned char>(name[3])))
                 return name.substr(3);
@@ -1047,10 +1063,21 @@ namespace kwxgen
         std::unordered_set<std::string> expectedClassFiles;
         expectedClassFiles.reserve(ffi.classes.size());
 
+        // Classes already hand-defined in types.go — skip generation to avoid
+        // redeclaration errors.  Add entries here whenever a new class is added
+        // to the hand-maintained types.go file.
+        static const std::unordered_set<std::string> kHandMaintainedClasses = {
+            "wxPoint",
+            "wxSize",
+            "wxRect",
+        };
+
         for (auto& cls: ffi.classes)
         {
             if (cls.methods.empty())
                 continue;
+            if (kHandMaintainedClasses.count(cls.name))
+                continue;  // defined in types.go — skip to avoid redeclaration
 
             auto fileName = GoFileName(cls.name);
             expectedClassFiles.insert(fileName);
