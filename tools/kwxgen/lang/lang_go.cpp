@@ -774,6 +774,21 @@ namespace kwxgen
             return true;
         }
 
+        // Returns true if any method in the class uses TString parameters,
+        // which generate C.CString()/C.free() calls requiring stdlib.h.
+        bool ClassNeedsStdlib(const ClassInfo& cls)
+        {
+            for (const auto& f: cls.methods)
+            {
+                for (const auto& p: f.params)
+                {
+                    if (p.raw_type == "TString")
+                        return true;
+                }
+            }
+            return false;
+        }
+
     }  // anonymous namespace
 
     // -------------------------------------------------------------------------
@@ -1080,6 +1095,7 @@ namespace kwxgen
         std::string goClassName = StripPrefix(cls.name);
         bool isWindowDerived = cls.is_window_derived;
         bool needsUnsafe = ClassNeedsUnsafe(cls);
+        bool needsStdlib = ClassNeedsStdlib(cls);
 
         // Header
         WriteGeneratedHeader(out);
@@ -1087,6 +1103,8 @@ namespace kwxgen
 
         // CGo preamble
         out << "// #include \"kwx_classes.h\"\n";
+        if (needsStdlib)
+            out << "// #include <stdlib.h>\n";
         out << "import \"C\"\n";
 
         if (needsUnsafe)
