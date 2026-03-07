@@ -25,32 +25,14 @@ namespace kwxgen
     namespace
     {
 
-        constexpr size_t kFixedFileCount = 4;  // helpers, constants, events, keys
+        constexpr size_t kFixedFileCount = 5;  // cgo_glue, helpers, constants, events, keys
 
         // Determine the Go type expression for a constant's return type.
         // Returns the Go wrapper around the C call, e.g., "int(C.expwxFOO())"
         // or "unsafe.Pointer(C.expwxFOO())".
         std::string GoConstantExpr(const ConstantDecl& c)
         {
-            if (c.return_type == "int")
-                return "int(C." + c.export_name + "())";
-
-            // Pointer types (wxString*, const wxColour*, etc.) → unsafe.Pointer
-            if (c.return_type.find('*') != std::string::npos)
-                return "unsafe.Pointer(C." + c.export_name + "())";
-
-            // Fallback: treat as int
-            return "int(C." + c.export_name + "())";
-        }
-
-        // Check if any constant uses a pointer type (needs "unsafe" import).
-        bool ConstantsNeedUnsafe(const std::vector<ConstantDecl>& constants)
-        {
-            return std::any_of(constants.begin(), constants.end(),
-                               [](const ConstantDecl& c)
-                               {
-                                   return c.return_type.find('*') != std::string::npos;
-                               });
+            return "cgo_" + c.export_name + "()";
         }
 
         // -----------------------------------------------------------------
@@ -104,8 +86,9 @@ namespace kwxgen
 
         bool IsFixedGoGeneratedFile(const std::string& filename)
         {
-            return filename == "helpers_gen.go" || filename == "constants_gen.go" ||
-                   filename == "events_gen.go" || filename == "keys_gen.go";
+            return filename == "cgo_glue_gen.go" || filename == "helpers_gen.go" ||
+                   filename == "constants_gen.go" || filename == "events_gen.go" ||
+                   filename == "keys_gen.go";
         }
 
         bool EndsWith(const std::string& value, const std::string& suffix)
@@ -178,7 +161,7 @@ namespace kwxgen
         {
             if (!name.empty() && std::isdigit(static_cast<unsigned char>(name[0])))
                 return "X" + name;
-            return name;
+            return RenameGoKeyword(name);
         }
 
         // Split comma-separated macro arg: "x, y" → {"x", "y"}
@@ -197,15 +180,19 @@ namespace kwxgen
             return parts;
         }
 
-        // Info about a single Go parameter (may be expanded from one C param).
         struct GoParam
         {
-            std::string name;        // Go parameter name
-            std::string go_type;     // Go type: "int", "bool", "string", "unsafe.Pointer"
-            std::string cgo_expr;    // Expression to pass to C call
-            std::string pre_call;    // Statement before C call (e.g., wxStr := NewWxString(...))
-            std::string defer_call;  // Defer statement (e.g., defer wxStr.Free())
-            bool needs_unsafe = false;
+            std::string name;           // Go parameter name
+            std::string go_type;        // Go type in class-file signature
+            std::string cgo_expr;       // Expression to pass to the C call (used in glue body)
+            std::string pre_call;       // Statement before call in class file
+            std::string defer_call;     // Defer statement in class file
+            bool needs_unsafe = false;  // Class file needs "unsafe" import for this param
+            // Glue-layer overrides (empty strings → default to go_type / name)
+            std::string glue_go_type;    // Type in glue function signature (empty → go_type)
+            std::string glue_pass_expr;  // Expression in class body for glue call (empty → name)
+            std::string glue_pre;        // Pre-call statement in glue body
+            std::string glue_defer;      // Defer statement in glue body
         };
 
         // Capitalize first letter of a string
@@ -251,11 +238,22 @@ namespace kwxgen
             }
 
             if (p.macro_name == "TPointOut" || p.macro_name == "TSizeOut" ||
-                p.macro_name == "TRectOut" || p.macro_name == "TVectorOut" ||
-                p.macro_name == "TPointOutVoid" || p.macro_name == "TSizeOutVoid" ||
+                p.macro_name == "TRectOut" || p.macro_name == "TVectorOut")
+            {
+                // Output int* geometry params — glue receives unsafe.Pointer, casts to (*C.int) for
+                // C call
+                for (auto& raw: SplitMacroArg(p.macro_arg))
+                {
+                    auto n = RenameGoKeyword(raw);
+                    result.push_back({ n, "unsafe.Pointer", "(*C.int)(" + n + ")", "", "", true });
+                }
+                return result;
+            }
+
+            if (p.macro_name == "TPointOutVoid" || p.macro_name == "TSizeOutVoid" ||
                 p.macro_name == "TRectOutVoid" || p.macro_name == "TVectorOutVoid")
             {
-                // Output geometry parameters — pass as unsafe.Pointer for each component
+                // Output void* geometry params — unsafe.Pointer passes through as-is
                 for (auto& raw: SplitMacroArg(p.macro_arg))
                 {
                     auto n = RenameGoKeyword(raw);
@@ -266,10 +264,12 @@ namespace kwxgen
 
             if (p.macro_name == "TSizeOutDouble")
             {
+                // Output double* geometry params — cast to (*C.double) for C call
                 for (auto& raw: SplitMacroArg(p.macro_arg))
                 {
                     auto n = RenameGoKeyword(raw);
-                    result.push_back({ n, "unsafe.Pointer", n, "", "", true });
+                    result.push_back(
+                        { n, "unsafe.Pointer", "(*C.double)(" + n + ")", "", "", true });
                 }
                 return result;
             }
@@ -285,22 +285,57 @@ namespace kwxgen
             }
 
             // Array types: expand to count + pointer
-            if (p.macro_name == "TArrayString" || p.macro_name == "TArrayInt" ||
-                p.macro_name == "TByteString" || p.macro_name == "TByteStringLazy")
+            if (p.macro_name == "TArrayString")
             {
+                // int n, char** p  (TString* = char**)
                 auto names = SplitMacroArg(p.macro_arg);
                 if (names.size() >= 2)
                 {
                     auto n0 = RenameGoKeyword(names[0]);
                     auto n1 = RenameGoKeyword(names[1]);
                     result.push_back({ n0, "int", "C.int(" + n0 + ")", "", "", false });
-                    result.push_back({ n1, "unsafe.Pointer", n1, "", "", true });
+                    result.push_back(
+                        { n1, "unsafe.Pointer", "(**C.char)(" + n1 + ")", "", "", true });
                 }
                 else
+                    std::cerr << "Warning: TArrayString macro_arg '" << p.macro_arg
+                              << "' has fewer than 2 components\n";
+                return result;
+            }
+
+            if (p.macro_name == "TArrayInt" || p.macro_name == "TArrayIntPtr")
+            {
+                // int n, int* p  (or intptr_t* p)
+                auto names = SplitMacroArg(p.macro_arg);
+                if (names.size() >= 2)
                 {
-                    std::cerr << "Warning: " << p.macro_name << " macro_arg '" << p.macro_arg
-                              << "' has fewer than 2 components — skipping\n";
+                    auto n0 = RenameGoKeyword(names[0]);
+                    auto n1 = RenameGoKeyword(names[1]);
+                    result.push_back({ n0, "int", "C.int(" + n0 + ")", "", "", false });
+                    result.push_back(
+                        { n1, "unsafe.Pointer", "(*C.int)(" + n1 + ")", "", "", true });
                 }
+                else
+                    std::cerr << "Warning: TArrayInt macro_arg '" << p.macro_arg
+                              << "' has fewer than 2 components\n";
+                return result;
+            }
+
+            if (p.macro_name == "TByteString" || p.macro_name == "TByteStringLazy")
+            {
+                // TByteData* d, int n  =  char** d, int n  (args are REVERSED vs TArrayString)
+                auto names = SplitMacroArg(p.macro_arg);
+                if (names.size() >= 2)
+                {
+                    auto n0 = RenameGoKeyword(names[0]);  // data pointer
+                    auto n1 = RenameGoKeyword(names[1]);  // length
+                    result.push_back(
+                        { n0, "unsafe.Pointer", "(**C.char)(" + n0 + ")", "", "", true });
+                    result.push_back({ n1, "int", "C.int(" + n1 + ")", "", "", false });
+                }
+                else
+                    std::cerr << "Warning: TByteString macro_arg '" << p.macro_arg
+                              << "' has fewer than 2 components\n";
                 return result;
             }
 
@@ -317,29 +352,43 @@ namespace kwxgen
 
             if (p.macro_name == "TClass" && p.macro_arg == "wxString")
             {
-                // wxString parameter: Go string → NewWxString bridge
+                // wxString parameter: class file bridges Go string → NewWxString,
+                // glue function receives the raw pointer directly.
                 std::string wxVar = "wx" + Capitalize(gp.name);
                 gp.go_type = "string";
                 gp.pre_call = wxVar + " := NewWxString(" + gp.name + ")";
                 gp.defer_call = "defer " + wxVar + ".Free()";
-                gp.cgo_expr = wxVar + ".Ptr()";
+                gp.cgo_expr = gp.name;  // glue body: pass param name (unsafe.Pointer)
                 gp.needs_unsafe = false;
+                gp.glue_go_type = "unsafe.Pointer";
+                gp.glue_pass_expr = wxVar + ".Ptr()";
             }
             else if (p.macro_name == "TClass" || p.macro_name == "TClassRef")
             {
                 gp.go_type = "unsafe.Pointer";
-                gp.cgo_expr = gp.name;
                 gp.needs_unsafe = true;
+                // TClass(Foo) * means void** — CGo sees *unsafe.Pointer, must cast
+                if (!p.raw_type.empty() && p.raw_type.back() == '*')
+                    gp.cgo_expr = "(*unsafe.Pointer)(" + gp.name + ")";
+                else
+                    gp.cgo_expr = gp.name;
             }
             else if (p.macro_name == "TBool" || p.raw_type == "TBool")
             {
                 gp.go_type = "bool";
                 gp.cgo_expr = "boolToInt(" + gp.name + ")";
             }
-            else if (p.raw_type == "TBoolInt" || p.raw_type == "TBool*")
+            else if (p.raw_type == "TBoolInt")
             {
                 gp.go_type = "int";
                 gp.cgo_expr = "C.int(" + gp.name + ")";
+            }
+            else if (p.raw_type == "TBool*")
+            {
+                // Output bool pointer — pass as unsafe.Pointer, cast to *C.int
+                gp.go_type = "unsafe.Pointer";
+                gp.cgo_expr = "(*C.int)(" + gp.name + ")";
+                gp.needs_unsafe = true;
             }
             else if (p.macro_name == "TClosureFun" || p.raw_type == "TClosureFun")
             {
@@ -353,9 +402,15 @@ namespace kwxgen
                 gp.cgo_expr = gp.name;
                 gp.needs_unsafe = true;
             }
+            else if (p.raw_type == "TByteStringOut" || p.raw_type == "TByteStringLazyOut")
+            {
+                // TByteData = char* — C function takes char*, must cast from unsafe.Pointer
+                gp.go_type = "unsafe.Pointer";
+                gp.cgo_expr = "(*C.char)(" + gp.name + ")";
+                gp.needs_unsafe = true;
+            }
             else if (p.raw_type == "TArrayIntOutVoid" || p.raw_type == "TArrayIntPtrOutVoid" ||
-                     p.raw_type == "TArrayStringOutVoid" || p.raw_type == "TByteStringOut" ||
-                     p.raw_type == "TByteStringLazyOut")
+                     p.raw_type == "TArrayStringOutVoid")
             {
                 gp.go_type = "unsafe.Pointer";
                 gp.cgo_expr = gp.name;
@@ -373,19 +428,19 @@ namespace kwxgen
             }
             else if (p.raw_type == "TString")
             {
-                // char* input: Go string → C.CString (caller must free)
+                // char* input: glue function handles C.CString conversion internally.
                 gp.go_type = "string";
                 std::string cstrVar = "c" + Capitalize(gp.name);
-                gp.pre_call = cstrVar + " := C.CString(" + gp.name + ")";
-                gp.defer_call = "defer C.free(unsafe.Pointer(" + cstrVar + "))";
                 gp.cgo_expr = cstrVar;
-                gp.needs_unsafe = true;
+                gp.needs_unsafe = false;  // class file just passes a Go string
+                gp.glue_pre = cstrVar + " := C.CString(" + gp.name + ")";
+                gp.glue_defer = "defer C.free(unsafe.Pointer(" + cstrVar + "))";
             }
             else if (p.raw_type == "TStringOut")
             {
                 // char* output buffer: pass as unsafe.Pointer
                 gp.go_type = "unsafe.Pointer";
-                gp.cgo_expr = gp.name;
+                gp.cgo_expr = "(*C.char)(" + gp.name + ")";
                 gp.needs_unsafe = true;
             }
             else
@@ -432,11 +487,28 @@ namespace kwxgen
                     gp.go_type = "int";
                     gp.cgo_expr = "C.size_t(" + gp.name + ")";
                 }
-                else if (raw == "int*" || raw == "long*" || raw == "double*" ||
-                         raw == "unsigned*" || raw == "const int*")
+                else if (raw == "int*" || raw == "const int*")
                 {
                     gp.go_type = "unsafe.Pointer";
-                    gp.cgo_expr = gp.name;
+                    gp.cgo_expr = "(*C.int)(" + gp.name + ")";
+                    gp.needs_unsafe = true;
+                }
+                else if (raw == "long*")
+                {
+                    gp.go_type = "unsafe.Pointer";
+                    gp.cgo_expr = "(*C.long)(" + gp.name + ")";
+                    gp.needs_unsafe = true;
+                }
+                else if (raw == "double*")
+                {
+                    gp.go_type = "unsafe.Pointer";
+                    gp.cgo_expr = "(*C.double)(" + gp.name + ")";
+                    gp.needs_unsafe = true;
+                }
+                else if (raw == "unsigned*")
+                {
+                    gp.go_type = "unsafe.Pointer";
+                    gp.cgo_expr = "(*C.uint)(" + gp.name + ")";
                     gp.needs_unsafe = true;
                 }
                 else if (raw.find('*') != std::string::npos)
@@ -462,7 +534,7 @@ namespace kwxgen
         std::string GoReturnType(const FunctionDecl& f, const std::string& goClassName)
         {
             // True constructors (no self param) return *ClassName
-            if (f.is_constructor && !f.has_self)
+            if (f.is_constructor && !f.has_self && f.return_type != "TBool")
                 return "*" + goClassName;
 
             if (f.return_type == "void" || f.return_type.empty())
@@ -477,9 +549,10 @@ namespace kwxgen
                 return "unsafe.Pointer";
 
             // String return types
-            if (f.return_type == "TString" || f.return_type == "TStringOut" ||
-                f.return_type == "TChar")
+            if (f.return_type == "TString" || f.return_type == "TStringOut")
                 return "string";
+            if (f.return_type == "TChar")
+                return "byte";
 
             if (f.return_type == "TBool")
                 return "bool";
@@ -511,6 +584,9 @@ namespace kwxgen
         // Check if a return type needs the "unsafe" import
         bool ReturnNeedsUnsafe(const FunctionDecl& f)
         {
+            // TClass(wxString) → Go "string", not unsafe.Pointer
+            if (f.return_macro == "TClass" && f.return_arg == "wxString")
+                return false;
             if (f.return_macro == "TClass" || f.return_macro == "TSelf")
                 return true;
             if (f.return_type == "void*")
@@ -523,17 +599,26 @@ namespace kwxgen
         // Check if any method in the class needs the "unsafe" import
         bool ClassNeedsUnsafe(const ClassInfo& cls)
         {
-            // Constructors always need unsafe (they create a pointer)
             for (auto& m: cls.methods)
             {
-                if (m.is_constructor)
+                // True constructors emit *ClassName in the class file (not unsafe.Pointer)
+                // — no explicit unsafe.Pointer in source text, so don't count them.
+                bool isTrueConstructor =
+                    m.is_constructor && !m.has_self && m.return_type != "TBool";
+                if (!isTrueConstructor && ReturnNeedsUnsafe(m))
                     return true;
-                if (ReturnNeedsUnsafe(m))
-                    return true;
+                bool seenSelf = false;
                 for (auto& p: m.params)
                 {
                     if (p.macro_name == "TSelf")
-                        continue;
+                    {
+                        if (!seenSelf)
+                        {
+                            seenSelf = true;
+                            continue;  // first TSelf is receiver, not a param
+                        }
+                        return true;  // additional TSelf emitted as unsafe.Pointer
+                    }
                     auto gps = ConvertParam(p);
                     for (auto& gp: gps)
                     {
@@ -545,37 +630,177 @@ namespace kwxgen
             return false;
         }
 
-        // Build the C call expression for a function.
-        // Returns the full C.wxClassName_MethodName(args...) expression.
-        std::string BuildCCall(const FunctionDecl& f, const std::string& receiverExpr,
-                               const std::vector<std::vector<GoParam>>& paramGroups)
+        // Build call expression to a cgo_ glue function from a class file.
+        // Returns cgo_wxClassName_MethodName(passthrough_args...).
+        std::string BuildGlueCall(const FunctionDecl& f, const std::string& receiverExpr,
+                                  const std::vector<std::vector<GoParam>>& paramGroups)
         {
-            std::string cName =
-                f.class_name.empty() ? f.method_name : f.class_name + "_" + f.method_name;
-            std::string call = "C." + cName + "(";
+            std::string cName = CFuncName(f);
+            std::string call = "cgo_" + cName + "(";
             bool first = true;
 
-            // If has_self, the receiver is the first arg
             if (f.has_self)
             {
                 call += receiverExpr;
                 first = false;
             }
 
-            // Add converted parameters
             for (auto& group: paramGroups)
             {
                 for (auto& gp: group)
                 {
                     if (!first)
                         call += ", ";
-                    call += gp.cgo_expr;
+                    call += gp.glue_pass_expr.empty() ? gp.name : gp.glue_pass_expr;
                     first = false;
                 }
             }
 
             call += ")";
             return call;
+        }
+
+        // Get the Go return type for a glue function.
+        // Differs from GoReturnType: constructors and string returns use unsafe.Pointer.
+        std::string GlueReturnType(const FunctionDecl& f)
+        {
+            if (f.is_constructor && !f.has_self && f.return_type != "TBool")
+                return "unsafe.Pointer";
+
+            if (f.return_type == "void" || f.return_type.empty())
+                return "";
+
+            if (f.return_macro == "TClass" || f.return_macro == "TSelf")
+                return "unsafe.Pointer";
+
+            if (f.return_type == "TString" || f.return_type == "TStringOut")
+                return "unsafe.Pointer";
+            if (f.return_type == "TChar")
+                return "byte";
+
+            if (f.return_type == "TBool")
+                return "bool";
+            if (f.return_type == "int" || f.return_type == "long" || f.return_type == "TArrayLen" ||
+                f.return_type == "TByteStringLen" || f.return_type == "size_t" ||
+                f.return_type == "time_t")
+                return "int";
+            if (f.return_type == "unsigned" || f.return_type == "unsigned int" ||
+                f.return_type == "wxUIntPtr" || f.return_type == "unsigned long")
+                return "uint";
+            if (f.return_type == "uintptr_t")
+                return "uintptr";
+            if (f.return_type == "double")
+                return "float64";
+            if (f.return_type == "float")
+                return "float32";
+            if (f.return_type == "TUInt8")
+                return "uint8";
+            if (f.return_type == "void*")
+                return "unsafe.Pointer";
+            if (f.return_type.find('*') != std::string::npos)
+                return "unsafe.Pointer";
+            return "int";
+        }
+
+        // Wrap a C call expression with the appropriate Go return-type conversion.
+        std::string GlueReturnExpr(const std::string& retType, const std::string& cCallExpr)
+        {
+            if (retType.empty())
+                return cCallExpr;
+            if (retType == "bool")
+                return cCallExpr + " != 0";
+            if (retType == "unsafe.Pointer")
+                return "unsafe.Pointer(" + cCallExpr + ")";
+            // int, uint, float64, float32, uint8, uintptr — wrap with Go type cast
+            return retType + "(" + cCallExpr + ")";
+        }
+
+        // Emit a single cgo_ glue function for a class method/constructor/destructor.
+        void EmitGlueFunction(std::ostream& out, const FunctionDecl& f)
+        {
+            std::string cName = CFuncName(f);
+            std::string glueRet = GlueReturnType(f);
+
+            out << "func cgo_" << cName << "(";
+
+            bool firstParam = true;
+            std::vector<std::string> cCallArgs;
+            std::vector<std::string> preLines;
+            std::vector<std::string> deferLines;
+
+            // Self parameter (skipped by ConvertParam — handle explicitly)
+            if (f.has_self)
+            {
+                out << "self unsafe.Pointer";
+                cCallArgs.push_back("self");
+                firstParam = false;
+            }
+
+            bool firstTSelf = true;
+            for (const auto& p: f.params)
+            {
+                if (p.macro_name == "TSelf")
+                {
+                    if (firstTSelf)
+                    {
+                        firstTSelf = false;
+                        continue;  // first TSelf handled as 'self' above
+                    }
+                    // Additional TSelf params (e.g. wxIcon_IsEqual second arg): emit as
+                    // unsafe.Pointer
+                    if (!firstParam)
+                        out << ", ";
+                    auto n = p.param_name.empty() ? "other" : p.param_name;
+                    out << n << " unsafe.Pointer";
+                    cCallArgs.push_back(n);
+                    firstParam = false;
+                    continue;
+                }
+                for (auto& gp: ConvertParam(p))
+                {
+                    if (!firstParam)
+                        out << ", ";
+                    std::string paramType = gp.glue_go_type.empty() ? gp.go_type : gp.glue_go_type;
+                    out << gp.name << " " << paramType;
+                    cCallArgs.push_back(gp.cgo_expr);
+                    if (!gp.glue_pre.empty())
+                        preLines.push_back(gp.glue_pre);
+                    if (!gp.glue_defer.empty())
+                        deferLines.push_back(gp.glue_defer);
+                    firstParam = false;
+                }
+            }
+
+            out << ")";
+            if (!glueRet.empty())
+                out << " " << glueRet;
+            out << " {\n";
+
+            for (const auto& line: preLines)
+                out << "\t" << line << "\n";
+            for (const auto& line: deferLines)
+                out << "\t" << line << "\n";
+
+            // Build C.<funcname>(args...) call
+            std::string cCall = "C." + cName + "(";
+            for (size_t i = 0; i < cCallArgs.size(); ++i)
+            {
+                if (i > 0)
+                    cCall += ", ";
+                cCall += cCallArgs[i];
+            }
+            cCall += ")";
+
+            if (glueRet.empty())
+            {
+                out << "\t" << cCall << "\n";
+            }
+            else
+            {
+                out << "\treturn " << GlueReturnExpr(glueRet, cCall) << "\n";
+            }
+
+            out << "}\n\n";
         }
 
         // Build a disambiguated Go constructor name from the C method name.
@@ -632,9 +857,9 @@ namespace kwxgen
                 }
             }
 
-            // C call
-            std::string cCall = BuildCCall(f, "", paramGroups);
-            out << "\tptr := " << cCall << "\n";
+            // Glue call
+            std::string glueCall = BuildGlueCall(f, "", paramGroups);
+            out << "\tptr := " << glueCall << "\n";
 
             // Nil check
             out << "\tif ptr == nil {\n";
@@ -643,7 +868,7 @@ namespace kwxgen
 
             // Create and return Go object
             out << "\tobj := &" << goClassName << "{}\n";
-            out << "\tobj.SetPtr(unsafe.Pointer(ptr))\n";
+            out << "\tobj.SetPtr(ptr)\n";
             out << "\treturn obj\n";
             out << "}\n\n";
         }
@@ -655,12 +880,29 @@ namespace kwxgen
             std::string recv(kReceiverVar);
             std::string goRetType = GoReturnType(f, goClassName);
 
-            // Collect non-self Go params
+            // Collect non-self Go params; handle multiple TSelf (e.g. wxIcon_IsEqual)
             std::vector<std::vector<GoParam>> paramGroups;
+            bool seenSelf = false;  // track whether we've seen the receiver TSelf
             for (auto& p: f.params)
             {
                 if (p.macro_name == "TSelf")
+                {
+                    if (!seenSelf)
+                    {
+                        seenSelf = true;
+                        continue;  // first TSelf already handled as receiver
+                    }
+                    // Additional TSelf — emit as unsafe.Pointer parameter
+                    auto n = p.param_name.empty() ? "other" : p.param_name;
+                    GoParam gp;
+                    gp.name = n;
+                    gp.go_type = "unsafe.Pointer";
+                    gp.cgo_expr = n;
+                    gp.glue_pass_expr = n;
+                    gp.needs_unsafe = true;
+                    paramGroups.push_back({ gp });
                     continue;
+                }
                 paramGroups.push_back(ConvertParam(p));
             }
 
@@ -696,77 +938,88 @@ namespace kwxgen
                 }
             }
 
-            // Receiver expression for C call
+            // Glue call
             std::string recvExpr = recv + ".Ptr()";
-
-            // C call
-            std::string cCall = BuildCCall(f, recvExpr, paramGroups);
+            std::string glueCall = BuildGlueCall(f, recvExpr, paramGroups);
 
             // Handle return type
             if (goRetType.empty())
             {
                 // void return
-                out << "\t" << cCall << "\n";
-            }
-            else if (goRetType == "bool")
-            {
-                out << "\treturn " << cCall << " != 0\n";
+                out << "\t" << glueCall << "\n";
             }
             else if (goRetType == "string")
             {
-                // String return: call, convert, free
-                out << "\twxStr := " << cCall << "\n";
-                out << "\treturn WxStringToGoAndFree(wxStr)\n";
-            }
-            else if (goRetType == "int")
-            {
-                out << "\treturn int(" << cCall << ")\n";
-            }
-            else if (goRetType == "uint")
-            {
-                out << "\treturn uint(" << cCall << ")\n";
-            }
-            else if (goRetType == "float64")
-            {
-                out << "\treturn float64(" << cCall << ")\n";
-            }
-            else if (goRetType == "float32")
-            {
-                out << "\treturn float32(" << cCall << ")\n";
-            }
-            else if (goRetType == "uint8")
-            {
-                out << "\treturn uint8(" << cCall << ")\n";
-            }
-            else if (goRetType == "unsafe.Pointer")
-            {
-                out << "\treturn unsafe.Pointer(" << cCall << ")\n";
+                // Glue returns unsafe.Pointer (wxString*), convert to Go string.
+                // Use "retPtr" (not "wxStr") to avoid collision with input WxString locals.
+                out << "\tretPtr := " << glueCall << "\n";
+                out << "\treturn WxStringToGoAndFree(retPtr)\n";
             }
             else
             {
-                // Fallback
-                out << "\treturn " << cCall << "\n";
+                // Glue already returns the correct Go type
+                out << "\treturn " << glueCall << "\n";
             }
 
             out << "}\n\n";
         }
 
-        // Check if a function declaration looks valid for code generation
-        // (skip malformed or comment-contaminated declarations)
-
-        // Returns true if any method in the class uses TString parameters,
-        // which generate C.CString()/C.free() calls requiring stdlib.h.
-        bool ClassNeedsStdlib(const ClassInfo& cls)
+        // Emit a C free function (class_name empty, no TSelf) as a package-level Go function.
+        // kwxMessageBox → MessageBox, kwxFoo → Foo, wxFoo → Foo
+        void EmitFreeFunction(std::ostream& out, const FunctionDecl& f)
         {
-            for (const auto& f: cls.methods)
-            {
-                for (const auto& p: f.params)
+            // Strip kwx/wx prefix and capitalize for an exported Go identifier.
+            std::string name = f.method_name;
+            if (name.size() > 3 && name[0] == 'k' && name[1] == 'w' && name[2] == 'x')
+                name = Capitalize(name.substr(3));
+            else if (name.size() > 2 && name[0] == 'w' && name[1] == 'x')
+                name = Capitalize(name.substr(2));
+            else
+                name = Capitalize(name);
+
+            std::vector<std::vector<GoParam>> paramGroups;
+            for (auto& p: f.params)
+                paramGroups.push_back(ConvertParam(p));
+
+            std::string goRetType = GoReturnType(f, "");
+
+            out << "func " << SafeGoIdentifier(name) << "(";
+            bool first = true;
+            for (auto& group: paramGroups)
+                for (auto& gp: group)
                 {
-                    if (p.raw_type == "TString")
-                        return true;
+                    if (!first)
+                        out << ", ";
+                    out << gp.name << " " << gp.go_type;
+                    first = false;
                 }
+            out << ")";
+            if (!goRetType.empty())
+                out << " " << goRetType;
+            out << " {\n";
+
+            for (auto& group: paramGroups)
+                for (auto& gp: group)
+                {
+                    if (!gp.pre_call.empty())
+                        out << "\t" << gp.pre_call << "\n";
+                    if (!gp.defer_call.empty())
+                        out << "\t" << gp.defer_call << "\n";
+                }
+
+            std::string glueCall = BuildGlueCall(f, "", paramGroups);
+
+            if (goRetType.empty())
+                out << "\t" << glueCall << "\n";
+            else if (goRetType == "string")
+            {
+                out << "\tretPtr := " << glueCall << "\n";
+                out << "\treturn WxStringToGoAndFree(retPtr)\n";
             }
-            return false;
+            else
+                out << "\treturn " << glueCall << "\n";
+
+            out << "}\n\n";
         }
 
     }  // anonymous namespace
@@ -779,14 +1032,15 @@ namespace kwxgen
     {
         fs::create_directories(outDir);
 
+        GenerateGlueFile(ffi, outDir);
         GenerateHelpers(outDir);
         GenerateConstants(ffi, outDir);
         GenerateEvents(ffi, outDir);
         GenerateKeys(ffi, outDir);
-        GenerateClassFiles(ffi, outDir);
+        const size_t classFileCount = GenerateClassFiles(ffi, outDir);
 
-        std::cerr << "Go: checked " << (kFixedFileCount + ffi.classes.size()) << " files in "
-                  << outDir << "\n";
+        std::cerr << "Go: checked " << (kFixedFileCount + classFileCount) << " files in " << outDir
+                  << "\n";
     }
 
     VerifyResult GoEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* dir */)
@@ -812,21 +1066,61 @@ namespace kwxgen
         }
 
         WriteGeneratedHeader(out);
-        out << "package wx\n\n";
-
-        out << "// #include \"kwx_classes.h\"\n";
-        out << "import \"C\"\n\n";
-
-        out << "// boolToInt converts a Go bool to C.int for use in CGo calls.\n";
-        out << "func boolToInt(b bool) C.int {\n";
-        out << "\tif b {\n";
-        out << "\t\treturn 1\n";
+        out << "package wx\n";
+        out << "\n";
+        out << "import \"unsafe\"\n";
+        out << "\n";
+        out << "// BaseObject is the root type for all non-window wxWidgets objects.\n";
+        out << "// All generated non-window class structs embed this type directly or "
+               "indirectly.\n";
+        out << "type BaseObject struct {\n";
+        out << "\tptr unsafe.Pointer\n";
+        out << "}\n";
+        out << "\n";
+        out << "// Ptr returns the underlying wxWidgets object pointer.\n";
+        out << "func (o *BaseObject) Ptr() unsafe.Pointer { return o.ptr }\n";
+        out << "\n";
+        out << "// SetPtr sets the underlying wxWidgets object pointer.\n";
+        out << "func (o *BaseObject) SetPtr(p unsafe.Pointer) { o.ptr = p }\n";
+        out << "\n";
+        out << "// BaseWindow is the root type for all window-derived wxWidgets objects.\n";
+        out << "// All generated window class structs embed this type directly or indirectly.\n";
+        out << "type BaseWindow struct{ BaseObject }\n";
+        out << "\n";
+        out << "// WxString wraps a heap-allocated wxString for bridging Go strings to the C++ "
+               "API.\n";
+        out << "// Create with NewWxString and always call Free() when done (typically via "
+               "defer).\n";
+        out << "type WxString struct {\n";
+        out << "\tptr unsafe.Pointer\n";
+        out << "}\n";
+        out << "\n";
+        out << "// NewWxString creates a heap-allocated wxString from a Go string.\n";
+        out << "// The caller must call Free() when the wxString is no longer needed.\n";
+        out << "func NewWxString(s string) *WxString { return &WxString{ptr: cgo_NewWxString(s)} "
+               "}\n";
+        out << "\n";
+        out << "// Ptr returns the opaque wxString pointer for passing to generated C wrappers.\n";
+        out << "func (w *WxString) Ptr() unsafe.Pointer { return w.ptr }\n";
+        out << "\n";
+        out << "// Free releases the underlying wxString. Safe to call multiple times.\n";
+        out << "func (w *WxString) Free() {\n";
+        out << "\tif w.ptr != nil {\n";
+        out << "\t\tcgo_FreeWxString(w.ptr)\n";
+        out << "\t\tw.ptr = nil\n";
         out << "\t}\n";
-        out << "\treturn 0\n";
+        out << "}\n";
+        out << "\n";
+        out << "// WxStringToGoAndFree converts a wxString pointer returned by a C wrapper into a "
+               "Go\n";
+        out << "// string, then frees the wxString. The pointer must not be used after this "
+               "call.\n";
+        out << "func WxStringToGoAndFree(ptr unsafe.Pointer) string {\n";
+        out << "\treturn cgo_WxStringToGoAndFree(ptr)\n";
         out << "}\n";
 
         out.Flush();
-        std::cerr << "  helpers_gen.go:   utility functions";
+        std::cerr << "  helpers_gen.go:   BaseObject + BaseWindow + WxString types";
         if (!out.WasWritten())
             std::cerr << " (unchanged)";
         std::cerr << "\n";
@@ -849,30 +1143,6 @@ namespace kwxgen
         WriteGeneratedHeader(out);
         out << "package wx\n\n";
 
-        // CGo preamble — include kwx_constants.h for WXFFI_EXPORT declarations,
-        // then emit extern declarations for all constants from kwx_defs.cpp
-        // (those functions are defined in the .cpp but not declared in any header).
-        bool needsUnsafe = ConstantsNeedUnsafe(ffi.constants);
-        out << "/*\n";
-        out << "#include \"kwx_constants.h\"\n";
-        out << "\n";
-        for (const auto& c: ffi.constants)
-        {
-            if (c.return_type == "int")
-                out << "extern int " << c.export_name << "(void);\n";
-            else
-                out << "extern void* " << c.export_name << "(void);\n";
-        }
-        out << "*/\n";
-        out << "import \"C\"\n";
-
-        if (needsUnsafe)
-        {
-            out << "\nimport \"unsafe\"\n";
-        }
-
-        out << "\n";
-
         // Sort constants by name for stable output
         auto sorted = ffi.constants;
         std::sort(sorted.begin(), sorted.end(),
@@ -881,38 +1151,12 @@ namespace kwxgen
                       return a.constant_name < b.constant_name;
                   });
 
-        // Emit constants grouped by type
-        // First: int constants (the vast majority)
-        out << "// Integer constants\n";
         out << "var (\n";
         for (const auto& c: sorted)
         {
-            if (c.return_type == "int")
-            {
-                out << "\t" << c.constant_name << " = " << GoConstantExpr(c) << "\n";
-            }
+            out << "\t" << c.constant_name << " = " << GoConstantExpr(c) << "\n";
         }
         out << ")\n";
-
-        // Then: pointer constants (wxString*, const wxColour*, etc.)
-        bool hasPointerConsts = false;
-        for (const auto& c: sorted)
-        {
-            if (c.return_type != "int")
-            {
-                if (!hasPointerConsts)
-                {
-                    out << "\n// Pointer constants\n";
-                    out << "var (\n";
-                    hasPointerConsts = true;
-                }
-                out << "\t" << c.constant_name << " = " << GoConstantExpr(c) << "\n";
-            }
-        }
-        if (hasPointerConsts)
-        {
-            out << ")\n";
-        }
 
         out.Flush();
         std::cerr << "  constants_gen.go: " << ffi.constants.size() << " constants";
@@ -938,10 +1182,6 @@ namespace kwxgen
         WriteGeneratedHeader(out);
         out << "package wx\n\n";
 
-        // CGo preamble
-        out << "// #include \"kwx_events.h\"\n";
-        out << "import \"C\"\n\n";
-
         // Sort events by name for stable output
         auto sorted = ffi.events;
         std::sort(sorted.begin(), sorted.end(),
@@ -953,7 +1193,7 @@ namespace kwxgen
         out << "var (\n";
         for (const auto& e: sorted)
         {
-            out << "\t" << e.event_name << " = int(C." << e.export_name << "())\n";
+            out << "\t" << e.event_name << " = cgo_" << e.export_name << "()\n";
         }
         out << ")\n";
 
@@ -981,10 +1221,6 @@ namespace kwxgen
         WriteGeneratedHeader(out);
         out << "package wx\n\n";
 
-        // CGo preamble
-        out << "// #include \"kwx_keys.h\"\n";
-        out << "import \"C\"\n\n";
-
         // Sort keys by name for stable output
         auto sorted = ffi.keys;
         std::sort(sorted.begin(), sorted.end(),
@@ -996,7 +1232,7 @@ namespace kwxgen
         out << "var (\n";
         for (const auto& k: sorted)
         {
-            out << "\t" << k.key_name << " = int(C." << k.export_name << "())\n";
+            out << "\t" << k.key_name << " = cgo_" << k.export_name << "()\n";
         }
         out << ")\n";
 
@@ -1011,21 +1247,12 @@ namespace kwxgen
     // Class files: one file per class
     // -------------------------------------------------------------------------
 
-    void GoEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& outDir)
+    size_t GoEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& outDir)
     {
         size_t fileCount = 0;
         size_t writtenCount = 0;
         size_t methodCount = 0;
         size_t skippedMethods = 0;
-
-        // Build lookup set for O(1) parent-class checks in EmitClassFile
-        std::unordered_set<std::string> wrappedClasses;
-        wrappedClasses.reserve(ffi.classes.size());
-        for (auto& c: ffi.classes)
-            wrappedClasses.insert(c.name);
-
-        std::unordered_set<std::string> expectedClassFiles;
-        expectedClassFiles.reserve(ffi.classes.size());
 
         // Classes already hand-defined in types.go — skip generation to avoid
         // redeclaration errors.  Add entries here whenever a new class is added
@@ -1035,6 +1262,20 @@ namespace kwxgen
             "wxSize",
             "wxRect",
         };
+
+        // Only include classes that will actually be generated (have methods and
+        // aren't hand-maintained).  This prevents parent-embed resolution from
+        // referencing types that will never be emitted — e.g. wxObject has no
+        // wrapped methods, so "Object" would never be defined, yet child classes
+        // would try to embed it.  Those classes fall back to BaseObject instead.
+        std::unordered_set<std::string> wrappedClasses;
+        wrappedClasses.reserve(ffi.classes.size());
+        for (auto& c: ffi.classes)
+            if (!c.methods.empty() && !kHandMaintainedClasses.count(c.name))
+                wrappedClasses.insert(c.name);
+
+        std::unordered_set<std::string> expectedClassFiles;
+        expectedClassFiles.reserve(ffi.classes.size());
 
         for (auto& cls: ffi.classes)
         {
@@ -1078,6 +1319,8 @@ namespace kwxgen
         if (removedStale > 0)
             std::cerr << ", " << removedStale << " stale removed";
         std::cerr << "]\n";
+
+        return fileCount;
     }
 
     void GoEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi,
@@ -1086,41 +1329,25 @@ namespace kwxgen
         std::string goClassName = StripPrefix(cls.name);
         bool isWindowDerived = cls.is_window_derived;
         bool needsUnsafe = ClassNeedsUnsafe(cls);
-        bool needsStdlib = ClassNeedsStdlib(cls);
 
         // Header
         WriteGeneratedHeader(out);
         out << "package wx\n\n";
 
-        // CGo preamble
-        out << "// #include \"kwx_classes.h\"\n";
-        if (needsStdlib)
-            out << "// #include <stdlib.h>\n";
-        out << "import \"C\"\n";
-
+        // Pure Go — no CGo preamble (all C calls go through cgo_glue_gen.go)
         if (needsUnsafe)
         {
-            out << "import \"unsafe\"\n";
+            out << "import \"unsafe\"\n\n";
         }
 
-        out << "\n";
-
-        // Type definition — embed parent type from class hierarchy
-        if (isWindowDerived)
+        // Type definition — embed actual parent type from class hierarchy.
+        // Both window-derived and non-window classes use the same logic: prefer the
+        // wrapped parent class so Go embedding gives full method inheritance; fall back
+        // to BaseWindow (window hierarchy) or BaseObject (non-window hierarchy).
         {
-            out << "type " << goClassName << " struct{ BaseWindow }\n\n";
-        }
-        else
-        {
-            // Determine the Go embedded type from the parent class.
-            // If parent is known and wrapped, embed it; otherwise fall back to BaseObject.
-            std::string embedType = "BaseObject";
-            if (!cls.parent.empty())
-            {
-                std::string goParent = StripPrefix(cls.parent);
-                if (wrappedClasses.count(cls.parent))
-                    embedType = goParent;
-            }
+            std::string embedType = isWindowDerived ? "BaseWindow" : "BaseObject";
+            if (!cls.parent.empty() && wrappedClasses.count(cls.parent))
+                embedType = StripPrefix(cls.parent);
             out << "type " << goClassName << " struct{ " << embedType << " }\n\n";
         }
 
@@ -1130,10 +1357,16 @@ namespace kwxgen
             if (!IsValidFunction(f))
                 continue;
 
-            // True constructors: is_constructor && no self param
-            // Methods like CreateStatusBar have is_constructor but also has_self,
-            // so they're regular methods.
-            bool isTrueConstructor = f.is_constructor && !f.has_self;
+            // Free functions (class_name empty, no TSelf) — emit as package-level Go functions.
+            // These are bare C functions (e.g. kwxMessageBox) that appear inside a class block
+            // in the header but have no class prefix; route them out as free functions.
+            if (f.class_name.empty() && !f.has_self)
+            {
+                EmitFreeFunction(out, f);
+                continue;
+            }
+
+            bool isTrueConstructor = f.is_constructor && !f.has_self && f.return_type != "TBool";
 
             if (isTrueConstructor)
             {
@@ -1141,11 +1374,24 @@ namespace kwxgen
             }
             else if (f.is_destructor)
             {
-                // Delete method
-                std::string recv(kReceiverVar);
-                out << "func (" << recv << " *" << goClassName << ") Delete() {\n";
-                out << "\tC." << f.class_name << "_Delete(" << recv << ".Ptr())\n";
-                out << "}\n\n";
+                // Only treat as a true class destructor if there are no non-self parameters.
+                // e.g. wxChoice_Delete(self, int index) is a list-item method, not a destructor.
+                bool hasNonSelfParams = false;
+                for (auto& p: f.params)
+                    if (p.macro_name != "TSelf")
+                        hasNonSelfParams = true;
+
+                if (hasNonSelfParams)
+                {
+                    EmitMethod(out, cls, f, goClassName);
+                }
+                else
+                {
+                    std::string recv(kReceiverVar);
+                    out << "func (" << recv << " *" << goClassName << ") Delete() {\n";
+                    out << "\tcgo_" << f.class_name << "_Delete(" << recv << ".Ptr())\n";
+                    out << "}\n\n";
+                }
             }
             else
             {
@@ -1154,4 +1400,156 @@ namespace kwxgen
         }
     }
 
+    // -------------------------------------------------------------------------
+    // cgo_glue_gen.go — single CGo file consolidating all C function calls
+    // -------------------------------------------------------------------------
+
+    void GoEmitter::GenerateGlueFile(const ParsedFFI& ffi, const fs::path& outDir)
+    {
+        auto path = outDir / "cgo_glue_gen.go";
+        ConditionalFileWriter out(path);
+        if (!out.is_open())
+        {
+            std::cerr << "Error: cannot create " << path << "\n";
+            return;
+        }
+
+        WriteGeneratedHeader(out);
+        out << "package wx\n\n";
+
+        // CGo preamble — all includes and extern declarations
+        out << "/*\n";
+        out << "#include \"kwx_classes.h\"\n";
+        out << "#include \"kwx_events.h\"\n";
+        out << "#include \"kwx_keys.h\"\n";
+        out << "#include \"kwx_constants.h\"\n";
+        out << "#include <stdlib.h>\n";
+
+        // Extern declarations for defs constants (defined in kwx_defs.cpp, no header)
+        if (!ffi.constants.empty())
+        {
+            out << "\n// extern declarations for defs constants (from kwx_defs.cpp)\n";
+            for (const auto& c: ffi.constants)
+            {
+                if (c.return_type == "int")
+                    out << "extern int " << c.export_name << "(void);\n";
+                else
+                    out << "extern void* " << c.export_name << "(void);\n";
+            }
+        }
+
+        out << "*/\n";
+        out << "import \"C\"\n\n";
+        out << "import \"unsafe\"\n\n";
+
+        // boolToInt helper — used by glue functions for TBool parameters
+        out << "// boolToInt converts a Go bool to C.int for use in CGo calls.\n";
+        out << "func boolToInt(b bool) C.int {\n";
+        out << "\tif b {\n";
+        out << "\t\treturn 1\n";
+        out << "\t}\n";
+        out << "\treturn 0\n";
+        out << "}\n\n";
+
+        // wxString utility glue — bridging Go strings to wxWidgets C++ strings.
+        // Called from helpers_gen.go (pure Go) to keep class files CGo-free.
+        out << "// cgo_NewWxString creates a heap-allocated wxString from a Go string.\n";
+        out << "func cgo_NewWxString(s string) unsafe.Pointer {\n";
+        out << "\tcs := C.CString(s)\n";
+        out << "\tdefer C.free(unsafe.Pointer(cs))\n";
+        out << "\treturn C.wxString_CreateUTF8(cs)\n";
+        out << "}\n\n";
+        out << "// cgo_FreeWxString deletes a wxString allocated by the C++ side.\n";
+        out << "func cgo_FreeWxString(ptr unsafe.Pointer) { C.wxString_Delete(ptr) }\n\n";
+        out << "// cgo_WxStringToGoAndFree extracts a Go string from a wxString pointer\n";
+        out << "// via a transient UTF-8 buffer, then frees both objects.\n";
+        out << "func cgo_WxStringToGoAndFree(ptr unsafe.Pointer) string {\n";
+        out << "\tbuf := C.kwxUtf8Buffer_Create(ptr)\n";
+        out << "\ts := C.GoString(C.kwxUtf8Buffer_Data(buf))\n";
+        out << "\tC.kwxUtf8Buffer_Delete(buf)\n";
+        out << "\tC.wxString_Delete(ptr)\n";
+        out << "\treturn s\n";
+        out << "}\n\n";
+
+        size_t glueCount = 0;
+
+        // --- Class method glue functions ---
+        out << "// " << std::string(70, '-') << "\n";
+        out << "// Class method glue functions\n";
+        out << "// " << std::string(70, '-') << "\n\n";
+
+        for (const auto& cls: ffi.classes)
+        {
+            for (const auto& f: cls.methods)
+            {
+                if (!IsValidFunction(f))
+                    continue;
+                EmitGlueFunction(out, f);
+                ++glueCount;
+            }
+        }
+
+        // --- Event glue functions ---
+        if (!ffi.events.empty())
+        {
+            out << "// " << std::string(70, '-') << "\n";
+            out << "// Event glue functions\n";
+            out << "// " << std::string(70, '-') << "\n\n";
+
+            for (const auto& e: ffi.events)
+            {
+                out << "func cgo_" << e.export_name << "() int { return int(C." << e.export_name
+                    << "()) }\n";
+                ++glueCount;
+            }
+            out << "\n";
+        }
+
+        // --- Key glue functions ---
+        if (!ffi.keys.empty())
+        {
+            out << "// " << std::string(70, '-') << "\n";
+            out << "// Key glue functions\n";
+            out << "// " << std::string(70, '-') << "\n\n";
+
+            for (const auto& k: ffi.keys)
+            {
+                out << "func cgo_" << k.export_name << "() int { return int(C." << k.export_name
+                    << "()) }\n";
+                ++glueCount;
+            }
+            out << "\n";
+        }
+
+        // --- Constant glue functions ---
+        if (!ffi.constants.empty())
+        {
+            out << "// " << std::string(70, '-') << "\n";
+            out << "// Constant glue functions\n";
+            out << "// " << std::string(70, '-') << "\n\n";
+
+            for (const auto& c: ffi.constants)
+            {
+                if (c.return_type == "int")
+                {
+                    out << "func cgo_" << c.export_name << "() int { return int(C." << c.export_name
+                        << "()) }\n";
+                }
+                else
+                {
+                    out << "func cgo_" << c.export_name
+                        << "() unsafe.Pointer { return unsafe.Pointer(C." << c.export_name
+                        << "()) }\n";
+                }
+                ++glueCount;
+            }
+            out << "\n";
+        }
+
+        out.Flush();
+        std::cerr << "  cgo_glue_gen.go:  " << glueCount << " glue functions";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
+    }
 }  // namespace kwxgen

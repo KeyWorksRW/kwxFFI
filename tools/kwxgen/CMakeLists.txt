@@ -15,12 +15,6 @@ add_executable(kwxgen
     parser_utils.cpp
     json_dump.cpp
     verify.cpp
-    events_parser.cpp
-    keys_parser.cpp
-    defs_parser.cpp
-    constants_parser.cpp
-    json_dump.cpp
-    verify.cpp
     lang/lang_fortran.cpp
     lang/lang_go.cpp
     lang/lang_julia.cpp

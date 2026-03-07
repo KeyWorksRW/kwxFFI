@@ -25,7 +25,7 @@ namespace kwxgen
         //   WXFFI_EXPORT(int, exp_wxEVT_NAME)();     (normal — WXFFI form)
         //   WXFFI_EXPORT(int, exp_EVT_NAME)();       (non-wx events: ribbon etc.)
         // Group 1 = full export_name ("exp_wxEVT_BUTTON" or "exp_EVT_RIBBONBAR_*")
-        // Group 2 = EVT_ suffix      ("EVT_BUTTON")  => event_name = "wx" + group2
+        // Group 2 = EVT_ suffix      ("EVT_BUTTON")  => event_name = group2 (no "wx" prefix)
         std::regex re(
             R"(^\s*(?:int|WXFFI_EXPORT\s*\(\s*int\s*,)\s*(exp_(?:wx)?(EVT_\w+))\s*\)?\s*\(\s*\)\s*;)");
         std::string line;
@@ -35,8 +35,8 @@ namespace kwxgen
             if (std::regex_search(line, m, re))
             {
                 EventDecl decl;
-                decl.export_name = m[1].str();        // "exp_wxEVT_BUTTON" / "exp_EVT_RIBBONBAR_*"
-                decl.event_name = "wx" + m[2].str();  // "wxEVT_BUTTON" / "wxEVT_RIBBONBAR_*"
+                decl.export_name = m[1].str();  // "exp_wxEVT_BUTTON" / "exp_EVT_RIBBONBAR_*"
+                decl.event_name = m[2].str();   // "EVT_BUTTON" / "EVT_RIBBONBAR_*"
                 results.push_back(std::move(decl));
             }
         }

@@ -15,11 +15,12 @@ namespace kwxgen
         std::string_view Name() const override { return "go"; }
 
     private:
+        void GenerateGlueFile(const ParsedFFI& ffi, const std::filesystem::path& outDir);
         void GenerateHelpers(const std::filesystem::path& outDir);
         void GenerateConstants(const ParsedFFI& ffi, const std::filesystem::path& outDir);
         void GenerateEvents(const ParsedFFI& ffi, const std::filesystem::path& outDir);
         void GenerateKeys(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateClassFiles(const ParsedFFI& ffi, const std::filesystem::path& outDir);
+        size_t GenerateClassFiles(const ParsedFFI& ffi, const std::filesystem::path& outDir);
 
         // Emit a single class file: classname_gen.go
         void EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi,
