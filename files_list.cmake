@@ -65,6 +65,7 @@ set( FFI_SRC_FILES
     src/wx_dc.cpp
     src/wx_dcsvg.cpp
     src/wx_dialog.cpp
+
     src/wx_dirdlg.cpp
     src/wx_dirpickerctrl.cpp
     src/wx_display.cpp
@@ -83,6 +84,7 @@ set( FFI_SRC_FILES
     src/wx_fontpickerctrl.cpp
     src/wx_frame.cpp
     src/wx_gauge.cpp
+
     src/wx_genericdirctrl.cpp
     src/wx_grid.cpp
     src/wx_gridbagsizer.cpp
@@ -95,6 +97,7 @@ set( FFI_SRC_FILES
     src/wx_infobar.cpp
     src/wx_ipc.cpp
     src/wx_itemcontainer.cpp
+    src/wx_joystick.cpp
     src/wx_layoutconstraints.cpp
     src/wx_listbook.cpp
     src/wx_listbox.cpp
@@ -115,6 +118,7 @@ set( FFI_SRC_FILES
     src/wx_panel.cpp
     src/wx_pen.cpp
     src/wx_popup.cpp
+
     src/wx_printdlg.cpp
     src/wx_printing.cpp
     src/wx_process.cpp
@@ -159,6 +163,7 @@ set( FFI_SRC_FILES
     src/wx_timepickerctrl.cpp
     src/wx_timer.cpp
     src/wx_tipwnd.cpp
+    src/wx_thread.cpp
     src/wx_toolbar.cpp
     src/wx_toolbook.cpp
     src/wx_tooltip.cpp
