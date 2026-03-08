@@ -38,9 +38,12 @@ namespace kwxgen
     }
 
     // Build the C exported function name: "wxButton_Create", or just method_name for free
-    // functions (class_name is empty).
+    // functions (class_name is empty).  Prefer the verbatim c_func_name captured by the parser
+    // when available (handles shortened prefixes like BitmapDataObject_Create).
     inline std::string CFuncName(const FunctionDecl& f)
     {
+        if (!f.c_func_name.empty())
+            return f.c_func_name;
         if (f.class_name.empty())
             return f.method_name;
         return f.class_name + "_" + f.method_name;

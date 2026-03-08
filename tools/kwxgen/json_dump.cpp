@@ -58,6 +58,7 @@ namespace kwxgen
             out << indent << "{\n";
             out << indent << "  \"class_name\": \"" << JsonEscape(f.class_name) << "\",\n";
             out << indent << "  \"method_name\": \"" << JsonEscape(f.method_name) << "\",\n";
+            out << indent << "  \"c_func_name\": \"" << JsonEscape(f.c_func_name) << "\",\n";
             out << indent << "  \"return_type\": \"" << JsonEscape(f.return_type) << "\",\n";
             out << indent << "  \"return_macro\": \"" << JsonEscape(f.return_macro) << "\",\n";
             out << indent << "  \"return_arg\": \"" << JsonEscape(f.return_arg) << "\",\n";

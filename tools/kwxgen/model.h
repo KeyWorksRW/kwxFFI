@@ -17,8 +17,11 @@ namespace kwxgen
 
     struct FunctionDecl
     {
-        std::string class_name;    // "wxButton" (empty for free functions)
-        std::string method_name;   // "Create", "SetDefault", "GetLabel"
+        std::string class_name;   // "wxButton" (empty for free functions)
+        std::string method_name;  // "Create", "SetDefault", "GetLabel"
+        std::string
+            c_func_name;  // Original C symbol: "BitmapDataObject_Create" (may differ from
+                          // class_name + "_" + method_name when header uses shortened prefix)
         std::string return_type;   // "void", "int", "TClass(wxButton)", "TBool"
         std::string return_macro;  // "TClass" if return is macro-wrapped
         std::string return_arg;    // "wxButton" if return is TClass(wxButton)

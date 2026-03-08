@@ -38,12 +38,12 @@
 #endif  // defined(_WIN32)
 
 #define WXFFI_CONSTANT_INT(NAME, VAL) \
-    WXFFI_EXPORT(int, exp##NAME)()    \
+    WXFFI_EXPORT(int, NAME)()         \
     {                                 \
         return (int) VAL;             \
     };
-#define WXFFI_CONSTANT_STR(NAME, VAL)    \
-    WXFFI_EXPORT(wxString*, exp##NAME)() \
-    {                                    \
-        return new wxString(VAL);        \
+#define WXFFI_CONSTANT_STR(NAME, VAL) \
+    WXFFI_EXPORT(wxString*, NAME)()   \
+    {                                 \
+        return new wxString(VAL);     \
     };

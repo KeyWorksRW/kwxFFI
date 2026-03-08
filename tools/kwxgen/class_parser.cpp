@@ -161,6 +161,9 @@ namespace kwxgen
             if (func_name.empty())
                 return false;
 
+            // Preserve the original C symbol name verbatim before we remap the class prefix.
+            out.c_func_name = func_name;
+
             // Check for pointer in func_name: e.g., "void*" as return followed by func name
             // Handle "void* wxConnection_Request" where last_space split gives func "wxConn..."
             // and return "void*" — this should already work with the space split above.

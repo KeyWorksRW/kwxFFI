@@ -25,7 +25,8 @@ namespace kwxgen
     namespace
     {
 
-        constexpr size_t kFixedFileCount = 5;  // cgo_glue, helpers, constants, events, keys
+        constexpr size_t kFixedFileCount =
+            6;  // cgo_glue, helpers, constants, events, keys, functions
 
         // Determine the Go type expression for a constant's return type.
         // Returns the Go wrapper around the C call, e.g., "int(C.expwxFOO())"
@@ -70,10 +71,17 @@ namespace kwxgen
             return name;
         }
 
-        // Lowercase a string: "TextCtrl" → "textctrl"
+        // Lowercase a string: "TextCtrl" -> "textctrl"
+        std::string ToLower(const std::string& s)
+        {
+            std::string result = s;
+            for (auto& c: result)
+                c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            return result;
+        }
 
-        // Go filename: "wxButton" → "button_gen.go"
-        // Only strip the "wx" prefix — kwx/ELJ classes keep their prefix to
+        // Go filename: "wxButton" -> "button_gen.go"
+        // Only strip the "wx" prefix -- kwx/ELJ classes keep their prefix to
         // avoid collisions (e.g. kwxDropTarget vs wxDropTarget).
         std::string GoFileName(const std::string& className)
         {
@@ -88,7 +96,7 @@ namespace kwxgen
         {
             return filename == "cgo_glue_gen.go" || filename == "helpers_gen.go" ||
                    filename == "constants_gen.go" || filename == "events_gen.go" ||
-                   filename == "keys_gen.go";
+                   filename == "keys_gen.go" || filename == "functions_gen.go";
         }
 
         bool EndsWith(const std::string& value, const std::string& suffix)
@@ -136,7 +144,6 @@ namespace kwxgen
 
         // Receiver variable: uniform "o" to avoid name collisions with parameter names.
         constexpr const char* kReceiverVar = "o";
-
         // Go reserved keywords that cannot be used as parameter names.
         // Returns a safe replacement, or the original name if not a keyword.
         std::string RenameGoKeyword(const std::string& name)
@@ -240,8 +247,8 @@ namespace kwxgen
             if (p.macro_name == "TPointOut" || p.macro_name == "TSizeOut" ||
                 p.macro_name == "TRectOut" || p.macro_name == "TVectorOut")
             {
-                // Output int* geometry params — glue receives unsafe.Pointer, casts to (*C.int) for
-                // C call
+                // Output int* geometry params — glue receives unsafe.Pointer, casts to (*C.int)
+                // for C call
                 for (auto& raw: SplitMacroArg(p.macro_arg))
                 {
                     auto n = RenameGoKeyword(raw);
@@ -625,6 +632,23 @@ namespace kwxgen
                         if (gp.needs_unsafe)
                             return true;
                     }
+                }
+            }
+            return false;
+        }
+
+        // Check if a single free function needs the "unsafe" import
+        bool FunctionNeedsUnsafe(const FunctionDecl& f)
+        {
+            if (ReturnNeedsUnsafe(f))
+                return true;
+            for (auto& p: f.params)
+            {
+                auto gps = ConvertParam(p);
+                for (auto& gp: gps)
+                {
+                    if (gp.needs_unsafe)
+                        return true;
                 }
             }
             return false;
@@ -1037,6 +1061,7 @@ namespace kwxgen
         GenerateConstants(ffi, outDir);
         GenerateEvents(ffi, outDir);
         GenerateKeys(ffi, outDir);
+        GenerateFreeFunctions(ffi, outDir);
         const size_t classFileCount = GenerateClassFiles(ffi, outDir);
 
         std::cerr << "Go: checked " << (kFixedFileCount + classFileCount) << " files in " << outDir
@@ -1084,7 +1109,8 @@ namespace kwxgen
         out << "func (o *BaseObject) SetPtr(p unsafe.Pointer) { o.ptr = p }\n";
         out << "\n";
         out << "// BaseWindow is the root type for all window-derived wxWidgets objects.\n";
-        out << "// All generated window class structs embed this type directly or indirectly.\n";
+        out << "// All generated window class structs embed this type directly or "
+               "indirectly.\n";
         out << "type BaseWindow struct{ BaseObject }\n";
         out << "\n";
         out << "// WxString wraps a heap-allocated wxString for bridging Go strings to the C++ "
@@ -1097,10 +1123,12 @@ namespace kwxgen
         out << "\n";
         out << "// NewWxString creates a heap-allocated wxString from a Go string.\n";
         out << "// The caller must call Free() when the wxString is no longer needed.\n";
-        out << "func NewWxString(s string) *WxString { return &WxString{ptr: cgo_NewWxString(s)} "
+        out << "func NewWxString(s string) *WxString { return &WxString{ptr: "
+               "cgo_NewWxString(s)} "
                "}\n";
         out << "\n";
-        out << "// Ptr returns the opaque wxString pointer for passing to generated C wrappers.\n";
+        out << "// Ptr returns the opaque wxString pointer for passing to generated C "
+               "wrappers.\n";
         out << "func (w *WxString) Ptr() unsafe.Pointer { return w.ptr }\n";
         out << "\n";
         out << "// Free releases the underlying wxString. Safe to call multiple times.\n";
@@ -1111,7 +1139,8 @@ namespace kwxgen
         out << "\t}\n";
         out << "}\n";
         out << "\n";
-        out << "// WxStringToGoAndFree converts a wxString pointer returned by a C wrapper into a "
+        out << "// WxStringToGoAndFree converts a wxString pointer returned by a C wrapper "
+               "into a "
                "Go\n";
         out << "// string, then frees the wxString. The pointer must not be used after this "
                "call.\n";
@@ -1121,6 +1150,55 @@ namespace kwxgen
 
         out.Flush();
         std::cerr << "  helpers_gen.go:   BaseObject + BaseWindow + WxString types";
+        if (!out.WasWritten())
+            std::cerr << " (unchanged)";
+        std::cerr << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // functions_gen.go — package-level free functions (e.g. kwxMessageBox → MessageBox)
+    // -------------------------------------------------------------------------
+
+    void GoEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& outDir)
+    {
+        if (ffi.free_functions.empty())
+            return;
+
+        auto path = outDir / "functions_gen.go";
+        ConditionalFileWriter out(path);
+        if (!out.is_open())
+        {
+            std::cerr << "Error: cannot create " << path << "\n";
+            return;
+        }
+
+        WriteGeneratedHeader(out);
+        out << "package wx\n\n";
+
+        // Check if any free function needs the "unsafe" import
+        bool needsUnsafe = false;
+        for (auto& f: ffi.free_functions)
+        {
+            if (IsValidFunction(f) && FunctionNeedsUnsafe(f))
+            {
+                needsUnsafe = true;
+                break;
+            }
+        }
+        if (needsUnsafe)
+            out << "import \"unsafe\"\n\n";
+
+        size_t count = 0;
+        for (auto& f: ffi.free_functions)
+        {
+            if (!IsValidFunction(f))
+                continue;
+            EmitFreeFunction(out, f);
+            ++count;
+        }
+
+        out.Flush();
+        std::cerr << "  functions_gen.go: " << count << " free functions";
         if (!out.WasWritten())
             std::cerr << " (unchanged)";
         std::cerr << "\n";
@@ -1375,7 +1453,8 @@ namespace kwxgen
             else if (f.is_destructor)
             {
                 // Only treat as a true class destructor if there are no non-self parameters.
-                // e.g. wxChoice_Delete(self, int index) is a list-item method, not a destructor.
+                // e.g. wxChoice_Delete(self, int index) is a list-item method, not a
+                // destructor.
                 bool hasNonSelfParams = false;
                 for (auto& p: f.params)
                     if (p.macro_name != "TSelf")
@@ -1389,7 +1468,7 @@ namespace kwxgen
                 {
                     std::string recv(kReceiverVar);
                     out << "func (" << recv << " *" << goClassName << ") Delete() {\n";
-                    out << "\tcgo_" << f.class_name << "_Delete(" << recv << ".Ptr())\n";
+                    out << "\tcgo_" << CFuncName(f) << "(" << recv << ".Ptr())\n";
                     out << "}\n\n";
                 }
             }
@@ -1489,6 +1568,21 @@ namespace kwxgen
             }
         }
 
+        // --- Free function glue ---
+        if (!ffi.free_functions.empty())
+        {
+            out << "// " << std::string(70, '-') << "\n";
+            out << "// Free function glue\n";
+            out << "// " << std::string(70, '-') << "\n\n";
+
+            for (const auto& f: ffi.free_functions)
+            {
+                if (!IsValidFunction(f))
+                    continue;
+                EmitGlueFunction(out, f);
+                ++glueCount;
+            }
+        }
         // --- Event glue functions ---
         if (!ffi.events.empty())
         {
