@@ -1,6 +1,6 @@
 ---
 description: 'kwxFFI — C wrapper layer for wxWidgets
-
+agents: ['code-sweep', 'research']
 tools: [vscode/askQuestions, agent, web, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file]
 ---
 
@@ -47,12 +47,7 @@ Get-ChildItem ../kwx*-dev -Recurse -Include *.f90,*.go,*.rs,*.lua,*.jl,*.pm | Se
 ```
 
 ## ⚠️ CRITICAL: Git Commits and Pushes
-**NEVER commit or push changes unless explicitly instructed to do so.**
-
-- Make fixes and show them for review
-- Wait for explicit approval: "commit this", "push the fix", "commit and push"
-- Even if you identify and fix an error, present the solution first
-- The default workflow is: fix → show → wait for approval → commit/push only if told
+**NEVER commit or push changes.**
 
 **NEVER close an issue.**
 It is fine to add a comment to an issue indicating the problem has been resolved, but the user needs to review and commit the changes and then create a pull request before the issue can be closed.
