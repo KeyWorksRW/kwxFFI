@@ -935,9 +935,7 @@ static const char* useDefs[] = {
 #if wxUSE_SOCKETS
     "SOCKETS",
 #endif
-#if wxUSE_DIALUP_MANAGER
-    "DIALUP_MANAGER",
-#endif
+
 #if wxUSE_STD_IOSTREAM
     "STD_IOSTREAM",
 #endif

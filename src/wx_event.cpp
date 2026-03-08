@@ -3,7 +3,6 @@
 
 #include "kwx_wrapper.h"
 
-#include <wx/dialup.h>
 #include <wx/fswatcher.h>
 #include <wx/html/htmlwin.h>
 #include <wx/process.h>
@@ -1113,12 +1112,6 @@ extern "C"
 
     // from dialog.h
     MAKE_EVENT_WRAPPER(EVT_WINDOW_MODAL_DIALOG_CLOSED)
-
-// from dialup.h - does anyone even care about this stuff these days?
-#if wxUSE_DIALUP_MANAGER
-    MAKE_EVENT_WRAPPER(EVT_DIALUP_CONNECTED)
-    MAKE_EVENT_WRAPPER(EVT_DIALUP_DISCONNECTED)
-#endif
 
     // from event.h
     MAKE_EVENT_WRAPPER(EVT_LEFT_DOWN)

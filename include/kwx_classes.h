@@ -939,10 +939,8 @@ TBool wxBitmap_IsOk(TSelf(wxBitmap) pObject);
 TBool wxBitmap_RemoveHandler(TClass(wxString) name);
 int wxBitmap_SaveFile(TSelf(wxBitmap) pObject, TClass(wxString) name, int type,
                       TClass(wxPalette) cmap);
-void wxBitmap_SetDepth(TSelf(wxBitmap) pObject, int depth);
-void wxBitmap_SetHeight(TSelf(wxBitmap) pObject, int height);
+
 void wxBitmap_SetMask(TSelf(wxBitmap) pObject, TClass(wxMask) mask);
-void wxBitmap_SetWidth(TSelf(wxBitmap) pObject, int width);
 
 TClassDefExtend(wxBitmapButton, wxButton) TClass(wxBitmapButton)
     wxBitmapButton_Create(TClass(wxWindow) parent, int id, TClass(wxBitmap) bitmap,
@@ -1688,32 +1686,11 @@ TClassDef(wxDb)
 
                                     TClassDef(wxDebugContext)
 
-                                        TClassDefExtend(wxDialUpEvent, wxEvent) TBool
-    wxDialUpEvent_IsConnectedEvent(TSelf(wxDialUpEvent) pObject);
-TBool wxDialUpEvent_IsOwnEvent(TSelf(wxDialUpEvent) pObject);
-
-TClassDef(wxDialUpManager) TBool wxDialUpManager_CancelDialing(TSelf(wxDialUpManager) pObject);
-TClass(wxDialUpManager) wxDialUpManager_Create();
-void wxDialUpManager_Delete(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_Dial(TSelf(wxDialUpManager) pObject, TClass(wxString) nameOfISP,
-                           TClass(wxString) username, TClass(wxString) password, TBool async);
-void wxDialUpManager_DisableAutoCheckOnlineStatus(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_EnableAutoCheckOnlineStatus(TSelf(wxDialUpManager) pObject, int nSeconds);
-int wxDialUpManager_GetISPNames(TSelf(wxDialUpManager) pObject, TClass(wxList) list);
-TBool wxDialUpManager_HangUp(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsAlwaysOnline(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsDialing(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsOk(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsOnline(TSelf(wxDialUpManager) pObject);
-void wxDialUpManager_SetConnectCommand(TSelf(wxDialUpManager) pObject, TClass(wxString) commandDial,
-                                       TClass(wxString) commandHangup);
-void wxDialUpManager_SetOnlineStatus(TSelf(wxDialUpManager) pObject, TBool isOnline);
-void wxDialUpManager_SetWellKnownHost(TSelf(wxDialUpManager) pObject, TClass(wxString) hostname,
-                                      int portno);
-
-TClassDefExtend(wxDialog, wxTopLevelWindow) TClass(wxDialog)
-    wxDialog_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
-                    TRect(left, top, width, height), int style);
+                                        TClassDefExtend(wxDialog, wxTopLevelWindow) TClass(wxDialog)
+                                            wxDialog_Create(TClass(wxWindow) parent, int id,
+                                                            TClass(wxString) text,
+                                                            TRect(left, top, width, height),
+                                                            int style);
 void wxDialog_EndModal(TSelf(wxDialog) pObject, int retCode);
 int wxDialog_GetReturnCode(TSelf(wxDialog) pObject);
 TBool wxDialog_IsModal(TSelf(wxDialog) pObject);
