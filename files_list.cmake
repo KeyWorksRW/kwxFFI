@@ -49,6 +49,7 @@ set( FFI_SRC_FILES
     src/wx_collapsiblepane.cpp
     src/wx_colour.cpp
     src/wx_colourdlg.cpp
+    src/wx_command.cpp
     src/wx_combobox.cpp
     src/wx_comboctrl.cpp
     src/wx_commandlinkbutton.cpp
@@ -92,6 +93,7 @@ set( FFI_SRC_FILES
     src/wx_image.cpp
     src/wx_imagelist.cpp
     src/wx_infobar.cpp
+    src/wx_ipc.cpp
     src/wx_itemcontainer.cpp
     src/wx_layoutconstraints.cpp
     src/wx_listbook.cpp
