@@ -165,18 +165,47 @@ namespace kwxgen
             // Handle "void* wxConnection_Request" where last_space split gives func "wxConn..."
             // and return "void*" — this should already work with the space split above.
 
-            // Split function name into class prefix and method name
+            // Split function name into class prefix and method name.
+            // Only treat 'ClassName_Method' as a class method when:
+            //   (a) the prefix starts with 'wx' or 'kwx' (standard naming), OR
+            //   (b) the prefix has no wx/kwx but "wx"+prefix matches the current class
+            //       (shortened naming: BitmapDataObject_Delete -> wxBitmapDataObject).
+            // Everything else (expXXX_YYY, expBK_*, etc.) becomes a free function.
             auto underscore = func_name.find('_');
             if (underscore != std::string::npos)
             {
-                out.class_name = func_name.substr(0, underscore);
-                out.method_name = func_name.substr(underscore + 1);
+                std::string candidate_class = func_name.substr(0, underscore);
+                bool has_wx_prefix = candidate_class.size() >= 2 && candidate_class[0] == 'w' &&
+                                     candidate_class[1] == 'x';
+                bool has_kwx_prefix = candidate_class.size() >= 3 && candidate_class[0] == 'k' &&
+                                      candidate_class[1] == 'w' && candidate_class[2] == 'x';
+
+                if (has_wx_prefix || has_kwx_prefix)
+                {
+                    // Standard wx/kwx prefix -- direct class assignment.
+                    out.class_name = candidate_class;
+                    out.method_name = func_name.substr(underscore + 1);
+                }
+                else if (!current_class.empty() && (current_class == "wx" + candidate_class ||
+                                                    current_class == "kwx" + candidate_class ||
+                                                    current_class == candidate_class))
+                {
+                    // Shortened prefix convention (e.g., BitmapDataObject_Delete inside the
+                    // wxBitmapDataObject class block).  Map to the canonical class name.
+                    out.class_name = current_class;
+                    out.method_name = func_name.substr(underscore + 1);
+                }
+                else
+                {
+                    // Non-wx/kwx prefix not matching the current class context.
+                    // Treat as a free function (expPROPSHEET_DEFAULT, expBK_*, etc.).
+                    out.class_name = {};
+                    out.method_name = func_name;
+                }
             }
             else
             {
-                // No underscore — bare function name (e.g., PopProvider, kwxMessageBox).
-                // These are free functions (or static methods exported without a class prefix),
-                // so leave class_name empty so CFuncName() returns just the function name.
+                // No underscore -- free function (kwxMessageBox, PushProvider, etc.)
                 out.class_name = {};
                 out.method_name = func_name;
             }
@@ -513,16 +542,24 @@ namespace kwxgen
                         if (ParseFunctionDecl(func_str, result.classes[current_class_idx].name,
                                               decl))
                         {
-                            // Route to the class that matches the function's own prefix.
-                            size_t target_idx = current_class_idx;
-                            if (!decl.class_name.empty() &&
-                                decl.class_name != result.classes[current_class_idx].name)
+                            if (decl.class_name.empty())
                             {
-                                target_idx = GetOrCreateClassIdx(decl.class_name);
-                                current_class_idx = target_idx;
+                                // Free function (e.g., expPROPSHEET_DEFAULT) embedded in a class
+                                // section — not a class method; collect separately.
+                                result.free_functions.push_back(std::move(decl));
                             }
-                            result.classes[target_idx].methods.push_back(std::move(decl));
-                            ++total_methods;
+                            else
+                            {
+                                // Route to the class that matches the function's own prefix.
+                                size_t target_idx = current_class_idx;
+                                if (decl.class_name != result.classes[current_class_idx].name)
+                                {
+                                    target_idx = GetOrCreateClassIdx(decl.class_name);
+                                    current_class_idx = target_idx;
+                                }
+                                result.classes[target_idx].methods.push_back(std::move(decl));
+                                ++total_methods;
+                            }
                         }
                         else
                         {
@@ -548,6 +585,7 @@ namespace kwxgen
 
         std::cerr << "  Classes:        " << result.classes.size() << "\n";
         std::cerr << "  Total methods:  " << total_methods << "\n";
+        std::cerr << "  Class-section free funcs: " << result.free_functions.size() << "\n";
 
         return result;
     }

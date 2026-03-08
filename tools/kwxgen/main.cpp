@@ -181,6 +181,9 @@ static kwxgen::ParsedFFI RunParsers(const fs::path& headersDir, const fs::path& 
         auto cResult = kwxgen::ParseClasses(classesFile);
         ffi.classes = std::move(cResult.classes);
         ffi.parent_map = std::move(cResult.parent_map);
+        // Merge any free functions (e.g., expPROPSHEET_*) found embedded in kwx_classes.h
+        for (auto& f: cResult.free_functions)
+            ffi.free_functions.push_back(std::move(f));
     }
     else
     {
