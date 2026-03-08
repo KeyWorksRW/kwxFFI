@@ -256,15 +256,9 @@ FetchContent_MakeAvailable( wxWidgets )
 message( NOTICE "wxWidgets has been fetched and configured." )
 message( STATUS "wxWidgets sources: " ${wxWidgets_SOURCE_DIR} )
 
-# Set the library directory based on platform and compiler
+# Set the library directory based on platform
 if( WIN32 )
-    if( MSVC )
-        set( WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib )
-    elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-        set( WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/clang_x64_lib )
-    else()
-        set( WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/gcc_x64_lib )
-    endif()
+    set( WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib )
 elseif( APPLE )
     set( WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib )
 elseif( UNIX )
@@ -294,46 +288,33 @@ endif()
 # wxWidgets is static, so we don't define WXUSINGDLL
 # target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
 
+if( MSVC )
+    target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
+elseif( UNIX )
+    target_compile_definitions( kwxFFI PRIVATE __WXGTK__ )
+    target_link_directories( kwxFFI PRIVATE ${WX_LIB_DIR} )
+endif()
+
 # Define SHARED_LIBRARY when building as shared DLL
 if( WIN32 AND KWXFFI_BUILD_SHARED )
     target_compile_definitions( kwxFFI PRIVATE SHARED_LIBRARY )
 endif()
 
-if( MSVC )
-    target_link_directories( kwxFFI PUBLIC ${WX_LIB_DIR} )
-elseif( WIN32 )
-    # MinGW GCC/Clang also need the library directory
-    target_link_directories( kwxFFI PUBLIC ${WX_LIB_DIR} )
-elseif( UNIX )
-    target_compile_definitions( kwxFFI PRIVATE __WXGTK__ )
-    target_link_directories( kwxFFI PUBLIC ${WX_LIB_DIR} )
-endif()
-
-# PUBLIC include directories: consumers that link kwxFFI also need these headers
-# to compile against kwxFFI's API (and to resolve wxWidgets types).
-target_include_directories( kwxFFI PUBLIC
+target_include_directories( kwxFFI PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${wxWidgets_SOURCE_DIR}/include
 )
 
-# Platform-specific wxWidgets setup header directory.
-# The wxWidgets CMake targets already carry the correct include path via their
-# PUBLIC interface, so this is a safety fallback for direct header inclusion.
 if( WIN32 )
-    if( MSVC )
-        set( WX_SETUP_DIR ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib/mswu )
-    elseif( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
-        set( WX_SETUP_DIR ${wxWidgets_BUILD_DIR}/lib/clang_x64_lib/mswu )
-    else()
-        set( WX_SETUP_DIR ${wxWidgets_BUILD_DIR}/lib/gcc_x64_lib/mswu )
-    endif()
-    target_include_directories( kwxFFI PUBLIC ${WX_SETUP_DIR} )
+    target_include_directories( kwxFFI PRIVATE
+        ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib/mswu
+    )
 elseif( APPLE )
-    target_include_directories( kwxFFI PUBLIC
+    target_include_directories( kwxFFI PRIVATE
         ${wxWidgets_BUILD_DIR}/lib/osx_cocoa-unicode-static
     )
 elseif( UNIX )
-    target_include_directories( kwxFFI PUBLIC
+    target_include_directories( kwxFFI PRIVATE
         ${wxWidgets_BUILD_DIR}/lib/gtk3_unixu-3.3/include
     )
 else()
@@ -344,26 +325,10 @@ foreach( component ${wxWidgets_REQUIRED_COMPONENTS} )
     list( APPEND wxWidgets_LIBRARIES wx${component} )
 endforeach()
 
-# PUBLIC linking: consumers of kwxFFI (static library) must also link the
-# wxWidgets libraries, since a static archive doesn't bundle its dependencies.
-target_link_libraries( kwxFFI PUBLIC ${wxWidgets_LIBRARIES} )
+target_link_libraries( kwxFFI PRIVATE ${wxWidgets_LIBRARIES} )
 
 set_target_properties( kwxFFI PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
 )
-
-# ###################### Export variables for non-CMake consumers #######################
-# CGo, Makefiles, and other build systems that don't use CMake target dependencies
-# need the raw library directory and library names. Make these available as CACHE
-# INTERNAL variables accessible to parent projects that FetchContent kwxFFI.
-
-set( KWXFFI_WX_LIB_DIR "${WX_LIB_DIR}" CACHE INTERNAL
-    "wxWidgets static library directory (for CGo/Makefile link flags)" )
-set( KWXFFI_WX_LIBRARIES "${wxWidgets_LIBRARIES}" CACHE INTERNAL
-    "wxWidgets library targets required by kwxFFI (for CGo/Makefile link flags)" )
-set( KWXFFI_WX_SOURCE_DIR "${wxWidgets_SOURCE_DIR}" CACHE INTERNAL
-    "wxWidgets source directory (for include paths)" )
-set( KWXFFI_WX_BUILD_DIR "${wxWidgets_BUILD_DIR}" CACHE INTERNAL
-    "wxWidgets build directory" )
