@@ -1,6 +1,6 @@
 ---
 description: 'kwxgen — Multi-language binding generator for kwxFFI'
-model: Claude Sonnet 4.6
+model: ['Claude Opus 4.6', 'Claude Sonnet 4.6']
 agents: ['code-sweep', 'research']
 tools: [vscode/askQuestions, agent, web, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file, keyworks.key/key_create_file, keyworks.key/key_create_directory]
 ---
