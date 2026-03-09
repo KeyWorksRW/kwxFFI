@@ -144,7 +144,16 @@ if( MSVC )
 
     # Increase stack size for large projects with many object files
     string( APPEND CMAKE_EXE_LINKER_FLAGS " /STACK:8388608" ) # 8MB stack
-elseif( UNIX AND NOT APPLE )
+else()
+    # For GCC/Clang/Xcode, optimize for size in Release builds
+    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
+    set( CMAKE_CXX_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C++ Release flags" FORCE )
+
+    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_C_FLAGS_RELEASE} )
+    set( CMAKE_C_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C Release flags" FORCE )
+endif()
+
+if( UNIX AND NOT APPLE )
     # Use the package PkgConfig to detect GTK+ headers/library files
     find_package( PkgConfig REQUIRED )
 
@@ -157,19 +166,12 @@ elseif( UNIX AND NOT APPLE )
     include_directories( ${X11_INCLUDE_DIRS} )
     link_directories( ${X11_LIBRARY_DIRS} )
     add_definitions( ${X11_CFLAGS_OTHER} )
-
-    # Linux/BSD (gcc/clang) - optimize for size
-    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
-    set( CMAKE_CXX_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C++ Release flags" FORCE )
-    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_C_FLAGS_RELEASE} )
-    set( CMAKE_C_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C Release flags" FORCE )
-
 elseif( APPLE )
-    # macOS (Xcode/Clang) - optimize for size
-    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE} )
-    set( CMAKE_CXX_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C++ Release flags" FORCE )
-    string( REPLACE "-O3" "-Os" cl_optimize ${CMAKE_C_FLAGS_RELEASE} )
-    set( CMAKE_C_FLAGS_RELEASE ${cl_optimize} CACHE STRING "C Release flags" FORCE )
+    # Ensure the stdlib extension macro is defined for all compilation units (including fetched
+    # projects)
+    add_definitions( -D__STDC_WANT_LIB_EXT1__=1 )
+    set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__STDC_WANT_LIB_EXT1__=1" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_WANT_LIB_EXT1__=1" )
 endif()
 
 # ###################### Set wxWidgets location macros #######################
@@ -222,12 +224,6 @@ else()
 endif()
 
 if( APPLE )
-    # Ensure the stdlib extension macro is defined for all compilation units (including fetched
-    # projects)
-    add_definitions( -D__STDC_WANT_LIB_EXT1__=1 )
-    set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D__STDC_WANT_LIB_EXT1__=1" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_WANT_LIB_EXT1__=1" )
-
     set( wxUSE_LIBTIFF OFF CACHE BOOL "Don't use libtiff (problems compiling on Mac" )
     set( wxUSE_REGEX OFF CACHE BOOL "Don't use pcre (problems compiling on Mac" )
 endif()
