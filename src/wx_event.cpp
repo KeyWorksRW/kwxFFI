@@ -117,11 +117,6 @@ extern "C"
         return self->IsCommandEvent();
     }
 
-    EXPORT void wxEvent_CopyObject(wxEvent* self, wxObject* object_dest)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT void wxEvent_SetCallbackUserData(wxEvent* self, wxObject* obj)
     {
         self->m_callbackUserData = obj;
@@ -199,11 +194,6 @@ extern "C"
         return self->GetInt();
     }
 
-    EXPORT void wxCommandEvent_CopyObject(wxCommandEvent* self, wxObject* object_dest)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT void wxNotifyEvent_Veto(wxNotifyEvent* self)
     {
         self->Veto();
@@ -217,11 +207,6 @@ extern "C"
     EXPORT bool wxNotifyEvent_IsAllowed(wxNotifyEvent* self)
     {
         return self->IsAllowed();
-    }
-
-    EXPORT void wxNotifyEvent_CopyObject(wxNotifyEvent* self, wxObject* object_dest)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT int wxScrollWinEvent_GetOrientation(wxScrollWinEvent* self)
@@ -398,11 +383,6 @@ extern "C"
         return self->GetY();
     }
 
-    EXPORT void wxMouseEvent_CopyObject(wxMouseEvent* self, wxObject* object_dest)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT wxCoord wxSetCursorEvent_GetX(wxSetCursorEvent* self)
     {
         return self->GetX();
@@ -487,21 +467,11 @@ extern "C"
         return self->GetY();
     }
 
-    EXPORT void wxKeyEvent_CopyObject(wxKeyEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT wxSize* wxSizeEvent_GetSize(wxSizeEvent* self)
     {
         wxSize* s = new wxSize();
         *s = self->GetSize();
         return s;
-    }
-
-    EXPORT void wxSizeEvent_CopyObject(wxSizeEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT wxPoint* wxMoveEvent_GetPosition(wxMoveEvent* self)
@@ -511,19 +481,9 @@ extern "C"
         return pt;
     }
 
-    EXPORT void wxMoveEvent_CopyObject(wxMoveEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT wxDC* wxEraseEvent_GetDC(wxEraseEvent* self)
     {
         return self->GetDC();
-    }
-
-    EXPORT void wxEraseEvent_CopyObject(wxEraseEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT bool wxActivateEvent_GetActive(wxActivateEvent* self)
@@ -531,19 +491,9 @@ extern "C"
         return self->GetActive();
     }
 
-    EXPORT void wxActivateEvent_CopyObject(wxActivateEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT int wxMenuEvent_GetMenuId(wxMenuEvent* self)
     {
         return self->GetMenuId();
-    }
-
-    EXPORT void wxMenuEvent_CopyObject(wxMenuEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT void wxCloseEvent_SetLoggingOff(wxCloseEvent* self, bool logOff)
@@ -576,11 +526,6 @@ extern "C"
         return self->GetVeto();
     }
 
-    EXPORT void wxCloseEvent_CopyObject(wxCloseEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT void wxShowEvent_SetShow(wxShowEvent* self, bool show)
     {
         self->SetShow(show);
@@ -589,11 +534,6 @@ extern "C"
     EXPORT bool wxShowEvent_IsShown(wxShowEvent* self)
     {
         return self->IsShown();
-    }
-
-    EXPORT void wxShowEvent_CopyObject(wxShowEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT wxPoint* wxJoystickEvent_GetPosition(wxJoystickEvent* self)
@@ -679,11 +619,6 @@ extern "C"
         return self->ButtonIsDown(but);
     }
 
-    EXPORT void wxJoystickEvent_CopyObject(wxJoystickEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT bool wxUpdateUIEvent_GetChecked(wxUpdateUIEvent* self)
     {
         return self->GetChecked();
@@ -731,11 +666,6 @@ extern "C"
         self->SetText(*text);
     }
 
-    EXPORT void wxUpdateUIEvent_CopyObject(wxUpdateUIEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
-    }
-
     EXPORT void wxPaletteChangedEvent_SetChangedWindow(wxPaletteChangedEvent* self, wxWindow* win)
     {
         self->SetChangedWindow(win);
@@ -744,11 +674,6 @@ extern "C"
     EXPORT void* wxPaletteChangedEvent_GetChangedWindow(wxPaletteChangedEvent* self)
     {
         return (void*) self->GetChangedWindow();
-    }
-
-    EXPORT void wxPaletteChangedEvent_CopyObject(wxPaletteChangedEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT void wxQueryNewPaletteEvent_SetPaletteRealized(wxQueryNewPaletteEvent* self,
@@ -760,11 +685,6 @@ extern "C"
     EXPORT bool wxQueryNewPaletteEvent_GetPaletteRealized(wxQueryNewPaletteEvent* self)
     {
         return self->GetPaletteRealized();
-    }
-
-    EXPORT void wxQueryNewPaletteEvent_CopyObject(wxQueryNewPaletteEvent* self, wxObject* obj)
-    {
-        // CopyObject was removed in wxWidgets 2.4+
     }
 
     EXPORT bool wxNavigationKeyEvent_GetDirection(wxNavigationKeyEvent* self)

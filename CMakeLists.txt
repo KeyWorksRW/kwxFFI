@@ -197,7 +197,6 @@ set( wxBUILD_USE_STATIC_RUNTIME OFF CACHE BOOL "Use dynamic runtime library" )
 set( wxUSE_UNICODE_UTF8 1 CACHE BOOL "Use UTF-8 internally in wxWidgets" )
 set( wxUSE_UTF8_LOCALE_ONLY 1 CACHE BOOL "Use UTF-8 locale only in wxWidgets" )
 set( wxUSE_GUI ON CACHE BOOL "This is a GUI application" FORCE )
-set( wxUSE_LUNASVG builtin CACHE BOOL "Use LunaSVG for rendering SVG images" FORCE )
 set( wxUSE_NANOSVG OFF CACHE BOOL "Use NanoSVG for rendering SVG images" FORCE )
 set( wxBUILD_INSTALL OFF CACHE BOOL "Don't build wxWidgets install" )
 
@@ -207,6 +206,7 @@ set( wxUSE_IFF OFF CACHE BOOL "Don't build iff image support" )
 # Downstream language bindings ship prebuilt binaries and cannot rely on
 # OS-provided system libraries being available at runtime.
 set( wxUSE_SYS_LIBS OFF CACHE BOOL "Force using all built-in libraries" FORCE )
+set( wxUSE_LUNASVG builtin CACHE BOOL "Use LunaSVG for rendering SVG images" FORCE )
 set( wxUSE_ZLIB builtin CACHE STRING "Use builtin zlib" FORCE )
 set( wxUSE_LIBPNG builtin CACHE STRING "Use builtin libpng" FORCE )
 set( wxUSE_LIBJPEG builtin CACHE STRING "Use builtin libjpeg" FORCE )

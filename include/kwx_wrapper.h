@@ -86,8 +86,8 @@
 #include <wx/wrapsizer.h>
 #include <wx/wx.h>
 
-#if !wxCHECK_VERSION(3, 3, 1)
-    #error "This code requires wxWidgets 3.3.1 or later"
+#if !wxCHECK_VERSION(3, 3, 2)
+    #error "This code requires wxWidgets 3.3.2 or later"
 #endif
 
 #if !wxUSE_UNICODE_UTF8

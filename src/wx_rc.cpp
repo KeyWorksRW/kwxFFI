@@ -45,12 +45,12 @@ extern "C"
         {
             return self;
         }
-        else
-        {
-            delete self;
-            return nullptr;
-        }
+        return nullptr;
     }
+
+    // wxXmlResource_Create returns the global singleton via wxXmlResource::Get(),
+    // so we must not call delete on it. wxWidgets cleans it up at shutdown.
+    EXPORT void wxXmlResource_Delete(wxXmlResource* /* self */) {}
 
     EXPORT void wxXmlResource_AddHandler(wxXmlResource* self, wxXmlResourceHandler* handler)
     {

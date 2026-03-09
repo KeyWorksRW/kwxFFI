@@ -98,7 +98,6 @@ set( FFI_SRC_FILES
     src/wx_ipc.cpp
     src/wx_itemcontainer.cpp
     src/wx_joystick.cpp
-    src/wx_layoutconstraints.cpp
     src/wx_listbook.cpp
     src/wx_listbox.cpp
     src/wx_listctrl.cpp
