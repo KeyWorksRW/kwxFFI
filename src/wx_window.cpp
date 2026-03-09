@@ -555,16 +555,6 @@ extern "C"
         return (void*) self->GetDropTarget();
     }
 
-    EXPORT void wxWindow_SetConstraints(wxWindow* self, void* constraints)
-    {
-        self->SetConstraints((wxLayoutConstraints*) constraints);
-    }
-
-    EXPORT void* wxWindow_GetConstraints(wxWindow* self)
-    {
-        return (void*) self->GetConstraints();
-    }
-
     EXPORT void wxWindow_SetAutoLayout(wxWindow* self, bool autoLayout)
     {
         self->SetAutoLayout(autoLayout);
@@ -578,81 +568,6 @@ extern "C"
     EXPORT void wxWindow_Layout(wxWindow* self)
     {
         self->Layout();
-    }
-
-    EXPORT void wxWindow_UnsetConstraints(wxWindow* self, void* constraints)
-    {
-        self->UnsetConstraints((wxLayoutConstraints*) constraints);
-    }
-
-    EXPORT void* wxWindow_GetConstraintsInvolvedIn(wxWindow* self)
-    {
-        return (void*) self->GetConstraintsInvolvedIn();
-    }
-
-    EXPORT void wxWindow_AddConstraintReference(wxWindow* self, wxWindowBase* otherWin)
-    {
-        self->AddConstraintReference(otherWin);
-    }
-
-    EXPORT void wxWindow_RemoveConstraintReference(wxWindow* self, wxWindowBase* otherWin)
-    {
-        self->RemoveConstraintReference(otherWin);
-    }
-
-    EXPORT void wxWindow_DeleteRelatedConstraints(wxWindow* self)
-    {
-        self->DeleteRelatedConstraints();
-    }
-
-    EXPORT void wxWindow_ResetConstraints(wxWindow* self)
-    {
-        self->ResetConstraints();
-    }
-
-    EXPORT void wxWindow_SetConstraintSizes(wxWindow* self, bool recurse)
-    {
-        self->SetConstraintSizes(recurse);
-    }
-
-    EXPORT int wxWindow_LayoutPhase1(wxWindow* self, int* noChanges)
-    {
-        return (int) self->LayoutPhase1(noChanges);
-    }
-
-    EXPORT int wxWindow_LayoutPhase2(wxWindow* self, int* noChanges)
-    {
-        return (int) self->LayoutPhase2(noChanges);
-    }
-
-    EXPORT int wxWindow_DoPhase(wxWindow* self, int phase)
-    {
-        return (int) self->DoPhase(phase);
-    }
-
-    EXPORT void wxWindow_SetSizeConstraint(wxWindow* self, int x, int y, int width, int height)
-    {
-        self->SetSizeConstraint(x, y, width, height);
-    }
-
-    EXPORT void wxWindow_MoveConstraint(wxWindow* self, int x, int y)
-    {
-        self->MoveConstraint(x, y);
-    }
-
-    EXPORT void wxWindow_GetSizeConstraint(wxWindow* self, int* width, int* height)
-    {
-        self->GetSizeConstraint(width, height);
-    }
-
-    EXPORT void wxWindow_GetClientSizeConstraint(wxWindow* self, int* width, int* height)
-    {
-        self->GetClientSizeConstraint(width, height);
-    }
-
-    EXPORT void wxWindow_GetPositionConstraint(wxWindow* self, int* x, int* y)
-    {
-        self->GetPositionConstraint(x, y);
     }
 
     EXPORT void wxWindow_SetSizer(wxWindow* self, wxSizer* sizer, bool deleteOld)

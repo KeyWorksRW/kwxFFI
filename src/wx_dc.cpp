@@ -134,11 +134,6 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT void wxDC_ComputeScaleAndOrigin(wxDC* dc)
-    {
-        // Function removed in wxWidgets 2.9+
-    }
-
     EXPORT bool wxDC_StartDoc(wxDC* self, wxString* msg)
     {
         return self->StartDoc(*msg);

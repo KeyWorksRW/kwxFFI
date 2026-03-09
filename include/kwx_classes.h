@@ -100,24 +100,6 @@ void kwxLog_SetTimestamp(TSelf(kwxLog) pObject, void* timestamp);
 void kwxLog_SetVerbose(TSelf(kwxLog) pObject, int bVerbose);
 void kwxLog_Suspend(TSelf(kwxLog) pObject);
 
-TClassDef(kwxMessageParameters) TClass(kwxMessageParameters)
-    wxMessageParameters_Create(TStringVoid filePath, TStringVoid type, void* pObject,
-                               void* pFunction);
-void wxMessageParameters_Delete(TSelf(kwxMessageParameters) pObject);
-
-TClassDefExtend(kwxPlotCurve, wxPlotCurve) TClass(kwxPlotCurve)
-    kwxPlotCurve_Create(void* pObject, void* fnGetStartX, void* endVal, void* y, int offsetY,
-                        double startY, double endY);
-void kwxPlotCurve_Delete(TSelf(kwxPlotCurve) pObject);
-double kwxPlotCurve_GetEndY(TSelf(kwxPlotCurve) pObject);
-int kwxPlotCurve_GetOffsetY(TSelf(kwxPlotCurve) pObject);
-double kwxPlotCurve_GetStartY(TSelf(kwxPlotCurve) pObject);
-void kwxPlotCurve_SetEndY(TSelf(kwxPlotCurve) pObject, double endY);
-void kwxPlotCurve_SetOffsetY(TSelf(kwxPlotCurve) pObject, int offsetY);
-void kwxPlotCurve_SetPenNormal(TSelf(kwxPlotCurve) pObject, TClass(wxPen) pen);
-void kwxPlotCurve_SetPenSelected(TSelf(kwxPlotCurve) pObject, TClass(wxPen) pen);
-void kwxPlotCurve_SetStartY(TSelf(kwxPlotCurve) pObject, double startY);
-
 TClassDefExtend(kwxPreviewControlBar, wxPreviewControlBar) TClass(kwxPreviewControlBar)
     kwxPreviewControlBar_Create(void* preview, int buttons, TClass(wxWindow) parent, void* title,
                                 TRect(x, y, width, height), int style);
@@ -198,9 +180,8 @@ void wxAnimationCtrl_SetAnimation(TSelf(wxAnimationCtrl) self, TClass(wxAnimatio
 void wxAnimationCtrl_SetInactiveBitmap(TSelf(wxAnimationCtrl) self, TClass(wxBitmap) bmp);
 void wxAnimationCtrl_Stop(TSelf(wxAnimationCtrl) self);
 
-TClassDefExtend(wxActivateEvent,
-                wxEvent) void wxActivateEvent_CopyObject(TSelf(wxActivateEvent) pObject, void* obj);
-TBool wxActivateEvent_GetActive(TSelf(wxActivateEvent) pObject);
+TClassDefExtend(wxActivateEvent, wxEvent) TBool
+    wxActivateEvent_GetActive(TSelf(wxActivateEvent) pObject);
 
 TClassDefExtend(wxApp, wxEvtHandler)
 
@@ -915,7 +896,7 @@ void wxAutoBufferedPaintDC_Delete(TSelf(wxAutoBufferedPaintDC) self);
 
 TClassDefExtend(wxAutomationObject, wxObject)
 
-    TClassDefExtend(wxBitmap, wxGDIObject) void wxBitmap_AddHandler(TClass(wxEvtHandler) handler);
+    TClassDefExtend(wxBitmap, wxGDIObject) void wxBitmap_AddHandler(TClass(wxImageHandler) handler);
 void wxBitmap_CleanUpHandlers();
 TClass(wxBitmap) wxBitmap_Create(void* data, int type, TSize(width, height), int depth);
 TClass(wxBitmap) wxBitmap_CreateDefault();
@@ -1014,10 +995,8 @@ void wxBrush_SetColourSingle(TSelf(wxBrush) pObject, TChar red, TChar green, TCh
 void wxBrush_SetStipple(TSelf(wxBrush) pObject, TClass(wxBitmap) stipple);
 void wxBrush_SetStyle(TSelf(wxBrush) pObject, int style);
 
-TClassDefExtend(wxBrushList, wxList)
-
-    TClassDefExtend(wxBufferedDC, wxDC) TClass(wxBufferedDC)
-        wxBufferedDC_CreateByDCAndSize(TClass(wxDC) dc, TSize(width, hight), int style);
+TClassDefExtend(wxBufferedDC, wxDC) TClass(wxBufferedDC)
+    wxBufferedDC_CreateByDCAndSize(TClass(wxDC) dc, TSize(width, hight), int style);
 TClass(wxBufferedDC)
     wxBufferedDC_CreateByDCAndBitmap(TClass(wxDC) dc, TClass(wxBitmap) bitmap, int style);
 void wxBufferedDC_Delete(TSelf(wxBufferedDC) self);
@@ -1212,7 +1191,6 @@ int expCP_DEFAULT_STYLE();
 int expCP_NO_TLW_RESIZE();
 
 TClassDefExtend(wxCloseEvent, wxEvent) TBool wxCloseEvent_CanVeto(TSelf(wxCloseEvent) pObject);
-void wxCloseEvent_CopyObject(TSelf(wxCloseEvent) pObject, TClass(wxObject) obj);
 TBool wxCloseEvent_GetLoggingOff(TSelf(wxCloseEvent) pObject);
 TBool wxCloseEvent_GetVeto(TSelf(wxCloseEvent) pObject);
 void wxCloseEvent_SetCanVeto(TSelf(wxCloseEvent) pObject, TBool canVeto);
@@ -1248,10 +1226,8 @@ void wxColourData_SetChooseFull(TSelf(wxColourData) pObject, TBool flag);
 void wxColourData_SetColour(TSelf(wxColourData) pObject, TClass(wxColour) colour);
 void wxColourData_SetCustomColour(TSelf(wxColourData) pObject, int index, TClass(wxColour) colour);
 
-TClassDefExtend(wxColourDatabase, wxList)
-
-    TClassDefExtend(wxColourDialog, wxDialog) TClass(wxColourDialog)
-        wxColourDialog_Create(TClass(wxWindow) parent, TClass(wxColourData) col);
+TClassDefExtend(wxColourDialog, wxDialog) TClass(wxColourDialog)
+    wxColourDialog_Create(TClass(wxWindow) parent, TClass(wxColourData) col);
 void wxColourDialog_GetColourData(TSelf(wxColourDialog) pObject, TClassRef(wxColourData) ref);
 
 TClassDefExtend(wxCommandLinkButton, wxButton) TClass(wxCommandLinkButton)
@@ -1298,10 +1274,8 @@ void wxComboBox_SetTextSelection(TSelf(wxComboBox) pObject, int from, int toPos)
 
 TClassDefExtend(wxCommand, wxObject)
 
-    TClassDefExtend(wxCommandEvent, wxEvent) void wxCommandEvent_CopyObject(TSelf(wxCommandEvent)
-                                                                                pObject,
-                                                                            void* object_dest);
-TClass(wxCommandEvent) wxCommandEvent_Create(int type, int id);
+    TClassDefExtend(wxCommandEvent, wxEvent) TClass(wxCommandEvent)
+        wxCommandEvent_Create(int type, int id);
 void wxCommandEvent_Delete(TSelf(wxCommandEvent) pObject);
 TClass(wxClientData) wxCommandEvent_GetClientData(TSelf(wxCommandEvent) pObject);
 TClass(wxClientData) wxCommandEvent_GetClientObject(TSelf(wxCommandEvent) pObject);
@@ -1439,7 +1413,6 @@ void wxDC_CalcBoundingBox(TSelf(wxDC) pObject, TPoint(x, y));
 TBool wxDC_CanDrawBitmap(TSelf(wxDC) pObject);
 TBool wxDC_CanGetTextExtent(TSelf(wxDC) pObject);
 void wxDC_Clear(TSelf(wxDC) pObject);
-void wxDC_ComputeScaleAndOrigin(TSelf(wxDC) obj);
 void wxDC_CrossHair(TSelf(wxDC) pObject, TPoint(x, y));
 void wxDC_Delete(TSelf(wxDC) pObject);
 void wxDC_DestroyClippingRegion(TSelf(wxDC) pObject);
@@ -1562,10 +1535,8 @@ TClassDefExtend(wxDataObjectSimple, wxDataObject)
 
     TClassDef(wxDataOutputStream)
 
-        TClassDefExtend(wxDatabase, wxObject)
-
-            TClassDef(wxDateTime) void wxDateTime_AddDate(TSelf(wxDateTime) pObject, void* diff,
-                                                          TClassRef(wxDateTime) ref);
+        TClassDef(wxDateTime) void wxDateTime_AddDate(TSelf(wxDateTime) pObject, void* diff,
+                                                      TClassRef(wxDateTime) ref);
 void wxDateTime_AddDateValues(TSelf(wxDateTime) pObject, int years, int month, int week, int day);
 void wxDateTime_AddTime(TSelf(wxDateTime) pObject, void* diff, TClassRef(wxDateTime) ref);
 void wxDateTime_AddTimeValues(TSelf(wxDateTime) pObject, int hours, int minVal, int seconds,
@@ -1620,7 +1591,6 @@ TBool wxDateTime_IsEarlierThan(TSelf(wxDateTime) pObject, void* datetime);
 TBool wxDateTime_IsEqualTo(TSelf(wxDateTime) pObject, void* datetime);
 TBool wxDateTime_IsEqualUpTo(TSelf(wxDateTime) pObject, TClass(wxDateTime) dateTime,
                              void* timeSpan);
-TBool wxDateTime_IsGregorianDate(TSelf(wxDateTime) pObject, int country);
 TBool wxDateTime_IsLaterThan(TSelf(wxDateTime) pObject, void* datetime);
 TBool wxDateTime_IsLeapYear(int year, int cal);
 TBool wxDateTime_IsSameDate(TSelf(wxDateTime) pObject, TClass(wxDateTime) dateTime);
@@ -1666,31 +1636,9 @@ void wxDateTime_Today(TSelf(wxDateTime) dateTime);
 void wxDateTime_UNow(TSelf(wxDateTime) dateTime);
 void* wxDateTime_wxDateTime(int hi_long, int lo_long);
 
-TClassDef(wxDb)
-
-    TClassDef(wxDbColDef)
-
-        TClassDef(wxDbColFor)
-
-            TClassDef(wxDbColInf)
-
-                TClassDef(wxDbConnectInf)
-
-                    TClassDef(wxDbInf)
-
-                        TClassDef(wxDbSqlTypeInfo)
-
-                            TClassDef(wxDbTable)
-
-                                TClassDef(wxDbTableInfo)
-
-                                    TClassDef(wxDebugContext)
-
-                                        TClassDefExtend(wxDialog, wxTopLevelWindow) TClass(wxDialog)
-                                            wxDialog_Create(TClass(wxWindow) parent, int id,
-                                                            TClass(wxString) text,
-                                                            TRect(left, top, width, height),
-                                                            int style);
+TClassDefExtend(wxDialog, wxTopLevelWindow) TClass(wxDialog)
+    wxDialog_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
+                    TRect(left, top, width, height), int style);
 void wxDialog_EndModal(TSelf(wxDialog) pObject, int retCode);
 int wxDialog_GetReturnCode(TSelf(wxDialog) pObject);
 TBool wxDialog_IsModal(TSelf(wxDialog) pObject);
@@ -1717,13 +1665,6 @@ void wxDirDialog_SetPath(TSelf(wxDirDialog) pObject, TClass(wxString) pth);
 void wxDirDialog_SetStyle(TSelf(wxDirDialog) pObject, int style);
 
 TClassDef(wxDirTraverser)
-
-    TClassDef(wxDllLoader)
-    /*
-    void*      wxDllLoader_GetSymbol( int handle, TStringVoid name );
-    int        wxDllLoader_LoadLibrary( TStringVoid name, void* success );
-    void       wxDllLoader_UnloadLibrary( int handle );
-    */
 
     TClassDefExtend(wxDocChildFrame, wxFrame) TClass(wxDocChildFrame)
         wxDocChildFrame_Create(TClass(wxDocument) doc, TClass(wxView) view, TClass(wxFrame) parent,
@@ -1820,78 +1761,11 @@ int DropSource_DoDragDrop(TSelf(wxDropSource) pObject, int move);
 TClassDef(wxDropTarget) void wxDropTarget_GetData(TSelf(wxDropTarget) pObject);
 void wxDropTarget_SetDataObject(TSelf(wxDropTarget) pObject, TClass(wxDataObject) dataObject);
 
-TClassDefExtend(wxDynToolInfo,
-                wxToolLayoutItem) int wxDynToolInfo_Index(TSelf(wxDynToolInfo) pObject);
-void wxDynToolInfo_RealSize(TSelf(wxDynToolInfo) pObject, TSizeOutVoid(width, height));
-void* wxDynToolInfo_pToolWnd(TSelf(wxDynToolInfo) pObject);
-
 TClassDef(wxDynamicLibrary)
 
-    TClassDefExtend(wxDynamicSashWindow, wxWindow) TClass(wxDynamicSashWindow)
-        wxDynamicSashWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
-                                   int style);
-void wxDynamicSashWindow_Delete(TSelf(wxDynamicSashWindow) pObject);
-void* wxDynamicSashWindow_GetHScrollBar(TSelf(wxDynamicSashWindow) pObject, TClass(wxWindow) child);
-void* wxDynamicSashWindow_GetVScrollBar(TSelf(wxDynamicSashWindow) pObject, TClass(wxWindow) child);
-
-TClassDefExtend(wxDynamicToolBar,
-                wxToolBarBase) void wxDynamicToolBar_AddSeparator(TSelf(wxDynamicToolBar) pObject,
-                                                                  void* pSepartorWnd);
-void wxDynamicToolBar_AddTool(TSelf(wxDynamicToolBar) pObject, int toolIndex, void* pToolWindow,
-                              TSize(width, height));
-void* wxDynamicToolBar_AddToolBitmap(TSelf(wxDynamicToolBar) pObject, int toolIndex,
-                                     TClass(wxBitmap) bitmap, void* pushedBitmap, int toggle,
-                                     TPoint(x, y), TClass(wxClientData) clientData,
-                                     void* helpString1, void* helpString2);
-void wxDynamicToolBar_AddToolImage(TSelf(wxDynamicToolBar) pObject, int toolIndex,
-                                   void* imageFileName, int imageFileType, void* labelText,
-                                   int alignTextRight, TBool isFlat);
-void wxDynamicToolBar_AddToolLabel(TSelf(wxDynamicToolBar) pObject, int toolIndex, void* labelBmp,
-                                   void* labelText, int alignTextRight, TBool isFlat);
-TClass(wxDynamicToolBar)
-    wxDynamicToolBar_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style,
-                            int orientation, int RowsOrColumns);
-TClass(wxDynamicToolBar) wxDynamicToolBar_CreateDefault();
-void* wxDynamicToolBar_CreateDefaultLayout(TSelf(wxDynamicToolBar) pObject);
-int wxDynamicToolBar_CreateParams(TSelf(wxDynamicToolBar) pObject, TClass(wxWindow) parent, int id,
-                                  TRect(x, y, width, height), int style, int orientation,
-                                  int RowsOrColumns);
-void* wxDynamicToolBar_CreateTool(TSelf(wxDynamicToolBar) pObject, int id, void* label,
-                                  void* bmpNormal, void* bmpDisabled, int kind,
-                                  TClass(wxClientData) clientData, void* shortHelp, void* longHelp);
-void* wxDynamicToolBar_CreateToolControl(TSelf(wxDynamicToolBar) pObject,
-                                         TClass(wxControl) control);
-void wxDynamicToolBar_Delete(TSelf(wxDynamicToolBar) pObject);
-int wxDynamicToolBar_DoDeleteTool(TSelf(wxDynamicToolBar) pObject, int pos, void* tool);
-void wxDynamicToolBar_DoEnableTool(TSelf(wxDynamicToolBar) pObject, void* tool, TBool enable);
-int wxDynamicToolBar_DoInsertTool(TSelf(wxDynamicToolBar) pObject, int pos, void* tool);
-void wxDynamicToolBar_DoSetToggle(TSelf(wxDynamicToolBar) pObject, void* tool, int toggle);
-void wxDynamicToolBar_DoToggleTool(TSelf(wxDynamicToolBar) pObject, void* tool, int toggle);
-void wxDynamicToolBar_DrawSeparator(TSelf(wxDynamicToolBar) pObject, void* info, TClass(wxDC) dc);
-void wxDynamicToolBar_EnableTool(TSelf(wxDynamicToolBar) pObject, int toolIndex, TBool enable);
-void* wxDynamicToolBar_FindToolForPosition(TSelf(wxDynamicToolBar) pObject, TPoint(x, y));
-void wxDynamicToolBar_GetPreferredDim(TSelf(wxDynamicToolBar) pObject, int givenWidth,
-                                      int givenHeight, void* preferredWidth, void* preferredHeight);
-void* wxDynamicToolBar_GetToolInfo(TSelf(wxDynamicToolBar) pObject, int toolIndex);
-int wxDynamicToolBar_Layout(TSelf(wxDynamicToolBar) pObject);
-void wxDynamicToolBar_RemoveTool(TSelf(wxDynamicToolBar) pObject, int toolIndex);
-void wxDynamicToolBar_SetLayout(TSelf(wxDynamicToolBar) pObject, void* pLayout);
-
-TClassDefExtend(wxEditableListBox, wxPanel) TClass(wxEditableListBox)
-    wxEditableListBox_Create(TClass(wxWindow) parent, int id, TStringVoid label,
-                             TRect(x, y, width, height), int style);
-void* wxEditableListBox_GetDelButton(TSelf(wxEditableListBox) pObject);
-void* wxEditableListBox_GetDownButton(TSelf(wxEditableListBox) pObject);
-void* wxEditableListBox_GetEditButton(TSelf(wxEditableListBox) pObject);
-TClass(wxListCtrl) wxEditableListBox_GetListCtrl(TSelf(wxEditableListBox) pObject);
-void* wxEditableListBox_GetNewButton(TSelf(wxEditableListBox) pObject);
-TArrayLen wxEditableListBox_GetStrings(TSelf(wxEditableListBox) pObject, TArrayStringOutVoid ref);
-void* wxEditableListBox_GetUpButton(TSelf(wxEditableListBox) pObject);
-void wxEditableListBox_SetStrings(TSelf(wxEditableListBox) pObject, void* strings, int count);
-
-TClassDefExtend(wxEncodingConverter,
-                wxObject) void wxEncodingConverter_Convert(TSelf(wxEncodingConverter) pObject,
-                                                           void* input, void* output);
+    TClassDefExtend(wxEncodingConverter,
+                    wxObject) void wxEncodingConverter_Convert(TSelf(wxEncodingConverter) pObject,
+                                                               void* input, void* output);
 TClass(wxEncodingConverter) wxEncodingConverter_Create();
 void wxEncodingConverter_Delete(TSelf(wxEncodingConverter) pObject);
 int wxEncodingConverter_GetAllEquivalents(TSelf(wxEncodingConverter) pObject, int enc,
@@ -1901,13 +1775,9 @@ int wxEncodingConverter_GetPlatformEquivalents(TSelf(wxEncodingConverter) pObjec
 int wxEncodingConverter_Init(TSelf(wxEncodingConverter) pObject, int input_enc, int output_enc,
                              int method);
 
-TClassDefExtend(wxEraseEvent, wxEvent) void wxEraseEvent_CopyObject(TSelf(wxEraseEvent) pObject,
-                                                                    void* obj);
-TClass(wxDC) wxEraseEvent_GetDC(TSelf(wxEraseEvent) pObject);
+TClassDefExtend(wxEraseEvent, wxEvent) TClass(wxDC) wxEraseEvent_GetDC(TSelf(wxEraseEvent) pObject);
 
-TClassDefExtend(wxEvent, wxObject) void wxEvent_CopyObject(TSelf(wxEvent) pObject,
-                                                           void* object_dest);
-TClass(wxObject) wxEvent_GetEventObject(TSelf(wxEvent) pObject);
+TClassDefExtend(wxEvent, wxObject) TClass(wxObject) wxEvent_GetEventObject(TSelf(wxEvent) pObject);
 int wxEvent_GetEventType(TSelf(wxEvent) pObject);
 int wxEvent_GetId(TSelf(wxEvent) pObject);
 TBool wxEvent_GetSkipped(TSelf(wxEvent) pObject);
@@ -1936,26 +1806,21 @@ void wxEvtHandler_SetEvtHandlerEnabled(TSelf(wxEvtHandler) pObject, TBool enable
 void wxEvtHandler_SetNextHandler(TSelf(wxEvtHandler) pObject, TClass(wxEvtHandler) handler);
 void wxEvtHandler_SetPreviousHandler(TSelf(wxEvtHandler) pObject, TClass(wxEvtHandler) handler);
 
-TClassDef(wxExpr)
+TClassDef(wxFFile)
 
-    TClassDefExtend(wxExprDatabase, wxList)
+    TClassDefExtend(wxFFileInputStream, wxInputStream)
 
-        TClassDef(wxFFile)
+        TClassDefExtend(wxFFileOutputStream, wxOutputStream)
 
-            TClassDefExtend(wxFFileInputStream, wxInputStream)
+            TClassDefExtend(wxFSFile, wxObject)
 
-                TClassDefExtend(wxFFileOutputStream, wxOutputStream)
+                TClassDefExtend(wxFTP, wxProtocol)
 
-                    TClassDefExtend(wxFSFile, wxObject)
-
-                        TClassDefExtend(wxFTP, wxProtocol)
-
-                            TClassDefExtend(
-                                wxFileDataObject,
-                                wxDataObjectSimple) void FileDataObject_AddFile(TSelf(wxFileDataObject)
-                                                                                    pObject,
-                                                                                TClass(wxString)
-                                                                                    files);
+                    TClassDefExtend(
+                        wxFileDataObject,
+                        wxDataObjectSimple) void FileDataObject_AddFile(TSelf(wxFileDataObject)
+                                                                            pObject,
+                                                                        TClass(wxString) files);
 TClass(wxFileDataObject) FileDataObject_Create(TArrayString(count, list));
 void FileDataObject_Delete(TSelf(wxFileDataObject) pObject);
 TArrayLen FileDataObject_GetFilenames(TSelf(wxFileDataObject) pObject, TArrayStringOutVoid list);
@@ -2137,9 +2002,7 @@ TBool wxFontEnumerator_EnumerateEncodings(TSelf(wxFontEnumerator) pObject,
 TBool wxFontEnumerator_EnumerateFacenames(TSelf(wxFontEnumerator) pObject, int encoding,
                                           int fixedWidthOnly);
 
-TClassDefExtend(wxFontList, wxList)
-
-    TClassDef(wxFontMapper) TClass(wxFontMapper) wxFontMapper_Create();
+TClassDef(wxFontMapper) TClass(wxFontMapper) wxFontMapper_Create();
 TBool wxFontMapper_GetAltForEncoding(TSelf(wxFontMapper) pObject, int encoding, void* alt_encoding,
                                      TClass(wxString) buffer);
 TBool wxFontMapper_IsEncodingAvailable(TSelf(wxFontMapper) pObject, int encoding,
@@ -2688,9 +2551,6 @@ int wxIcon_GetWidth(TSelf(wxIcon) pObject);
 TBool wxIcon_IsEqual(TSelf(wxIcon) pObject, TSelf(wxIcon) other);
 int wxIcon_Load(TSelf(wxIcon) pObject, TClass(wxString) name, long type, TSize(width, height));
 TBool wxIcon_IsOk(TSelf(wxIcon) pObject);
-void wxIcon_SetDepth(TSelf(wxIcon) pObject, int depth);
-void wxIcon_SetHeight(TSelf(wxIcon) pObject, int height);
-void wxIcon_SetWidth(TSelf(wxIcon) pObject, int width);
 
 TClassDef(wxIconBundle) void wxIconBundle_AddIcon(TSelf(wxIconBundle) pObject, TClass(wxIcon) icon);
 void wxIconBundle_AddIconFromFile(TSelf(wxIconBundle) pObject, TClass(wxString) file, int type);
@@ -2704,9 +2564,8 @@ void wxIconBundle_GetIcon(TSelf(wxIconBundle) pObject, TSize(width, height), int
 
 TClassDefExtend(wxIconizeEvent, wxEvent)
 
-    TClassDefExtend(wxIdleEvent, wxEvent) void wxIdleEvent_CopyObject(TSelf(wxIdleEvent) pObject,
-                                                                      TClass(wxObject) object_dest);
-TBool wxIdleEvent_MoreRequested(TSelf(wxIdleEvent) pObject);
+    TClassDefExtend(wxIdleEvent, wxEvent) TBool
+    wxIdleEvent_MoreRequested(TSelf(wxIdleEvent) pObject);
 void wxIdleEvent_RequestMore(TSelf(wxIdleEvent) pObject, TBool needMore);
 
 TClassDefExtend(wxImage, wxObject) TBool wxImage_CanRead(TClass(wxString) name);
@@ -2807,45 +2666,6 @@ void wxInfoBar_SetEffectDuration(TSelf(wxInfoBar) self, int duration);
 void wxInfoBar_SetShowHideEffects(TSelf(wxInfoBar) self, int showEffect, int hideEffect);
 void wxInfoBar_ShowMessage(TSelf(wxInfoBar) self, TClass(wxString) msg, int flags);
 
-TClassDefExtend(wxIndividualLayoutConstraint, wxObject) void wxIndividualLayoutConstraint_Above(
-    TSelf(wxIndividualLayoutConstraint) pObject, TClass(wxWindow) sibling, int marg);
-void wxIndividualLayoutConstraint_Absolute(TSelf(wxIndividualLayoutConstraint) pObject, int val);
-void wxIndividualLayoutConstraint_AsIs(TSelf(wxIndividualLayoutConstraint) pObject);
-void wxIndividualLayoutConstraint_Below(TSelf(wxIndividualLayoutConstraint) pObject,
-                                        TClass(wxWindow) sibling, int marg);
-TBool wxIndividualLayoutConstraint_GetDone(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetEdge(TSelf(wxIndividualLayoutConstraint) pObject, int which,
-                                         void* thisWin, void* other);
-int wxIndividualLayoutConstraint_GetMargin(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetMyEdge(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetOtherEdge(TSelf(wxIndividualLayoutConstraint) pObject);
-void* wxIndividualLayoutConstraint_GetOtherWindow(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetPercent(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetRelationship(TSelf(wxIndividualLayoutConstraint) pObject);
-int wxIndividualLayoutConstraint_GetValue(TSelf(wxIndividualLayoutConstraint) pObject);
-void wxIndividualLayoutConstraint_LeftOf(TSelf(wxIndividualLayoutConstraint) pObject,
-                                         TClass(wxWindow) sibling, int marg);
-void wxIndividualLayoutConstraint_PercentOf(TSelf(wxIndividualLayoutConstraint) pObject,
-                                            TClass(wxWindow) otherW, int which, int per);
-TBool wxIndividualLayoutConstraint_ResetIfWin(TSelf(wxIndividualLayoutConstraint) pObject,
-                                              TClass(wxWindow) otherW);
-void wxIndividualLayoutConstraint_RightOf(TSelf(wxIndividualLayoutConstraint) pObject,
-                                          TClass(wxWindow) sibling, int marg);
-void wxIndividualLayoutConstraint_SameAs(TSelf(wxIndividualLayoutConstraint) pObject,
-                                         TClass(wxWindow) otherW, int edge, int marg);
-TBool wxIndividualLayoutConstraint_SatisfyConstraint(TSelf(wxIndividualLayoutConstraint) pObject,
-                                                     void* constraints, TClass(wxWindow) win);
-void wxIndividualLayoutConstraint_Set(TSelf(wxIndividualLayoutConstraint) pObject, int rel,
-                                      TClass(wxWindow) otherW, int otherE, int val, int marg);
-void wxIndividualLayoutConstraint_SetDone(TSelf(wxIndividualLayoutConstraint) pObject, TBool done);
-void wxIndividualLayoutConstraint_SetEdge(TSelf(wxIndividualLayoutConstraint) pObject, int which);
-void wxIndividualLayoutConstraint_SetMargin(TSelf(wxIndividualLayoutConstraint) pObject,
-                                            int margin);
-void wxIndividualLayoutConstraint_SetRelationship(TSelf(wxIndividualLayoutConstraint) pObject,
-                                                  int relationship);
-void wxIndividualLayoutConstraint_SetValue(TSelf(wxIndividualLayoutConstraint) pObject, int value);
-void wxIndividualLayoutConstraint_Unconstrained(TSelf(wxIndividualLayoutConstraint) pObject);
-
 TClassDefExtend(wxInitDialogEvent, wxEvent)
 
     TClassDefExtend(wxInputStream,
@@ -2934,7 +2754,6 @@ TClassDefExtend(wxJoystickEvent, wxEvent) TBool
     wxJoystickEvent_ButtonDown(TSelf(wxJoystickEvent) pObject, int but);
 TBool wxJoystickEvent_ButtonIsDown(TSelf(wxJoystickEvent) pObject, int but);
 TBool wxJoystickEvent_ButtonUp(TSelf(wxJoystickEvent) pObject, int but);
-void wxJoystickEvent_CopyObject(TSelf(wxJoystickEvent) pObject, void* obj);
 int wxJoystickEvent_GetButtonChange(TSelf(wxJoystickEvent) pObject);
 int wxJoystickEvent_GetButtonState(TSelf(wxJoystickEvent) pObject);
 int wxJoystickEvent_GetJoystick(TSelf(wxJoystickEvent) pObject);
@@ -2951,7 +2770,6 @@ void wxJoystickEvent_SetZPosition(TSelf(wxJoystickEvent) pObject, int zPos);
 
 TClassDefExtend(wxKeyEvent, wxEvent) TBool wxKeyEvent_AltDown(TSelf(wxKeyEvent) pObject);
 TBool wxKeyEvent_ControlDown(TSelf(wxKeyEvent) pObject);
-void wxKeyEvent_CopyObject(TSelf(wxKeyEvent) pObject, void* obj);
 int wxKeyEvent_GetKeyCode(TSelf(wxKeyEvent) pObject);
 TClass(wxPoint) wxKeyEvent_GetPosition(TSelf(wxKeyEvent) pObject);
 int wxKeyEvent_GetX(TSelf(wxKeyEvent) pObject);
@@ -2962,15 +2780,6 @@ TBool wxKeyEvent_MetaDown(TSelf(wxKeyEvent) pObject);
 void wxKeyEvent_SetKeyCode(TSelf(wxKeyEvent) pObject, int code);
 TBool wxKeyEvent_ShiftDown(TSelf(wxKeyEvent) pObject);
 
-TClassDefExtend(wxLEDNumberCtrl, wxControl) TClass(wxLEDNumberCtrl)
-    wxLEDNumberCtrl_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
-int wxLEDNumberCtrl_GetAlignment(TSelf(wxLEDNumberCtrl) pObject);
-int wxLEDNumberCtrl_GetDrawFaded(TSelf(wxLEDNumberCtrl) pObject);
-int wxLEDNumberCtrl_GetValue(TSelf(wxLEDNumberCtrl) pObject, void* ref);
-void wxLEDNumberCtrl_SetAlignment(TSelf(wxLEDNumberCtrl) pObject, int Alignment, int Redraw);
-void wxLEDNumberCtrl_SetDrawFaded(TSelf(wxLEDNumberCtrl) pObject, int DrawFaded, int Redraw);
-void wxLEDNumberCtrl_SetValue(TSelf(wxLEDNumberCtrl) pObject, void* Value, int Redraw);
-
 TClassDefExtend(wxLayoutAlgorithm, wxObject) TClass(wxLayoutAlgorithm) wxLayoutAlgorithm_Create();
 void wxLayoutAlgorithm_Delete(TSelf(wxLayoutAlgorithm) pObject);
 TBool wxLayoutAlgorithm_LayoutFrame(TSelf(wxLayoutAlgorithm) pObject, TClass(wxFrame) frame,
@@ -2979,17 +2788,6 @@ TBool wxLayoutAlgorithm_LayoutMDIFrame(TSelf(wxLayoutAlgorithm) pObject, TClass(
                                        TRect(x, y, width, height), int use);
 TBool wxLayoutAlgorithm_LayoutWindow(TSelf(wxLayoutAlgorithm) pObject, TClass(wxFrame) frame,
                                      void* mainWindow);
-
-TClassDefExtend(wxLayoutConstraints, wxObject) TClass(wxLayoutConstraints)
-    wxLayoutConstraints_Create();
-void* wxLayoutConstraints_bottom(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_centreX(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_centreY(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_height(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_left(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_right(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_top(TSelf(wxLayoutConstraints) pObject);
-void* wxLayoutConstraints_width(TSelf(wxLayoutConstraints) pObject);
 
 TClassDefExtend(wxList, wxObject)
 
@@ -3082,7 +2880,6 @@ void wxListCtrl_SetSingleStyle(TSelf(wxListCtrl) pObject, int style, TBool add);
 void wxListCtrl_SetTextColour(TSelf(wxListCtrl) pObject, TClass(wxColour) col);
 void wxListCtrl_SetWindowStyleFlag(TSelf(wxListCtrl) pObject, int style);
 TBool wxListCtrl_SortItems(TSelf(wxListCtrl) pObject, void* compareFunc, void* obj);
-void wxListCtrl_UpdateStyle(TSelf(wxListCtrl) pObject);
 TBool wxListCtrl_GetSubItemRect(TSelf(wxListCtrl) pObject, long item, long subItem, int* x, int* y,
                                 int* width, int* height, int code);
 void wxListCtrl_GetViewRect(TSelf(wxListCtrl) pObject, int* x, int* y, int* width, int* height);
@@ -3157,15 +2954,16 @@ TBool wxListView_IsSelected(TSelf(wxListView) self, long index);
 void wxListView_Select(TSelf(wxListView) self, long index, TBool select);
 void wxListView_SetColumnImage(TSelf(wxListView) self, int col, int image);
 
-TClassDef(wxLocale) int wxLocale_AddCatalog(TSelf(wxLocale) pObject, void* szDomain,
+TClassDef(wxLocale) int wxLocale_AddCatalog(TSelf(wxLocale) pObject, TClass(wxString) szDomain,
                                             int msgIdLanguage);
-void wxLocale_AddCatalogLookupPathPrefix(TSelf(wxLocale) pObject, void* prefix);
+void wxLocale_AddCatalogLookupPathPrefix(TSelf(wxLocale) pObject, TClass(wxString) prefix);
 TClass(wxLocale) wxLocale_Create(int name, int flags);
 void wxLocale_Delete(TSelf(wxLocale) pObject);
 TClass(wxLocale) wxLocale_GetLocale(TSelf(wxLocale) pObject);
 TClass(wxString) wxLocale_GetName(TSelf(wxLocale) pObject);
-TString wxLocale_GetString(TSelf(wxLocale) pObject, void* szOrigString, void* szDomain);
-TBool wxLocale_IsLoaded(TSelf(wxLocale) pObject, void* szDomain);
+TString wxLocale_GetString(TSelf(wxLocale) pObject, TClass(wxString) szOrigString,
+                           TClass(wxString) szDomain);
+TBool wxLocale_IsLoaded(TSelf(wxLocale) pObject, TClass(wxString) szDomain);
 TBool wxLocale_IsOk(TSelf(wxLocale) pObject);
 
 TClassDef(wxLog)
@@ -3337,9 +3135,7 @@ TBool wxMenuBar_IsEnabledTop(TSelf(wxMenuBar) pObject, int pos);
 TClass(wxString) wxMenuBar_GetMenuLabelText(TSelf(wxMenuBar) pObject, int pos);
 void wxMenuBar_UpdateMenus(TSelf(wxMenuBar) pObject);
 
-TClassDefExtend(wxMenuEvent, wxEvent) void wxMenuEvent_CopyObject(TSelf(wxMenuEvent) pObject,
-                                                                  void* obj);
-int wxMenuEvent_GetMenuId(TSelf(wxMenuEvent) pObject);
+TClassDefExtend(wxMenuEvent, wxEvent) int wxMenuEvent_GetMenuId(TSelf(wxMenuEvent) pObject);
 
 TClassDefExtend(wxMenuItem, wxObject) void wxMenuItem_Check(TSelf(wxMenuItem) pObject, TBool check);
 TClass(wxMenuItem) wxMenuItem_Create();
@@ -3436,7 +3232,6 @@ TBool wxMouseEvent_ButtonDown(TSelf(wxMouseEvent) pObject, int but);
 TBool wxMouseEvent_ButtonIsDown(TSelf(wxMouseEvent) pObject, int but);
 TBool wxMouseEvent_ButtonUp(TSelf(wxMouseEvent) pObject, int but);
 TBool wxMouseEvent_ControlDown(TSelf(wxMouseEvent) pObject);
-void wxMouseEvent_CopyObject(TSelf(wxMouseEvent) pObject, void* object_dest);
 TBool wxMouseEvent_Dragging(TSelf(wxMouseEvent) pObject);
 TBool wxMouseEvent_Entering(TSelf(wxMouseEvent) pObject);
 TClass(wxPoint) wxMouseEvent_GetLogicalPosition(TSelf(wxMouseEvent) pObject, TClass(wxDC) dc);
@@ -3461,53 +3256,8 @@ TBool wxMouseEvent_RightIsDown(TSelf(wxMouseEvent) pObject);
 TBool wxMouseEvent_RightUp(TSelf(wxMouseEvent) pObject);
 TBool wxMouseEvent_ShiftDown(TSelf(wxMouseEvent) pObject);
 
-TClassDefExtend(wxMoveEvent, wxEvent) void wxMoveEvent_CopyObject(TSelf(wxMoveEvent) pObject,
-                                                                  void* obj);
-TClass(wxPoint) wxMoveEvent_GetPosition(TSelf(wxMoveEvent) pObject);
-
-TClassDefExtend(wxMultiCellCanvas,
-                wxFlexGridSizer) void wxMultiCellCanvas_Add(TSelf(wxMultiCellCanvas) pObject,
-                                                            TClass(wxWindow) win, int row, int col);
-void wxMultiCellCanvas_CalculateConstraints(TSelf(wxMultiCellCanvas) pObject);
-TClass(wxMultiCellCanvas)
-    wxMultiCellCanvas_Create(TClass(wxWindow) parent, int numRows, int numCols);
-int wxMultiCellCanvas_MaxCols(TSelf(wxMultiCellCanvas) pObject);
-int wxMultiCellCanvas_MaxRows(TSelf(wxMultiCellCanvas) pObject);
-void wxMultiCellCanvas_SetMinCellSize(TSelf(wxMultiCellCanvas) pObject, TSize(width, height));
-
-TClassDefExtend(wxMultiCellItemHandle, wxObject) TClass(wxMultiCellItemHandle)
-    wxMultiCellItemHandle_Create(int row, int column, int height, int width, int sizeX, int sizeY,
-                                 int style, int weightX, int weightY, int align);
-void* wxMultiCellItemHandle_CreateWithSize(TSelf(wxMultiCellItemHandle) pObject, int row,
-                                           int column, int sizeX, int sizeY, int style, int weightX,
-                                           int weightY, int align);
-void* wxMultiCellItemHandle_CreateWithStyle(TSelf(wxMultiCellItemHandle) pObject, int row,
-                                            int column, int style, int weightX, int weightY,
-                                            int align);
-int wxMultiCellItemHandle_GetAlignment(TSelf(wxMultiCellItemHandle) pObject);
-int wxMultiCellItemHandle_GetColumn(TSelf(wxMultiCellItemHandle) pObject);
-int wxMultiCellItemHandle_GetHeight(TSelf(wxMultiCellItemHandle) pObject);
-void wxMultiCellItemHandle_GetLocalSize(TSelf(wxMultiCellItemHandle) pObject,
-                                        TSizeOutVoid(width, height));
-int wxMultiCellItemHandle_GetRow(TSelf(wxMultiCellItemHandle) pObject);
-int wxMultiCellItemHandle_GetStyle(TSelf(wxMultiCellItemHandle) pObject);
-void wxMultiCellItemHandle_GetWeight(TSelf(wxMultiCellItemHandle) pObject,
-                                     TSizeOutVoid(width, height));
-int wxMultiCellItemHandle_GetWidth(TSelf(wxMultiCellItemHandle) pObject);
-
-TClassDefExtend(wxMultiCellSizer,
-                wxSizer) void wxMultiCellSizer_CalcMin(TSelf(wxMultiCellSizer) pObject,
-                                                       TSizeOutVoid(width, height));
-TClass(wxMultiCellSizer) wxMultiCellSizer_Create(int rows, int cols);
-void wxMultiCellSizer_Delete(TSelf(wxMultiCellSizer) pObject);
-int wxMultiCellSizer_EnableGridLines(TSelf(wxMultiCellSizer) pObject, TClass(wxWindow) win);
-void wxMultiCellSizer_RecalcSizes(TSelf(wxMultiCellSizer) pObject);
-int wxMultiCellSizer_SetColumnWidth(TSelf(wxMultiCellSizer) pObject, int column, int colSize,
-                                    int expandable);
-int wxMultiCellSizer_SetDefaultCellSize(TSelf(wxMultiCellSizer) pObject, TSize(width, height));
-int wxMultiCellSizer_SetGridPen(TSelf(wxMultiCellSizer) pObject, TClass(wxPen) pen);
-int wxMultiCellSizer_SetRowHeight(TSelf(wxMultiCellSizer) pObject, int row, int rowSize,
-                                  int expandable);
+TClassDefExtend(wxMoveEvent, wxEvent) TClass(wxPoint)
+    wxMoveEvent_GetPosition(TSelf(wxMoveEvent) pObject);
 
 TClassDef(wxMutex) TClass(wxMutex) wxMutex_Create();
 void wxMutex_Delete(TSelf(wxMutex) pObject);
@@ -3529,31 +3279,6 @@ void wxNavigationKeyEvent_SetDirection(TSelf(wxNavigationKeyEvent) pObject, TBoo
  * pObject, int bDoIt );*/
 void wxNavigationKeyEvent_SetWindowChange(TSelf(wxNavigationKeyEvent) pObject, TBool bIs);
 int wxNavigationKeyEvent_ShouldPropagate(TSelf(wxNavigationKeyEvent) pObject);
-
-TClassDefExtend(wxNewBitmapButton, wxPanel) TClass(wxNewBitmapButton)
-    wxNewBitmapButton_Create(void* labelBitmap, void* labelText, int alignText, TBool isFlat,
-                             int firedEventType, int marginX, int marginY, int textToLabelGap,
-                             TBool isSticky);
-TClass(wxNewBitmapButton)
-    wxNewBitmapButton_CreateFromFile(TSelf(wxNewBitmapButton) bitmapFileName, int bitmapFileType,
-                                     void* labelText, int alignText, TBool isFlat,
-                                     int firedEventType, int marginX, int marginY,
-                                     int textToLabelGap, TBool isSticky);
-void wxNewBitmapButton_Delete(TSelf(wxNewBitmapButton) pObject);
-void wxNewBitmapButton_DrawDecorations(TSelf(wxNewBitmapButton) pObject, TClass(wxDC) dc);
-void wxNewBitmapButton_DrawLabel(TSelf(wxNewBitmapButton) pObject, TClass(wxDC) dc);
-int wxNewBitmapButton_Enable(TSelf(wxNewBitmapButton) pObject, TBool enable);
-void wxNewBitmapButton_Realize(TSelf(wxNewBitmapButton) pObject, TClass(wxWindow) parent, int id,
-                               TRect(x, y, width, height));
-void wxNewBitmapButton_RenderAllLabelImages(TSelf(wxNewBitmapButton) pObject);
-void wxNewBitmapButton_RenderLabelImage(TSelf(wxNewBitmapButton) pObject, void* destBmp,
-                                        void* srcBmp, TBool isEnabled, TBool isPressed);
-void wxNewBitmapButton_RenderLabelImages(TSelf(wxNewBitmapButton) pObject);
-void wxNewBitmapButton_Reshape(TSelf(wxNewBitmapButton) pObject);
-void wxNewBitmapButton_SetAlignments(TSelf(wxNewBitmapButton) pObject, int alignText, int marginX,
-                                     int marginY, int textToLabelGap);
-void wxNewBitmapButton_SetLabel(TSelf(wxNewBitmapButton) pObject, void* labelBitmap,
-                                void* labelText);
 
 TClassDef(wxNodeBase)
 
@@ -3956,7 +3681,6 @@ TClassDefExtend(wxNotebookEvent, wxNotifyEvent)
 
     TClassDefExtend(wxNotifyEvent,
                     wxCommandEvent) void wxNotifyEvent_Allow(TSelf(wxNotifyEvent) pObject);
-void wxNotifyEvent_CopyObject(TSelf(wxNotifyEvent) pObject, void* object_dest);
 TBool wxNotifyEvent_IsAllowed(TSelf(wxNotifyEvent) pObject);
 void wxNotifyEvent_Veto(TSelf(wxNotifyEvent) pObject);
 
@@ -4038,9 +3762,8 @@ TBool wxPalette_IsEqual(TSelf(wxPalette) pObject, TClass(wxPalette) palette);
 TBool wxPalette_IsOk(TSelf(wxPalette) pObject);
 
 TClassDefExtend(wxPaletteChangedEvent,
-                wxEvent) void wxPaletteChangedEvent_CopyObject(TSelf(wxPaletteChangedEvent) pObject,
-                                                               void* obj);
-void* wxPaletteChangedEvent_GetChangedWindow(TSelf(wxPaletteChangedEvent) pObject);
+                wxEvent) void* wxPaletteChangedEvent_GetChangedWindow(TSelf(wxPaletteChangedEvent)
+                                                                          pObject);
 void wxPaletteChangedEvent_SetChangedWindow(TSelf(wxPaletteChangedEvent) pObject,
                                             TClass(wxWindow) win);
 
@@ -4076,67 +3799,8 @@ void wxPen_SetStipple(TSelf(wxPen) pObject, TClass(wxBitmap) stipple);
 void wxPen_SetStyle(TSelf(wxPen) pObject, int style);
 void wxPen_SetWidth(TSelf(wxPen) pObject, int width);
 
-TClassDefExtend(wxPenList, wxList)
-
-    TClassDefExtend(wxPlotCurve, wxObject)
-
-        TClassDefExtend(wxPlotEvent,
-                        wxNotifyEvent) void* wxPlotEvent_GetCurve(TSelf(wxPlotEvent) pObject);
-int wxPlotEvent_GetPosition(TSelf(wxPlotEvent) pObject);
-double wxPlotEvent_GetZoom(TSelf(wxPlotEvent) pObject);
-void wxPlotEvent_SetPosition(TSelf(wxPlotEvent) pObject, int pos);
-void wxPlotEvent_SetZoom(TSelf(wxPlotEvent) pObject, double zoom);
-
-TClassDefExtend(wxPlotOnOffCurve,
-                wxObject) void wxPlotOnOffCurve_Add(TSelf(wxPlotOnOffCurve) pObject, int onPos,
-                                                    int offPos, TClass(wxClientData) clientData);
-TClass(wxPlotOnOffCurve) wxPlotOnOffCurve_Create(int offsetY);
-void wxPlotOnOffCurve_Delete(TSelf(wxPlotOnOffCurve) pObject);
-void wxPlotOnOffCurve_DrawOffLine(TSelf(wxPlotOnOffCurve) pObject, TClass(wxDC) dc, int y,
-                                  int start, int end);
-void wxPlotOnOffCurve_DrawOnLine(TSelf(wxPlotOnOffCurve) pObject, TClass(wxDC) dc, int y, int start,
-                                 int end, TClass(wxClientData) clientData);
-void* wxPlotOnOffCurve_GetAt(TSelf(wxPlotOnOffCurve) pObject, int index);
-TClass(wxClientData) wxPlotOnOffCurve_GetClientData(TSelf(wxPlotOnOffCurve) pObject, int index);
-int wxPlotOnOffCurve_GetCount(TSelf(wxPlotOnOffCurve) pObject);
-int wxPlotOnOffCurve_GetEndX(TSelf(wxPlotOnOffCurve) pObject);
-int wxPlotOnOffCurve_GetOff(TSelf(wxPlotOnOffCurve) pObject, int index);
-int wxPlotOnOffCurve_GetOffsetY(TSelf(wxPlotOnOffCurve) pObject);
-int wxPlotOnOffCurve_GetOn(TSelf(wxPlotOnOffCurve) pObject, int index);
-int wxPlotOnOffCurve_GetStartX(TSelf(wxPlotOnOffCurve) pObject);
-void wxPlotOnOffCurve_SetOffsetY(TSelf(wxPlotOnOffCurve) pObject, int offsetY);
-
-TClassDefExtend(wxPlotWindow, wxScrolledWindow) void wxPlotWindow_Add(TSelf(wxPlotWindow) pObject,
-                                                                      TClass(wxPlotCurve) curve);
-void wxPlotWindow_AddOnOff(TSelf(wxPlotWindow) pObject, TClass(wxPlotCurve) curve);
-TClass(wxPlotWindow)
-    wxPlotWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int flags);
-void wxPlotWindow_Delete(TSelf(wxPlotWindow) pObject, TClass(wxPlotCurve) curve);
-void wxPlotWindow_DeleteOnOff(TSelf(wxPlotWindow) pObject, TClass(wxPlotOnOffCurve) curve);
-void wxPlotWindow_Enlarge(TSelf(wxPlotWindow) pObject, TClass(wxPlotCurve) curve, double factor);
-TClass(wxPlotCurve) wxPlotWindow_GetAt(TSelf(wxPlotWindow) pObject, int index);
-int wxPlotWindow_GetCount(TSelf(wxPlotWindow) pObject);
-TClass(wxPlotCurve) wxPlotWindow_GetCurrent(TSelf(wxPlotWindow) pObject);
-int wxPlotWindow_GetEnlargeAroundWindowCentre(TSelf(wxPlotWindow) pObject);
-TClass(wxPlotOnOffCurve) wxPlotWindow_GetOnOffCurveAt(TSelf(wxPlotWindow) pObject, int index);
-int wxPlotWindow_GetOnOffCurveCount(TSelf(wxPlotWindow) pObject);
-int wxPlotWindow_GetScrollOnThumbRelease(TSelf(wxPlotWindow) pObject);
-double wxPlotWindow_GetUnitsPerValue(TSelf(wxPlotWindow) pObject);
-double wxPlotWindow_GetZoom(TSelf(wxPlotWindow) pObject);
-void wxPlotWindow_Move(TSelf(wxPlotWindow) pObject, TClass(wxPlotCurve) curve, int pixels_up);
-void wxPlotWindow_RedrawEverything(TSelf(wxPlotWindow) pObject);
-void wxPlotWindow_RedrawXAxis(TSelf(wxPlotWindow) pObject);
-void wxPlotWindow_RedrawYAxis(TSelf(wxPlotWindow) pObject);
-void wxPlotWindow_ResetScrollbar(TSelf(wxPlotWindow) pObject);
-void wxPlotWindow_SetCurrent(TSelf(wxPlotWindow) pObject, TClass(wxPlotCurve) current);
-void wxPlotWindow_SetEnlargeAroundWindowCentre(TSelf(wxPlotWindow) pObject,
-                                               int enlargeAroundWindowCentre);
-void wxPlotWindow_SetScrollOnThumbRelease(TSelf(wxPlotWindow) pObject, int scrollOnThumbRelease);
-void wxPlotWindow_SetUnitsPerValue(TSelf(wxPlotWindow) pObject, double upv);
-void wxPlotWindow_SetZoom(TSelf(wxPlotWindow) pObject, double zoom);
-
 TClassDef(wxPoint) TClass(wxPoint) wxPoint_Create(TPoint(xx, yy));
-void wxPoint_Destroy(TSelf(wxPoint) pObject);
+void wxPoint_Delete(TSelf(wxPoint) pObject);
 int wxPoint_GetX(TSelf(wxPoint) pObject);
 int wxPoint_GetY(TSelf(wxPoint) pObject);
 void wxPoint_SetX(TSelf(wxPoint) pObject, int width);
@@ -4418,11 +4082,8 @@ void wxQueryLayoutInfoEvent_SetOrientation(TSelf(wxQueryLayoutInfoEvent) pObject
 void wxQueryLayoutInfoEvent_SetRequestedLength(TSelf(wxQueryLayoutInfoEvent) pObject, int length);
 void wxQueryLayoutInfoEvent_SetSize(TSelf(wxQueryLayoutInfoEvent) pObject, TSize(width, height));
 
-TClassDefExtend(wxQueryNewPaletteEvent,
-                wxEvent) void wxQueryNewPaletteEvent_CopyObject(TSelf(wxQueryNewPaletteEvent)
-                                                                    pObject,
-                                                                TClass(wxObject) obj);
-TBool wxQueryNewPaletteEvent_GetPaletteRealized(TSelf(wxQueryNewPaletteEvent) pObject);
+TClassDefExtend(wxQueryNewPaletteEvent, wxEvent) TBool
+    wxQueryNewPaletteEvent_GetPaletteRealized(TSelf(wxQueryNewPaletteEvent) pObject);
 void wxQueryNewPaletteEvent_SetPaletteRealized(TSelf(wxQueryNewPaletteEvent) pObject,
                                                TBool realized);
 
@@ -4437,7 +4098,6 @@ int wxRadioBox_GetNumberOfRowsOrCols(TSelf(wxRadioBox) pObject);
 int wxRadioBox_GetSelection(TSelf(wxRadioBox) pObject);
 TClass(wxString) wxRadioBox_GetStringSelection(TSelf(wxRadioBox) pObject);
 int wxRadioBox_Number(TSelf(wxRadioBox) pObject);
-void wxRadioBox_SetItemBitmap(TSelf(wxRadioBox) pObject, int item, TClass(wxBitmap) bitmap);
 void wxRadioBox_SetItemLabel(TSelf(wxRadioBox) pObject, int item, TClass(wxString) label);
 void wxRadioBox_SetNumberOfRowsOrCols(TSelf(wxRadioBox) pObject, int count);
 void wxRadioBox_SetSelection(TSelf(wxRadioBox) pObject, int selection);
@@ -4845,36 +4505,6 @@ void wxRegionIterator_Next(TSelf(wxRegionIterator) pObject);
 void wxRegionIterator_Reset(TSelf(wxRegionIterator) pObject);
 void wxRegionIterator_ResetToRegion(TSelf(wxRegionIterator) pObject, TClass(wxRegion) region);
 
-/* wxRemotelyScrolledTreeCtrl */
-TClassDefExtend(
-    wxRemotelyScrolledTreeCtrl,
-    wxTreeCtrl) void wxRemotelyScrolledTreeCtrl_AdjustRemoteScrollbars(TSelf(wxRemotelyScrolledTreeCtrl)
-                                                                           pObject);
-void wxRemotelyScrolledTreeCtrl_CalcTreeSize(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                             TRectOutVoid(x, y, width, height));
-void wxRemotelyScrolledTreeCtrl_CalcTreeSizeItem(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                                 void* id, TRectOutVoid(x, y, width, height));
-TClass(wxRemotelyScrolledTreeCtrl)
-    wxRemotelyScrolledTreeCtrl_Create(void* pObject, void* compareFunc, TClass(wxWindow) parent,
-                                      int id, TRect(x, y, width, height), int style);
-void wxRemotelyScrolledTreeCtrl_Delete(TSelf(wxRemotelyScrolledTreeCtrl) pObject);
-void* wxRemotelyScrolledTreeCtrl_GetCompanionWindow(TSelf(wxRemotelyScrolledTreeCtrl) pObject);
-int wxRemotelyScrolledTreeCtrl_GetScrollPos(TSelf(wxRemotelyScrolledTreeCtrl) pObject, int orient);
-TClass(wxScrolledWindow)
-    wxRemotelyScrolledTreeCtrl_GetScrolledWindow(TSelf(wxRemotelyScrolledTreeCtrl) pObject);
-void wxRemotelyScrolledTreeCtrl_GetViewStart(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                             TPointOutVoid(x, y));
-void wxRemotelyScrolledTreeCtrl_HideVScrollbar(TSelf(wxRemotelyScrolledTreeCtrl) pObject);
-void wxRemotelyScrolledTreeCtrl_PrepareDC(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                          TClass(wxDC) dc);
-void wxRemotelyScrolledTreeCtrl_ScrollToLine(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                             int posHoriz, int posVert);
-void wxRemotelyScrolledTreeCtrl_SetCompanionWindow(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                                   void* companion);
-void wxRemotelyScrolledTreeCtrl_SetScrollbars(TSelf(wxRemotelyScrolledTreeCtrl) pObject,
-                                              int pixelsPerUnitX, int pixelsPerUnitY, int noUnitsX,
-                                              int noUnitsY, int xPos, int yPos, int noRefresh);
-
 TClassDefExtend(wxSVGFileDC, wxDC) TClass(wxSVGFileDC)
     wxSVGFileDC_Create(TClass(wxString) fileName);
 TClass(wxSVGFileDC) wxSVGFileDC_CreateWithSize(TClass(wxString) fileName, TSize(width, height));
@@ -5000,9 +4630,7 @@ int wxSetCursorEvent_GetY(TSelf(wxSetCursorEvent) pObject);
 TBool wxSetCursorEvent_HasCursor(TSelf(wxSetCursorEvent) pObject);
 void wxSetCursorEvent_SetCursor(TSelf(wxSetCursorEvent) pObject, TClass(wxCursor) cursor);
 
-TClassDefExtend(wxShowEvent, wxEvent) void wxShowEvent_CopyObject(TSelf(wxShowEvent) pObject,
-                                                                  TClass(wxObject) obj);
-TBool wxShowEvent_IsShown(TSelf(wxShowEvent) pObject);
+TClassDefExtend(wxShowEvent, wxEvent) TBool wxShowEvent_IsShown(TSelf(wxShowEvent) pObject);
 void wxShowEvent_SetShow(TSelf(wxShowEvent) pObject, TBool show);
 
 TClassDefExtend(wxSimpleHelpProvider, wxHelpProvider) TClass(wxSimpleHelpProvider)
@@ -5023,9 +4651,8 @@ int wxSize_GetWidth(TSelf(wxSize) pObject);
 void wxSize_SetHeight(TSelf(wxSize) pObject, int height);
 void wxSize_SetWidth(TSelf(wxSize) pObject, int width);
 
-TClassDefExtend(wxSizeEvent, wxEvent) void wxSizeEvent_CopyObject(TSelf(wxSizeEvent) pObject,
-                                                                  void* obj);
-TClass(wxSize) wxSizeEvent_GetSize(TSelf(wxSizeEvent) pObject);
+TClassDefExtend(wxSizeEvent, wxEvent) TClass(wxSize)
+    wxSizeEvent_GetSize(TSelf(wxSizeEvent) pObject);
 
 TClassDefExtend(wxSizer, wxObject) void wxSizer_Add(TSelf(wxSizer) pObject, TSize(width, height),
                                                     int option, int flag, int border,
@@ -5228,13 +4855,9 @@ int wxSplashScreen_GetTimeout(TSelf(wxSplashScreen) pObject);
 
 TClassDefExtend(wxSplitterEvent, wxNotifyEvent)
 
-    TClassDefExtend(wxSplitterScrolledWindow, wxScrolledWindow) TClass(wxSplitterScrolledWindow)
-        wxSplitterScrolledWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
-                                        int style);
-
-TClassDefExtend(wxSplitterWindow, wxWindow) TClass(wxSplitterWindow)
-    wxSplitterWindow_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height),
-                            int style);
+    TClassDefExtend(wxSplitterWindow, wxWindow) TClass(wxSplitterWindow)
+        wxSplitterWindow_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height),
+                                int style);
 int wxSplitterWindow_GetBorderSize(TSelf(wxSplitterWindow) pObject);
 int wxSplitterWindow_GetMinimumPaneSize(TSelf(wxSplitterWindow) pObject);
 int wxSplitterWindow_GetSashPosition(TSelf(wxSplitterWindow) pObject);
@@ -5350,20 +4973,17 @@ void wxString_Delete(TSelf(wxString) pObject);
 int wxString_GetString(TSelf(wxString) pObject, TStringOut buffer);
 size_t wxString_Length(TSelf(wxString) pObject);
 
-TClassDef(wxStringBuffer)
+TClassDefExtend(wxStringClientData, wxClientData)
 
-    TClassDefExtend(wxStringClientData, wxClientData)
+    TClassDefExtend(wxStringTokenizer, wxObject)
 
-        TClassDefExtend(wxStringList, wxList)
+        TClassDefExtend(wxSysColourChangedEvent, wxEvent)
 
-            TClassDefExtend(wxStringTokenizer, wxObject)
+            TClassDefExtend(wxSystemOptions, wxObject)
 
-                TClassDefExtend(wxSysColourChangedEvent, wxEvent)
-
-                    TClassDefExtend(wxSystemOptions, wxObject)
-
-                        TClassDefExtend(wxSystemSettings, wxObject) void wxSystemSettings_GetColour(
-                            int index, TClassRef(wxColour) ref);
+                TClassDefExtend(wxSystemSettings,
+                                wxObject) void wxSystemSettings_GetColour(int index,
+                                                                          TClassRef(wxColour) ref);
 void wxSystemSettings_GetFont(int index, TClassRef(wxFont) ref);
 int wxSystemSettings_GetMetric(int index);
 int wxSystemSettings_GetScreenType();
@@ -5520,22 +5140,12 @@ int wxTextValidator_GetStyle(TSelf(wxTextValidator) pObject);
 void wxTextValidator_OnChar(TSelf(wxTextValidator) pObject, TClass(wxEvent) event);
 void wxTextValidator_SetStyle(TSelf(wxTextValidator) pObject, int style);
 
-TClassDefExtend(wxThinSplitterWindow, wxSplitterWindow) TClass(wxThinSplitterWindow)
-    wxThinSplitterWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
-                                int style);
-void wxThinSplitterWindow_DrawSash(TSelf(wxThinSplitterWindow) pObject, TClass(wxDC) dc);
-int wxThinSplitterWindow_SashHitTest(TSelf(wxThinSplitterWindow) pObject, TPoint(x, y),
-                                     int tolerance);
-void wxThinSplitterWindow_SizeWindows(TSelf(wxThinSplitterWindow) pObject);
-
 TClassDef(wxThread)
 
-    TClassDefExtend(wxTime, wxObject)
+    TClassDef(wxTimeSpan)
 
-        TClassDef(wxTimeSpan)
-
-            TClassDefExtend(wxTimer, wxObject) TClass(wxTimer)
-                wxTimer_Create(TClass(wxWindow) parent, int id);
+        TClassDefExtend(wxTimer, wxObject) TClass(wxTimer)
+            wxTimer_Create(TClass(wxWindow) parent, int id);
 void wxTimer_Delete(TSelf(wxTimer) pObject);
 int wxTimer_GetInterval(TSelf(wxTimer) pObject);
 TBool wxTimer_IsOneShot(TSelf(wxTimer) pObject);
@@ -5552,11 +5162,8 @@ TClassDefExtend(wxTimerEx, wxTimer)
 
     TClassDef(wxTimerRunner)
 
-        TClassDef(wxTipProvider)
-
-            TClassDefExtend(wxTipWindow,
-                            wxPopupTransientWindow) void wxTipWindow_Close(TSelf(wxTipWindow)
-                                                                               pObject);
+        TClassDefExtend(wxTipWindow,
+                        wxPopupTransientWindow) void wxTipWindow_Close(TSelf(wxTipWindow) pObject);
 TClass(wxTipWindow)
     wxTipWindow_Create(TClass(wxWindow) parent, TClass(wxString) text, int maxLength);
 void wxTipWindow_SetBoundingRect(TSelf(wxTipWindow) pObject, TRect(x, y, width, height));
@@ -5632,21 +5239,9 @@ void wxToolBar_SetToggle(TSelf(wxToolBar) pObject, int id, TBool toggle);
 
 TClassDefExtend(wxToolBarBase, wxControl)
 
-    TClassDefExtend(wxToolLayoutItem, wxObject) TBool
-    wxToolLayoutItem_IsSeparator(TSelf(wxToolLayoutItem) pObject);
-void wxToolLayoutItem_Rect(TSelf(wxToolLayoutItem) pObject, TRectOutVoid(x, y, width, height));
+    TClassDefExtend(wxToolTip, wxObject)
 
-TClassDefExtend(wxToolTip, wxObject)
-
-    TClassDefExtend(wxToolWindow, wxFrame) void wxToolWindow_AddMiniButton(TSelf(wxToolWindow)
-                                                                               pObject,
-                                                                           void* button);
-TClass(wxToolWindow) wxToolWindow_Create(void* pObject, void* button, void* title);
-TClass(wxClient) wxToolWindow_GetClient(TSelf(wxToolWindow) pObject);
-void wxToolWindow_SetClient(TSelf(wxToolWindow) pObject, TClass(wxWindow) window);
-void wxToolWindow_SetTitleFont(TSelf(wxToolWindow) pObject, void* font);
-
-TClassDefExtend(wxTopLevelWindow, wxWindow) TBool
+        TClassDefExtend(wxTopLevelWindow, wxWindow) TBool
     wxTopLevelWindow_EnableCloseButton(TSelf(wxTopLevelWindow) pObject, TBool enable);
 TClass(wxButton) wxTopLevelWindow_GetDefaultButton(TSelf(wxTopLevelWindow) pObject);
 TClass(wxWindow) wxTopLevelWindow_GetDefaultItem(TSelf(wxTopLevelWindow) pObject);
@@ -5678,15 +5273,6 @@ void wxTopLevelWindow_OSXSetModified(TSelf(wxTopLevelWindow) pObject, TBool modi
 TBool wxTopLevelWindow_OSXIsModified(TSelf(wxTopLevelWindow) pObject);
 void wxTopLevelWindow_SetRepresentedFilename(TSelf(wxTopLevelWindow) pObject,
                                              TClass(wxString) filename);
-
-TClassDefExtend(wxTreeCompanionWindow, wxWindow) TClass(wxTreeCompanionWindow)
-    wxTreeCompanionWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
-                                 int style);
-void wxTreeCompanionWindow_DrawItem(TSelf(wxTreeCompanionWindow) pObject, TClass(wxDC) dc, void* id,
-                                    TRect(x, y, width, height));
-TClass(wxTreeCtrl) wxTreeCompanionWindow_GetTreeCtrl(TSelf(wxTreeCompanionWindow) pObject);
-void wxTreeCompanionWindow_SetTreeCtrl(TSelf(wxTreeCompanionWindow) pObject,
-                                       TClass(wxTreeCtrl) treeCtrl);
 
 TClassDefExtend(wxTreeCtrl, wxControl) void wxTreeCtrl_AddRoot(TSelf(wxTreeCtrl) pObject,
                                                                TClass(wxString) text, int image,
@@ -5926,7 +5512,6 @@ TClassDefExtend(wxTreeLayout, wxObject)
             TClassDefExtend(wxUpdateUIEvent,
                             wxEvent) void wxUpdateUIEvent_Check(TSelf(wxUpdateUIEvent) pObject,
                                                                 TBool check);
-void wxUpdateUIEvent_CopyObject(TSelf(wxUpdateUIEvent) pObject, TClass(wxObject) obj);
 void wxUpdateUIEvent_Enable(TSelf(wxUpdateUIEvent) pObject, TBool enable);
 TBool wxUpdateUIEvent_GetChecked(TSelf(wxUpdateUIEvent) pObject);
 TBool wxUpdateUIEvent_GetEnabled(TSelf(wxUpdateUIEvent) pObject);
@@ -6042,7 +5627,6 @@ int expWEBVIEW_NAV_ACTION_OTHER();
 
 TClassDefExtend(wxWindow, wxEvtHandler) void wxWindow_AddChild(TSelf(wxWindow) pObject,
                                                                TClass(wxWindow) child);
-void wxWindow_AddConstraintReference(TSelf(wxWindow) pObject, TClass(wxWindow) otherWin);
 void wxWindow_CaptureMouse(TSelf(wxWindow) pObject);
 void wxWindow_Center(TSelf(wxWindow) pObject, int direction);
 void wxWindow_CenterOnParent(TSelf(wxWindow) pObject, int dir);
@@ -6053,11 +5637,9 @@ TClass(wxPoint) wxWindow_ConvertDialogToPixels(TSelf(wxWindow) pObject);
 TClass(wxPoint) wxWindow_ConvertPixelsToDialog(TSelf(wxWindow) pObject);
 TClass(wxWindow)
     wxWindow_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
-void wxWindow_DeleteRelatedConstraints(TSelf(wxWindow) pObject);
 TBool wxWindow_Destroy(TSelf(wxWindow) pObject);
 TBool wxWindow_DestroyChildren(TSelf(wxWindow) pObject);
 TBool wxWindow_Disable(TSelf(wxWindow) pObject);
-int wxWindow_DoPhase(TSelf(wxWindow) pObject, int phase);
 TBool wxWindow_Enable(TSelf(wxWindow) pObject);
 TClass(wxWindow) wxWindow_FindFocus(TSelf(wxWindow) pObject);
 TClass(wxWindow) wxWindow_FindWindow(TSelf(wxWindow) pObject, TClass(wxString) name);
@@ -6074,9 +5656,6 @@ int wxWindow_GetCharWidth(TSelf(wxWindow) pObject);
 int wxWindow_GetChildren(TSelf(wxWindow) pObject, void* result, int count);
 TClass(wxClientData) wxWindow_GetClientData(TSelf(wxWindow) pObject);
 TClass(wxSize) wxWindow_GetClientSize(TSelf(wxWindow) pObject);
-void wxWindow_GetClientSizeConstraint(TSelf(wxWindow) pObject, TSizeOut(width, height));
-TClass(wxLayoutConstraints) wxWindow_GetConstraints(TSelf(wxWindow) pObject);
-void* wxWindow_GetConstraintsInvolvedIn(TSelf(wxWindow) pObject);
 TClass(wxCursor) wxWindow_GetCursor(TSelf(wxWindow) pObject);
 TClass(wxDropTarget) wxWindow_GetDropTarget(TSelf(wxWindow) pObject);
 TClass(wxEvtHandler) wxWindow_GetEventHandler(TSelf(wxWindow) pObject);
@@ -6093,13 +5672,11 @@ int wxWindow_GetMinWidth(TSelf(wxWindow) pObject);
 TClass(wxString) wxWindow_GetName(TSelf(wxWindow) pObject);
 TClass(wxWindow) wxWindow_GetParent(TSelf(wxWindow) pObject);
 TClass(wxPoint) wxWindow_GetPosition(TSelf(wxWindow) pObject);
-void wxWindow_GetPositionConstraint(TSelf(wxWindow) pObject, TPointOut(x, y));
 TClass(wxRect) wxWindow_GetRect(TSelf(wxWindow) pObject);
 int wxWindow_GetScrollPos(TSelf(wxWindow) pObject, int orient);
 int wxWindow_GetScrollRange(TSelf(wxWindow) pObject, int orient);
 int wxWindow_GetScrollThumb(TSelf(wxWindow) pObject, int orient);
 TClass(wxSize) wxWindow_GetSize(TSelf(wxWindow) pObject);
-void wxWindow_GetSizeConstraint(TSelf(wxWindow) pObject, TSizeOut(width, height));
 TClass(wxSizer) wxWindow_GetSizer(TSelf(wxWindow) pObject);
 void wxWindow_GetTextExtent(TSelf(wxWindow) pObject, TClass(wxString) string, int* x, int* y,
                             int* descent, int* externalLeading, TClass(wxFont) theFont);
@@ -6118,11 +5695,8 @@ TBool wxWindow_IsExposed(TSelf(wxWindow) pObject, TRect(x, y, width, height));
 TBool wxWindow_IsShown(TSelf(wxWindow) pObject);
 TBool wxWindow_IsTopLevel(TSelf(wxWindow) pObject);
 int wxWindow_Layout(TSelf(wxWindow) pObject);
-int wxWindow_LayoutPhase1(TSelf(wxWindow) pObject, int* noChanges);
-int wxWindow_LayoutPhase2(TSelf(wxWindow) pObject, int* noChanges);
 void wxWindow_Lower(TSelf(wxWindow) pObject);
 void wxWindow_Move(TSelf(wxWindow) pObject, TPoint(x, y), int flags);
-void wxWindow_MoveConstraint(TSelf(wxWindow) pObject, TPoint(x, y));
 void* wxWindow_PopEventHandler(TSelf(wxWindow) pObject, TBool deleteHandler);
 int wxWindow_PopupMenu(TSelf(wxWindow) pObject, TClass(wxMenu) menu, TPoint(x, y));
 void wxWindow_PrepareDC(TSelf(wxWindow) pObject, TClass(wxDC) dc);
@@ -6133,9 +5707,7 @@ void wxWindow_RefreshRect(TSelf(wxWindow) pObject, TBool eraseBackground,
                           TRect(x, y, width, height));
 void wxWindow_ReleaseMouse(TSelf(wxWindow) pObject);
 void wxWindow_RemoveChild(TSelf(wxWindow) pObject, TClass(wxWindow) child);
-void wxWindow_RemoveConstraintReference(TSelf(wxWindow) pObject, TClass(wxWindow) otherWin);
 int wxWindow_Reparent(TSelf(wxWindow) pObject, TClass(wxWindow) parent);
-void wxWindow_ResetConstraints(TSelf(wxWindow) pObject);
 TClass(wxPoint) wxWindow_ScreenToClient(TSelf(wxWindow) pObject, TPoint(x, y));
 void wxWindow_ScrollWindow(TSelf(wxWindow) pObject, TVector(dx, dy));
 void wxWindow_ScrollWindowRect(TSelf(wxWindow) pObject, TVector(dx, dy),
@@ -6147,8 +5719,6 @@ void wxWindow_SetCaret(TSelf(wxWindow) pObject, TClass(wxCaret) caret);
 void wxWindow_SetClientData(TSelf(wxWindow) pObject, TClass(wxClientData) data);
 void wxWindow_SetClientObject(TSelf(wxWindow) pObject, TClass(wxClientData) data);
 void wxWindow_SetClientSize(TSelf(wxWindow) pObject, TSize(width, height));
-void wxWindow_SetConstraintSizes(TSelf(wxWindow) pObject, int recurse);
-void wxWindow_SetConstraints(TSelf(wxWindow) pObject, TClass(wxLayoutConstraints) constraints);
 int wxWindow_SetCursor(TSelf(wxWindow) pObject, TClass(wxCursor) cursor);
 void wxWindow_SetDropTarget(TSelf(wxWindow) pObject, TClass(wxDropTarget) dropTarget);
 void wxWindow_SetExtraStyle(TSelf(wxWindow) pObject, long exStyle);
@@ -6162,7 +5732,6 @@ void wxWindow_SetScrollPos(TSelf(wxWindow) pObject, int orient, int pos, TBool r
 void wxWindow_SetScrollbar(TSelf(wxWindow) pObject, int orient, int pos, int thumbVisible,
                            int range, TBool refresh);
 void wxWindow_SetSize(TSelf(wxWindow) pObject, TRect(x, y, width, height), int sizeFlags);
-void wxWindow_SetSizeConstraint(TSelf(wxWindow) pObject, TRect(x, y, width, height));
 void wxWindow_SetSizeHints(TSelf(wxWindow) pObject, int minW, int minH, int maxW, int maxH,
                            int incW, int incH);
 void wxWindow_SetMinSize(TSelf(wxWindow) pObject, TSize(width, height));
@@ -6176,7 +5745,6 @@ TBool wxWindow_Show(TSelf(wxWindow) pObject);
 void wxWindow_Thaw(TSelf(wxWindow) pObject);
 TBool wxWindow_TransferDataFromWindow(TSelf(wxWindow) pObject);
 TBool wxWindow_TransferDataToWindow(TSelf(wxWindow) pObject);
-void wxWindow_UnsetConstraints(TSelf(wxWindow) pObject, void* constraints);
 void wxWindow_Update(TSelf(wxWindow) pObject);
 void wxWindow_UpdateWindowUI(TSelf(wxWindow) pObject, long flags);
 TBool wxWindow_Validate(TSelf(wxWindow) pObject);
