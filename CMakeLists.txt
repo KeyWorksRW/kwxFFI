@@ -321,7 +321,8 @@ foreach( component ${wxWidgets_REQUIRED_COMPONENTS} )
     list( APPEND wxWidgets_LIBRARIES wx${component} )
 endforeach()
 
-target_link_libraries( kwxFFI PRIVATE ${wxWidgets_LIBRARIES} )
+# These need to be PUBLIC so that a caller only needs to link to kwxFFI and through that have access to the wxWidgets libraries
+target_link_libraries( kwxFFI PUBLIC ${wxWidgets_LIBRARIES} )
 
 set_target_properties( kwxFFI PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
