@@ -203,6 +203,15 @@ set( wxBUILD_INSTALL OFF CACHE BOOL "Don't build wxWidgets install" )
 
 set( wxUSE_IFF OFF CACHE BOOL "Don't build iff image support" )
 
+# Force all third-party libraries to use builtin versions.
+# Downstream language bindings ship prebuilt binaries and cannot rely on
+# OS-provided system libraries being available at runtime.
+set( wxUSE_SYS_LIBS OFF CACHE BOOL "Force using all built-in libraries" FORCE )
+set( wxUSE_ZLIB builtin CACHE STRING "Use builtin zlib" FORCE )
+set( wxUSE_LIBPNG builtin CACHE STRING "Use builtin libpng" FORCE )
+set( wxUSE_LIBJPEG builtin CACHE STRING "Use builtin libjpeg" FORCE )
+set( wxUSE_EXPAT builtin CACHE STRING "Use builtin expat" FORCE )
+set( wxUSE_LIBWEBP builtin CACHE STRING "Use builtin libwebp" FORCE )
 # On Windows, the only browser backend that ships with Windows 10 and 11 is IE.
 # To use the Edge backend, we would need to install the WebView2 runtime.
 set( wxUSE_WEBVIEW_EDGE OFF CACHE BOOL "Use wxWebView Edge backend for web viewing" )
@@ -224,8 +233,11 @@ else()
 endif()
 
 if( APPLE )
-    set( wxUSE_LIBTIFF OFF CACHE BOOL "Don't use libtiff (problems compiling on Mac" )
-    set( wxUSE_REGEX OFF CACHE BOOL "Don't use pcre (problems compiling on Mac" )
+    set( wxUSE_LIBTIFF OFF CACHE STRING "Don't use libtiff (problems compiling on Mac)" FORCE )
+    set( wxUSE_REGEX OFF CACHE STRING "Don't use pcre (problems compiling on Mac)" FORCE )
+else()
+    set( wxUSE_LIBTIFF builtin CACHE STRING "Use builtin libtiff" FORCE )
+    set( wxUSE_REGEX builtin CACHE STRING "Use builtin regex (PCRE2)" FORCE )
 endif()
 
 message( STATUS "Fetching wxWidgets (this may take awhile) ..." )
@@ -321,8 +333,21 @@ foreach( component ${wxWidgets_REQUIRED_COMPONENTS} )
     list( APPEND wxWidgets_LIBRARIES wx${component} )
 endforeach()
 
-# These need to be PUBLIC so that a caller only needs to link to kwxFFI and through that have access to the wxWidgets libraries
-target_link_libraries( kwxFFI PUBLIC ${wxWidgets_LIBRARIES} )
+# Third-party builtin libraries built by wxWidgets but linked PRIVATELY by wx
+# component libraries. Static consumers don't get these transitively, so we
+# must link them explicitly for downstream FFI consumers.
+set( wxWidgets_BUILTIN_LIBS wxzlib wxpng wxjpeg wxexpat wxscintilla wxlexilla )
+
+# webp uses its upstream CMake target names (wx_set_builtin_target_ouput_name
+# only renames the output file, not the CMake target)
+list( APPEND wxWidgets_BUILTIN_LIBS webp webpdemux sharpyuv )
+
+if( NOT APPLE )
+    list( APPEND wxWidgets_BUILTIN_LIBS wxtiff wxregex )
+endif()
+
+# PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
+target_link_libraries( kwxFFI PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS} )
 
 set_target_properties( kwxFFI PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
