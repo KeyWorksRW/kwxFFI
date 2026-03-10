@@ -734,7 +734,7 @@ namespace kwxgen
                 if (param.macro_name == "TSelf")
                     continue;
                 auto group = ConvertToLuaIdiomParams(param, true);
-S                param_groups.push_back(std::move(group));
+                param_groups.push_back(std::move(group));
             }
 
             // Constructor function name: "Create" -> M.Create, "CreateEmpty" -> M.CreateEmpty
