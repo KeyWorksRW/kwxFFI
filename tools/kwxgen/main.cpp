@@ -34,6 +34,7 @@ static void PrintUsage(const char* progName)
               << " generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]\n"
               << "  " << progName
               << " verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>\n"
+              << "  Available langs: fortran go julia lua perl rust\n"
               << "  " << progName << " exports  --headers <dir> --defs <file> --out <dir>\n"
               << "  " << progName << " diff     --headers <dir> --manifest <file>\n"
               << "  " << progName << " langs\n"

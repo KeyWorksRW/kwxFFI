@@ -10,7 +10,7 @@ namespace kwxgen
     public:
         void Generate(const ParsedFFI& ffi, const std::filesystem::path& outDir) override;
         VerifyResult Verify(const ParsedFFI& ffi, const std::filesystem::path& dir) override;
-        auto Name() const -> std::string_view override { return "luajit"; }
+        auto Name() const -> std::string_view override { return "lua"; }
 
     private:
         // Raw FFI layer: ffi.cdef declarations for all C functions
