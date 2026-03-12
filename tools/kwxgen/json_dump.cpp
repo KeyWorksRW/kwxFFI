@@ -167,6 +167,7 @@ namespace kwxgen
                 << ",\n";
             out << "      \"is_object_derived\": " << (cls.is_object_derived ? "true" : "false")
                 << ",\n";
+            out << "      \"is_mixin\": " << (cls.is_mixin ? "true" : "false") << ",\n";
             out << "      \"methods\": [\n";
             for (size_t j = 0; j < cls.methods.size(); ++j)
             {
@@ -191,6 +192,27 @@ namespace kwxgen
             {
                 out << "    \"" << JsonEscape(child) << "\": \"" << JsonEscape(parent) << "\"";
                 if (++idx < ffi.parent_map.size())
+                    out << ",";
+                out << "\n";
+            }
+        }
+        out << "  },\n";
+
+        // Mixin map
+        out << "  \"mixin_map\": {\n";
+        {
+            size_t idx = 0;
+            for (auto& [consumer, mixins]: ffi.mixin_map)
+            {
+                out << "    \"" << JsonEscape(consumer) << "\": [";
+                for (size_t i = 0; i < mixins.size(); ++i)
+                {
+                    if (i > 0)
+                        out << ", ";
+                    out << "\"" << JsonEscape(mixins[i]) << "\"";
+                }
+                out << "]";
+                if (++idx < ffi.mixin_map.size())
                     out << ",";
                 out << "\n";
             }

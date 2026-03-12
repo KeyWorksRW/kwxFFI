@@ -38,6 +38,7 @@ namespace kwxgen
         std::vector<FunctionDecl> methods;
         bool is_window_derived = false;  // Computed: walks hierarchy to wxWindow
         bool is_object_derived = false;  // Computed: walks hierarchy to wxObject
+        bool is_mixin = false;  // True for mixin/interface classes (wxTextEntry, wxItemContainer)
     };
 
     struct EventDecl
@@ -67,6 +68,9 @@ namespace kwxgen
         std::vector<ConstantDecl> constants;
         std::vector<FunctionDecl> free_functions;  // Null_*, kwxSysErrorCode, etc.
         std::unordered_map<std::string, std::string> parent_map;
+        // Maps concrete class → list of mixin classes it implements.
+        // E.g., "wxTextCtrl" → ["wxTextEntry"], "wxComboBox" → ["wxTextEntry", "wxItemContainer"]
+        std::unordered_map<std::string, std::vector<std::string>> mixin_map;
         std::string lib_name = "kwxFFI";  // Runtime DLL/shared-lib name (overridden by --libname)
     };
 

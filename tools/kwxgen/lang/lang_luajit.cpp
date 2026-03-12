@@ -333,6 +333,23 @@ namespace kwxgen
             return "";
         }
 
+        // True if a non-constructor method's first parameter is TClass(ClassName)
+        // matching the function's own class — acts as self for mixin interface methods.
+        [[nodiscard]] auto HasPseudoSelf(const FunctionDecl& func) -> bool
+        {
+            if (func.has_self || func.class_name.empty() || func.params.empty())
+                return false;
+            const auto& first = func.params[0];
+            return first.macro_name == "TClass" && first.macro_arg == func.class_name;
+        }
+
+        // True if a method should use Lua ':' (colon) syntax — i.e., it has
+        // either a real TSelf or a pseudo-self TClass(ClassName) first parameter.
+        [[nodiscard]] auto UsesColonSyntax(const FunctionDecl& func) -> bool
+        {
+            return func.has_self || HasPseudoSelf(func);
+        }
+
     }  // anonymous namespace
 
     // -------------------------------------------------------------------------
@@ -716,6 +733,26 @@ namespace kwxgen
         out << "local MT = { __index = M }\n";
         out << "\n";
 
+        // Inject mixin methods (e.g., wxTextEntry methods into wxTextCtrl).
+        // mixin_map: consumer class → list of mixin class names.
+        auto mixin_it = ffi.mixin_map.find(cls.name);
+        if (mixin_it != ffi.mixin_map.end())
+        {
+            for (const auto& mixin_name: mixin_it->second)
+            {
+                if (wrapped_classes.count(mixin_name))
+                {
+                    std::string mixin_file = LuaClassFileName(mixin_name);
+                    std::string mixin_module = mixin_file.substr(0, mixin_file.size() - 4);
+                    std::string local_var = "_mixin_" + mixin_name;
+                    out << "local " << local_var << " = require(\"" << mixin_module << "\")\n";
+                    out << "for _k, _v in pairs(" << local_var
+                        << ") do if M[_k] == nil then M[_k] = _v end end\n";
+                }
+            }
+            out << "\n";
+        }
+
         // Ptr accessor
         out << "--- Get the underlying C pointer.\n";
         out << "function M:Ptr() return self._ptr end\n";
@@ -808,14 +845,18 @@ namespace kwxgen
                 continue;  // Emitted separately below
 
             bool is_void = IsVoidReturn(func.return_type);
+            bool pseudo_self = HasPseudoSelf(func);
 
-            // Build idiomatic param list (skip TSelf).
+            // Build idiomatic param list (skip TSelf and pseudo-self first param).
             std::vector<std::vector<LuaIdiomParam>> param_groups;
             bool has_post_calls = false;
-            for (const auto& param: func.params)
+            for (size_t pi = 0; pi < func.params.size(); ++pi)
             {
+                const auto& param = func.params[pi];
                 if (param.macro_name == "TSelf")
                     continue;
+                if (pseudo_self && pi == 0)
+                    continue;  // Skip the TClass(ClassName) acting as self
                 auto group = ConvertToLuaIdiomParams(param, false);
                 for (const auto& lp: group)
                 {

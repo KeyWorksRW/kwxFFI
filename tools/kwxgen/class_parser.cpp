@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 
 namespace kwxgen
 {
@@ -586,9 +587,106 @@ namespace kwxgen
             cls.is_object_derived = DerivesFrom(cls.name, "wxObject", result.parent_map);
         }
 
+        // Phase 4: Detect mixin classes.
+        // A mixin class: (a) has no parent, (b) has no constructors (can't be instantiated
+        // directly), and (c) all methods use TClass(ClassName) instead of TSelf(ClassName).
+        for (auto& cls: result.classes)
+        {
+            if (!cls.parent.empty() || cls.methods.empty())
+                continue;
+            bool has_constructor = false;
+            bool all_tclass_self = true;
+            bool has_non_ctor_methods = false;
+            for (const auto& func: cls.methods)
+            {
+                if (func.is_constructor)
+                {
+                    has_constructor = true;
+                    continue;
+                }
+                has_non_ctor_methods = true;
+                if (func.params.empty() || func.params[0].macro_name != "TClass" ||
+                    func.params[0].macro_arg != cls.name)
+                {
+                    all_tclass_self = false;
+                    break;
+                }
+            }
+            cls.is_mixin = !has_constructor && has_non_ctor_methods && all_tclass_self;
+        }
+
+        // Phase 5: Build mixin_map from hardcoded wxWidgets class hierarchy.
+        // These relationships reflect wxWidgets' C++ multiple inheritance that
+        // is not captured in kwx_classes.h's single-parent TClassDefExtend.
+        // Each entry is {mixin_class, {consumer_class, ...}}.
+        // IMPORTANT: wxSpinCtrl and wxSpinCtrlDouble are NOT wxTextEntry consumers
+        // — they only inherit wxTextEntry on some platforms (generic builds) but
+        // not on MSW or GTK, so including them would produce incorrect casts.
+        {
+            // Hardcoded mixin → consumer table. Derived from wxWidgets 3.3 headers.
+            // To update: check which concrete classes inherit the mixin in the
+            // wxWidgets C++ headers, then verify the consumer class is wrapped
+            // in kwx_classes.h (i.e., exists in result.classes).
+            struct MixinEntry
+            {
+                const char* mixin;
+                std::vector<const char*> consumers;
+            };
+            const MixinEntry mixin_table[] = {
+                { "wxTextEntry",
+                  { "wxTextCtrl", "wxComboBox", "wxSearchCtrl", "wxBitmapComboBox" } },
+                { "wxItemContainer",
+                  { "wxListBox", "wxChoice", "wxCheckListBox", "wxComboBox", "wxBitmapComboBox" } },
+            };
+            // clang-format on
+
+            // Build a name set for fast lookup of parsed classes.
+            std::unordered_set<std::string> parsed_class_names;
+            for (const auto& cls: result.classes)
+                parsed_class_names.insert(cls.name);
+
+            for (const auto& entry: mixin_table)
+            {
+                if (parsed_class_names.find(entry.mixin) == parsed_class_names.end())
+                {
+                    std::cerr << "  Warning: mixin '" << entry.mixin
+                              << "' in mixin_table not found in parsed classes\n";
+                    continue;
+                }
+                for (const auto& consumer: entry.consumers)
+                {
+                    if (parsed_class_names.find(consumer) == parsed_class_names.end())
+                    {
+                        std::cerr << "  Warning: mixin consumer '" << consumer << "' (for "
+                                  << entry.mixin << ") not found in parsed classes\n";
+                        continue;
+                    }
+                    result.mixin_map[consumer].push_back(entry.mixin);
+                }
+            }
+        }
+
         std::cerr << "  Classes:        " << result.classes.size() << "\n";
         std::cerr << "  Total methods:  " << total_methods << "\n";
         std::cerr << "  Class-section free funcs: " << result.free_functions.size() << "\n";
+
+        // Report mixin stats.
+        {
+            size_t mixin_count = 0;
+            for (const auto& cls: result.classes)
+                if (cls.is_mixin)
+                    ++mixin_count;
+            if (mixin_count > 0)
+                std::cerr << "  Mixin classes:  " << mixin_count << "\n";
+            if (!result.mixin_map.empty())
+            {
+                size_t link_count = 0;
+                for (const auto& [_, mixins]: result.mixin_map)
+                    link_count += mixins.size();
+                std::cerr << "  Mixin links:    " << link_count << " (across "
+                          << result.mixin_map.size() << " consumers)\n";
+            }
+        }
 
         return result;
     }
