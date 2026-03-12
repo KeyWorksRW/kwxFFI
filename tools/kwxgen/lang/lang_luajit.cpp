@@ -560,7 +560,7 @@ namespace kwxgen
     // kwxffi_gen.lua -- main entry point, loads all sub-files and returns lib
     // -------------------------------------------------------------------------
 
-    void LuaJITEmitter::GenerateInit(const fs::path& outDir, const std::string& libName)
+    void LuaJITEmitter::GenerateInit(const fs::path& outDir, const std::string& /* libName */)
     {
         auto path = outDir / "kwxffi_gen.lua";
         ConditionalFileWriter out(path);
@@ -581,7 +581,9 @@ namespace kwxgen
         out << "require(\"kwxffi_classes_gen\")\n";
         out << "require(\"kwxffi_freefuncs_gen\")\n";
         out << "\n";
-        out << "return require(\"ffi\").load(\"" << libName << "\")\n";
+        // kwxLuaJIT is always statically linked into the host executable, so symbols
+        // are available via ffi.C (the exe's own export table).
+        out << "return require(\"ffi\").C\n";
 
         std::cerr << "  kwxffi_gen.lua:              main entry point\n";
     }
