@@ -13,12 +13,15 @@ namespace kwxgen
         std::string_view Name() const override { return "perl"; }
 
     private:
-        void GenerateEvents(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateKeys(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateConstants(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateClasses(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& outDir);
-        void GenerateInit(const std::filesystem::path& outDir, const std::string& libName);
+        // Layer 1: Raw FFI modules (lib/wx/ffi/raw/)
+        void GenerateRawClassFiles(const ParsedFFI& ffi, const std::filesystem::path& rawDir);
+        void GenerateRawConstants(const ParsedFFI& ffi, const std::filesystem::path& rawDir);
+        void GenerateRawFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& rawDir);
+        void GenerateRawInit(const ParsedFFI& ffi, const std::filesystem::path& rawDir);
+
+        // Layer 2: OO wrapper modules (lib/wx/)
+        void GenerateOOClasses(const ParsedFFI& ffi, const std::filesystem::path& ooDir);
+        void EmitOOClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi);
     };
 
 }  // namespace kwxgen
