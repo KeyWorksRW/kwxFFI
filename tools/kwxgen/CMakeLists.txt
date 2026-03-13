@@ -12,6 +12,7 @@ add_executable(kwxgen
     keys_parser.cpp
     defs_parser.cpp
     constants_parser.cpp
+    exports_gen.cpp
     parser_utils.cpp
     json_dump.cpp
     verify.cpp

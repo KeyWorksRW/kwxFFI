@@ -219,8 +219,15 @@ namespace kwxgen
             return result;
         }
 
-        // String types: TString = char* input, TStringOut = char* output buffer
-        if (p.raw_type == "TString" || p.raw_type == "TStringOut")
+        // String input: const char* so LuaJIT can auto-coerce Lua strings.
+        if (p.raw_type == "TString")
+        {
+            result.push_back({ "const char*", p.param_name.empty() ? "str" : p.param_name });
+            return result;
+        }
+
+        // String output buffer: mutable char*.
+        if (p.raw_type == "TStringOut")
         {
             result.push_back({ "char*", p.param_name.empty() ? "str" : p.param_name });
             return result;

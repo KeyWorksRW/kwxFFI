@@ -28,8 +28,12 @@ int main(int argc, char** argv)
     kwxApp_InitAllImageHandlers();
 
     // 3. Create your UI using kwxFFI functions
-    void* frame = wxFrame_Create(...);
-    wxWindow_Show(frame, 1);
+    void* title = wxString_CreateUTF8("My App");
+    void* frame = wxFrame_Create(NULL, expwxID_ANY(), title, -1, -1, 400, 300,
+                                 expwxDEFAULT_FRAME_STYLE());
+    wxString_Delete(title);
+    wxWindow_Center(frame, expwxBOTH());
+    wxWindow_Show(frame);
     kwxApp_SetTopWindow(frame);
 
     // 4. Run the event loop

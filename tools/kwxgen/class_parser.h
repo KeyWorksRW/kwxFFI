@@ -21,6 +21,8 @@ namespace kwxgen
         std::unordered_map<std::string, std::string> parent_map;
         std::vector<FunctionDecl>
             free_functions;  // exp* and other non-class free functions found in kwx_classes.h
+        // Maps concrete class → list of mixin classes it implements.
+        std::unordered_map<std::string, std::vector<std::string>> mixin_map;
     };
 
     ClassParseResult ParseClasses(const std::filesystem::path& filePath);

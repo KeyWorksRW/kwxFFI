@@ -6,6 +6,7 @@
 #include "defs_parser.h"
 #include "emitter.h"
 #include "events_parser.h"
+#include "exports_gen.h"
 #include "json_dump.h"
 #include "keys_parser.h"
 #include "lang/lang_fortran.h"
@@ -30,14 +31,17 @@ static void PrintUsage(const char* progName)
     std::cerr << "Usage:\n"
               << "  " << progName << " parse    --headers <dir> --defs <file> [--out <file>]\n"
               << "  " << progName
-              << " generate --headers <dir> --defs <file> --lang <lang> --out <dir>\n"
+              << " generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]\n"
               << "  " << progName
               << " verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>\n"
+              << "  Available langs: fortran go julia lua perl rust\n"
+              << "  " << progName << " exports  --headers <dir> --defs <file> --out <dir>\n"
               << "  " << progName << " diff     --headers <dir> --manifest <file>\n"
               << "  " << progName << " langs\n"
               << "\nGlobal options (for generate/verify):\n"
               << "  --libname <name>   Runtime shared-library name in generated bindings (default: "
-                 "kwxFFI)\n";
+                 "kwxFFI)\n"
+              << "  --exports          Also generate platform export files (.def/.map/.exp)\n";
 }
 
 struct Args
@@ -50,6 +54,7 @@ struct Args
     std::string verify_dir;
     std::string manifest_file;
     std::string lib_name = "kwxFFI";  // --libname
+    bool exports = false;             // --exports
 };
 
 static bool ParseArgs(int argc, char* argv[], Args& args)
@@ -76,6 +81,8 @@ static bool ParseArgs(int argc, char* argv[], Args& args)
             args.manifest_file = argv[++i];
         else if (arg == "--libname" && i + 1 < argc)
             args.lib_name = argv[++i];
+        else if (arg == "--exports")
+            args.exports = true;
         else
         {
             std::cerr << "Unknown argument: " << arg << "\n";
@@ -181,6 +188,7 @@ static kwxgen::ParsedFFI RunParsers(const fs::path& headersDir, const fs::path& 
         auto cResult = kwxgen::ParseClasses(classesFile);
         ffi.classes = std::move(cResult.classes);
         ffi.parent_map = std::move(cResult.parent_map);
+        ffi.mixin_map = std::move(cResult.mixin_map);
         // Merge any free functions (e.g., expPROPSHEET_*) found embedded in kwx_classes.h
         for (auto& f: cResult.free_functions)
             ffi.free_functions.push_back(std::move(f));
@@ -263,6 +271,10 @@ int main(int argc, char* argv[])
 
         std::cerr << "Generating " << args.lang << " bindings...\n";
         emitter->Generate(ffi, args.out_path);
+
+        if (args.exports)
+            kwxgen::GenerateExportFiles(ffi, args.out_path);
+
         return 0;
     }
 
@@ -340,6 +352,27 @@ int main(int argc, char* argv[])
         fs::remove_all(tempDir);
 
         return vResult.success ? 0 : 1;
+    }
+
+    if (args.command == "exports")
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::cerr << "Error: 'exports' requires --headers and --defs\n";
+            return 1;
+        }
+        if (args.out_path.empty())
+        {
+            std::cerr << "Error: 'exports' requires --out\n";
+            return 1;
+        }
+
+        std::cerr << "Parsing...\n";
+        auto ffi = RunParsers(args.headers_dir, args.defs_file);
+        ffi.lib_name = args.lib_name;
+
+        kwxgen::GenerateExportFiles(ffi, args.out_path);
+        return 0;
     }
 
     if (args.command == "diff")
