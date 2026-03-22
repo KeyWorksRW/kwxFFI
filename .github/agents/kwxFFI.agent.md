@@ -1,12 +1,11 @@
 ---
-description: 'kwxFFI — C wrapper layer for wxWidgets
+description: 'kwxFFI — C wrapper layer for wxWidgets'
 agents: ['code-sweep', 'research']
-tools: [vscode/askQuestions, agent, web, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file]
+tools: [agent, keyworks.key/key_git, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_edit_file, keyworks.key/key_find_files, keyworks.key/key_create_file, keyworks.key/key_create_directory, keyworks.key/GetSymbolInfo_CppTools, keyworks.key/GetSymbolReferences_CppTools, keyworks.key/GetSymbolCallHierarchy_CppTools, keyworks.key/cpp_type_hierarchy, keyworks.key/cpp_batch_symbols, keyworks.key/key_gh_cli, keyworks.key/web_fetch]
 ---
-
-# ⛔ MANDATORY: `key_*` Tools Only
-Standard Copilot tools (readFile, editFiles, runInTerminal) are NOT available — they will silently fail.
-All operations use `key_*` tools exclusively. Read each tool's description carefully before first use.
+## ⛔ MANDATORY: Declared Tools Only
+Standard Copilot tools are NOT available — they will silently fail.
+Use ONLY the tools declared in your YAML frontmatter. Read each tool's description carefully before first use.
 
 # kwxFFI Agent
 

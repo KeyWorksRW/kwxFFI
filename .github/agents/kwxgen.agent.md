@@ -1,13 +1,12 @@
 ---
 description: 'kwxgen — Multi-language binding generator for kwxFFI'
 model: ['Claude Opus 4.6', 'Claude Sonnet 4.6']
-agents: ['code-sweep', 'research']
-tools: [vscode/askQuestions, agent, web, keyworks.key/key_open, keyworks.key/key_term, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_file_info, keyworks.key/key_linux, keyworks.key/key_problems, keyworks.key/key_read_file, keyworks.key/key_guide, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_bookmark, keyworks.key/key_edit_file, keyworks.key/key_create_file, keyworks.key/key_create_directory]
+agents: ['cpp_code-sweep', 'cpp_research']
+tools: [agent, keyworks.key/key_git, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_read_file, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_edit_file, keyworks.key/key_find_files, keyworks.key/key_create_file, keyworks.key/key_create_directory, keyworks.key/GetSymbolInfo_CppTools, keyworks.key/GetSymbolReferences_CppTools, keyworks.key/GetSymbolCallHierarchy_CppTools, keyworks.key/cpp_ast, keyworks.key/cpp_type_hierarchy, keyworks.key/cpp_batch_symbols, keyworks.key/key_gh_cli, keyworks.key/web_fetch]
 ---
-
-## ⛔ MANDATORY: `key_*` Tools Only
-Standard Copilot tools (readFile, editFiles, runInTerminal) are NOT available — they will silently fail.
-All operations use `key_*` tools exclusively. Read each tool's description carefully before first use.
+## ⛔ MANDATORY: Declared Tools Only
+Standard Copilot tools are NOT available — they will silently fail.
+Use ONLY the tools declared in your YAML frontmatter. Read each tool's description carefully before first use.
 
 # kwxgen Agent
 
@@ -247,6 +246,20 @@ Expected counts (approximate):
 - Constants: ~1,174+
 - Classes: ~374 (may grow as kwxFFI adds wrappers)
 - Total functions: ~5,089
+
+---
+
+## C++ Code Navigation (clangd)
+
+Use these clangd-powered tools for navigating and understanding the kwxgen codebase:
+
+- **`cpp_batch_symbols`** — query document symbols for 2+ C++ files in one LSP request (much faster than looping `symbols` overview)
+- **`GetSymbolInfo_CppTools`** — symbol identity, type signature, USR, and Doxygen docs at a position
+- **`GetSymbolReferences_CppTools`** — project-wide references across entire indexed codebase. Set `contextLines > 0` for surrounding source
+- **`GetSymbolCallHierarchy_CppTools`** — incoming/outgoing call chains with recursive depth (1–5). Get exact line+column from `symbols` overview first
+- **`cpp_type_hierarchy`** — walk inheritance trees (supertypes, subtypes, both) with recursive depth and cycle detection. Especially useful for understanding the `LanguageEmitter` hierarchy
+
+---
 
 ## Adding a New Language Backend
 1. Create `lang/lang_<name>.h` — derive from `LanguageEmitter`
