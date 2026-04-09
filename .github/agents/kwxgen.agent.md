@@ -1,20 +1,12 @@
 ---
 description: 'kwxgen — Multi-language binding generator for kwxFFI'
 model: ['Claude Opus 4.6', 'Claude Sonnet 4.6']
-agents: ['code-sweep', 'research']
-tools: [agent, keyworks.key/key_git, keyworks.key/key_symbols, keyworks.key/key_clang-tidy, keyworks.key/key_read_file, keyworks.key/key_code_standards, keyworks.key/get_instructions, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_edit_file, keyworks.key/key_find_files, keyworks.key/key_create_file, keyworks.key/key_create_directory, keyworks.key/cpp_format, keyworks.key/cpp_ast, keyworks.key/cpp_type_hierarchy, keyworks.key/key_gh_cli, keyworks.key/web_fetch, keyworks.key/key_knowledge]
+agents: ['cpp_code-sweep', 'cpp_research']
+tools: [agent, keyworks.key/key_git, keyworks.key/key_memory, keyworks.key/key_symbols, keyworks.key/key_read_file, keyworks.key/key_build, keyworks.key/key_grep, keyworks.key/key_rename_symbol, keyworks.key/key_edit_file, keyworks.key/key_find_files, keyworks.key/key_create_file, keyworks.key/key_create_directory, keyworks.key/GetSymbolInfo_CppTools, keyworks.key/GetSymbolReferences_CppTools, keyworks.key/GetSymbolCallHierarchy_CppTools, keyworks.key/cpp_ast, keyworks.key/cpp_type_hierarchy, keyworks.key/cpp_batch_symbols, keyworks.key/key_gh_cli, keyworks.key/web_fetch]
 ---
 ## ⛔ MANDATORY: Declared Tools Only
 Standard Copilot tools are NOT available — they will silently fail.
 Use ONLY the tools declared in your YAML frontmatter. Read each tool's description carefully before first use.
-
-## ⛔ MANDATORY: Retrieve Instructions First
-**Before starting any work**, call `get_instructions('subagent')` to load your operational instructions. These are essential for correct task execution. If you later need to summarize to reduce your context window, call `get_instructions('claude')` again — operating without these instructions leads to incomplete or incorrect results requiring rework.
-
-## ⚠️ CRITICAL: Coding Standards
-**Before creating or editing any C++ code**, call `key_code_standards()` and follow the returned instructions exactly. Do NOT write C++ code without doing this first. The tool provides all naming conventions, style rules, and verification checklists — this agent carries no embedded standards.
-
-Analysis and research tasks (reading code, navigating symbols, searching) do **not** require a standards call.
 
 # kwxgen Agent
 
@@ -258,7 +250,16 @@ Expected counts (approximate):
 ---
 
 ## C++ Code Navigation (clangd)
+
+Use these clangd-powered tools for navigating and understanding the kwxgen codebase:
+
+- **`cpp_batch_symbols`** — query document symbols for 2+ C++ files in one LSP request (much faster than looping `symbols` overview)
+- **`GetSymbolInfo_CppTools`** — symbol identity, type signature, USR, and Doxygen docs at a position
+- **`GetSymbolReferences_CppTools`** — project-wide references across entire indexed codebase. Set `contextLines > 0` for surrounding source
+- **`GetSymbolCallHierarchy_CppTools`** — incoming/outgoing call chains with recursive depth (1–5). Get exact line+column from `symbols` overview first
 - **`cpp_type_hierarchy`** — walk inheritance trees (supertypes, subtypes, both) with recursive depth and cycle detection. Especially useful for understanding the `LanguageEmitter` hierarchy
+
+---
 
 ## Adding a New Language Backend
 1. Create `lang/lang_<name>.h` — derive from `LanguageEmitter`
