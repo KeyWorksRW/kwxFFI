@@ -27,13 +27,13 @@ extern "C"
     EXPORT void wxMenu_Append(wxMenu* self, int id, wxString* text, wxString* help,
                               bool isCheckable)
     {
-        self->Append(id, *text, *help, isCheckable);
+        self->Append(id, *text, help ? *help : wxString(), isCheckable);
     }
 
     EXPORT void wxMenu_AppendSub(wxMenu* self, int id, wxString* text, wxMenu* submenu,
                                  wxString* help)
     {
-        self->Append(id, *text, submenu, *help);
+        self->Append(id, *text, submenu, help ? *help : wxString());
     }
 
     EXPORT void wxMenu_AppendItem(wxMenu* self, wxMenuItem* item)
@@ -49,13 +49,13 @@ extern "C"
     EXPORT void wxMenu_Insert(wxMenu* self, size_t pos, int id, wxString* text, wxString* help,
                               bool isCheckable)
     {
-        self->Insert(pos, id, *text, *help, isCheckable);
+        self->Insert(pos, id, *text, help ? *help : wxString(), isCheckable);
     }
 
     EXPORT void wxMenu_InsertSub(wxMenu* self, size_t pos, int id, wxString* text, wxMenu* submenu,
                                  wxString* help)
     {
-        self->Insert(pos, id, *text, submenu, *help);
+        self->Insert(pos, id, *text, submenu, help ? *help : wxString());
     }
 
     EXPORT void wxMenu_InsertItem(wxMenu* self, int pos, wxMenuItem* item)
@@ -66,13 +66,13 @@ extern "C"
     EXPORT void wxMenu_Prepend(wxMenu* self, int id, wxString* text, wxString* help,
                                bool isCheckable)
     {
-        self->Prepend(id, *text, *help, isCheckable);
+        self->Prepend(id, *text, help ? *help : wxString(), isCheckable);
     }
 
     EXPORT void wxMenu_PrependSub(wxMenu* self, int id, wxString* text, wxMenu* submenu,
                                   wxString* help)
     {
-        self->Prepend(id, *text, submenu, *help);
+        self->Prepend(id, *text, submenu, help ? *help : wxString());
     }
 
     EXPORT void wxMenu_PrependItem(wxMenu* self, wxMenuItem* item)
@@ -396,7 +396,7 @@ extern "C"
 
     EXPORT void wxMenuItem_SetHelp(wxMenuItem* self, wxString* str)
     {
-        self->SetHelp(*str);
+        self->SetHelp(str ? *str : wxString());
     }
 
     EXPORT wxString* wxMenuItem_GetHelp(wxMenuItem* self)

@@ -156,7 +156,7 @@ extern "C"
 
     EXPORT void wxToolBar_SetToolLongHelp(wxToolBar* self, int id, wxString* str)
     {
-        self->SetToolLongHelp(id, *str);
+        self->SetToolLongHelp(id, str ? *str : wxString());
     }
 
     EXPORT void wxToolBar_SetToolPacking(wxToolBar* self, int val)
@@ -166,7 +166,7 @@ extern "C"
 
     EXPORT void wxToolBar_SetToolShortHelp(wxToolBar* self, int id, wxString* str)
     {
-        self->SetToolShortHelp(id, *str);
+        self->SetToolShortHelp(id, str ? *str : wxString());
     }
 
     EXPORT void wxToolBar_SetToolSeparation(wxToolBar* self, int val)
