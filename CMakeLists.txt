@@ -378,3 +378,8 @@ set_target_properties(kwxFFI PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
 )
+
+# Force consistent DLL name on Windows regardless of compiler (MSVC vs Clang)
+if(WIN32 AND KWXFFI_BUILD_SHARED)
+    set_target_properties(kwxFFI PROPERTIES PREFIX "")
+endif()
