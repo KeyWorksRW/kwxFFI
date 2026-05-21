@@ -383,3 +383,8 @@ set_target_properties(kwxFFI PROPERTIES
 if(WIN32 AND KWXFFI_BUILD_SHARED)
     set_target_properties(kwxFFI PROPERTIES PREFIX "")
 endif()
+
+# Embed application manifest for Windows DLL to enable Common Controls 6 (visual styles)
+if(WIN32 AND KWXFFI_BUILD_SHARED)
+    target_sources(kwxFFI PRIVATE src/kwxFFI.manifest)
+endif()
