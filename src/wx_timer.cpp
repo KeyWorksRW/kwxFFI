@@ -25,7 +25,7 @@ extern "C"
         self->Stop();
     }
 
-    EXPORT bool wxTimer_IsRuning(wxTimer* self)
+    EXPORT bool wxTimer_IsRunning(wxTimer* self)
     {
         return self->IsRunning();
     }

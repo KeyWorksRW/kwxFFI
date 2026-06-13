@@ -529,9 +529,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT wxBufferedDC* wxBufferedDC_CreateByDCAndSize(wxDC* dc, int width, int hight, int style)
+    EXPORT wxBufferedDC* wxBufferedDC_CreateByDCAndSize(wxDC* dc, int width, int height, int style)
     {
-        return new wxBufferedDC(dc, wxSize(width, hight), style);
+        return new wxBufferedDC(dc, wxSize(width, height), style);
     }
 
     EXPORT wxBufferedDC* wxBufferedDC_CreateByDCAndBitmap(wxDC* dc, wxBitmap* buffer, int style)
