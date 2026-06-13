@@ -996,7 +996,7 @@ void wxBrush_SetStipple(TSelf(wxBrush) pObject, TClass(wxBitmap) stipple);
 void wxBrush_SetStyle(TSelf(wxBrush) pObject, int style);
 
 TClassDefExtend(wxBufferedDC, wxDC) TClass(wxBufferedDC)
-    wxBufferedDC_CreateByDCAndSize(TClass(wxDC) dc, TSize(width, hight), int style);
+    wxBufferedDC_CreateByDCAndSize(TClass(wxDC) dc, TSize(width, height), int style);
 TClass(wxBufferedDC)
     wxBufferedDC_CreateByDCAndBitmap(TClass(wxDC) dc, TClass(wxBitmap) bitmap, int style);
 void wxBufferedDC_Delete(TSelf(wxBufferedDC) self);
@@ -5149,7 +5149,7 @@ TClassDef(wxThread)
 void wxTimer_Delete(TSelf(wxTimer) pObject);
 int wxTimer_GetInterval(TSelf(wxTimer) pObject);
 TBool wxTimer_IsOneShot(TSelf(wxTimer) pObject);
-TBool wxTimer_IsRuning(TSelf(wxTimer) pObject);
+TBool wxTimer_IsRunning(TSelf(wxTimer) pObject);
 TBool wxTimer_Start(TSelf(wxTimer) pObject, int interval, TBool oneShot);
 void wxTimer_Stop(TSelf(wxTimer) pObject);
 

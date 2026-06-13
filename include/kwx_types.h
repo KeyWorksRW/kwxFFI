@@ -5,7 +5,7 @@
 
 /* Types: we use standard pre-processor definitions to add more
    type information to the C signatures. These 'types' can be
-   either read by other tools to automatically generate a marshalling
+   either read by other tools to automatically generate a marshaling
    layer for foreign languages, or you can define the macros in such
    a way that they contain more type information while compiling the
    library itself.

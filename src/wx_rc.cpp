@@ -164,7 +164,7 @@ extern "C"
         return wxXmlResource::Get();
     }
 
-// BUILD_XRCGETCTRL_FN constructs functions for geting control pointers out of
+// BUILD_XRCGETCTRL_FN constructs functions for getting control pointers out of
 // window hierarchies created from XRC files. The functions themselves
 #define BUILD_XRCGETCTRL_FN(type)                                                             \
     EXPORT wx##type* wxXmlResource_Get##type(wxWindow* win, wxString* strId)                  \

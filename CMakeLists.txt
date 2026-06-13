@@ -362,7 +362,7 @@ endforeach()
 # must link them explicitly for downstream FFI consumers.
 set(wxWidgets_BUILTIN_LIBS wxzlib wxpng wxjpeg wxexpat wxscintilla wxlexilla)
 
-# webp uses its upstream CMake target names (wx_set_builtin_target_ouput_name
+# webp uses its upstream CMake target names (wx_set_builtin_target_output_name
 # only renames the output file, not the CMake target)
 list(APPEND wxWidgets_BUILTIN_LIBS webp webpdemux sharpyuv)
 

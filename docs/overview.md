@@ -53,7 +53,7 @@ C, however, has a well-defined calling convention that virtually every programmi
 |------|---------|
 | `kwx_wrapper.h` | Precompiled header with all wxWidgets includes and helper classes. Contains `wxClosure`, `wxCallback`, and derived classes for callbacks/events. |
 | `kwx_def.h` | Export macros (`EXPORT`, `WXFFI_EXPORT`) for cross-platform DLL building. |
-| `kwx_types.h` | Type macros that add semantic meaning to function signatures (`TClass`, `TString`, `TPoint`, etc.). Enables foreign language tools to generate proper marshalling code. |
+| `kwx_types.h` | Type macros that add semantic meaning to function signatures (`TClass`, `TString`, `TPoint`, etc.). Enables foreign language tools to generate proper marshaling code. |
 | `kwx_glue.h` | All C wrapper function declarations. This is the main "API" header that foreign languages reference. |
 | `kwx_grid.h` | Callback types and helper class for custom grid data sources. |
 
@@ -80,7 +80,7 @@ Every wxWidgets class method is wrapped following this pattern:
 
 ```cpp
 // Constructor - returns pointer to new object
-EXPORT wxButton* wxButton_Create(wxWindow* parent, int id, wxString* label, 
+EXPORT wxButton* wxButton_Create(wxWindow* parent, int id, wxString* label,
                                   int x, int y, int w, int h, long style)
 {
     return new wxButton(parent, id, *label, wxPoint(x, y), wxSize(w, h), style);
@@ -115,7 +115,7 @@ wxWidgets uses an event system for GUI callbacks. kwxFFI bridges this with:
 ### wxClosure
 A reference-counted wrapper around a foreign function pointer and its associated data. When an event occurs, the closure is invoked with the event object.
 
-### wxCallback  
+### wxCallback
 Connects to the wxWidgets event system. When an event fires, the callback invokes its associated closure.
 
 ### Event Type Exports
