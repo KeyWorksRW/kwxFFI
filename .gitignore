@@ -3,7 +3,6 @@ bin/
 .cache
 .local
 .private
-.serena
 .shared
 
 src/version.h
