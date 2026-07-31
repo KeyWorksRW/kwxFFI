@@ -107,32 +107,6 @@ configure_file(
     @ONLY
 )
 
-# ###################### ccache support #######################
-find_program(CCACHE_PROGRAM ccache)
-
-if(CCACHE_PROGRAM)
-    message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
-    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-
-    message(NOTICE "ccache detected. Configure ccache globally for your development environment:")
-    message(NOTICE "  Recommended for all platforms:")
-    message(NOTICE "    ccache --set-config=compression=true")
-    message(NOTICE "    ccache --set-config=max_size=<appropriate for your projects>")
-    message(NOTICE "    ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime")
-
-    if(MSVC)
-        message(NOTICE "  Required for MSVC:")
-
-        message(NOTICE "    ccache --set-config=pch_external_checksum=true")
-        message(NOTICE "    ccache --set-config=depend_mode=true")
-        message(NOTICE "    ccache --set-config=\"ignore_options=/Zi /Z7 /ZI /FS /Fd*\"")
-    endif()
-
-    message(NOTICE "  Run 'ccache --show-config' to verify current settings")
-    message(NOTICE "  Run 'ccache -s' to monitor cache usage")
-endif()
-
 if(MSVC)
     # /O1 often results in faster code than /O2 due to CPU caching
     string(REPLACE "/O2" "/O1" cl_optimize ${CMAKE_CXX_FLAGS_RELEASE})
