@@ -341,6 +341,9 @@ if(NOT APPLE)
     list(APPEND wxWidgets_BUILTIN_LIBS wxtiff wxregex)
 endif()
 
+# ###################### kwxgen code generator subdirectory #######################
+add_subdirectory(kwxgen)
+
 # PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
 target_link_libraries(kwxFFI PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})
 
