@@ -181,10 +181,7 @@ endif()
 
 include(FetchContent)
 
-# Suppress verbose FetchContent git output (CMake 3.30+)
-set(FETCHCONTENT_QUIET ON)
-
-# Suppress verbose FetchContent git output (CMake 3.30+)
+# Suppress verbose FetchContent git output
 set(FETCHCONTENT_QUIET ON)
 
 # Set wxWidgets build options BEFORE FetchContent_MakeAvailable
