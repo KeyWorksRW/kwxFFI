@@ -903,6 +903,9 @@ TClass(wxBitmap) wxBitmap_CreateDefault();
 TClass(wxBitmap) wxBitmap_CreateEmpty(TSize(width, height), int depth);
 TClass(wxBitmap) wxBitmap_CreateFromXPM(TSelf(wxBitmap) data);
 TClass(wxBitmap) wxBitmap_CreateLoad(TClass(wxString) name, int type);
+TClass(wxBitmap) wxBitmap_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
+TClass(wxBitmap)
+    wxBitmap_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
 void wxBitmap_Delete(TSelf(wxBitmap) pObject);
 void* wxBitmap_FindHandlerByExtension(TSelf(wxBitmap) extension, int type);
 void* wxBitmap_FindHandlerByName(TClass(wxString) name);
@@ -972,8 +975,22 @@ void BitmapDataObject_SetBitmap(TSelf(wxBitmapDataObject) pObject, TClass(wxBitm
 
 TClassDefExtend(wxBitmapHandler, wxObject)
 
-    TClassDefExtend(wxBoxSizer, wxSizer) TClass(wxSize)
-        wxBoxSizer_CalcMin(TSelf(wxBoxSizer) pObject);
+    TClassDef(wxBitmapBundle) void wxBitmapBundle_Delete(TSelf(wxBitmapBundle) self);
+TClass(wxBitmapBundle)
+    wxBitmapBundle_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
+TClass(wxBitmapBundle)
+    wxBitmapBundle_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
+TClass(wxBitmapBundle) wxBitmapBundle_CreateFromSVGBase64(const unsigned char* base64, size_t len,
+                                                          int default_w, int default_h);
+
+TClassDef(wxBitmapBundleBuilder) TClass(wxBitmapBundleBuilder) wxBitmapBundleBuilder_Create();
+void wxBitmapBundleBuilder_AddData(TSelf(wxBitmapBundleBuilder) builder, const unsigned char* data,
+                                   size_t size, int bitmap_type);
+void wxBitmapBundleBuilder_AddBase64(TSelf(wxBitmapBundleBuilder) builder,
+                                     const unsigned char* base64, size_t len, int bitmap_type);
+TClass(wxBitmapBundle) wxBitmapBundleBuilder_Build(TSelf(wxBitmapBundleBuilder) builder);
+
+TClassDefExtend(wxBoxSizer, wxSizer) TClass(wxSize) wxBoxSizer_CalcMin(TSelf(wxBoxSizer) pObject);
 TClass(wxBoxSizer) wxBoxSizer_Create(int orient);
 int wxBoxSizer_GetOrientation(TSelf(wxBoxSizer) pObject);
 void wxBoxSizer_RecalcSizes(TSelf(wxBoxSizer) pObject);
@@ -2558,9 +2575,17 @@ void wxIconBundle_Assign(TSelf(wxIconBundle) pObject, TClassRef(wxIconBundle) re
 TClass(wxIconBundle) wxIconBundle_CreateDefault();
 TClass(wxIconBundle) wxIconBundle_CreateFromFile(TClass(wxString) file, int type);
 TClass(wxIconBundle) wxIconBundle_CreateFromIcon(TClass(wxIcon) icon);
+TClass(wxIconBundle)
+    wxIconBundle_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
+TClass(wxIconBundle)
+    wxIconBundle_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
 void wxIconBundle_Delete(TSelf(wxIconBundle) pObject);
 void wxIconBundle_GetIcon(TSelf(wxIconBundle) pObject, TSize(width, height), int flags,
                           TClassRef(wxIcon) ref);
+void wxIconBundle_AddIconFromData(TSelf(wxIconBundle) pObject, const unsigned char* data,
+                                  size_t size, int bitmap_type);
+void wxIconBundle_AddIconFromBase64(TSelf(wxIconBundle) pObject, const unsigned char* base64,
+                                    size_t len, int bitmap_type);
 
 TClassDefExtend(wxIconizeEvent, wxEvent)
 
@@ -2586,6 +2611,9 @@ TClass(wxImage)
     wxImage_CreateFromLazyByteString(TSize(width, height), TByteStringLazy(data, length));
 TClass(wxImage) wxImage_CreateFromData(TSize(width, height), void* data);
 TClass(wxImage) wxImage_CreateFromFile(TClass(wxString) name);
+TClass(wxImage)
+    wxImage_CreateFromDataEncoded(const unsigned char* data, size_t size, int bitmap_type);
+TClass(wxImage) wxImage_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
 TClass(wxImage) wxImage_CreateSized(TSize(width, height));
 void wxImage_Destroy(TSelf(wxImage) pObject);
 TChar wxImage_GetBlue(TSelf(wxImage) pObject, TPoint(x, y));

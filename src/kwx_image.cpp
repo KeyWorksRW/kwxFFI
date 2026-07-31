@@ -3,6 +3,7 @@
 
 #include <memory.h>
 #include <string.h>
+#include <wx/dynarray.h>
 
 #include "kwx_wrapper.h"
 
@@ -23,6 +24,209 @@ extern "C"
     EXPORT void wxImage_Delete(wxImage* image)
     {
         delete image;
+    }
+
+    // ── Image/bitmap from encoded data ───────────────────────────────
+
+    // Helper: decode binary image data from memory into a wxImage
+    static wxImage decodeImageFromData(const unsigned char* data, size_t size, int bitmap_type)
+    {
+        wxMemoryInputStream strm(data, size);
+        return wxImage(strm, static_cast<wxBitmapType>(bitmap_type));
+    }
+
+    EXPORT wxImage* wxImage_CreateFromDataEncoded(const unsigned char* data, size_t size,
+                                                  int bitmap_type)
+    {
+        if (!data || size == 0)
+            return nullptr;
+        wxImage img = decodeImageFromData(data, size, bitmap_type);
+        return img.IsOk() ? new wxImage(std::move(img)) : nullptr;
+    }
+
+    EXPORT wxBitmap* wxBitmap_CreateFromData(const unsigned char* data, size_t size,
+                                             int bitmap_type)
+    {
+        if (!data || size == 0)
+            return nullptr;
+        wxMemoryInputStream strm(data, size);
+        auto* bmp = new wxBitmap(strm, static_cast<wxBitmapType>(bitmap_type));
+        return bmp->IsOk() ? bmp : (delete bmp, nullptr);
+    }
+
+    // Helper: base64-decode into a wxMemoryBuffer
+    static wxMemoryBuffer base64DecodeBuffer(const unsigned char* base64, size_t len)
+    {
+        size_t outLen = wxBase64DecodedSize(len);
+        wxMemoryBuffer buf(outLen);
+        size_t actualLen =
+            wxBase64Decode(buf.GetData(), outLen, base64, len, wxBase64DecodeMode::Strict);
+        if (actualLen == wxCONV_FAILED)
+            return wxMemoryBuffer();
+        buf.SetDataLen(actualLen);
+        return buf;
+    }
+
+    EXPORT wxImage* wxImage_CreateFromBase64(const unsigned char* base64, size_t len,
+                                             int bitmap_type)
+    {
+        if (!base64 || len == 0)
+            return nullptr;
+        wxMemoryBuffer buf = base64DecodeBuffer(base64, len);
+        if (buf.GetDataLen() == 0)
+            return nullptr;
+        wxMemoryInputStream strm(buf.GetData(), buf.GetDataLen());
+        wxImage img(strm, static_cast<wxBitmapType>(bitmap_type));
+        return img.IsOk() ? new wxImage(std::move(img)) : nullptr;
+    }
+
+    EXPORT wxBitmap* wxBitmap_CreateFromBase64(const unsigned char* base64, size_t len,
+                                               int bitmap_type)
+    {
+        if (!base64 || len == 0)
+            return nullptr;
+        wxMemoryBuffer buf = base64DecodeBuffer(base64, len);
+        if (buf.GetDataLen() == 0)
+            return nullptr;
+        wxMemoryInputStream strm(buf.GetData(), buf.GetDataLen());
+        auto* bmp = new wxBitmap(strm, static_cast<wxBitmapType>(bitmap_type));
+        return bmp->IsOk() ? bmp : (delete bmp, nullptr);
+    }
+
+    // ── wxBitmapBundle ───────────────────────────────────────────────
+
+    EXPORT wxBitmapBundle* wxBitmapBundle_CreateFromData(const unsigned char* data, size_t size,
+                                                         int bitmap_type)
+    {
+        if (!data || size == 0)
+            return nullptr;
+        wxMemoryInputStream strm(data, size);
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (!bmp.IsOk())
+            return nullptr;
+        return new wxBitmapBundle(wxBitmapBundle::FromBitmap(bmp));
+    }
+
+    EXPORT wxBitmapBundle* wxBitmapBundle_CreateFromBase64(const unsigned char* base64, size_t len,
+                                                           int bitmap_type)
+    {
+        if (!base64 || len == 0)
+            return nullptr;
+        wxMemoryBuffer buf = base64DecodeBuffer(base64, len);
+        if (buf.GetDataLen() == 0)
+            return nullptr;
+        wxMemoryInputStream strm(buf.GetData(), buf.GetDataLen());
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (!bmp.IsOk())
+            return nullptr;
+        return new wxBitmapBundle(wxBitmapBundle::FromBitmap(bmp));
+    }
+
+    // Helper: decompress gzip data from a memory buffer, returns the
+    // decompressed data as a new wxMemoryBuffer. Returns empty buffer on failure.
+    static wxMemoryBuffer gzipDecompress(const unsigned char* data, size_t size)
+    {
+        wxMemoryInputStream compressed(data, size);
+        wxZlibInputStream zstrm(compressed, wxZLIB_GZIP);
+        if (!zstrm.IsOk())
+            return wxMemoryBuffer();
+
+        wxMemoryOutputStream result;
+        zstrm.Read(result);
+
+        // Copy from stream buffer to wxMemoryBuffer
+        wxStreamBuffer* sb = result.GetOutputStreamBuffer();
+        size_t outLen = sb->GetBufferSize();
+        if (outLen == 0)
+            return wxMemoryBuffer();
+        wxMemoryBuffer buf(outLen);
+        memcpy(buf.GetData(), sb->GetBufferStart(), outLen);
+        return buf;
+    }
+
+    EXPORT wxBitmapBundle* wxBitmapBundle_CreateFromSVGBase64(const unsigned char* base64,
+                                                              size_t len, int default_w,
+                                                              int default_h)
+    {
+        // Step 1: base64-decode to get gzip-compressed SVG
+        wxMemoryBuffer gzipBuf = base64DecodeBuffer(base64, len);
+        if (gzipBuf.GetDataLen() == 0)
+            return nullptr;
+
+        // Step 2: gzip-decompress to get raw SVG
+        wxMemoryBuffer svgBuf = gzipDecompress(static_cast<const unsigned char*>(gzipBuf.GetData()),
+                                               gzipBuf.GetDataLen());
+        if (svgBuf.GetDataLen() == 0)
+            return nullptr;
+
+        // Step 3: create bundle from SVG
+        wxBitmapBundle bundle =
+            wxBitmapBundle::FromSVG(static_cast<const wxByte*>(svgBuf.GetData()),
+                                    svgBuf.GetDataLen(), wxSize(default_w, default_h));
+        return bundle.IsOk() ? new wxBitmapBundle(std::move(bundle)) : nullptr;
+    }
+
+    EXPORT void wxBitmapBundle_Delete(wxBitmapBundle* self)
+    {
+        delete self;
+    }
+
+    // ── wxBitmapBundleBuilder ────────────────────────────────────────
+
+    class wxBitmapBundleBuilder
+    {
+    public:
+        wxVector<wxBitmap> m_bitmaps;
+
+        void AddBitmap(const wxBitmap& bmp)
+        {
+            if (bmp.IsOk())
+                m_bitmaps.push_back(bmp);
+        }
+
+        wxBitmapBundle Build()
+        {
+            if (m_bitmaps.empty())
+                return wxBitmapBundle();
+            return wxBitmapBundle::FromBitmaps(m_bitmaps);
+        }
+    };
+
+    EXPORT wxBitmapBundleBuilder* wxBitmapBundleBuilder_Create()
+    {
+        return new wxBitmapBundleBuilder();
+    }
+
+    EXPORT void wxBitmapBundleBuilder_AddData(wxBitmapBundleBuilder* builder,
+                                              const unsigned char* data, size_t size,
+                                              int bitmap_type)
+    {
+        if (!builder || !data || size == 0)
+            return;
+        wxMemoryInputStream strm(data, size);
+        builder->AddBitmap(wxBitmap(strm, static_cast<wxBitmapType>(bitmap_type)));
+    }
+
+    EXPORT void wxBitmapBundleBuilder_AddBase64(wxBitmapBundleBuilder* builder,
+                                                const unsigned char* base64, size_t len,
+                                                int bitmap_type)
+    {
+        if (!builder || !base64 || len == 0)
+            return;
+        wxMemoryBuffer buf = base64DecodeBuffer(base64, len);
+        if (buf.GetDataLen() == 0)
+            return;
+        wxMemoryInputStream strm(buf.GetData(), buf.GetDataLen());
+        builder->AddBitmap(wxBitmap(strm, static_cast<wxBitmapType>(bitmap_type)));
+    }
+
+    EXPORT wxBitmapBundle* wxBitmapBundleBuilder_Build(wxBitmapBundleBuilder* builder)
+    {
+        if (!builder)
+            return nullptr;
+        wxBitmapBundle bundle = builder->Build();
+        delete builder;
+        return bundle.IsOk() ? new wxBitmapBundle(std::move(bundle)) : nullptr;
     }
 
     // colours

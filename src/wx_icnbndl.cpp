@@ -45,4 +45,59 @@ extern "C"
     {
         *((wxIcon*) ref) = ((wxIconBundle*) pObject)->GetIcon(wxSize(width, height), flags);
     }
+
+    // ── Icon bundle from encoded data ────────────────────────────────
+
+    EXPORT void* wxIconBundle_CreateFromData(const unsigned char* data, size_t size,
+                                             int bitmap_type)
+    {
+        wxMemoryInputStream strm(data, size);
+        wxIcon icon;
+        if (!icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+            return nullptr;
+        return (void*) new wxIconBundle(icon);
+    }
+
+    EXPORT void* wxIconBundle_CreateFromBase64(const unsigned char* base64, size_t len,
+                                               int bitmap_type)
+    {
+        // Reuse the base64 helper from kwx_image.cpp via wxBase64Decode
+        size_t outLen = wxBase64DecodedSize(len);
+        wxMemoryBuffer buf(outLen);
+        size_t actualLen =
+            wxBase64Decode(buf.GetData(), outLen, base64, len, wxBase64DecodeMode::Strict);
+        if (actualLen == wxCONV_FAILED)
+            return nullptr;
+
+        wxMemoryInputStream strm(buf.GetData(), actualLen);
+        wxIcon icon;
+        if (!icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+            return nullptr;
+        return (void*) new wxIconBundle(icon);
+    }
+
+    EXPORT void wxIconBundle_AddIconFromData(void* pObject, const unsigned char* data, size_t size,
+                                             int bitmap_type)
+    {
+        wxMemoryInputStream strm(data, size);
+        wxIcon icon;
+        if (icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+            ((wxIconBundle*) pObject)->AddIcon(icon);
+    }
+
+    EXPORT void wxIconBundle_AddIconFromBase64(void* pObject, const unsigned char* base64,
+                                               size_t len, int bitmap_type)
+    {
+        size_t outLen = wxBase64DecodedSize(len);
+        wxMemoryBuffer buf(outLen);
+        size_t actualLen =
+            wxBase64Decode(buf.GetData(), outLen, base64, len, wxBase64DecodeMode::Strict);
+        if (actualLen == wxCONV_FAILED)
+            return;
+
+        wxMemoryInputStream strm(buf.GetData(), actualLen);
+        wxIcon icon;
+        if (icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+            ((wxIconBundle*) pObject)->AddIcon(icon);
+    }
 }

@@ -10,6 +10,8 @@
 #include <wx/aui/framemanager.h>
 #include <wx/aui/tabmdi.h>
 #include <wx/bannerwindow.h>
+#include <wx/base64.h>
+#include <wx/bmpbndl.h>
 #include <wx/bmpcbox.h>
 #include <wx/calctrl.h>
 #include <wx/checklst.h>
@@ -85,6 +87,7 @@
 #include <wx/wizard.h>
 #include <wx/wrapsizer.h>
 #include <wx/wx.h>
+#include <wx/zstream.h>
 
 #if !wxCHECK_VERSION(3, 3, 2)
     #error "This code requires wxWidgets 3.3.2 or later"
