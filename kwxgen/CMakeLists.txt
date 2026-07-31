@@ -35,7 +35,7 @@ FetchContent_MakeAvailable(glaze)
 
 # ###################### Output directory #######################
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../bin/$<CONFIG>")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/$<CONFIG>")
 
 # ###################### Build #######################
 
