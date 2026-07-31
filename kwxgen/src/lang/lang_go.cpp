@@ -46,7 +46,7 @@ static std::string GoConstantExpr(const ConstantDecl& decl)
 //   "wxButton"       → "Button"       (strip 'wx')
 //   "wxNewFoo"       → "WxNewFoo"     (keep prefix when stripped name starts with 'New'
 //                                       to avoid collision with NewFoo() constructor fns)
-//   "kwxDropTarget"  → "KwxDropTarget" (capitalise 'kwx' — do NOT strip it, or kwx*
+//   "kwxDropTarget"  → "KwxDropTarget" (capitalize 'kwx' — do NOT strip it, or kwx*
 //                                       classes collide with their wx* counterparts)
 static std::string StripPrefix(const std::string& name)
 {
@@ -63,7 +63,7 @@ static std::string StripPrefix(const std::string& name)
         }
         return stripped;
     }
-    // kwx* classes: capitalise to "Kwx" rather than stripping, so that
+    // kwx* classes: capitalize to "Kwx" rather than stripping, so that
     // kwxDropTarget → KwxDropTarget ≠ DropTarget (from wxDropTarget).
     if (name.starts_with(KWX_PREFIX) &&
         std::isupper(static_cast<unsigned char>(name[KWX_PREFIX.length()])))
