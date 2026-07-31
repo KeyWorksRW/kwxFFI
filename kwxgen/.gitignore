@@ -1,0 +1,20 @@
+lib/
+bin/
+.local
+.private
+.shared
+
+src/version.h
+src/version.rc
+
+# created by kwxgen to test creating language files
+%TEMP%/
+
+# cmake
+CMakeFiles/
+build/
+
+# VSCode files
+.vscode/
+*.code-workspace
+*.code-search

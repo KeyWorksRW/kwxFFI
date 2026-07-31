@@ -54,8 +54,8 @@ if(NOT isMultiConfig)
 endif()
 
 # ###################### General Settings #######################
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ###################### sccache #######################
@@ -106,32 +106,6 @@ configure_file(
     ${CMAKE_CURRENT_LIST_DIR}/src/version.rc
     @ONLY
 )
-
-# ###################### ccache support #######################
-find_program(CCACHE_PROGRAM ccache)
-
-if(CCACHE_PROGRAM)
-    message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
-    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-
-    message(NOTICE "ccache detected. Configure ccache globally for your development environment:")
-    message(NOTICE "  Recommended for all platforms:")
-    message(NOTICE "    ccache --set-config=compression=true")
-    message(NOTICE "    ccache --set-config=max_size=<appropriate for your projects>")
-    message(NOTICE "    ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime")
-
-    if(MSVC)
-        message(NOTICE "  Required for MSVC:")
-
-        message(NOTICE "    ccache --set-config=pch_external_checksum=true")
-        message(NOTICE "    ccache --set-config=depend_mode=true")
-        message(NOTICE "    ccache --set-config=\"ignore_options=/Zi /Z7 /ZI /FS /Fd*\"")
-    endif()
-
-    message(NOTICE "  Run 'ccache --show-config' to verify current settings")
-    message(NOTICE "  Run 'ccache -s' to monitor cache usage")
-endif()
 
 if(MSVC)
     # /O1 often results in faster code than /O2 due to CPU caching
@@ -207,10 +181,7 @@ endif()
 
 include(FetchContent)
 
-# Suppress verbose FetchContent git output (CMake 3.30+)
-set(FETCHCONTENT_QUIET ON)
-
-# Suppress verbose FetchContent git output (CMake 3.30+)
+# Suppress verbose FetchContent git output
 set(FETCHCONTENT_QUIET ON)
 
 # Set wxWidgets build options BEFORE FetchContent_MakeAvailable
@@ -369,6 +340,9 @@ list(APPEND wxWidgets_BUILTIN_LIBS webp webpdemux sharpyuv)
 if(NOT APPLE)
     list(APPEND wxWidgets_BUILTIN_LIBS wxtiff wxregex)
 endif()
+
+# ###################### kwxgen code generator subdirectory #######################
+add_subdirectory(kwxgen)
 
 # PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
 target_link_libraries(kwxFFI PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})

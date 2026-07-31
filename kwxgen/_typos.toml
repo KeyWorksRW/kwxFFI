@@ -1,0 +1,20 @@
+# typos spell checker configuration
+# See: https://github.com/crate-ci/typos
+
+[files]
+# Exclude build artifacts and generated files
+extend-exclude = [
+    "build/",
+]
+
+[default]
+# Locale setting
+locale = "en-us"
+
+# Custom dictionary additions
+[default.extend-words]
+capitalise = "capitalise"  # British spelling used in comments
+
+# Third-party or generated identifiers that aren't actually typos
+[default.extend-identifiers]
+wxColour = "wxColour"  # wxWidgets type name this generator processes
