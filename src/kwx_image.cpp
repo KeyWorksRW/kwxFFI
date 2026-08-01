@@ -60,7 +60,8 @@ extern "C"
         size_t outLen = wxBase64DecodedSize(len);
         wxMemoryBuffer buf(outLen);
         size_t actualLen =
-            wxBase64Decode(buf.GetData(), outLen, base64, len, wxBase64DecodeMode::Strict);
+            wxBase64Decode(buf.GetData(), outLen, reinterpret_cast<const char*>(base64), len,
+                           wxBase64DecodeMode_Strict);
         if (actualLen == wxCONV_FAILED)
             return wxMemoryBuffer();
         buf.SetDataLen(actualLen);
