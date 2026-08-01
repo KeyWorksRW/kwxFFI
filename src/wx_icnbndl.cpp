@@ -52,10 +52,16 @@ extern "C"
                                              int bitmap_type)
     {
         wxMemoryInputStream strm(data, size);
-        wxIcon icon;
-        if (!icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (!bmp.IsOk())
             return nullptr;
+        wxIcon icon;
+#ifdef __WIN32__
+        icon.CopyFromBitmap(bmp);
         return (void*) new wxIconBundle(icon);
+#else
+        return nullptr;  // CopyFromBitmap not available on this platform
+#endif
     }
 
     EXPORT void* wxIconBundle_CreateFromBase64(const unsigned char* base64, size_t len,
@@ -71,19 +77,31 @@ extern "C"
             return nullptr;
 
         wxMemoryInputStream strm(buf.GetData(), actualLen);
-        wxIcon icon;
-        if (!icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (!bmp.IsOk())
             return nullptr;
+        wxIcon icon;
+#ifdef __WIN32__
+        icon.CopyFromBitmap(bmp);
         return (void*) new wxIconBundle(icon);
+#else
+        return nullptr;  // CopyFromBitmap not available on this platform
+#endif
     }
 
     EXPORT void wxIconBundle_AddIconFromData(void* pObject, const unsigned char* data, size_t size,
                                              int bitmap_type)
     {
         wxMemoryInputStream strm(data, size);
-        wxIcon icon;
-        if (icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (bmp.IsOk())
+        {
+#ifdef __WIN32__
+            wxIcon icon;
+            icon.CopyFromBitmap(bmp);
             ((wxIconBundle*) pObject)->AddIcon(icon);
+#endif
+        }
     }
 
     EXPORT void wxIconBundle_AddIconFromBase64(void* pObject, const unsigned char* base64,
@@ -98,8 +116,14 @@ extern "C"
             return;
 
         wxMemoryInputStream strm(buf.GetData(), actualLen);
-        wxIcon icon;
-        if (icon.LoadFile(strm, static_cast<wxBitmapType>(bitmap_type)))
+        wxBitmap bmp(strm, static_cast<wxBitmapType>(bitmap_type));
+        if (bmp.IsOk())
+        {
+#ifdef __WIN32__
+            wxIcon icon;
+            icon.CopyFromBitmap(bmp);
             ((wxIconBundle*) pObject)->AddIcon(icon);
+#endif
+        }
     }
 }
