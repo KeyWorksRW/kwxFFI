@@ -226,14 +226,25 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     }
 
     // Array types: count (i32) + pointer to data
-    if (param_in.macro_name == "TArrayString" || param_in.macro_name == "TArrayInt" ||
-        param_in.macro_name == "TByteString" || param_in.macro_name == "TByteStringLazy")
+    if (param_in.macro_name == "TArrayString" || param_in.macro_name == "TArrayInt")
     {
         const std::vector<std::string> names = TsSplitMacroArg(param_in.macro_arg);
         if (names.size() >= 2ULL)
         {
             result.push_back({ "\"i32\"", TsEscapeName(names[0]) });
             result.push_back({ "\"pointer\"", TsEscapeName(names[1]) });
+        }
+        return result;
+    }
+
+    // Byte strings: data pointer first, then length (REVERSED vs TArrayString).
+    if (param_in.macro_name == "TByteString" || param_in.macro_name == "TByteStringLazy")
+    {
+        const std::vector<std::string> names = TsSplitMacroArg(param_in.macro_arg);
+        if (names.size() >= 2ULL)
+        {
+            result.push_back({ "\"pointer\"", TsEscapeName(names[0]) });  // char** data
+            result.push_back({ "\"i32\"", TsEscapeName(names[1]) });      // int length
         }
         return result;
     }
@@ -261,10 +272,17 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
         return result;
     }
 
-    if (param_in.raw_type == "TBoolInt" || param_in.raw_type == "TBool*")
+    if (param_in.raw_type == "TBoolInt")
     {
         const std::string pname = param_in.param_name.empty() ? "flag" : param_in.param_name;
         result.push_back({ "\"i32\"", TsEscapeName(pname) });
+        return result;
+    }
+
+    if (param_in.raw_type == "TBool*")
+    {
+        const std::string pname = param_in.param_name.empty() ? "flag" : param_in.param_name;
+        result.push_back({ "\"pointer\"", TsEscapeName(pname) });
         return result;
     }
 
