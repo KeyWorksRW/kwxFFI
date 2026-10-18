@@ -123,8 +123,7 @@ struct WrapParam
     }
 
     // TBool/TBoolInt → accept boolean in TS, convert to 1/0 for the C call
-    if (param.macro_name == "TBool" || param.raw_type == "TBool" || param.raw_type == "TBoolInt" ||
-        param.raw_type == "TBool*")
+    if (param.macro_name == "TBool" || param.raw_type == "TBool" || param.raw_type == "TBoolInt")
     {
         const std::string pname =
             TsEscapeName(param.param_name.empty() ? "flag" : param.param_name);
