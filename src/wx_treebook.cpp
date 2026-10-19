@@ -10,18 +10,18 @@
 
 extern "C"
 {
-    EXPORT wxTreebook* wxTreebook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
-                                         int style)
+    EXPORT wxTreebook* wxTreebook_Create(wxWindow* parent, int id, int x, int y, int width,
+                                         int height, int style)
     {
         return new wxTreebook(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT int wxTreebook_GetPageCount(wxTreebook* self)
+    EXPORT size_t wxTreebook_GetPageCount(wxTreebook* self)
     {
         return self->GetPageCount();
     }
 
-    EXPORT int wxTreebook_SetSelection(wxTreebook* self, int nPage)
+    EXPORT int wxTreebook_SetSelection(wxTreebook* self, size_t nPage)
     {
         return self->SetSelection(nPage);
     }
@@ -36,12 +36,12 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxTreebook_SetPageText(wxTreebook* self, int nPage, wxString* strText)
+    EXPORT bool wxTreebook_SetPageText(wxTreebook* self, size_t nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
 
-    EXPORT wxString* wxTreebook_GetPageText(wxTreebook* self, int nPage)
+    EXPORT wxString* wxTreebook_GetPageText(wxTreebook* self, size_t nPage)
     {
         wxString* result = new wxString();
         *result = self->GetPageText(nPage);
@@ -58,22 +58,22 @@ extern "C"
         return self->GetImageList();
     }
 
-    EXPORT int wxTreebook_GetPageImage(wxTreebook* self, int nPage)
+    EXPORT int wxTreebook_GetPageImage(wxTreebook* self, size_t nPage)
     {
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxTreebook_SetPageImage(wxTreebook* self, int nPage, int nImage)
+    EXPORT bool wxTreebook_SetPageImage(wxTreebook* self, size_t nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
 
-    EXPORT bool wxTreebook_DeletePage(wxTreebook* self, int nPage)
+    EXPORT bool wxTreebook_DeletePage(wxTreebook* self, size_t nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxTreebook_RemovePage(wxTreebook* self, int nPage)
+    EXPORT bool wxTreebook_RemovePage(wxTreebook* self, size_t nPage)
     {
         return self->RemovePage(nPage);
     }
@@ -89,7 +89,7 @@ extern "C"
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxTreebook_InsertPage(wxTreebook* self, int nPage, wxWindow* pPage,
+    EXPORT bool wxTreebook_InsertPage(wxTreebook* self, size_t nPage, wxWindow* pPage,
                                       wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
@@ -107,12 +107,12 @@ extern "C"
         return self->AddSubPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT wxWindow* wxTreebook_GetPage(wxTreebook* self, int nPage)
+    EXPORT wxWindow* wxTreebook_GetPage(wxTreebook* self, size_t nPage)
     {
         return self->GetPage(nPage);
     }
 
-    EXPORT int wxTreebook_GetPageParent(wxTreebook* self, int nPage)
+    EXPORT int wxTreebook_GetPageParent(wxTreebook* self, size_t nPage)
     {
         return self->GetPageParent(nPage);
     }

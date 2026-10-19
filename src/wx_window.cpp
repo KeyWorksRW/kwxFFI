@@ -188,9 +188,9 @@ extern "C"
         return self->Hide();
     }
 
-    EXPORT bool wxWindow_Enable(wxWindow* self)
+    EXPORT bool wxWindow_Enable(wxWindow* self, bool enable)
     {
-        return self->Enable();
+        return self->Enable(enable);
     }
 
     EXPORT bool wxWindow_Disable(wxWindow* self)
@@ -436,9 +436,9 @@ extern "C"
         return cur;
     }
 
-    EXPORT void wxWindow_SetFont(wxWindow* self, wxFont* font)
+    EXPORT bool wxWindow_SetFont(wxWindow* self, wxFont* font)
     {
-        self->SetFont(*font);
+        return self->SetFont(*font);
     }
 
     EXPORT void wxWindow_GetFont(wxWindow* self, wxFont* font)

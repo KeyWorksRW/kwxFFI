@@ -1177,7 +1177,7 @@ extern "C"
         self->SetSelectedFont(*font);
     }
 
-    EXPORT size_t wxAuiNotebook_SetSelection(wxAuiNotebook* self, size_t new_page)
+    EXPORT int wxAuiNotebook_SetSelection(wxAuiNotebook* self, size_t new_page)
     {
         return self->SetSelection(new_page);
     }

@@ -9,6 +9,9 @@
 
 #include "../emitter.h"
 
+#include <string>
+#include <unordered_map>
+
 class TypeScriptEmitter : public LanguageEmitter
 {
 public:
@@ -37,7 +40,8 @@ private:
     static void GenerateIndex(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
     // Emits the body of a single TypeScript class wrapper file.
-    static void EmitClassFile(std::ostream& output, const ClassInfo& cls, const ParsedFFI& ffi);
+    static void EmitClassFile(std::ostream& output, const ClassInfo& cls, const ParsedFFI& ffi,
+                              const std::unordered_map<std::string, const ClassInfo*>& class_index);
 
     // Emits kwx_helpers_gen.ts — wxString conversion utilities for generated code.
     static void GenerateHelpers(const std::filesystem::path& out_dir);

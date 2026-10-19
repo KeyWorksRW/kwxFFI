@@ -7,6 +7,7 @@
 
 #include "verify.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -19,7 +20,9 @@ namespace fs = std::filesystem;
 
 static std::string ReadFileContents(const fs::path& path)
 {
-    const std::ifstream input_file(path, std::ios::binary);
+    // Text mode: ConditionalFileWriter compares normalized text, so CRLF/LF differences
+    // must not be reported as a content mismatch.
+    const std::ifstream input_file(path);
     if (!input_file.is_open())
     {
         return std::string {};
@@ -29,7 +32,18 @@ static std::string ReadFileContents(const fs::path& path)
     return content_stream.str();
 }
 
-VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_dir)
+static bool HasGeneratedSuffix(const fs::path& path, std::span<const std::string_view> suffixes)
+{
+    const std::string file_name = path.filename().string();
+    return std::ranges::any_of(suffixes,
+                               [&file_name](std::string_view candidate)
+                               {
+                                   return file_name.ends_with(candidate);
+                               });
+}
+
+VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_dir,
+                                  std::span<const std::string_view> suffixes)
 {
     VerifyResult result;
 
@@ -47,13 +61,13 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
         return result;
     }
 
-    // Collect filenames in each directory (non-recursive, *.go files only)
+    // Collect generated filenames in each directory (non-recursive).
     std::set<std::string> gen_files;
     std::set<std::string> ref_files;
 
     for (const auto& entry: fs::directory_iterator(gen_dir))
     {
-        if (entry.is_regular_file() && entry.path().extension() == ".go")
+        if (entry.is_regular_file() && HasGeneratedSuffix(entry.path(), suffixes))
         {
             gen_files.insert(entry.path().filename().string());
         }
@@ -61,7 +75,7 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
 
     for (const auto& entry: fs::directory_iterator(ref_dir))
     {
-        if (entry.is_regular_file() && entry.path().extension() == ".go")
+        if (entry.is_regular_file() && HasGeneratedSuffix(entry.path(), suffixes))
         {
             ref_files.insert(entry.path().filename().string());
         }

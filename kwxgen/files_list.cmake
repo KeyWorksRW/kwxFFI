@@ -5,6 +5,7 @@ set(KWXGEN_SRC_FILES
     src/keys_parser.cpp        # Parses keyboard key code declarations
     src/defs_parser.cpp        # Parses constant/define declarations
     src/constants_parser.cpp   # Parses free function declarations
+    src/deno_check.cpp         # Type-checks generated TypeScript with deno check
     src/exports_gen.cpp        # Generates platform-specific export files
     src/file_writer.cpp        # ConditionalFileWriter — writes only if content changed
     src/parser_utils.cpp       # Common parsing utilities: trim, split, macros
@@ -18,6 +19,7 @@ set(KWXGEN_SRC_FILES
     # src/lang/lang_perl.cpp     # Generates Perl FFI bindings
     src/lang/lang_typescript.cpp # Generates TypeScript FFI bindings
 
+    src/deno_check.h           # Declarations for the deno check integration
     src/emitter.h              # Base class for language-specific code emitters
     src/model.h                # Data structures representing parsed classes, events, keys, etc.
     src/lang/lang_common.h     # Common definitions and utilities for language bindings

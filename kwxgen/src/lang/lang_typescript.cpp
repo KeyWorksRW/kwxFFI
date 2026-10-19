@@ -23,6 +23,7 @@
 #include "typescript_type_map.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <print>
 #include <set>
@@ -74,6 +75,154 @@ namespace fs = std::filesystem;
         }
     }
     return true;
+}
+
+// A C++ method that hides a same-named base method with an incompatible signature
+// cannot keep that name on the TypeScript side.  Rename only the TS wrapper; the
+// exported C symbol and its ABI stay unchanged.
+struct TsMemberRename
+{
+    std::string_view class_name;
+    std::string_view method_name;
+    std::string_view ts_name;
+};
+
+static constexpr std::array<TsMemberRename, 11> TS_MEMBER_RENAMES = { {
+    { "wxBitmapComboBox", "Append", "AppendWithBitmap" },
+    { "wxComboBox", "GetClientData", "GetItemClientData" },
+    { "wxComboBox", "SetClientData", "SetItemClientData" },
+    { "wxListBox", "GetClientData", "GetItemClientData" },
+    { "wxListBox", "SetClientData", "SetItemClientData" },
+    { "wxTreeCtrl", "GetParent", "GetItemParent" },
+    { "wxScrolledWindow", "GetVirtualSize", "GetVirtualSizeXY" },
+    { "wxTipWindow", "Close", "CloseTip" },
+    { "wxGridBagSizer", "AddWindow", "AddWindowAt" },
+    { "wxGridBagSizer", "AddSizer", "AddSizerAt" },
+    { "wxGridBagSizer", "AddSpacer", "AddSpacerAt" },
+} };
+
+// Return the TypeScript member name for a method.  Item-level Delete methods
+// collide with the Delete() destructor emitted for every owned class, so they are
+// exposed as DeleteItem() while still calling the original C symbol.
+[[nodiscard]] static std::string TsMethodName(const std::string& class_name,
+                                              const FunctionDecl& func)
+{
+    if (func.method_name == "Delete" && !IsTrueDestructor(func))
+    {
+        return "DeleteItem";
+    }
+    for (const auto& rename: TS_MEMBER_RENAMES)
+    {
+        if (rename.class_name == class_name && rename.method_name == func.method_name)
+        {
+            return std::string(rename.ts_name);
+        }
+    }
+    return TsEscapeName(func.method_name);
+}
+
+// True for methods that build an object and are therefore emitted as module-level
+// factories.  The grid-cell classes historically used "Ctor" instead of "Create".
+[[nodiscard]] static bool IsFactoryMethod(const FunctionDecl& func)
+{
+    return (func.is_constructor || func.method_name == "Ctor") && !func.has_self;
+}
+
+// Return the module-level factory name for a constructor, e.g. wxButton + CreateLoad
+// → createWxButtonLoad.  Static factories cannot stay on the class because a derived
+// static side must be assignable to every ancestor's static side (TS2417).
+[[nodiscard]] static std::string TsFactoryName(const std::string& class_name,
+                                               const FunctionDecl& func)
+{
+    std::string suffix;
+    if (func.method_name == "Ctor")
+    {
+        suffix.clear();
+    }
+    else if (func.method_name.starts_with("Create"))
+    {
+        suffix = func.method_name.substr(std::string_view("Create").size());
+    }
+    else
+    {
+        suffix = func.method_name;
+    }
+
+    std::string factory_name = "create";
+    if (!class_name.empty())
+    {
+        factory_name += static_cast<char>(std::toupper(static_cast<unsigned char>(class_name[0])));
+        factory_name += class_name.substr(1);
+    }
+    factory_name += suffix;
+
+    // kwx_helpers_gen.ts already exports createWxString(string).  The wxString_Create
+    // factory takes a buffer pointer instead, so give it a non-conflicting name.
+    if (factory_name == "createWxString")
+    {
+        return "createWxStringFromBuffer";
+    }
+    return factory_name;
+}
+
+// Member names exposed by the TypeScript ancestors of a class.  Used to decide where
+// an `override` modifier is required (TS4114 / TS4113).
+struct AncestorMembers
+{
+    std::unordered_set<std::string> instance_names;
+    bool has_ptr = false;
+    bool has_delete = false;
+};
+
+[[nodiscard]] static AncestorMembers
+    CollectAncestorMembers(const std::string& class_name, const ParsedFFI& ffi,
+                           const std::unordered_set<std::string>& wrapped_classes,
+                           const std::unordered_map<std::string, const ClassInfo*>& class_index)
+{
+    AncestorMembers members;
+    std::set<std::string> visited;
+    std::unordered_map<std::string, std::string>::const_iterator iter =
+        ffi.parent_map.find(class_name);
+    while (iter != ffi.parent_map.end())
+    {
+        const std::string& parent = iter->second;
+        if (!visited.insert(parent).second)
+        {
+            break;  // cycle guard
+        }
+
+        if (wrapped_classes.contains(parent))
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator found =
+                class_index.find(parent);
+            const ClassInfo* const parent_class =
+                found != class_index.end() ? found->second : nullptr;
+            if (parent_class)
+            {
+                members.has_ptr = true;
+                for (const auto& func: parent_class->methods)
+                {
+                    if (!IsValidFunction(func))
+                    {
+                        continue;
+                    }
+                    if (IsFactoryMethod(func))
+                    {
+                        continue;  // factories are module-level, not inherited statics
+                    }
+                    if (IsTrueDestructor(func))
+                    {
+                        members.has_delete = true;
+                        continue;
+                    }
+                    members.instance_names.insert(TsMethodName(parent, func));
+                }
+            }
+        }
+
+        iter = ffi.parent_map.find(parent);
+    }
+    return members;
 }
 
 // One row of the shared integer-constant table.  ts_name is the exported TypeScript
@@ -205,7 +354,7 @@ struct WrapParam
     {
         // Constructor: return the enclosing class wrapped in null-check.
         // Regular methods returning a pointer: return an opaque Pointer.
-        if (func.is_constructor && !func.has_self)
+        if (IsFactoryMethod(func))
         {
             return class_name + " | null";
         }
@@ -241,9 +390,9 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
                            const std::string& class_name, const std::string& call_expr)
 {
     const bool is_void = func.return_type.empty() || func.return_type == "void";
-    const bool is_ctor = func.is_constructor && !func.has_self &&
-                         (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
-                          func.return_macro == "TClassRef");
+    const bool is_ctor =
+        IsFactoryMethod(func) && (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
+                                  func.return_macro == "TClassRef");
     const bool is_bool = func.return_type == "TBool" || func.return_type == "TBoolInt";
     const bool is_bigint = func.return_type == "uintptr_t" || func.return_type == "size_t";
 
@@ -456,14 +605,14 @@ void TypeScriptEmitter::GenerateHelpers(const fs::path& out_dir)
     output <<
         R"TS(import { lib } from "./kwx_ffi_gen.ts";
 import { pointerOf, readCString, Pointer } from "kwx/platform";
-import { wxString } from "./wxString_gen.ts";
+import { createWxStringUTF8, wxString } from "./wxString_gen.ts";
 
 // --- Helper: create a wxString from a JS string ---
 export function createWxString(s: string): wxString
 {
     const buf = new TextEncoder().encode(s + "\0");
     const ptr = pointerOf(buf);
-    const result = wxString.CreateUTF8(ptr);
+    const result = createWxStringUTF8(ptr);
     if (!result)
     {
         throw new Error(`Failed to create wxString for: ${s}`);
@@ -690,10 +839,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
         for (const auto& param: func.params)
         {
             const std::vector<WrapParam> params = BuildWrapParams(param);
-            for (const auto& wpar: params)
-            {
-                wrap_params.push_back(wpar);
-            }
+            wrap_params.insert(wrap_params.end(), params.begin(), params.end());
         }
 
         output << "export function " << TsEscapeName(func.method_name) << "(";
@@ -738,8 +884,9 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 // wx{Class}_gen.ts — per-class TypeScript wrapper
 // -------------------------------------------------------------------------
 
-void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls,
-                                      const ParsedFFI& ffi)
+void TypeScriptEmitter::EmitClassFile(
+    std::ostream& output, const ClassInfo& cls, const ParsedFFI& ffi,
+    const std::unordered_map<std::string, const ClassInfo*>& class_index)
 {
     // Build the set of classes that actually have generated wrapper methods.
     std::unordered_set<std::string> wrapped_classes;
@@ -753,6 +900,8 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
 
     // Find the nearest wrapped ancestor for extends-based inheritance.
     const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
+    const AncestorMembers ancestors =
+        CollectAncestorMembers(cls.name, ffi, wrapped_classes, class_index);
 
     WriteGeneratedHeader(output, "//");
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
@@ -778,77 +927,9 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
         output << "  }\n\n";
     }
     output << "  /** Returns the underlying native pointer. */\n";
-    output << "  get ptr(): Pointer {\n";
+    output << "  " << (ancestors.has_ptr ? "override " : "") << "get ptr(): Pointer {\n";
     output << "    return this._ptr;\n";
     output << "  }\n\n";
-
-    // Separate deduplication sets: static and instance methods do not share a namespace.
-    std::set<std::string> emitted_static_names;
-
-    // --- Constructors (static factory methods) ---
-    for (const auto& func: cls.methods)
-    {
-        if (!IsValidFunction(func))
-        {
-            continue;
-        }
-        if (!func.is_constructor || func.has_self)
-        {
-            continue;
-        }
-
-        const std::string method_name = func.method_name;
-        if (!emitted_static_names.insert(method_name).second)
-        {
-            continue;  // skip duplicate
-        }
-
-        const std::string func_name = CFuncName(func);
-        const std::string ret_type = WrapReturnType(func, cls.name);
-
-        std::vector<WrapParam> wrap_params;
-        for (const auto& param: func.params)
-        {
-            const std::vector<WrapParam> params = BuildWrapParams(param);
-            for (const auto& wpar: params)
-            {
-                wrap_params.push_back(wpar);
-            }
-        }
-        output << "  static " << TsEscapeName(method_name) << "(";
-        bool first = true;
-        for (const auto& wpar: wrap_params)
-        {
-            if (wpar.is_self)
-            {
-                continue;
-            }
-            if (!first)
-            {
-                output << ", ";
-            }
-            output << wpar.name << ": " << wpar.ts_type;
-            first = false;
-        }
-        output << "): " << ret_type << " {\n";
-
-        std::string call = "lib.symbols." + func_name + "(";
-        bool call_first = true;
-        for (const auto& wpar: wrap_params)
-        {
-            if (!call_first)
-            {
-                call += ", ";
-            }
-            call += wpar.ffi_expr;
-            call_first = false;
-        }
-        call += ")";
-
-        EmitWrapReturn(output, func, cls.name, call);
-
-        output << "  }\n\n";
-    }
 
     // --- Destructor ---
     for (const auto& func: cls.methods)
@@ -859,11 +940,12 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
         }
 
         const std::string func_name = CFuncName(func);
+        const std::string override_prefix = ancestors.has_delete ? "override " : "";
 
-        output << "  Delete(): void {\n";
+        output << "  " << override_prefix << "Delete(): void {\n";
         output << "    lib.symbols." << func_name << "(this._ptr);\n";
         output << "  }\n\n";
-        output << "  [Symbol.dispose](): void {\n";
+        output << "  " << override_prefix << "[Symbol.dispose](): void {\n";
         output << "    this.Delete();\n";
         output << "  }\n\n";
         break;
@@ -877,8 +959,8 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
         {
             continue;
         }
-        // Skip constructors (emitted above as static)
-        if (func.is_constructor && !func.has_self)
+        // Skip constructors (emitted below as module-level factory functions)
+        if (IsFactoryMethod(func))
         {
             continue;
         }
@@ -888,7 +970,8 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
             continue;
         }
 
-        if (!emitted_instance_names.insert(func.method_name).second)
+        const std::string method_name = TsMethodName(cls.name, func);
+        if (!emitted_instance_names.insert(method_name).second)
         {
             continue;  // skip duplicate overload
         }
@@ -909,12 +992,10 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
                 continue;
             }
             const std::vector<WrapParam> params = BuildWrapParams(param);
-            for (const auto& wpar: params)
-            {
-                wrap_params.push_back(wpar);
-            }
+            wrap_params.insert(wrap_params.end(), params.begin(), params.end());
         }
-        output << "  " << TsEscapeName(func.method_name) << "(";
+        output << "  " << (ancestors.instance_names.contains(method_name) ? "override " : "")
+               << method_name << "(";
         bool first = true;
         for (const auto& wpar: wrap_params)
         {
@@ -953,12 +1034,85 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
     }
 
     output << "}\n";
+
+    // --- Constructors as module-level factory functions ---
+    // Static factories cannot be inherited: TypeScript requires every derived static
+    // member to be assignable to the ancestor's static side (TS2417), which is
+    // impossible when each class declares a different Create() signature.
+    std::set<std::string> emitted_factory_names;
+    for (const auto& func: cls.methods)
+    {
+        if (!IsValidFunction(func))
+        {
+            continue;
+        }
+        if (!IsFactoryMethod(func))
+        {
+            continue;
+        }
+
+        const std::string factory_name = TsFactoryName(cls.name, func);
+        if (!emitted_factory_names.insert(factory_name).second)
+        {
+            continue;  // skip duplicate overload
+        }
+
+        const std::string func_name = CFuncName(func);
+        const std::string ret_type = WrapReturnType(func, cls.name);
+
+        std::vector<WrapParam> wrap_params;
+        for (const auto& param: func.params)
+        {
+            const std::vector<WrapParam> params = BuildWrapParams(param);
+            wrap_params.insert(wrap_params.end(), params.begin(), params.end());
+        }
+        output << "\nexport function " << factory_name << "(";
+        bool first = true;
+        for (const auto& wpar: wrap_params)
+        {
+            if (wpar.is_self)
+            {
+                continue;
+            }
+            if (!first)
+            {
+                output << ", ";
+            }
+            output << wpar.name << ": " << wpar.ts_type;
+            first = false;
+        }
+        output << "): " << ret_type << " {\n";
+
+        std::string call = "lib.symbols." + func_name + "(";
+        bool call_first = true;
+        for (const auto& wpar: wrap_params)
+        {
+            if (!call_first)
+            {
+                call += ", ";
+            }
+            call += wpar.ffi_expr;
+            call_first = false;
+        }
+        call += ")";
+
+        EmitWrapReturn(output, func, cls.name, call);
+
+        output << "}\n";
+    }
 }
 
 void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& out_dir)
 {
     std::vector<std::string> class_names;
     size_t total_methods = 0;
+
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    class_index.reserve(ffi.classes.size());
+    for (const auto& cls: ffi.classes)
+    {
+        class_index.emplace(cls.name, &cls);
+    }
 
     for (const auto& cls: ffi.classes)
     {
@@ -970,7 +1124,7 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
         const fs::path file_path = out_dir / TsClassFileName(cls.name);
         ConditionalFileWriter output(file_path);
 
-        EmitClassFile(output, cls, ffi);
+        EmitClassFile(output, cls, ffi, class_index);
         class_names.push_back(cls.name);
 
         for (const auto& func: cls.methods)
@@ -1023,7 +1177,8 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
     output << "\n";
     for (const auto& name: class_names)
     {
-        output << "export { " << name << " } from \"" << TsClassImportPath(name) << "\";\n";
+        // Re-export the class and its module-level factory functions.
+        output << "export * from \"" << TsClassImportPath(name) << "\";\n";
     }
 
     std::println(stderr, "  kwx_gen.ts:              {} class exports", class_names.size());

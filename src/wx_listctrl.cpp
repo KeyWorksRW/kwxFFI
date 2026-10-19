@@ -196,9 +196,9 @@ extern "C"
         return (int) self->SetForegroundColour(*col);
     }
 
-    EXPORT int wxListCtrl_SetBackgroundColour(wxListCtrl* self, wxColour* col)
+    EXPORT bool wxListCtrl_SetBackgroundColour(wxListCtrl* self, wxColour* col)
     {
-        return (int) self->SetBackgroundColour(*col);
+        return self->SetBackgroundColour(*col);
     }
 
     EXPORT int wxListCtrl_GetColumn(wxListCtrl* self, int col, wxListItem* item)
