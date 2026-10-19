@@ -170,6 +170,11 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
 - `kwx_ffi_gen.ts` — `Deno.dlopen` call with all C symbol definitions (classes, free functions,
   events, keys, constants). Import `lib` from this module to call functions directly.
 - `kwx_constants_gen.ts` — Eagerly-evaluated numeric exports for all events, keys, and constants.
+  Integer-valued constants are read from a single lazily-filled C table; pointer-valued
+  constants call their accessor eagerly.
+- `kwx_constants_table_gen.cpp` — Generated C table (with `kwxConstants_IntCount` /
+  `kwxConstants_IntTable` accessors) consumed by `kwx_constants_gen.ts`. Compile it into the
+  kwxFFI shared library alongside the other `src/` files.
 - `kwx_free_functions_gen.ts` — TypeScript wrappers for non-class C functions.
 - `wx{Class}_gen.ts` — One file per class with a TypeScript class wrapping the FFI calls.
 - `kwx_gen.ts` — Master barrel re-export of every generated module.

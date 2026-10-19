@@ -21,8 +21,11 @@ private:
     // Emits kwx_ffi_gen.ts — the Deno.dlopen call with all C symbol definitions.
     static void GenerateFfi(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
-    // Emits kwx_constants_gen.ts — eagerly-evaluated events, keys, and constants.
+    // Emits kwx_constants_gen.ts — table-backed events, keys, and constants.
     static void GenerateConstants(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
+
+    // Emits kwx_constants_table_gen.cpp — the lazily-filled integer constant table.
+    static void GenerateConstantsTableC(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
     // Emits kwx_free_functions_gen.ts — free-function TypeScript wrappers.
     static void GenerateFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& out_dir);

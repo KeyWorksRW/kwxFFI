@@ -9,8 +9,9 @@
 //   kwx_ffi_gen.ts          — Deno.dlopen with every C symbol (classes + free functions +
 //                             events/keys/constants).  Import `lib` from this module to call
 //                             functions directly via lib.symbols.SomeFunc(...).
-//   kwx_constants_gen.ts    — Eagerly-initialized numeric exports for all events, keys, and
-//                             general constants (calls the FFI accessor functions at load time).
+//   kwx_constants_gen.ts    — Numeric exports for all events, keys, and general constants;
+//                             integer values come from one lazily-filled C table.
+//   kwx_constants_table_gen.cpp — Generated C side of that table.
 //   kwx_free_functions_gen.ts — TypeScript wrappers for non-class C functions.
 //   wx{Class}_gen.ts        — One file per class with a TypeScript class that wraps the FFI.
 //   kwx_gen.ts              — Master barrel re-export of every generated module.
@@ -73,6 +74,56 @@ namespace fs = std::filesystem;
         }
     }
     return true;
+}
+
+// One row of the shared integer-constant table.  ts_name is the exported TypeScript
+// identifier; c_name is the C accessor symbol (e.g. "exp_wxEVT_ACTIVATE").
+struct ConstTableEntry
+{
+    std::string ts_name;
+    std::string c_name;
+};
+
+// Build the integer-valued constant table in the exact order used to assign TS array
+// indices.  Both the TypeScript emitter and the C-table emitter call this so their
+// orderings cannot drift.  Events are de-duplicated by name (first wins after sort),
+// keys are included in full, and constants are restricted to non-pointer return types.
+[[nodiscard]] static std::vector<ConstTableEntry> BuildIntConstantTable(const ParsedFFI& ffi)
+{
+    std::vector<ConstTableEntry> entries;
+
+    std::vector<EventDecl> sorted_events = ffi.events;
+    std::ranges::sort(sorted_events, {}, &EventDecl::event_name);
+    std::string last_event;
+    for (const auto& event: sorted_events)
+    {
+        if (event.event_name == last_event)
+        {
+            continue;
+        }
+        last_event = event.event_name;
+        entries.push_back({ event.event_name, event.export_name });
+    }
+
+    std::vector<KeyDecl> sorted_keys = ffi.keys;
+    std::ranges::sort(sorted_keys, {}, &KeyDecl::key_name);
+    for (const auto& key: sorted_keys)
+    {
+        entries.push_back({ key.key_name, key.export_name });
+    }
+
+    std::vector<ConstantDecl> sorted_consts = ffi.constants;
+    std::ranges::sort(sorted_consts, {}, &ConstantDecl::constant_name);
+    for (const auto& cnst: sorted_consts)
+    {
+        if (cnst.return_type.contains('*'))
+        {
+            continue;
+        }
+        entries.push_back({ cnst.constant_name, cnst.export_name });
+    }
+
+    return entries;
 }
 
 // Find the nearest wrapped ancestor of class_name by walking the parent_map chain.
@@ -274,6 +325,7 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 
     GenerateFfi(ffi, out_dir);
     GenerateConstants(ffi, out_dir);
+    GenerateConstantsTableC(ffi, out_dir);
     GenerateHelpers(out_dir);
     GenerateFreeFunctions(ffi, out_dir);
     GenerateClassFiles(ffi, out_dir);
@@ -370,6 +422,11 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
                << " },\n";
     }
 
+    // Integer constant table accessors (always available — defined in the generated
+    // kwx_constants_table_gen.cpp).
+    output << "  kwxConstants_IntCount: { parameters: [], result: \"i32\" },\n";
+    output << "  kwxConstants_IntTable: { parameters: [], result: \"pointer\" },\n";
+
     // Always-available kwxFFI symbols (string buffer utilities)
     if (emitted_symbols.insert("kwxUtf8Buffer_Create").second)
     {
@@ -443,7 +500,7 @@ export function readAndDeleteWxString(wxStrPtr: Deno.PointerValue): string
 }
 
 // -------------------------------------------------------------------------
-// kwx_constants_gen.ts — eagerly-evaluated constants, events, and keys
+// kwx_constants_gen.ts — table-backed constants, events, and keys
 // -------------------------------------------------------------------------
 
 void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& out_dir)
@@ -453,6 +510,18 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
 
     WriteGeneratedHeader(output, "//");
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n\n";
+
+    const std::vector<ConstTableEntry> table = BuildIntConstantTable(ffi);
+
+    // Integer constants are read from a single generated C table (lazily filled) rather
+    // than issuing one eager FFI accessor call per constant.
+    output << "const _intCount = lib.symbols.kwxConstants_IntCount() as number;\n";
+    output << "const _intTable = lib.symbols.kwxConstants_IntTable() as Deno.PointerValue;\n";
+    output << "const _ints = new Int32Array(\n";
+    output << "    Deno.UnsafePointerView.getArrayBuffer(_intTable!, _intCount * 4)\n";
+    output << ");\n\n";
+
+    size_t index = 0;
 
     // Events
     if (!ffi.events.empty())
@@ -469,8 +538,9 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
                 continue;
             }
             last_event = event.event_name;
-            output << "export const " << event.event_name << ": number = lib.symbols."
-                   << event.export_name << "() as number;\n";
+            output << "export const " << event.event_name << ": number = _ints["
+                   << std::to_string(index) << "];\n";
+            ++index;
         }
         output << "\n";
     }
@@ -484,8 +554,9 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
 
         for (const auto& key: sorted_keys)
         {
-            output << "export const " << key.key_name << ": number = lib.symbols."
-                   << key.export_name << "() as number;\n";
+            output << "export const " << key.key_name << ": number = _ints["
+                   << std::to_string(index) << "];\n";
+            ++index;
         }
         output << "\n";
     }
@@ -508,14 +579,87 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
             }
             else
             {
-                output << "export const " << cnst.constant_name << ": number = lib.symbols."
-                       << cnst.export_name << "() as number;\n";
+                output << "export const " << cnst.constant_name << ": number = _ints["
+                       << std::to_string(index) << "];\n";
+                ++index;
             }
         }
     }
 
-    std::println(stderr, "  kwx_constants_gen.ts:    {} events, {} keys, {} constants",
-                 ffi.events.size(), ffi.keys.size(), ffi.constants.size());
+    std::println(stderr,
+                 "  kwx_constants_gen.ts:    {} events, {} keys, {} constants, "
+                 "{} in int table",
+                 ffi.events.size(), ffi.keys.size(), ffi.constants.size(), table.size());
+}
+
+// -------------------------------------------------------------------------
+// kwx_constants_table_gen.cpp — the integer constant table (C side)
+// -------------------------------------------------------------------------
+
+// Emits the C translation unit that exposes the integer-valued events, keys and
+// constants through a single lazily-filled int array.  Declarations are written as
+// bare `extern "C" int name();` prototypes (the events/keys/constants headers are not
+// included: events/keys declare C++ linkage and some constants have no prototype).
+void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::path& out_dir)
+{
+    const fs::path file_path = out_dir / "kwx_constants_table_gen.cpp";
+    ConditionalFileWriter output(file_path);
+
+    const std::vector<ConstTableEntry> table = BuildIntConstantTable(ffi);
+
+    output << "// Generated by kwxgen -- do not edit\n";
+    output << "#include \"kwx_def.h\"\n";
+    output << "#include <mutex>\n\n";
+
+    output << "extern \"C\"\n{\n";
+
+    // One declaration per distinct C export name, in table order.
+    std::unordered_set<std::string> declared;
+    for (const auto& entry: table)
+    {
+        if (!declared.insert(entry.c_name).second)
+        {
+            continue;
+        }
+        output << "int " << entry.c_name << "();\n";
+    }
+    output << "\n";
+
+    // Cast to a plain decimal string — the output stream may carry a locale that
+    // inserts thousands separators, which would corrupt the generated C.
+    const std::string table_size = std::to_string(table.size());
+
+    if (table.empty())
+    {
+        output << "static int s_values[1];\n";
+    }
+    else
+    {
+        output << "static int s_values[" << table_size << "];\n";
+    }
+    output << "static std::once_flag s_once;\n\n";
+
+    output << "WXFFI_EXPORT(int, kwxConstants_IntCount)()\n{\n";
+    output << "    return " << table_size << ";\n";
+    output << "}\n\n";
+
+    output << "WXFFI_EXPORT(const int*, kwxConstants_IntTable)()\n{\n";
+    output << "    std::call_once(s_once, [] {\n";
+    if (!table.empty())
+    {
+        output << "        int i = 0;\n";
+        for (const auto& entry: table)
+        {
+            output << "        s_values[i++] = " << entry.c_name << "();\n";
+        }
+    }
+    output << "    });\n";
+    output << "    return s_values;\n";
+    output << "}\n";
+
+    output << "}\n";
+
+    std::println(stderr, "  kwx_constants_table_gen.cpp: {} table entries", table.size());
 }
 
 // -------------------------------------------------------------------------

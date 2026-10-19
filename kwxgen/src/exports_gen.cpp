@@ -51,6 +51,10 @@ std::vector<std::string> CollectExportSymbols(const ParsedFFI& ffi_data)
         symbols.push_back(constant.export_name);
     }
 
+    // Lazily-filled integer constant table accessors (generated kwx_constants_table_gen.cpp).
+    symbols.emplace_back("kwxConstants_IntCount");
+    symbols.emplace_back("kwxConstants_IntTable");
+
     // Free functions from kwx_constants.h and kwx_classes.h.
     for (const auto& func: ffi_data.free_functions)
     {
