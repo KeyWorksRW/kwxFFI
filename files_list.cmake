@@ -4,6 +4,7 @@ set( FFI_SRC_FILES
 
     src/kwx_apppath.cpp
     src/kwx_defs.cpp
+    src/kwx_constants_table_gen.cpp
     src/kwx_dragimage.cpp
     src/kwx_extra.cpp
 
