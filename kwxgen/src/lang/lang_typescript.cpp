@@ -4,6 +4,7 @@
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 /////////////////////////////////////////////////////////////////////////////
+// CR: [10-19-2026]
 
 // Generated file structure:
 //   kwx_ffi_gen.ts          — dlopen with every C symbol (classes + free functions +
@@ -24,9 +25,14 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <filesystem>
 #include <print>
 #include <set>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -48,8 +54,44 @@ namespace fs = std::filesystem;
     return "./" + class_name + "_gen.ts";
 }
 
+// Escape a value for embedding in a TypeScript double-quoted string literal.
+[[nodiscard]] static std::string EscapeTsString(std::string_view text)
+{
+    std::string out;
+    out.reserve(text.size());
+    for (const char character: text)
+    {
+        switch (character)
+        {
+            case '\\':
+                out += "\\\\";
+                break;
+            case '"':
+                out += "\\\"";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            default:
+                out += character;
+                break;
+        }
+    }
+    return out;
+}
+
 // True if a non-constructor method's first parameter is TClass(ClassName) matching
 // the function's own class — acts as the implicit "self" receiver for mixin methods.
+// NOTE: this heuristic exists only for mixin methods, which are declared against the
+// mixin class with a TClass(mixin) receiver instead of TSelf.  The parser sets has_self
+// for genuine receivers, so a real method's first parameter is never mistaken for the
+// receiver.  Do NOT widen this predicate without that guarantee.
 [[nodiscard]] static bool IsPseudoSelf(const FunctionDecl& func)
 {
     if (func.has_self || func.class_name.empty() || func.params.empty())
@@ -60,19 +102,27 @@ namespace fs = std::filesystem;
     return first.macro_name == "TClass" && first.macro_arg == func.class_name;
 }
 
-// True if a destructor has only a TSelf parameter (no item-index or other params).
+// True if a destructor names the receiver (TSelf, or TClass of its own class) and has no
+// item-index/other params.
 [[nodiscard]] static bool IsTrueDestructor(const FunctionDecl& func)
 {
-    if (!func.is_destructor)
+    if (!func.is_destructor || func.params.empty())
     {
         return false;
     }
     for (const auto& param: func.params)
     {
-        if (param.macro_name != "TSelf")
+        if (param.macro_name == "TSelf")
         {
-            return false;
+            continue;
         }
+        // A destructor may be declared against the class itself (TClass(OwnClass))
+        // instead of TSelf; both denote the receiver.
+        if (param.macro_name == "TClass" && param.macro_arg == func.class_name)
+        {
+            continue;
+        }
+        return false;
     }
     return true;
 }
@@ -181,6 +231,7 @@ struct AncestorMembers
 {
     AncestorMembers members;
     std::set<std::string> visited;
+    visited.insert(class_name);  // seed the walk so a self-parent or cycle is caught
     std::unordered_map<std::string, std::string>::const_iterator iter =
         ffi.parent_map.find(class_name);
     while (iter != ffi.parent_map.end())
@@ -225,12 +276,25 @@ struct AncestorMembers
     return members;
 }
 
+// True if an FFI return type is an integer type safe to read through an int-returning
+// C accessor.  Anything else (including pointers) must NOT be declared with an `int`
+// prototype — such constants are skipped with a diagnostic instead.
+[[nodiscard]] static bool IsIntegerConstType(std::string_view return_type)
+{
+    static constexpr std::array<std::string_view, 9> INTEGER_TYPES = {
+        "int",   "unsigned",       "unsigned int", "long", "unsigned long",
+        "short", "unsigned short", "size_t",       "bool",
+    };
+    return std::ranges::find(INTEGER_TYPES, return_type) != INTEGER_TYPES.end();
+}
+
 // One row of the shared integer-constant table.  ts_name is the exported TypeScript
 // identifier; c_name is the C accessor symbol (e.g. "exp_wxEVT_ACTIVATE").
 struct ConstTableEntry
 {
     std::string ts_name;
     std::string c_name;
+    std::string c_type;  // C return type of the accessor (for the generated prototype)
 };
 
 // Build the integer-valued constant table in the exact order used to assign TS array
@@ -242,7 +306,7 @@ struct ConstTableEntry
     std::vector<ConstTableEntry> entries;
 
     std::vector<EventDecl> sorted_events = ffi.events;
-    std::ranges::sort(sorted_events, {}, &EventDecl::event_name);
+    std::ranges::stable_sort(sorted_events, {}, &EventDecl::event_name);
     std::string last_event;
     for (const auto& event: sorted_events)
     {
@@ -251,25 +315,41 @@ struct ConstTableEntry
             continue;
         }
         last_event = event.event_name;
-        entries.push_back({ event.event_name, event.export_name });
+        entries.push_back({ event.event_name, event.export_name, "int" });
     }
 
     std::vector<KeyDecl> sorted_keys = ffi.keys;
-    std::ranges::sort(sorted_keys, {}, &KeyDecl::key_name);
+    std::ranges::stable_sort(sorted_keys, {}, &KeyDecl::key_name);
+    std::set<std::string> seen_keys;
     for (const auto& key: sorted_keys)
     {
-        entries.push_back({ key.key_name, key.export_name });
+        if (!seen_keys.insert(key.key_name).second)
+        {
+            continue;  // duplicate name
+        }
+        entries.push_back({ key.key_name, key.export_name, "int" });
     }
 
     std::vector<ConstantDecl> sorted_consts = ffi.constants;
-    std::ranges::sort(sorted_consts, {}, &ConstantDecl::constant_name);
+    std::ranges::stable_sort(sorted_consts, {}, &ConstantDecl::constant_name);
+    std::set<std::string> seen_consts;
     for (const auto& cnst: sorted_consts)
     {
+        if (!seen_consts.insert(cnst.constant_name).second)
+        {
+            continue;  // duplicate name
+        }
         if (cnst.return_type.contains('*'))
         {
+            continue;  // pointer-valued: exported directly, never in the int table
+        }
+        if (!IsIntegerConstType(cnst.return_type))
+        {
+            std::println(stderr, "  Warning: constant {} has unsupported return type {} — omitted",
+                         cnst.constant_name, cnst.return_type);
             continue;
         }
-        entries.push_back({ cnst.constant_name, cnst.export_name });
+        entries.push_back({ cnst.constant_name, cnst.export_name, cnst.return_type });
     }
 
     return entries;
@@ -284,10 +364,11 @@ struct ConstTableEntry
     std::unordered_map<std::string, std::string>::const_iterator iter =
         ffi.parent_map.find(class_name);
     std::set<std::string> visited;
+    visited.insert(class_name);  // seed the walk so a self-parent or cycle is caught
     while (iter != ffi.parent_map.end())
     {
         const std::string& parent = iter->second;
-        if (visited.contains(parent))
+        if (parent == class_name || visited.contains(parent))
         {
             break;  // cycle guard
         }
@@ -340,6 +421,14 @@ struct WrapParam
     return result;
 }
 
+// The class a factory wrapper constructs.  return_arg holds the actual returned class
+// (e.g. TClass(wxButton) → "wxButton"); fall back to the enclosing class.
+[[nodiscard]] static std::string EffectiveFactoryClass(const FunctionDecl& func,
+                                                       const std::string& class_name)
+{
+    return func.return_arg.empty() ? class_name : func.return_arg;
+}
+
 // Return the TypeScript return type annotation for a method in the class wrapper layer.
 // class_name is the enclosing class (used when return is TClass/TSelf → ClassName | null).
 [[nodiscard]] static std::string WrapReturnType(const FunctionDecl& func,
@@ -352,11 +441,11 @@ struct WrapParam
     if (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
         func.return_macro == "TClassRef")
     {
-        // Constructor: return the enclosing class wrapped in null-check.
-        // Regular methods returning a pointer: return an opaque Pointer.
-        if (IsFactoryMethod(func))
+        // Constructor: return the wrapped class in a null-check.  A free function has no
+        // enclosing class, so it never takes the factory path.
+        if (IsFactoryMethod(func) && !class_name.empty())
         {
-            return class_name + " | null";
+            return EffectiveFactoryClass(func, class_name) + " | null";
         }
         return "Pointer";
     }
@@ -390,9 +479,9 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
                            const std::string& class_name, const std::string& call_expr)
 {
     const bool is_void = func.return_type.empty() || func.return_type == "void";
-    const bool is_ctor =
-        IsFactoryMethod(func) && (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
-                                  func.return_macro == "TClassRef");
+    const bool is_ctor = !class_name.empty() && IsFactoryMethod(func) &&
+                         (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
+                          func.return_macro == "TClassRef");
     const bool is_bool = func.return_type == "TBool" || func.return_type == "TBoolInt";
     const bool is_bigint = func.return_type == "uintptr_t" || func.return_type == "size_t";
 
@@ -406,7 +495,7 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     {
         output << "    const rawPtr = " << call_expr << ";\n";
         output << "    if (rawPtr === null) return null;\n";
-        output << "    return new " << class_name << "(rawPtr);\n";
+        output << "    return new " << EffectiveFactoryClass(func, class_name) << "(rawPtr);\n";
         return;
     }
 
@@ -423,6 +512,70 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     }
 
     output << "    return " << call_expr << ";\n";
+}
+
+// Emit a single instance-method wrapper.  method_owner is the class the method is
+// declared against (used for member renames); the receiver is always this._ptr.
+static void EmitInstanceMethod(std::ostream& output, const AncestorMembers& ancestors,
+                               const std::string& method_owner, const FunctionDecl& func)
+{
+    const bool pseudo_self = IsPseudoSelf(func);
+    const std::string method_name = TsMethodName(method_owner, func);
+    const std::string func_name = CFuncName(func);
+    const std::string ret_type = WrapReturnType(func, method_owner);
+
+    std::vector<WrapParam> wrap_params;
+    for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
+    {
+        const Param& param = func.params[pidx];
+        if (pseudo_self && pidx == 0)
+        {
+            // First param is TClass(ClassName) acting as self
+            wrap_params.push_back({ "", "", "this._ptr", true });
+            continue;
+        }
+        const std::vector<WrapParam> params = BuildWrapParams(param);
+        wrap_params.insert(wrap_params.end(), params.begin(), params.end());
+    }
+    output << "  " << (ancestors.instance_names.contains(method_name) ? "override " : "")
+           << method_name << "(";
+    bool first = true;
+    for (const auto& wpar: wrap_params)
+    {
+        if (wpar.is_self)
+        {
+            continue;
+        }
+        if (!first)
+        {
+            output << ", ";
+        }
+        output << wpar.name << ": " << wpar.ts_type;
+        first = false;
+    }
+    output << "): " << ret_type << " {\n";
+
+    if (method_name == "DeleteItem")
+    {
+        output << "    if (this._disposed) return;\n";
+    }
+
+    std::string call = "lib.symbols." + func_name + "(";
+    bool call_first = true;
+    for (const auto& wpar: wrap_params)
+    {
+        if (!call_first)
+        {
+            call += ", ";
+        }
+        call += wpar.ffi_expr;
+        call_first = false;
+    }
+    call += ")";
+
+    EmitWrapReturn(output, func, method_owner, call);
+
+    output << "  }\n\n";
 }
 
 // Emit the dlopen symbol entry for a single function.
@@ -463,19 +616,19 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
 
 void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 {
-    if (!fs::create_directories(out_dir))
+    std::error_code dir_error;
+    fs::create_directories(out_dir, dir_error);
+    if (dir_error)
     {
-        if (!fs::exists(out_dir))
-        {
-            std::println(stderr, "Error: cannot create output directory {}", out_dir.string());
-            return;
-        }
+        std::println(stderr, "Error: cannot create output directory {}: {}", out_dir.string(),
+                     dir_error.message());
+        return;
     }
 
     GenerateFfi(ffi, out_dir);
     GenerateConstants(ffi, out_dir);
     GenerateConstantsTableC(ffi, out_dir);
-    GenerateHelpers(out_dir);
+    GenerateHelpers(ffi, out_dir);
     GenerateFreeFunctions(ffi, out_dir);
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
@@ -503,7 +656,7 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
     WriteGeneratedHeader(output, "//");
 
     output << "import { dlopen } from \"kwx/platform\";\n\n";
-    output << "export const lib = dlopen(\"" << ffi.lib_name << "\", {\n";
+    output << "export const lib = dlopen(\"" << EscapeTsString(ffi.lib_name) << "\", {\n";
 
     // Class methods
     std::unordered_set<std::string> emitted_symbols;
@@ -546,28 +699,45 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
     // Event accessor symbols (no parameters, return i32)
     for (const auto& event: ffi.events)
     {
+        if (!emitted_symbols.insert(event.export_name).second)
+        {
+            continue;  // duplicate C export name
+        }
         output << "  " << event.export_name << ": { parameters: [], result: \"i32\" },\n";
     }
 
     // Key accessor symbols (no parameters, return i32)
     for (const auto& key: ffi.keys)
     {
+        if (!emitted_symbols.insert(key.export_name).second)
+        {
+            continue;  // duplicate C export name
+        }
         output << "  " << key.export_name << ": { parameters: [], result: \"i32\" },\n";
     }
 
-    // Constant accessor symbols (no parameters, return i32 or pointer)
+    // Constant accessor symbols (no parameters; result uses the mapped FFI type)
     for (const auto& cnst: ffi.constants)
     {
-        const bool is_ptr = cnst.return_type.contains('*');
-        const char* result_str = is_ptr ? "\"pointer\"" : "\"i32\"";
-        output << "  " << cnst.export_name << ": { parameters: [], result: " << result_str
+        if (!emitted_symbols.insert(cnst.export_name).second)
+        {
+            continue;  // duplicate C export name
+        }
+        output << "  " << cnst.export_name
+               << ": { parameters: [], result: " << TsFFIReturnType(cnst.return_type, "")
                << " },\n";
     }
 
     // Integer constant table accessors (always available — defined in the generated
     // kwx_constants_table_gen.cpp).
-    output << "  kwxConstants_IntCount: { parameters: [], result: \"i32\" },\n";
-    output << "  kwxConstants_IntTable: { parameters: [], result: \"pointer\" },\n";
+    if (emitted_symbols.insert("kwxConstants_IntCount").second)
+    {
+        output << "  kwxConstants_IntCount: { parameters: [], result: \"i32\" },\n";
+    }
+    if (emitted_symbols.insert("kwxConstants_IntTable").second)
+    {
+        output << "  kwxConstants_IntTable: { parameters: [], result: \"pointer\" },\n";
+    }
 
     // Always-available kwxFFI symbols (string buffer utilities)
     if (emitted_symbols.insert("kwxUtf8Buffer_Create").second)
@@ -596,23 +766,68 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
 // kwx_helpers_gen.ts — wxString conversion utilities for generated code
 // -------------------------------------------------------------------------
 
-void TypeScriptEmitter::GenerateHelpers(const fs::path& out_dir)
+// The helper module imports the generated wxString wrapper, its UTF8 factory and its
+// destructor.  Without all three the module (and the barrel that re-exports it) cannot
+// compile, so only emit it when they exist.
+[[nodiscard]] static bool HasWxStringHelpers(const ParsedFFI& ffi)
 {
+    const ClassInfo* wxstring_class = nullptr;
+    for (const auto& cls: ffi.classes)
+    {
+        if (cls.name == "wxString")
+        {
+            wxstring_class = &cls;
+            break;
+        }
+    }
+    if (!wxstring_class)
+    {
+        return false;
+    }
+    bool has_factory = false;
+    bool has_destructor = false;
+    for (const auto& func: wxstring_class->methods)
+    {
+        if (!IsValidFunction(func))
+        {
+            continue;
+        }
+        if (IsTrueDestructor(func))
+        {
+            has_destructor = true;
+        }
+        else if (IsFactoryMethod(func))
+        {
+            has_factory = true;
+        }
+    }
+    return has_factory && has_destructor;
+}
+
+void TypeScriptEmitter::GenerateHelpers(const ParsedFFI& ffi, const fs::path& out_dir)
+{
+    if (!HasWxStringHelpers(ffi))
+    {
+        std::println(stderr, "  kwx_helpers_gen.ts:       skipped — no wrapped wxString with a "
+                             "CreateUTF8 factory and destructor");
+        return;
+    }
+
     const fs::path file_path = out_dir / "kwx_helpers_gen.ts";
     ConditionalFileWriter output(file_path);
 
     WriteGeneratedHeader(output, "//");
-    output <<
-        R"TS(import { lib } from "./kwx_ffi_gen.ts";
+
+    const std::string module = R"TS(import { lib } from "./kwx_ffi_gen.ts";
 import { pointerOf, readCString, Pointer } from "kwx/platform";
-import { createWxStringUTF8, wxString } from "./wxString_gen.ts";
+import { %%FACTORY%%, wxString } from "./wxString_gen.ts";
 
 // --- Helper: create a wxString from a JS string ---
 export function createWxString(s: string): wxString
 {
     const buf = new TextEncoder().encode(s + "\0");
     const ptr = pointerOf(buf);
-    const result = createWxStringUTF8(ptr);
+    const result = %%FACTORY%%(ptr);
     if (!result)
     {
         throw new Error(`Failed to create wxString for: ${s}`);
@@ -623,6 +838,7 @@ export function createWxString(s: string): wxString
 // --- Helper: read a JS string from a wxString* ---
 export function readWxString(wxStrPtr: Pointer): string
 {
+    if (!wxStrPtr) return "";
     const buf = lib.symbols.kwxUtf8Buffer_Create(wxStrPtr);
     const data = lib.symbols.kwxUtf8Buffer_Data(buf);
     const result = data ? readCString(data) : "";
@@ -631,13 +847,51 @@ export function readWxString(wxStrPtr: Pointer): string
 }
 
 // --- Helper: read and delete a wxString* returned from a getter ---
+// The pointer is assumed to be owned by the caller and is consumed (freed) by this
+// call.  Never pass a borrowed or const pointer, and never call it twice.
 export function readAndDeleteWxString(wxStrPtr: Pointer): string
 {
+    if (!wxStrPtr) return "";
     const result = readWxString(wxStrPtr);
     lib.symbols.wxString_Delete(wxStrPtr);
     return result;
 }
 )TS";
+
+    // Derive the wxString UTF8 factory wrapper name (falls back to the first factory).
+    std::string factory_name;
+    for (const auto& cls: ffi.classes)
+    {
+        if (cls.name != "wxString")
+        {
+            continue;
+        }
+        for (const auto& func: cls.methods)
+        {
+            if (!IsValidFunction(func) || !IsFactoryMethod(func))
+            {
+                continue;
+            }
+            if (factory_name.empty())
+            {
+                factory_name = TsFactoryName("wxString", func);
+            }
+            if (func.method_name == "CreateUTF8")
+            {
+                factory_name = TsFactoryName("wxString", func);
+                break;
+            }
+        }
+    }
+
+    std::string escaped_module = module;
+    const std::string placeholder = "%%FACTORY%%";
+    for (std::string::size_type pos = escaped_module.find(placeholder); pos != std::string::npos;
+         pos = escaped_module.find(placeholder, pos + factory_name.size()))
+    {
+        escaped_module.replace(pos, placeholder.size(), factory_name);
+    }
+    output << escaped_module;
 
     std::println(stderr, "  kwx_helpers_gen.ts:       wxString conversion helpers");
 }
@@ -652,27 +906,27 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
     ConditionalFileWriter output(file_path);
 
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
-    output << "import { arrayBufferView, Pointer } from \"kwx/platform\";\n\n";
+
+    std::ostringstream body;
 
     const std::vector<ConstTableEntry> table = BuildIntConstantTable(ffi);
 
     // Integer constants are read from a single generated C table (lazily filled) rather
     // than issuing one eager FFI accessor call per constant.
-    output << "const _intCount = lib.symbols.kwxConstants_IntCount() as number;\n";
-    output << "const _intTable = lib.symbols.kwxConstants_IntTable() as Pointer;\n";
-    output << "const _ints = new Int32Array(\n";
-    output << "    arrayBufferView(_intTable!, _intCount * 4)\n";
-    output << ");\n\n";
+    body << "const _intCount = lib.symbols.kwxConstants_IntCount() as number;\n";
+    body << "const _intTable = lib.symbols.kwxConstants_IntTable() as Pointer;\n";
+    body << "const _ints = new Int32Array(\n";
+    body << "    arrayBufferView(_intTable!, _intCount * 4)\n";
+    body << ");\n\n";
 
     size_t index = 0;
 
     // Events
     if (!ffi.events.empty())
     {
-        output << "// Events\n";
+        body << "// Events\n";
         std::vector<EventDecl> sorted_events = ffi.events;
-        std::ranges::sort(sorted_events, {}, &EventDecl::event_name);
+        std::ranges::stable_sort(sorted_events, {}, &EventDecl::event_name);
 
         std::string last_event;
         for (const auto& event: sorted_events)
@@ -682,52 +936,71 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
                 continue;
             }
             last_event = event.event_name;
-            output << "export const " << event.event_name << ": number = _ints["
-                   << std::to_string(index) << "];\n";
+            body << "export const " << TsEscapeName(event.event_name) << ": number = _ints["
+                 << std::to_string(index) << "];\n";
             ++index;
         }
-        output << "\n";
+        body << "\n";
     }
 
     // Keys
     if (!ffi.keys.empty())
     {
-        output << "// Keys\n";
+        body << "// Keys\n";
         std::vector<KeyDecl> sorted_keys = ffi.keys;
-        std::ranges::sort(sorted_keys, {}, &KeyDecl::key_name);
-
+        std::ranges::stable_sort(sorted_keys, {}, &KeyDecl::key_name);
+        std::set<std::string> seen_keys;
         for (const auto& key: sorted_keys)
         {
-            output << "export const " << key.key_name << ": number = _ints["
-                   << std::to_string(index) << "];\n";
+            if (!seen_keys.insert(key.key_name).second)
+            {
+                continue;  // duplicate name
+            }
+            body << "export const " << TsEscapeName(key.key_name) << ": number = _ints["
+                 << std::to_string(index) << "];\n";
             ++index;
         }
-        output << "\n";
+        body << "\n";
     }
 
     // General constants
     if (!ffi.constants.empty())
     {
-        output << "// Constants\n";
+        body << "// Constants\n";
         std::vector<ConstantDecl> sorted_consts = ffi.constants;
-        std::ranges::sort(sorted_consts, {}, &ConstantDecl::constant_name);
-
+        std::ranges::stable_sort(sorted_consts, {}, &ConstantDecl::constant_name);
+        std::set<std::string> seen_consts;
         for (const auto& cnst: sorted_consts)
         {
+            if (!seen_consts.insert(cnst.constant_name).second)
+            {
+                continue;  // duplicate name
+            }
             const bool is_ptr = cnst.return_type.contains('*');
             if (is_ptr)
             {
-                output << "export const " << cnst.constant_name << ": Pointer = lib.symbols."
-                       << cnst.export_name << "() as Pointer;\n";
+                body << "export const " << TsEscapeName(cnst.constant_name)
+                     << ": Pointer = lib.symbols." << cnst.export_name << "() as Pointer;\n";
             }
-            else
+            else if (IsIntegerConstType(cnst.return_type))
             {
-                output << "export const " << cnst.constant_name << ": number = _ints["
-                       << std::to_string(index) << "];\n";
+                body << "export const " << TsEscapeName(cnst.constant_name) << ": number = _ints["
+                     << std::to_string(index) << "];\n";
                 ++index;
             }
+            // else: unsupported return type — reported by BuildIntConstantTable, skipped here
         }
     }
+
+    const std::string body_str = body.str();
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    output << "import { arrayBufferView";
+    if (body_str.find("Pointer") != std::string::npos)
+    {
+        output << ", Pointer";
+    }
+    output << " } from \"kwx/platform\";\n\n";
+    output << body_str;
 
     std::println(stderr,
                  "  kwx_constants_gen.ts:    {} events, {} keys, {} constants, "
@@ -764,7 +1037,7 @@ void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::
         {
             continue;
         }
-        output << "int " << entry.c_name << "();\n";
+        output << entry.c_type << " " << entry.c_name << "();\n";
     }
     output << "\n";
 
@@ -820,9 +1093,8 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     ConditionalFileWriter output(file_path);
 
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
-    output << "import { Pointer } from \"kwx/platform\";\n\n";
 
+    std::ostringstream body;
     size_t func_count = 0;
     for (const auto& func: ffi.free_functions)
     {
@@ -842,7 +1114,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
             wrap_params.insert(wrap_params.end(), params.begin(), params.end());
         }
 
-        output << "export function " << TsEscapeName(func.method_name) << "(";
+        body << "export function " << TsEscapeName(func.method_name) << "(";
         bool first = true;
         for (const auto& wpar: wrap_params)
         {
@@ -852,12 +1124,12 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
             }
             if (!first)
             {
-                output << ", ";
+                body << ", ";
             }
-            output << wpar.name << ": " << wpar.ts_type;
+            body << wpar.name << ": " << wpar.ts_type;
             first = false;
         }
-        output << "): " << ret_type << " {\n";
+        body << "): " << ret_type << " {\n";
         std::string call = "lib.symbols." + func_name + "(";
         bool call_first = true;
         for (const auto& wpar: wrap_params)
@@ -871,11 +1143,20 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
         }
         call += ")";
 
-        EmitWrapReturn(output, func, "", call);
+        EmitWrapReturn(body, func, "", call);
 
-        output << "}\n\n";
+        body << "}\n\n";
         ++func_count;
     }
+
+    const std::string body_str = body.str();
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (body_str.find("Pointer") != std::string::npos)
+    {
+        output << "import { Pointer } from \"kwx/platform\";\n";
+    }
+    output << "\n";
+    output << body_str;
 
     std::println(stderr, "  kwx_free_functions_gen.ts: {} free functions", func_count);
 }
@@ -886,50 +1167,36 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
 void TypeScriptEmitter::EmitClassFile(
     std::ostream& output, const ClassInfo& cls, const ParsedFFI& ffi,
-    const std::unordered_map<std::string, const ClassInfo*>& class_index)
+    const std::unordered_map<std::string, const ClassInfo*>& class_index,
+    const std::unordered_set<std::string>& wrapped_classes)
 {
-    // Build the set of classes that actually have generated wrapper methods.
-    std::unordered_set<std::string> wrapped_classes;
-    for (const auto& other: ffi.classes)
-    {
-        if (!other.methods.empty())
-        {
-            wrapped_classes.insert(other.name);
-        }
-    }
-
     // Find the nearest wrapped ancestor for extends-based inheritance.
     const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
     const AncestorMembers ancestors =
         CollectAncestorMembers(cls.name, ffi, wrapped_classes, class_index);
 
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
-    output << "import { Pointer } from \"kwx/platform\";\n";
+
+    std::ostringstream body;
+    body << "export class " << cls.name;
     if (!parent_name.empty())
     {
-        output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
-               << "\";\n";
+        body << " extends " << parent_name;
     }
-    output << "\n";
-    output << "export class " << cls.name;
-    if (!parent_name.empty())
-    {
-        output << " extends " << parent_name;
-    }
-    output << " {\n";
+    body << " {\n";
     if (parent_name.empty())
     {
         // Root class (no wrapped parent) — own the pointer field.
-        output << "  protected readonly _ptr: Pointer;\n\n";
-        output << "  constructor(ptr: Pointer) {\n";
-        output << "    this._ptr = ptr;\n";
-        output << "  }\n\n";
+        body << "  protected readonly _ptr: Pointer;\n";
+        body << "  protected _disposed: boolean = false;\n\n";
+        body << "  constructor(ptr: Pointer) {\n";
+        body << "    this._ptr = ptr;\n";
+        body << "  }\n\n";
     }
-    output << "  /** Returns the underlying native pointer. */\n";
-    output << "  " << (ancestors.has_ptr ? "override " : "") << "get ptr(): Pointer {\n";
-    output << "    return this._ptr;\n";
-    output << "  }\n\n";
+    body << "  /** Returns the underlying native pointer. */\n";
+    body << "  " << (ancestors.has_ptr ? "override " : "") << "get ptr(): Pointer {\n";
+    body << "    return this._ptr;\n";
+    body << "  }\n\n";
 
     // --- Destructor ---
     for (const auto& func: cls.methods)
@@ -942,12 +1209,14 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string func_name = CFuncName(func);
         const std::string override_prefix = ancestors.has_delete ? "override " : "";
 
-        output << "  " << override_prefix << "Delete(): void {\n";
-        output << "    lib.symbols." << func_name << "(this._ptr);\n";
-        output << "  }\n\n";
-        output << "  " << override_prefix << "[Symbol.dispose](): void {\n";
-        output << "    this.Delete();\n";
-        output << "  }\n\n";
+        body << "  " << override_prefix << "Delete(): void {\n";
+        body << "    if (this._disposed) return;\n";
+        body << "    this._disposed = true;\n";
+        body << "    lib.symbols." << func_name << "(this._ptr);\n";
+        body << "  }\n\n";
+        body << "  " << override_prefix << "[Symbol.dispose](): void {\n";
+        body << "    this.Delete();\n";
+        body << "  }\n\n";
         break;
     }
 
@@ -973,67 +1242,48 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string method_name = TsMethodName(cls.name, func);
         if (!emitted_instance_names.insert(method_name).second)
         {
+            std::println(stderr, "  Warning: {}: dropping duplicate method {} (C symbol {})",
+                         cls.name, method_name, CFuncName(func));
             continue;  // skip duplicate overload
         }
-
-        const bool pseudo_self = IsPseudoSelf(func);
-        const std::string func_name = CFuncName(func);
-        const std::string ret_type = WrapReturnType(func, cls.name);
-
-        // Build wrap params; if pseudo-self, treat first param as hidden self
-        std::vector<WrapParam> wrap_params;
-        for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
-        {
-            const Param& param = func.params[pidx];
-            if (pseudo_self && pidx == 0)
-            {
-                // First param is TClass(ClassName) acting as self
-                wrap_params.push_back({ "", "", "this._ptr", true });
-                continue;
-            }
-            const std::vector<WrapParam> params = BuildWrapParams(param);
-            wrap_params.insert(wrap_params.end(), params.begin(), params.end());
-        }
-        output << "  " << (ancestors.instance_names.contains(method_name) ? "override " : "")
-               << method_name << "(";
-        bool first = true;
-        for (const auto& wpar: wrap_params)
-        {
-            if (wpar.is_self)
-            {
-                continue;
-            }
-            if (!first)
-            {
-                output << ", ";
-            }
-            output << wpar.name << ": " << wpar.ts_type;
-            first = false;
-        }
-        output << "): " << ret_type << " {\n";
-
-        // Build FFI call expression
-        std::string call = "lib.symbols." + func_name + "(";
-        bool call_first = true;
-
-        // TSelf and pseudo-self params are already mapped to this._ptr in BuildWrapParams.
-        for (const auto& wpar: wrap_params)
-        {
-            if (!call_first)
-            {
-                call += ", ";
-            }
-            call += wpar.ffi_expr;
-            call_first = false;
-        }
-        call += ")";
-
-        EmitWrapReturn(output, func, cls.name, call);
-
-        output << "  }\n\n";
+        EmitInstanceMethod(body, ancestors, cls.name, func);
     }
 
-    output << "}\n";
+    // --- Mixin methods ---
+    // A consumer class (e.g. wxTextCtrl) declares part of its API against a mixin class
+    // (e.g. wxTextEntry).  Re-emit the mixin's non-factory, non-destructor methods here
+    // so the consumer exposes them, calling the mixin class's C symbols with the
+    // consumer's this._ptr.
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi.mixin_map.find(cls.name);
+    if (mixin_iter != ffi.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator mixin_found =
+                class_index.find(mixin_name);
+            const ClassInfo* const mixin_class =
+                mixin_found != class_index.end() ? mixin_found->second : nullptr;
+            if (!mixin_class)
+            {
+                continue;
+            }
+            for (const auto& func: mixin_class->methods)
+            {
+                if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func))
+                {
+                    continue;
+                }
+                if (!emitted_instance_names.insert(TsMethodName(mixin_name, func)).second)
+                {
+                    continue;  // consumer already exposes this name
+                }
+                EmitInstanceMethod(body, ancestors, mixin_name, func);
+            }
+        }
+    }
+
+    body << "}\n";
 
     // --- Constructors as module-level factory functions ---
     // Static factories cannot be inherited: TypeScript requires every derived static
@@ -1054,6 +1304,8 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string factory_name = TsFactoryName(cls.name, func);
         if (!emitted_factory_names.insert(factory_name).second)
         {
+            std::println(stderr, "  Warning: {}: dropping duplicate factory {} (C symbol {})",
+                         cls.name, factory_name, CFuncName(func));
             continue;  // skip duplicate overload
         }
 
@@ -1066,7 +1318,7 @@ void TypeScriptEmitter::EmitClassFile(
             const std::vector<WrapParam> params = BuildWrapParams(param);
             wrap_params.insert(wrap_params.end(), params.begin(), params.end());
         }
-        output << "\nexport function " << factory_name << "(";
+        body << "\nexport function " << factory_name << "(";
         bool first = true;
         for (const auto& wpar: wrap_params)
         {
@@ -1076,12 +1328,12 @@ void TypeScriptEmitter::EmitClassFile(
             }
             if (!first)
             {
-                output << ", ";
+                body << ", ";
             }
-            output << wpar.name << ": " << wpar.ts_type;
+            body << wpar.name << ": " << wpar.ts_type;
             first = false;
         }
-        output << "): " << ret_type << " {\n";
+        body << "): " << ret_type << " {\n";
 
         std::string call = "lib.symbols." + func_name + "(";
         bool call_first = true;
@@ -1096,10 +1348,24 @@ void TypeScriptEmitter::EmitClassFile(
         }
         call += ")";
 
-        EmitWrapReturn(output, func, cls.name, call);
+        EmitWrapReturn(body, func, cls.name, call);
 
-        output << "}\n";
+        body << "}\n";
     }
+
+    const std::string body_str = body.str();
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (body_str.find("Pointer") != std::string::npos)
+    {
+        output << "import { Pointer } from \"kwx/platform\";\n";
+    }
+    if (!parent_name.empty())
+    {
+        output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
+               << "\";\n";
+    }
+    output << "\n";
+    output << body_str;
 }
 
 void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& out_dir)
@@ -1114,6 +1380,17 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
         class_index.emplace(cls.name, &cls);
     }
 
+    // Build the set of classes that actually have generated wrapper methods.  It is
+    // identical for every class file, so compute it once.
+    std::unordered_set<std::string> wrapped_classes;
+    for (const auto& other: ffi.classes)
+    {
+        if (!other.methods.empty())
+        {
+            wrapped_classes.insert(other.name);
+        }
+    }
+
     for (const auto& cls: ffi.classes)
     {
         if (cls.methods.empty())
@@ -1124,7 +1401,7 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
         const fs::path file_path = out_dir / TsClassFileName(cls.name);
         ConditionalFileWriter output(file_path);
 
-        EmitClassFile(output, cls, ffi, class_index);
+        EmitClassFile(output, cls, ffi, class_index, wrapped_classes);
         class_names.push_back(cls.name);
 
         for (const auto& func: cls.methods)
@@ -1161,7 +1438,10 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
         output << "export * from \"./kwx_free_functions_gen.ts\";\n";
     }
 
-    output << "export * from \"./kwx_helpers_gen.ts\";\n";
+    if (HasWxStringHelpers(ffi))
+    {
+        output << "export * from \"./kwx_helpers_gen.ts\";\n";
+    }
 
     // Sort class names for deterministic output
     std::vector<std::string> class_names;
