@@ -108,9 +108,9 @@ extern "C"
         return new wxFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT wxStatusBar* wxFrame_CreateStatusBar(wxFrame* self, int number, int style)
+    EXPORT wxStatusBar* wxFrame_CreateStatusBar(wxFrame* self, int number, int style, int id)
     {
-        return self->CreateStatusBar(number, style, 1);
+        return self->CreateStatusBar(number, style, id);
     }
 
     EXPORT void wxFrame_Maximize(wxFrame* self)
@@ -190,9 +190,9 @@ extern "C"
         self->SetStatusWidths(count, (int*) widths);
     }
 
-    EXPORT void* wxFrame_CreateToolBar(wxFrame* self, long style)
+    EXPORT void* wxFrame_CreateToolBar(wxFrame* self, long style, int id)
     {
-        return (void*) self->CreateToolBar(style, 1);
+        return (void*) self->CreateToolBar(style, id);
     }
 
     EXPORT void* wxFrame_GetToolBar(wxFrame* self)

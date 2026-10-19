@@ -178,6 +178,11 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
   kwxFFI shared library alongside the other `src/` files.
 - `kwx_free_functions_gen.ts` — TypeScript wrappers for non-class C functions.
 - `wx{Class}_gen.ts` — One file per class with a TypeScript class wrapping the FFI calls.
+  Constructors are emitted as module-level `createWx{Class}()` functions rather than
+  static `Create()` methods: TypeScript requires a derived static side to be assignable
+  to every ancestor's static side, which cannot be satisfied once factory signatures
+  differ across the hierarchy. Item-deletion methods that collide with the `Delete()`
+  destructor are exposed as `DeleteItem()`.
 - `kwx_gen.ts` — Master barrel re-export of every generated module.
 
 Run with:
@@ -287,9 +292,31 @@ Parses the headers and generates binding source files for the specified language
 
 ```
 kwxgen verify --headers <dir> --defs <file> --lang <lang> --dir <dir>
+              [--deno-check] [--deno <exe>] [--deno-config <file>]
 ```
 
 Checks that generated bindings in `--dir` are up to date with the current headers.
+With `--deno-check`, it also generates into a temp directory and runs `deno check`
+on the TypeScript barrel (`kwx_gen.ts`). Without `--deno-config`, kwxgen writes a
+small compile-time `kwx/platform` shim and a temporary `deno.jsonc`; pass the
+consumer repo's `deno.jsonc` to type-check against the real runtime instead.
+
+### `check` — Type-check generated TypeScript
+
+```
+kwxgen check --headers <dir> --defs <file> [--deno <exe>] [--deno-config <file>]
+```
+
+Generates TypeScript bindings into a temp directory and runs `deno check` on
+`kwx_gen.ts`. No consumer tree is modified. This is the fastest way to verify an
+emitter change before regenerating the consumer repo.
+
+```sh
+extern/kwxFFI/bin/Debug/kwxgen check \
+    --headers extern/kwxFFI/include \
+    --defs    extern/kwxFFI/src/kwx_defs.cpp \
+    --deno-config deno.jsonc
+```
 
 ### `diff` — Show header changes
 

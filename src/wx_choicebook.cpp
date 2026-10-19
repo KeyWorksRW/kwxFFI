@@ -10,18 +10,18 @@
 
 extern "C"
 {
-    EXPORT wxChoicebook* wxChoicebook_Create(wxWindow* parent, int id, int x, int y, int width, int height,
-                                             int style)
+    EXPORT wxChoicebook* wxChoicebook_Create(wxWindow* parent, int id, int x, int y, int width,
+                                             int height, int style)
     {
         return new wxChoicebook(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT int wxChoicebook_GetPageCount(wxChoicebook* self)
+    EXPORT size_t wxChoicebook_GetPageCount(wxChoicebook* self)
     {
         return self->GetPageCount();
     }
 
-    EXPORT int wxChoicebook_SetSelection(wxChoicebook* self, int nPage)
+    EXPORT int wxChoicebook_SetSelection(wxChoicebook* self, size_t nPage)
     {
         return self->SetSelection(nPage);
     }
@@ -36,12 +36,12 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxChoicebook_SetPageText(wxChoicebook* self, int nPage, wxString* strText)
+    EXPORT bool wxChoicebook_SetPageText(wxChoicebook* self, size_t nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
 
-    EXPORT wxString* wxChoicebook_GetPageText(wxChoicebook* self, int nPage)
+    EXPORT wxString* wxChoicebook_GetPageText(wxChoicebook* self, size_t nPage)
     {
         wxString* result = new wxString();
         *result = self->GetPageText(nPage);
@@ -58,22 +58,22 @@ extern "C"
         return self->GetImageList();
     }
 
-    EXPORT int wxChoicebook_GetPageImage(wxChoicebook* self, int nPage)
+    EXPORT int wxChoicebook_GetPageImage(wxChoicebook* self, size_t nPage)
     {
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxChoicebook_SetPageImage(wxChoicebook* self, int nPage, int nImage)
+    EXPORT bool wxChoicebook_SetPageImage(wxChoicebook* self, size_t nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
 
-    EXPORT bool wxChoicebook_DeletePage(wxChoicebook* self, int nPage)
+    EXPORT bool wxChoicebook_DeletePage(wxChoicebook* self, size_t nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxChoicebook_RemovePage(wxChoicebook* self, int nPage)
+    EXPORT bool wxChoicebook_RemovePage(wxChoicebook* self, size_t nPage)
     {
         return self->RemovePage(nPage);
     }
@@ -89,13 +89,13 @@ extern "C"
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxChoicebook_InsertPage(wxChoicebook* self, int nPage, wxWindow* pPage,
+    EXPORT bool wxChoicebook_InsertPage(wxChoicebook* self, size_t nPage, wxWindow* pPage,
                                         wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT wxWindow* wxChoicebook_GetPage(wxChoicebook* self, int nPage)
+    EXPORT wxWindow* wxChoicebook_GetPage(wxChoicebook* self, size_t nPage)
     {
         return self->GetPage(nPage);
     }

@@ -32,6 +32,7 @@
 #include "class_parser.h"
 #include "constants_parser.h"
 #include "defs_parser.h"
+#include "deno_check.h"
 #include "emitter.h"
 #include "events_parser.h"
 #include "exports_gen.h"
@@ -51,6 +52,7 @@
 #include <iostream>
 #include <memory>
 #include <print>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -64,6 +66,7 @@ namespace fs = std::filesystem;
 static constexpr std::string_view CMD_PARSE = "parse";
 static constexpr std::string_view CMD_GENERATE = "generate";
 static constexpr std::string_view CMD_VERIFY = "verify";
+static constexpr std::string_view CMD_CHECK = "check";
 static constexpr std::string_view CMD_EXPORTS = "exports";
 static constexpr std::string_view CMD_DIFF = "diff";
 static constexpr std::string_view CMD_LANGS = "langs";
@@ -79,6 +82,9 @@ static constexpr std::string_view ARG_MANIFEST = "--manifest";
 static constexpr std::string_view ARG_LIBNAME = "--libname";
 static constexpr std::string_view ARG_EXPORTS_FLAG = "--exports";
 static constexpr std::string_view ARG_ALL_MD_FILES = "--amdfiles";
+static constexpr std::string_view ARG_DENO = "--deno";
+static constexpr std::string_view ARG_DENO_CONFIG = "--deno-config";
+static constexpr std::string_view ARG_DENO_CHECK = "--deno-check";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
@@ -90,6 +96,9 @@ static void PrintUsage(const char* prog_name)
         prog_name);
     std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>",
                  prog_name);
+    std::println(
+        stderr, "  {} check    --headers <dir> --defs <file> [--deno <exe>] [--deno-config <file>]",
+        prog_name);
     std::println(stderr, "  Available langs: fortran go julia lua typescript");
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
@@ -101,6 +110,11 @@ static void PrintUsage(const char* prog_name)
         "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
     std::println(stderr,
                  "  --exports          Also generate platform export files (.def/.map/.exp)");
+    std::println(
+        stderr,
+        "  --deno-check       Run `deno check` on the generated TypeScript output during verify");
+    std::println(stderr, "  --deno <exe>       deno executable to use (default: deno)");
+    std::println(stderr, "  --deno-config <f>  deno.jsonc import map (default: generated shim)");
 }
 
 struct Args
@@ -114,6 +128,9 @@ struct Args
     std::string manifest_file;
     std::string lib_name = "kwxFFI";  // --libname
     bool exports = false;             // --exports
+    std::string deno_exe = "deno";    // --deno
+    std::string deno_config;          // --deno-config
+    bool deno_check = false;          // --deno-check
 };
 
 static constexpr std::string_view CONFIG_FILE_NAME = "kwxgen.config.json";
@@ -191,6 +208,18 @@ static bool LoadConfigFile(Args& args)
         {
             args.exports = true;
         }
+        else if (argument == ARG_DENO && i + 1 < argc)
+        {
+            args.deno_exe = argv[++i];
+        }
+        else if (argument == ARG_DENO_CONFIG && i + 1 < argc)
+        {
+            args.deno_config = argv[++i];
+        }
+        else if (argument == ARG_DENO_CHECK)
+        {
+            args.deno_check = true;
+        }
         else if (argument == ARG_ALL_MD_FILES)
         {
             // Override command — generate all markdown docs instead of code
@@ -237,6 +266,49 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
 // -------------------------------------------------------------------------
 // Parsers
 // -------------------------------------------------------------------------
+
+// Filename suffixes produced by each backend; used by `verify` when comparing a
+// generated directory against a reference directory.  Matching on the generated-name
+// suffix keeps hand-written files in the same directory out of the comparison.
+[[nodiscard]] static std::vector<std::string_view> GeneratedSuffixes(std::string_view lang)
+{
+    if (lang == "typescript")
+    {
+        return { "_gen.ts", "kwx_constants_table_gen.cpp" };
+    }
+    if (lang == "fortran")
+    {
+        return { ".f90" };
+    }
+    if (lang == "julia")
+    {
+        return { ".jl" };
+    }
+    if (lang == "luajit")
+    {
+        return { ".lua" };
+    }
+    return { "_gen.go" };
+}
+
+// deno can emit thousands of diagnostic lines; keep terminal output usable.
+static void PrintDenoOutput(const std::string& output)
+{
+    static constexpr size_t MAX_DENO_LINES = 200;
+    std::istringstream stream(output);
+    std::string line;
+    size_t line_count = 0;
+    while (std::getline(stream, line))
+    {
+        if (line_count >= MAX_DENO_LINES)
+        {
+            std::println(stderr, "  ... output truncated ...");
+            break;
+        }
+        std::println(stderr, "  {}", line);
+        ++line_count;
+    }
+}
 
 static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_file)
 {
@@ -445,7 +517,8 @@ int main(int argc, char* argv[])
         emitter->Generate(parsed_ffi, temp_dir);
 
         std::println(stderr, "Verifying against: {}", args.verify_dir);
-        const VerifyResult verify_result = VerifyGeneratedFiles(temp_dir, args.verify_dir);
+        VerifyResult verify_result =
+            VerifyGeneratedFiles(temp_dir, args.verify_dir, GeneratedSuffixes(args.lang));
 
         if (verify_result.success)
         {
@@ -484,10 +557,91 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (args.deno_check)
+        {
+            if (args.lang != "typescript")
+            {
+                std::println(stderr, "Error: --deno-check is only supported for --lang typescript");
+                std::ignore = fs::remove_all(temp_dir);
+                return 1;
+            }
+
+            fs::path deno_config = args.deno_config;
+            if (deno_config.empty())
+            {
+                WriteDenoCheckShim(temp_dir);
+                deno_config = temp_dir / "deno.jsonc";
+            }
+
+            std::println(stderr, "Running deno check...");
+            const DenoCheckResult deno_result =
+                RunDenoCheck(temp_dir / "kwx_gen.ts", deno_config, args.deno_exe);
+            if (deno_result.success)
+            {
+                std::println("Deno check: OK");
+            }
+            else
+            {
+                verify_result.success = false;
+                std::println("Deno check: FAILED");
+                PrintDenoOutput(deno_result.output);
+            }
+        }
+
         // Clean up temp dir
         std::ignore = fs::remove_all(temp_dir);
 
         return verify_result.success ? 0 : 1;
+    }
+
+    if (args.command == CMD_CHECK)
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::println(stderr, "Error: 'check' requires --headers and --defs");
+            return 1;
+        }
+        if (!args.lang.empty() && args.lang != "typescript")
+        {
+            std::println(stderr, "Error: 'check' only supports --lang typescript");
+            return 1;
+        }
+
+        std::println(stderr, "Parsing...");
+        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        parsed_ffi.lib_name = args.lib_name;
+
+        // Generate into a temp directory so the caller's tree is untouched.
+        const fs::path temp_dir = fs::temp_directory_path() / "kwxgen_check";
+        std::ignore = fs::remove_all(temp_dir);
+        std::ignore = fs::create_directories(temp_dir);
+
+        std::println(stderr, "Generating TypeScript bindings to temp dir: {}", temp_dir.string());
+        TypeScriptEmitter emitter;
+        emitter.Generate(parsed_ffi, temp_dir);
+
+        fs::path deno_config = args.deno_config;
+        if (deno_config.empty())
+        {
+            WriteDenoCheckShim(temp_dir);
+            deno_config = temp_dir / "deno.jsonc";
+        }
+
+        std::println(stderr, "Running deno check...");
+        const DenoCheckResult deno_result =
+            RunDenoCheck(temp_dir / "kwx_gen.ts", deno_config, args.deno_exe);
+        if (deno_result.success)
+        {
+            std::println("Deno check: OK");
+        }
+        else
+        {
+            std::println("Deno check: FAILED");
+            PrintDenoOutput(deno_result.output);
+        }
+
+        std::ignore = fs::remove_all(temp_dir);
+        return deno_result.success ? 0 : 1;
     }
 
     if (args.command == CMD_ALL_MD_FILES)
@@ -504,7 +658,7 @@ int main(int argc, char* argv[])
         }
 
         std::println(stderr, "Parsing...");
-        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        const ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
 
         std::println(stderr, "Generating agent markdown documentation...");
         GenerateAllMarkdownFiles(parsed_ffi, args.out_path);

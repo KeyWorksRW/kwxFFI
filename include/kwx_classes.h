@@ -498,7 +498,7 @@ TBool wxAuiNotebook_SetPageText(TSelf(wxAuiNotebook) pObject, size_t page, TClas
 TBool wxAuiNotebook_SetPageToolTip(TSelf(wxAuiNotebook) pObject, size_t page,
                                    TClass(wxString) text);
 void wxAuiNotebook_SetSelectedFont(TSelf(wxAuiNotebook) pObject, TClass(wxFont) font);
-size_t wxAuiNotebook_SetSelection(TSelf(wxAuiNotebook) pObject, size_t new_page);
+int wxAuiNotebook_SetSelection(TSelf(wxAuiNotebook) pObject, size_t new_page);
 void wxAuiNotebook_SetTabCtrlHeight(TSelf(wxAuiNotebook) pObject, int height);
 TBool wxAuiNotebook_ShowWindowMenu(TSelf(wxAuiNotebook) pObject);
 void wxAuiNotebook_SetUniformBitmapSize(TSelf(wxAuiNotebook) pObject, TSize(width, height));
@@ -1048,7 +1048,7 @@ void wxBannerWindow_SetGradient(TSelf(wxBannerWindow) self, TClass(wxColour) sta
 TClassDefExtend(wxButton, wxControl) TClass(wxButton)
     wxButton_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                     TRect(left, top, width, height), int style);
-int wxButton_SetBackgroundColour(TSelf(wxButton) pObject, TClass(wxColour) colour);
+TBool wxButton_SetBackgroundColour(TSelf(wxButton) pObject, TClass(wxColour) colour);
 void wxButton_SetDefault(TSelf(wxButton) pObject);
 TClassDefExtend(wxCalculateLayoutEvent, wxEvent) TClass(wxCalculateLayoutEvent)
     wxCalculateLayoutEvent_Create(int id);
@@ -2028,8 +2028,8 @@ TBool wxFontMapper_IsEncodingAvailable(TSelf(wxFontMapper) pObject, int encoding
 TClassDefExtend(wxFrame, wxTopLevelWindow) TClass(wxFrame)
     wxFrame_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                    TRect(left, top, width, height), int style);
-TClass(wxStatusBar) wxFrame_CreateStatusBar(TSelf(wxFrame) pObject, int number, int style);
-TClass(wxToolBar) wxFrame_CreateToolBar(TSelf(wxFrame) pObject, long style);
+TClass(wxStatusBar) wxFrame_CreateStatusBar(TSelf(wxFrame) pObject, int number, int style, int id);
+TClass(wxToolBar) wxFrame_CreateToolBar(TSelf(wxFrame) pObject, long style, int id);
 int wxFrame_GetClientAreaOrigin_left(TSelf(wxFrame) pObject);
 int wxFrame_GetClientAreaOrigin_top(TSelf(wxFrame) pObject);
 TClass(wxMenuBar) wxFrame_GetMenuBar(TSelf(wxFrame) pObject);
@@ -2891,7 +2891,7 @@ int wxListCtrl_InsertItemWithLabel(TSelf(wxListCtrl) pObject, int index, TClass(
 TBool wxListCtrl_IsVirtual(TSelf(wxListCtrl) pObject);
 void wxListCtrl_RefreshItem(TSelf(wxListCtrl) pObject, long item);
 TBool wxListCtrl_ScrollList(TSelf(wxListCtrl) pObject, TVector(dx, dy));
-void wxListCtrl_SetBackgroundColour(TSelf(wxListCtrl) pObject, TClass(wxColour) col);
+TBool wxListCtrl_SetBackgroundColour(TSelf(wxListCtrl) pObject, TClass(wxColour) col);
 TBool wxListCtrl_SetColumn(TSelf(wxListCtrl) pObject, int col, TClass(wxListItem) item);
 TBool wxListCtrl_SetColumnWidth(TSelf(wxListCtrl) pObject, int col, int width);
 int wxListCtrl_SetForegroundColour(TSelf(wxListCtrl) pObject, TClass(wxColour) col);
@@ -3354,22 +3354,22 @@ void wxChoicebook_AdvanceSelection(TSelf(wxChoicebook) pObject, TBool bForward);
 TClass(wxChoicebook)
     wxChoicebook_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
 TBool wxChoicebook_DeleteAllPages(TSelf(wxChoicebook) pObject);
-TBool wxChoicebook_DeletePage(TSelf(wxChoicebook) pObject, int nPage);
+TBool wxChoicebook_DeletePage(TSelf(wxChoicebook) pObject, size_t nPage);
 TClass(wxChoice) wxChoicebook_GetChoiceCtrl(TSelf(wxChoicebook) pObject);
 TClass(wxImageList) wxChoicebook_GetImageList(TSelf(wxChoicebook) pObject);
-TClass(wxWindow) wxChoicebook_GetPage(TSelf(wxChoicebook) pObject, int nPage);
-int wxChoicebook_GetPageCount(TSelf(wxChoicebook) pObject);
-int wxChoicebook_GetPageImage(TSelf(wxChoicebook) pObject, int nPage);
-TClass(wxString) wxChoicebook_GetPageText(TSelf(wxChoicebook) pObject, int nPage);
+TClass(wxWindow) wxChoicebook_GetPage(TSelf(wxChoicebook) pObject, size_t nPage);
+size_t wxChoicebook_GetPageCount(TSelf(wxChoicebook) pObject);
+int wxChoicebook_GetPageImage(TSelf(wxChoicebook) pObject, size_t nPage);
+TClass(wxString) wxChoicebook_GetPageText(TSelf(wxChoicebook) pObject, size_t nPage);
 int wxChoicebook_GetSelection(TSelf(wxChoicebook) pObject);
 int wxChoicebook_HitTest(TSelf(wxChoicebook) pObject, TPoint(x, y), long* flags);
-TBool wxChoicebook_InsertPage(TSelf(wxChoicebook) pObject, int nPage, TClass(wxWindow) pPage,
+TBool wxChoicebook_InsertPage(TSelf(wxChoicebook) pObject, size_t nPage, TClass(wxWindow) pPage,
                               TClass(wxString) strText, TBool bSelect, int imageId);
-TBool wxChoicebook_RemovePage(TSelf(wxChoicebook) pObject, int nPage);
+TBool wxChoicebook_RemovePage(TSelf(wxChoicebook) pObject, size_t nPage);
 void wxChoicebook_SetImageList(TSelf(wxChoicebook) pObject, TClass(wxImageList) imageList);
-TBool wxChoicebook_SetPageImage(TSelf(wxChoicebook) pObject, int nPage, int nImage);
-TBool wxChoicebook_SetPageText(TSelf(wxChoicebook) pObject, int nPage, TClass(wxString) strText);
-int wxChoicebook_SetSelection(TSelf(wxChoicebook) pObject, int nPage);
+TBool wxChoicebook_SetPageImage(TSelf(wxChoicebook) pObject, size_t nPage, int nImage);
+TBool wxChoicebook_SetPageText(TSelf(wxChoicebook) pObject, size_t nPage, TClass(wxString) strText);
+int wxChoicebook_SetSelection(TSelf(wxChoicebook) pObject, size_t nPage);
 
 int expCHB_DEFAULT();
 int expCHB_TOP();
@@ -3384,22 +3384,22 @@ void wxListbook_AdvanceSelection(TSelf(wxListbook) pObject, TBool bForward);
 TClass(wxListbook)
     wxListbook_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
 TBool wxListbook_DeleteAllPages(TSelf(wxListbook) pObject);
-TBool wxListbook_DeletePage(TSelf(wxListbook) pObject, int nPage);
+TBool wxListbook_DeletePage(TSelf(wxListbook) pObject, size_t nPage);
 TClass(wxImageList) wxListbook_GetImageList(TSelf(wxListbook) pObject);
 TClass(wxListView) wxListbook_GetListView(TSelf(wxListbook) pObject);
-TClass(wxWindow) wxListbook_GetPage(TSelf(wxListbook) pObject, int nPage);
-int wxListbook_GetPageCount(TSelf(wxListbook) pObject);
-int wxListbook_GetPageImage(TSelf(wxListbook) pObject, int nPage);
-TClass(wxString) wxListbook_GetPageText(TSelf(wxListbook) pObject, int nPage);
+TClass(wxWindow) wxListbook_GetPage(TSelf(wxListbook) pObject, size_t nPage);
+size_t wxListbook_GetPageCount(TSelf(wxListbook) pObject);
+int wxListbook_GetPageImage(TSelf(wxListbook) pObject, size_t nPage);
+TClass(wxString) wxListbook_GetPageText(TSelf(wxListbook) pObject, size_t nPage);
 int wxListbook_GetSelection(TSelf(wxListbook) pObject);
 int wxListbook_HitTest(TSelf(wxListbook) pObject, TPoint(x, y), long* flags);
-TBool wxListbook_InsertPage(TSelf(wxListbook) pObject, int nPage, TClass(wxWindow) pPage,
+TBool wxListbook_InsertPage(TSelf(wxListbook) pObject, size_t nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
-TBool wxListbook_RemovePage(TSelf(wxListbook) pObject, int nPage);
+TBool wxListbook_RemovePage(TSelf(wxListbook) pObject, size_t nPage);
 void wxListbook_SetImageList(TSelf(wxListbook) pObject, TClass(wxImageList) imageList);
-TBool wxListbook_SetPageImage(TSelf(wxListbook) pObject, int nPage, int nImage);
-TBool wxListbook_SetPageText(TSelf(wxListbook) pObject, int nPage, TClass(wxString) strText);
-int wxListbook_SetSelection(TSelf(wxListbook) pObject, int nPage);
+TBool wxListbook_SetPageImage(TSelf(wxListbook) pObject, size_t nPage, int nImage);
+TBool wxListbook_SetPageText(TSelf(wxListbook) pObject, size_t nPage, TClass(wxString) strText);
+int wxListbook_SetSelection(TSelf(wxListbook) pObject, size_t nPage);
 
 int expLB_DEFAULT();
 int expLB_TOP();
@@ -3410,24 +3410,24 @@ int expLB_RIGHT();
 TClassDefExtend(wxSimplebook, wxBookCtrlBase) TBool
     wxSimplebook_AddPage(TSelf(wxSimplebook) pObject, TClass(wxWindow) pPage,
                          TClass(wxString) strText, TBool bSelect, int imageId);
-int wxSimplebook_ChangeSelection(TSelf(wxSimplebook) pObject, int nPage);
+int wxSimplebook_ChangeSelection(TSelf(wxSimplebook) pObject, size_t nPage);
 TClass(wxSimplebook)
     wxSimplebook_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
 TBool wxSimplebook_DeleteAllPages(TSelf(wxSimplebook) pObject);
-TBool wxSimplebook_DeletePage(TSelf(wxSimplebook) pObject, int nPage);
+TBool wxSimplebook_DeletePage(TSelf(wxSimplebook) pObject, size_t nPage);
 TClass(wxImageList) wxSimplebook_GetImageList(TSelf(wxSimplebook) pObject);
-TClass(wxWindow) wxSimplebook_GetPage(TSelf(wxSimplebook) pObject, int nPage);
-int wxSimplebook_GetPageCount(TSelf(wxSimplebook) pObject);
-int wxSimplebook_GetPageImage(TSelf(wxSimplebook) pObject, int nPage);
-TClass(wxString) wxSimplebook_GetPageText(TSelf(wxSimplebook) pObject, int nPage);
+TClass(wxWindow) wxSimplebook_GetPage(TSelf(wxSimplebook) pObject, size_t nPage);
+size_t wxSimplebook_GetPageCount(TSelf(wxSimplebook) pObject);
+int wxSimplebook_GetPageImage(TSelf(wxSimplebook) pObject, size_t nPage);
+TClass(wxString) wxSimplebook_GetPageText(TSelf(wxSimplebook) pObject, size_t nPage);
 int wxSimplebook_GetSelection(TSelf(wxSimplebook) pObject);
-TBool wxSimplebook_InsertPage(TSelf(wxSimplebook) pObject, int nPage, TClass(wxWindow) pPage,
+TBool wxSimplebook_InsertPage(TSelf(wxSimplebook) pObject, size_t nPage, TClass(wxWindow) pPage,
                               TClass(wxString) strText, TBool bSelect, int imageId);
-TBool wxSimplebook_RemovePage(TSelf(wxSimplebook) pObject, int nPage);
+TBool wxSimplebook_RemovePage(TSelf(wxSimplebook) pObject, size_t nPage);
 void wxSimplebook_SetImageList(TSelf(wxSimplebook) pObject, TClass(wxImageList) imageList);
-TBool wxSimplebook_SetPageImage(TSelf(wxSimplebook) pObject, int nPage, int nImage);
-TBool wxSimplebook_SetPageText(TSelf(wxSimplebook) pObject, int nPage, TClass(wxString) strText);
-int wxSimplebook_SetSelection(TSelf(wxSimplebook) pObject, int nPage);
+TBool wxSimplebook_SetPageImage(TSelf(wxSimplebook) pObject, size_t nPage, int nImage);
+TBool wxSimplebook_SetPageText(TSelf(wxSimplebook) pObject, size_t nPage, TClass(wxString) strText);
+int wxSimplebook_SetSelection(TSelf(wxSimplebook) pObject, size_t nPage);
 void wxSimplebook_ShowNewPage(TSelf(wxSimplebook) pObject, TClass(wxWindow) page);
 void wxSimplebook_SetEffect(TSelf(wxSimplebook) pObject, int effect);
 void wxSimplebook_SetEffectTimeout(TSelf(wxSimplebook) pObject, unsigned int timeout);
@@ -3439,22 +3439,22 @@ void wxToolbook_AdvanceSelection(TSelf(wxToolbook) pObject, TBool bForward);
 TClass(wxToolbook)
     wxToolbook_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
 TBool wxToolbook_DeleteAllPages(TSelf(wxToolbook) pObject);
-TBool wxToolbook_DeletePage(TSelf(wxToolbook) pObject, int nPage);
+TBool wxToolbook_DeletePage(TSelf(wxToolbook) pObject, size_t nPage);
 TClass(wxImageList) wxToolbook_GetImageList(TSelf(wxToolbook) pObject);
-TClass(wxWindow) wxToolbook_GetPage(TSelf(wxToolbook) pObject, int nPage);
-int wxToolbook_GetPageCount(TSelf(wxToolbook) pObject);
-int wxToolbook_GetPageImage(TSelf(wxToolbook) pObject, int nPage);
-TClass(wxString) wxToolbook_GetPageText(TSelf(wxToolbook) pObject, int nPage);
+TClass(wxWindow) wxToolbook_GetPage(TSelf(wxToolbook) pObject, size_t nPage);
+size_t wxToolbook_GetPageCount(TSelf(wxToolbook) pObject);
+int wxToolbook_GetPageImage(TSelf(wxToolbook) pObject, size_t nPage);
+TClass(wxString) wxToolbook_GetPageText(TSelf(wxToolbook) pObject, size_t nPage);
 int wxToolbook_GetSelection(TSelf(wxToolbook) pObject);
 TClass(wxToolBarBase) wxToolbook_GetToolBar(TSelf(wxToolbook) pObject);
 int wxToolbook_HitTest(TSelf(wxToolbook) pObject, TPoint(x, y), long* flags);
-TBool wxToolbook_InsertPage(TSelf(wxToolbook) pObject, int nPage, TClass(wxWindow) pPage,
+TBool wxToolbook_InsertPage(TSelf(wxToolbook) pObject, size_t nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
-TBool wxToolbook_RemovePage(TSelf(wxToolbook) pObject, int nPage);
+TBool wxToolbook_RemovePage(TSelf(wxToolbook) pObject, size_t nPage);
 void wxToolbook_SetImageList(TSelf(wxToolbook) pObject, TClass(wxImageList) imageList);
-TBool wxToolbook_SetPageImage(TSelf(wxToolbook) pObject, int nPage, int nImage);
-TBool wxToolbook_SetPageText(TSelf(wxToolbook) pObject, int nPage, TClass(wxString) strText);
-int wxToolbook_SetSelection(TSelf(wxToolbook) pObject, int nPage);
+TBool wxToolbook_SetPageImage(TSelf(wxToolbook) pObject, size_t nPage, int nImage);
+TBool wxToolbook_SetPageText(TSelf(wxToolbook) pObject, size_t nPage, TClass(wxString) strText);
+int wxToolbook_SetSelection(TSelf(wxToolbook) pObject, size_t nPage);
 
 int expTBK_BUTTONBAR();
 int expTBK_HORZ_LAYOUT();
@@ -3468,28 +3468,28 @@ void wxTreebook_AdvanceSelection(TSelf(wxTreebook) pObject, TBool bForward);
 TClass(wxTreebook)
     wxTreebook_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height), int style);
 TBool wxTreebook_DeleteAllPages(TSelf(wxTreebook) pObject);
-TBool wxTreebook_DeletePage(TSelf(wxTreebook) pObject, int nPage);
+TBool wxTreebook_DeletePage(TSelf(wxTreebook) pObject, size_t nPage);
 void wxTreebook_ExpandNode(TSelf(wxTreebook) pObject, int nPage, TBool expand);
 TClass(wxImageList) wxTreebook_GetImageList(TSelf(wxTreebook) pObject);
-TClass(wxWindow) wxTreebook_GetPage(TSelf(wxTreebook) pObject, int nPage);
-int wxTreebook_GetPageCount(TSelf(wxTreebook) pObject);
-int wxTreebook_GetPageImage(TSelf(wxTreebook) pObject, int nPage);
-int wxTreebook_GetPageParent(TSelf(wxTreebook) pObject, int nPage);
-TClass(wxString) wxTreebook_GetPageText(TSelf(wxTreebook) pObject, int nPage);
+TClass(wxWindow) wxTreebook_GetPage(TSelf(wxTreebook) pObject, size_t nPage);
+size_t wxTreebook_GetPageCount(TSelf(wxTreebook) pObject);
+int wxTreebook_GetPageImage(TSelf(wxTreebook) pObject, size_t nPage);
+int wxTreebook_GetPageParent(TSelf(wxTreebook) pObject, size_t nPage);
+TClass(wxString) wxTreebook_GetPageText(TSelf(wxTreebook) pObject, size_t nPage);
 int wxTreebook_GetSelection(TSelf(wxTreebook) pObject);
 TClass(wxTreeCtrl) wxTreebook_GetTreeCtrl(TSelf(wxTreebook) pObject);
 int wxTreebook_HitTest(TSelf(wxTreebook) pObject, TPoint(x, y), long* flags);
-TBool wxTreebook_InsertPage(TSelf(wxTreebook) pObject, int nPage, TClass(wxWindow) pPage,
+TBool wxTreebook_InsertPage(TSelf(wxTreebook) pObject, size_t nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxTreebook_InsertSubPage(TSelf(wxTreebook) pObject, int nPage, TClass(wxWindow) pPage,
                                TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxTreebook_IsNodeExpanded(TSelf(wxTreebook) pObject, int nPage);
 TBool wxTreebook_CollapseNode(TSelf(wxTreebook) pObject, int nPage);
-TBool wxTreebook_RemovePage(TSelf(wxTreebook) pObject, int nPage);
+TBool wxTreebook_RemovePage(TSelf(wxTreebook) pObject, size_t nPage);
 void wxTreebook_SetImageList(TSelf(wxTreebook) pObject, TClass(wxImageList) imageList);
-TBool wxTreebook_SetPageImage(TSelf(wxTreebook) pObject, int nPage, int nImage);
-TBool wxTreebook_SetPageText(TSelf(wxTreebook) pObject, int nPage, TClass(wxString) strText);
-int wxTreebook_SetSelection(TSelf(wxTreebook) pObject, int nPage);
+TBool wxTreebook_SetPageImage(TSelf(wxTreebook) pObject, size_t nPage, int nImage);
+TBool wxTreebook_SetPageText(TSelf(wxTreebook) pObject, size_t nPage, TClass(wxString) strText);
+int wxTreebook_SetSelection(TSelf(wxTreebook) pObject, size_t nPage);
 
 TClass(wxDataViewCtrl) wxDataViewCtrl_Create(TClass(wxWindow) parent, int id, int x, int y,
                                              int width, int height, int style);
@@ -5668,7 +5668,7 @@ TClass(wxWindow)
 TBool wxWindow_Destroy(TSelf(wxWindow) pObject);
 TBool wxWindow_DestroyChildren(TSelf(wxWindow) pObject);
 TBool wxWindow_Disable(TSelf(wxWindow) pObject);
-TBool wxWindow_Enable(TSelf(wxWindow) pObject);
+TBool wxWindow_Enable(TSelf(wxWindow) pObject, TBool enable);
 TClass(wxWindow) wxWindow_FindFocus(TSelf(wxWindow) pObject);
 TClass(wxWindow) wxWindow_FindWindow(TSelf(wxWindow) pObject, TClass(wxString) name);
 void wxWindow_Fit(TSelf(wxWindow) pObject);
@@ -5742,7 +5742,7 @@ void wxWindow_ScrollWindowRect(TSelf(wxWindow) pObject, TVector(dx, dy),
                                TRect(x, y, width, height));
 void wxWindow_SetAcceleratorTable(TSelf(wxWindow) pObject, TClass(wxAcceleratorTable) accel);
 void wxWindow_SetAutoLayout(TSelf(wxWindow) pObject, TBool autoLayout);
-int wxWindow_SetBackgroundColour(TSelf(wxWindow) pObject, TClass(wxColour) colour);
+TBool wxWindow_SetBackgroundColour(TSelf(wxWindow) pObject, TClass(wxColour) colour);
 void wxWindow_SetCaret(TSelf(wxWindow) pObject, TClass(wxCaret) caret);
 void wxWindow_SetClientData(TSelf(wxWindow) pObject, TClass(wxClientData) data);
 void wxWindow_SetClientObject(TSelf(wxWindow) pObject, TClass(wxClientData) data);
@@ -5751,7 +5751,7 @@ int wxWindow_SetCursor(TSelf(wxWindow) pObject, TClass(wxCursor) cursor);
 void wxWindow_SetDropTarget(TSelf(wxWindow) pObject, TClass(wxDropTarget) dropTarget);
 void wxWindow_SetExtraStyle(TSelf(wxWindow) pObject, long exStyle);
 void wxWindow_SetFocus(TSelf(wxWindow) pObject);
-int wxWindow_SetFont(TSelf(wxWindow) pObject, TClass(wxFont) font);
+TBool wxWindow_SetFont(TSelf(wxWindow) pObject, TClass(wxFont) font);
 int wxWindow_SetForegroundColour(TSelf(wxWindow) pObject, TClass(wxColour) colour);
 void wxWindow_SetId(TSelf(wxWindow) pObject, int id);
 void wxWindow_SetLabel(TSelf(wxWindow) pObject, TClass(wxString) title);
