@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 struct LangMeta
 {
     std::string_view key;        // directory name + file prefix
-    std::string_view full_name;  // "Fortran (kwxFFI)", "TypeScript (Deno FFI)", etc.
+    std::string_view full_name;  // "Fortran (kwxFFI)", "TypeScript (kwx_ts FFI)", etc.
 };
 
 static constexpr std::array<LangMeta, 5> kwx_Languages = { {
@@ -36,7 +36,7 @@ static constexpr std::array<LangMeta, 5> kwx_Languages = { {
     { .key = "julia", .full_name = "Julia (ccall FFI)" },
     { .key = "lua", .full_name = "LuaJIT (FFI)" },
     // { "perl",       "Perl (FFI::Raw)"        },
-    { .key = "typescript", .full_name = "TypeScript (Deno FFI)" },
+    { .key = "typescript", .full_name = "TypeScript (kwx_ts FFI)" },
 } };
 
 // ---------------------------------------------------------------------------

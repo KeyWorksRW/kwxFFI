@@ -146,7 +146,8 @@ local wx = require("wx.kwxffi")
 
 ### TypeScript ([kwxTypeScript](https://github.com/KeyWorksRW/kwxTypeScript))
 
-**Prerequisites:** CMake 3.30+ and a C++23 compiler; Deno 1.40+.
+**Prerequisites:** CMake 3.30+ and a C++23 compiler; the `kwx_ts` runtime from
+kwxTypeScript.
 
 **Step 1 — Build kwxgen:**
 
@@ -167,7 +168,7 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
 
 **Generated output** (`gen/`):
 
-- `kwx_ffi_gen.ts` — `Deno.dlopen` call with all C symbol definitions (classes, free functions,
+- `kwx_ffi_gen.ts` — `dlopen` call with all C symbol definitions (classes, free functions,
   events, keys, constants). Import `lib` from this module to call functions directly.
 - `kwx_constants_gen.ts` — Eagerly-evaluated numeric exports for all events, keys, and constants.
   Integer-valued constants are read from a single lazily-filled C table; pointer-valued
@@ -187,7 +188,7 @@ import { lib } from "./gen/kwx_ffi_gen.ts";
 // Or import the barrel for the full class-based API
 import "./gen/kwx_gen.ts";
 
-// Run with: deno run --allow-ffi your_script.ts
+// Run with: kwx_ts your_script.ts
 ```
 
 ## Re-generating After kwxFFI Updates

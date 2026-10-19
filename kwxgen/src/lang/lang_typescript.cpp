@@ -1,12 +1,12 @@
 /////////////////////////////////////////////////////////////////////////////
-// Purpose:   Deno TypeScript FFI binding generator
+// Purpose:   TypeScript FFI binding generator
 // Author:    Ralph Walden
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 /////////////////////////////////////////////////////////////////////////////
 
 // Generated file structure:
-//   kwx_ffi_gen.ts          — Deno.dlopen with every C symbol (classes + free functions +
+//   kwx_ffi_gen.ts          — dlopen with every C symbol (classes + free functions +
 //                             events/keys/constants).  Import `lib` from this module to call
 //                             functions directly via lib.symbols.SomeFunc(...).
 //   kwx_constants_gen.ts    — Numeric exports for all events, keys, and general constants;
@@ -41,7 +41,7 @@ namespace fs = std::filesystem;
     return class_name + "_gen.ts";
 }
 
-// Return the TypeScript import path for a class file (Deno resolves .ts automatically).
+// Return the TypeScript import path for a class file (kwx_ts resolves .ts automatically).
 [[nodiscard]] static std::string TsClassImportPath(const std::string& class_name)
 {
     return "./" + class_name + "_gen.ts";
@@ -186,7 +186,7 @@ struct WrapParam
     const std::vector<TsFFIParam> ffi_params = ExpandParamToTsFFI(param);
     for (const auto& fpar: ffi_params)
     {
-        result.push_back({ fpar.name, TsRuntimeType(fpar.deno_type), fpar.name, false });
+        result.push_back({ fpar.name, TsRuntimeType(fpar.native_type), fpar.name, false });
     }
     return result;
 }
@@ -204,12 +204,12 @@ struct WrapParam
         func.return_macro == "TClassRef")
     {
         // Constructor: return the enclosing class wrapped in null-check.
-        // Regular methods returning a pointer: return opaque PointerValue.
+        // Regular methods returning a pointer: return an opaque Pointer.
         if (func.is_constructor && !func.has_self)
         {
             return class_name + " | null";
         }
-        return "Deno.PointerValue";
+        return "Pointer";
     }
     if (func.return_type == "TBool" || func.return_type == "TBoolInt")
     {
@@ -218,11 +218,11 @@ struct WrapParam
     if (func.return_type == "TString" || func.return_type == "TStringOut" ||
         func.return_type == "TStringVoid")
     {
-        return "Deno.PointerValue";
+        return "Pointer";
     }
     if (func.return_type == "void*" || func.return_type.find('*') != std::string::npos)
     {
-        return "Deno.PointerValue";
+        return "Pointer";
     }
     if (func.return_type == "uintptr_t" || func.return_type == "size_t")
     {
@@ -231,7 +231,7 @@ struct WrapParam
 
     // All remaining numeric types (int, long, unsigned, unsigned long, double,
     // float, TArrayLen, TByteStringLen, TChar, TUInt8, time_t, wxUIntPtr, etc.)
-    // map to the Deno FFI "number" type.
+    // map to a JavaScript number.
     return "number";
 }
 
@@ -276,7 +276,7 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     output << "    return " << call_expr << ";\n";
 }
 
-// Emit the Deno.dlopen symbol entry for a single function.
+// Emit the dlopen symbol entry for a single function.
 static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
 {
     const std::string func_name = CFuncName(func);
@@ -301,7 +301,7 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
         {
             output << ", ";
         }
-        output << params[idx].deno_type;
+        output << params[idx].native_type;
     }
     output << "],\n";
     output << "    result: " << result_str << ",\n";
@@ -331,7 +331,7 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
 
-    std::println(stderr, "TypeScript: generated Deno FFI bindings in {}", out_dir.string());
+    std::println(stderr, "TypeScript: generated TypeScript FFI bindings in {}", out_dir.string());
 }
 
 VerifyResult TypeScriptEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* out_dir */)
@@ -343,7 +343,7 @@ VerifyResult TypeScriptEmitter::Verify(const ParsedFFI& /* ffi */, const fs::pat
 }
 
 // -------------------------------------------------------------------------
-// kwx_ffi_gen.ts — Deno.dlopen with all C symbols
+// kwx_ffi_gen.ts — dlopen with all C symbols
 // -------------------------------------------------------------------------
 
 void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_dir)
@@ -353,15 +353,8 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
 
     WriteGeneratedHeader(output, "//");
 
-    // Platform-specific library name
-    output << "const _libName: string = ({\n";
-    output << "  windows: \"" << ffi.lib_name << ".dll\",\n";
-    output << "  linux:   \"lib" << ffi.lib_name << ".so\",\n";
-    output << "  darwin:  \"lib" << ffi.lib_name << ".dylib\",\n";
-    output << "} as Record<string, string>)[Deno.build.os] ?? \"" << ffi.lib_name << "\";\n\n";
-
-    output << "// Run with: deno run --allow-ffi your_script.ts\n";
-    output << "export const lib = Deno.dlopen(_libName, {\n";
+    output << "import { dlopen } from \"kwx/platform\";\n\n";
+    output << "export const lib = dlopen(\"" << ffi.lib_name << "\", {\n";
 
     // Class methods
     std::unordered_set<std::string> emitted_symbols;
@@ -462,13 +455,14 @@ void TypeScriptEmitter::GenerateHelpers(const fs::path& out_dir)
     WriteGeneratedHeader(output, "//");
     output <<
         R"TS(import { lib } from "./kwx_ffi_gen.ts";
+import { pointerOf, readCString, Pointer } from "kwx/platform";
 import { wxString } from "./wxString_gen.ts";
 
 // --- Helper: create a wxString from a JS string ---
 export function createWxString(s: string): wxString
 {
     const buf = new TextEncoder().encode(s + "\0");
-    const ptr = Deno.UnsafePointer.of(buf);
+    const ptr = pointerOf(buf);
     const result = wxString.CreateUTF8(ptr);
     if (!result)
     {
@@ -478,17 +472,17 @@ export function createWxString(s: string): wxString
 }
 
 // --- Helper: read a JS string from a wxString* ---
-export function readWxString(wxStrPtr: Deno.PointerValue): string
+export function readWxString(wxStrPtr: Pointer): string
 {
     const buf = lib.symbols.kwxUtf8Buffer_Create(wxStrPtr);
     const data = lib.symbols.kwxUtf8Buffer_Data(buf);
-    const result = data ? Deno.UnsafePointerView.getCString(data) : "";
+    const result = data ? readCString(data) : "";
     lib.symbols.kwxUtf8Buffer_Delete(buf);
     return result;
 }
 
 // --- Helper: read and delete a wxString* returned from a getter ---
-export function readAndDeleteWxString(wxStrPtr: Deno.PointerValue): string
+export function readAndDeleteWxString(wxStrPtr: Pointer): string
 {
     const result = readWxString(wxStrPtr);
     lib.symbols.wxString_Delete(wxStrPtr);
@@ -509,16 +503,17 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
     ConditionalFileWriter output(file_path);
 
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n\n";
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    output << "import { arrayBufferView, Pointer } from \"kwx/platform\";\n\n";
 
     const std::vector<ConstTableEntry> table = BuildIntConstantTable(ffi);
 
     // Integer constants are read from a single generated C table (lazily filled) rather
     // than issuing one eager FFI accessor call per constant.
     output << "const _intCount = lib.symbols.kwxConstants_IntCount() as number;\n";
-    output << "const _intTable = lib.symbols.kwxConstants_IntTable() as Deno.PointerValue;\n";
+    output << "const _intTable = lib.symbols.kwxConstants_IntTable() as Pointer;\n";
     output << "const _ints = new Int32Array(\n";
-    output << "    Deno.UnsafePointerView.getArrayBuffer(_intTable!, _intCount * 4)\n";
+    output << "    arrayBufferView(_intTable!, _intCount * 4)\n";
     output << ");\n\n";
 
     size_t index = 0;
@@ -573,9 +568,8 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
             const bool is_ptr = cnst.return_type.contains('*');
             if (is_ptr)
             {
-                output << "export const " << cnst.constant_name
-                       << ": Deno.PointerValue = lib.symbols." << cnst.export_name
-                       << "() as Deno.PointerValue;\n";
+                output << "export const " << cnst.constant_name << ": Pointer = lib.symbols."
+                       << cnst.export_name << "() as Pointer;\n";
             }
             else
             {
@@ -677,7 +671,8 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     ConditionalFileWriter output(file_path);
 
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n\n";
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    output << "import { Pointer } from \"kwx/platform\";\n\n";
 
     size_t func_count = 0;
     for (const auto& func: ffi.free_functions)
@@ -761,6 +756,7 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
 
     WriteGeneratedHeader(output, "//");
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    output << "import { Pointer } from \"kwx/platform\";\n";
     if (!parent_name.empty())
     {
         output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
@@ -776,13 +772,13 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
     if (parent_name.empty())
     {
         // Root class (no wrapped parent) — own the pointer field.
-        output << "  protected readonly _ptr: Deno.PointerValue;\n\n";
-        output << "  constructor(ptr: Deno.PointerValue) {\n";
+        output << "  protected readonly _ptr: Pointer;\n\n";
+        output << "  constructor(ptr: Pointer) {\n";
         output << "    this._ptr = ptr;\n";
         output << "  }\n\n";
     }
     output << "  /** Returns the underlying native pointer. */\n";
-    output << "  get ptr(): Deno.PointerValue {\n";
+    output << "  get ptr(): Pointer {\n";
     output << "    return this._ptr;\n";
     output << "  }\n\n";
 
