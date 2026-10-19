@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////
-// Purpose:   Deno TypeScript FFI binding generator
+// Purpose:   TypeScript FFI binding generator
 // Author:    Ralph Walden
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
@@ -18,7 +18,7 @@ public:
     [[nodiscard]] std::string_view Name() const override { return "typescript"; }
 
 private:
-    // Emits kwx_ffi_gen.ts — the Deno.dlopen call with all C symbol definitions.
+    // Emits kwx_ffi_gen.ts — the dlopen call with all C symbol definitions.
     static void GenerateFfi(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
     // Emits kwx_constants_gen.ts — table-backed events, keys, and constants.

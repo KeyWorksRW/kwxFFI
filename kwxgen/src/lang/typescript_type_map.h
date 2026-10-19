@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// Purpose:   Deno TypeScript FFI type mapping
+// Purpose:   TypeScript FFI type mapping
 // Author:    Ralph Walden
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ..\..\LICENSE
@@ -7,16 +7,16 @@
 
 #pragma once
 
-// Deno FFI type mapping for TypeScript code generation.
-// Maps parsed kwx FFI model types to Deno NativeType strings for Deno.dlopen symbol definitions.
+// Native FFI type mapping for TypeScript code generation.
+// Maps parsed kwx FFI model types to native type strings for dlopen symbol definitions.
 //
-// Deno NativeType strings: "void", "i8", "u8", "i16", "u16", "i32", "u32",
+// Native type strings: "void", "i8", "u8", "i16", "u16", "i32", "u32",
 //   "i64", "u64", "usize", "isize", "f32", "f64", "pointer", "buffer", "function"
 //
-// JavaScript runtime types from Deno:
+// JavaScript runtime types:
 //   number     — i8, u8, i16, u16, i32, u32, f32, f64
 //   bigint     — i64, u64, usize, isize
-//   Deno.PointerValue — pointer, function
+//   Pointer — pointer, function
 //   BufferSource | null — buffer
 //   void       — void (result only)
 //
@@ -29,11 +29,11 @@
 #include <string>
 #include <vector>
 
-// A single Deno FFI parameter: a NativeType string and a TypeScript identifier name.
+// A single native FFI parameter: a NativeType string and a TypeScript identifier name.
 struct TsFFIParam
 {
-    std::string deno_type;  // "\"i32\"", "\"pointer\"", "\"void\"", etc.
-    std::string name;       // TypeScript-safe parameter name
+    std::string native_type;  // "\"i32\"", "\"pointer\"", "\"void\"", etc.
+    std::string name;         // TypeScript-safe parameter name
 };
 
 // TypeScript / JavaScript keywords that must not be used as identifiers.
@@ -77,7 +77,7 @@ inline std::vector<std::string> TsSplitMacroArg(const std::string& arg)
     return parts;
 }
 
-// Convert a kwx return type to a Deno NativeType string (quoted, ready to embed in TS source).
+// Convert a kwx return type to a native type string (quoted, ready to embed in TS source).
 // Returns "\"void\"" for void/empty, "\"i32\"" for int, "\"pointer\"" for pointer types, etc.
 inline std::string TsFFIReturnType(const std::string& return_type, const std::string& return_macro)
 {
@@ -150,7 +150,7 @@ inline std::string TsFFIReturnType(const std::string& return_type, const std::st
     return "\"i32\"";
 }
 
-// Expand a single kwx Param into one or more Deno FFI TsFFIParam entries.
+// Expand a single kwx Param into one or more native FFI TsFFIParam entries.
 // Geometry macros expand to multiple scalar params; most types expand to exactly one.
 inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 {
@@ -386,29 +386,29 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     return result;
 }
 
-// Map a Deno NativeType string to the corresponding TypeScript runtime type annotation.
-inline std::string TsRuntimeType(const std::string& deno_type)
+// Map a native type string to the corresponding TypeScript runtime type annotation.
+inline std::string TsRuntimeType(const std::string& native_type)
 {
-    if (deno_type == "\"void\"")
+    if (native_type == "\"void\"")
     {
         return "void";
     }
-    if (deno_type == "\"i8\"" || deno_type == "\"u8\"" || deno_type == "\"i16\"" ||
-        deno_type == "\"u16\"" || deno_type == "\"i32\"" || deno_type == "\"u32\"" ||
-        deno_type == "\"f32\"" || deno_type == "\"f64\"")
+    if (native_type == "\"i8\"" || native_type == "\"u8\"" || native_type == "\"i16\"" ||
+        native_type == "\"u16\"" || native_type == "\"i32\"" || native_type == "\"u32\"" ||
+        native_type == "\"f32\"" || native_type == "\"f64\"")
     {
         return "number";
     }
-    if (deno_type == "\"i64\"" || deno_type == "\"u64\"" || deno_type == "\"usize\"" ||
-        deno_type == "\"isize\"")
+    if (native_type == "\"i64\"" || native_type == "\"u64\"" || native_type == "\"usize\"" ||
+        native_type == "\"isize\"")
     {
         return "bigint";
     }
-    if (deno_type == "\"pointer\"" || deno_type == "\"function\"")
+    if (native_type == "\"pointer\"" || native_type == "\"function\"")
     {
-        return "Deno.PointerValue";
+        return "Pointer";
     }
-    if (deno_type == "\"buffer\"")
+    if (native_type == "\"buffer\"")
     {
         return "BufferSource | null";
     }
