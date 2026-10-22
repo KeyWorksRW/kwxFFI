@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <cstdint>
 #include <wx/debug.h>
 #include <wx/log.h>
 
@@ -197,5 +198,170 @@ extern "C"
     EXPORT void expSetDefaultAssertHandler()
     {
         ::wxSetDefaultAssertHandler();
+    }
+
+    EXPORT wxLog* wxLog_Create()
+    {
+        return new wxLog();
+    }
+
+    EXPORT int wxLog_EnableLogging(int enable)
+    {
+        return static_cast<int>(wxLog::EnableLogging(enable != 0));
+    }
+
+    EXPORT bool wxLog_IsEnabled()
+    {
+        return wxLog::IsEnabled();
+    }
+
+    EXPORT void wxLog_SetLogLevel(int level)
+    {
+        wxLog::SetLogLevel(static_cast<wxLogLevel>(level));
+    }
+
+    EXPORT int wxLog_GetLogLevel()
+    {
+        return static_cast<int>(wxLog::GetLogLevel());
+    }
+
+    EXPORT int wxLog_GetComponentLevel(wxString* component)
+    {
+        return static_cast<int>(wxLog::GetComponentLevel(*component));
+    }
+
+    EXPORT void wxLog_SetComponentLevel(wxString* component, int level)
+    {
+        wxLog::SetComponentLevel(*component, static_cast<wxLogLevel>(level));
+    }
+
+    EXPORT bool wxLog_IsLevelEnabled(int level, wxString* component)
+    {
+        return wxLog::IsLevelEnabled(static_cast<wxLogLevel>(level), *component);
+    }
+
+    EXPORT void wxLogChain_DetachOldLog(wxLogChain* self)
+    {
+        self->DetachOldLog();
+    }
+
+    EXPORT wxLogInterposer* wxLogInterposer_Create()
+    {
+        return new wxLogInterposer();
+    }
+
+    EXPORT void wxLogInterposer_Delete(wxLogInterposer* self)
+    {
+        delete self;
+    }
+
+    // wxWidgets has no wxUSE_LOGBUFFER option: wxLogBuffer is always available
+    // whenever logging itself (wxUSE_LOG) is enabled.
+#if wxUSE_LOG
+    EXPORT wxLogBuffer* wxLogBuffer_Create()
+    {
+        return new wxLogBuffer();
+    }
+
+    EXPORT wxString* wxLogBuffer_GetBuffer(wxLogBuffer* self)
+    {
+        return new wxString(self->GetBuffer());
+    }
+
+    EXPORT void wxLogBuffer_Flush(wxLogBuffer* self)
+    {
+        self->Flush();
+    }
+
+    EXPORT void wxLogBuffer_Delete(wxLogBuffer* self)
+    {
+        delete self;
+    }
+#endif  // wxUSE_LOG
+
+#if wxUSE_LOGGUI
+    EXPORT wxLogGui* wxLogGui_Create()
+    {
+        return new wxLogGui();
+    }
+
+    EXPORT void wxLogGui_Flush(wxLogGui* self)
+    {
+        self->Flush();
+    }
+
+    EXPORT void wxLogGui_Delete(wxLogGui* self)
+    {
+        delete self;
+    }
+#endif  // wxUSE_LOGGUI
+
+    EXPORT void wxLogStderr_Delete(wxLogStderr* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxLogNull_Delete(wxLogNull* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxLogTextCtrl_Delete(wxLogTextCtrl* self)
+    {
+        delete self;
+    }
+
+#if wxUSE_LOGWINDOW
+    EXPORT void wxLogWindow_Delete(wxLogWindow* self)
+    {
+        delete self;
+    }
+#endif  // wxUSE_LOGWINDOW
+
+    EXPORT wxString* wxLogRecordInfo_GetFilename(wxLogRecordInfo* self)
+    {
+        return new wxString(self->filename != nullptr ? self->filename : "");
+    }
+
+    EXPORT int wxLogRecordInfo_GetLine(wxLogRecordInfo* self)
+    {
+        return self->line;
+    }
+
+    EXPORT wxString* wxLogRecordInfo_GetFunc(wxLogRecordInfo* self)
+    {
+        return new wxString(self->func != nullptr ? self->func : "");
+    }
+
+    EXPORT wxString* wxLogRecordInfo_GetComponent(wxLogRecordInfo* self)
+    {
+        return new wxString(self->component != nullptr ? self->component : "");
+    }
+
+    EXPORT int64_t wxLogRecordInfo_GetTimestamp(wxLogRecordInfo* self)
+    {
+        return static_cast<int64_t>(self->timestampMS);
+    }
+
+    // wxLogRecordInfo does not carry a level (wxLogRecord does). A producer that
+    // stores one in the record's extra data uses the "wx.level" key; -1 means unset.
+    EXPORT int wxLogRecordInfo_GetLevel(wxLogRecordInfo* self)
+    {
+        wxUIntPtr level = 0;
+        if (!self->GetNumValue("wx.level", &level))
+        {
+            return -1;
+        }
+        return static_cast<int>(level);
+    }
+
+    EXPORT wxString* wxLogRecordInfo_GetMask(wxLogRecordInfo* self)
+    {
+        wxString mask;
+        if (!self->GetStrValue(wxLOG_KEY_TRACE_MASK, &mask))
+        {
+            return new wxString();
+        }
+        return new wxString(mask);
     }
 }

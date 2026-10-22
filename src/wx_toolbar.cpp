@@ -273,4 +273,41 @@ extern "C"
     {
         self->SetToggle(id, toggle);
     }
+
+    EXPORT wxSize* wxToolBar_GetToolMargins(wxToolBar* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetToolMargins();
+        return result;
+    }
+
+    EXPORT void wxToolBar_SetMaxRowsCols(wxToolBar* self, int rows, int cols)
+    {
+        self->SetMaxRowsCols(rows, cols);
+    }
+
+    EXPORT int wxToolBar_GetMaxRows(wxToolBar* self)
+    {
+        return self->GetMaxRows();
+    }
+
+    EXPORT int wxToolBar_GetMaxCols(wxToolBar* self)
+    {
+        return self->GetMaxCols();
+    }
+
+    EXPORT int wxToolBar_GetDirection(wxToolBar* self)
+    {
+        return self->GetDirection();
+    }
+
+    EXPORT void* wxToolBar_GetToolByPos(wxToolBar* self, int pos)
+    {
+        return self->GetToolByPos(pos);
+    }
+
+    EXPORT void wxToolBar_SetRows(wxToolBar* self, int nRows)
+    {
+        self->SetRows(nRows);
+    }
 }

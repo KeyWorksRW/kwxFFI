@@ -62,9 +62,9 @@ extern "C"
     }
 
     // Layout
-    EXPORT void wxRibbonBar_Realize(wxRibbonBar* self)
+    EXPORT int wxRibbonBar_Realize(wxRibbonBar* self)
     {
-        self->Realize();
+        return self->Realize();
     }
 
     // Art provider
@@ -179,5 +179,16 @@ extern "C"
     EXPORT int expEVT_RIBBONBAR_HELP_CLICK()
     {
         return wxEVT_RIBBONBAR_HELP_CLICK;
+    }
+
+    // wxRibbonBarEvent
+    EXPORT wxRibbonPage* wxRibbonBarEvent_GetPage(wxRibbonBarEvent* self)
+    {
+        return self->GetPage();
+    }
+
+    EXPORT void wxRibbonBarEvent_SetPage(wxRibbonBarEvent* self, wxRibbonPage* page)
+    {
+        self->SetPage(page);
     }
 }

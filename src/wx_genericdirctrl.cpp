@@ -134,6 +134,30 @@ extern "C"
         self->UnselectAll();
     }
 
+    // wxDirFilterListCtrl
+    EXPORT void* wxDirFilterListCtrl_Create(wxGenericDirCtrl* parent, int id, int x, int y,
+                                            int width, int height, long style)
+    {
+        wxDirFilterListCtrl* list_ctrl = new wxDirFilterListCtrl();
+        if (!list_ctrl->Create(parent, id, wxPoint(x, y), wxSize(width, height), style))
+        {
+            delete list_ctrl;
+            return nullptr;
+        }
+        return static_cast<void*>(list_ctrl);
+    }
+
+    EXPORT void wxDirFilterListCtrl_FillFilterList(wxDirFilterListCtrl* self, wxString* filter,
+                                                   int default_filter)
+    {
+        self->FillFilterList(*filter, default_filter);
+    }
+
+    EXPORT void wxDirFilterListCtrl_Delete(wxDirFilterListCtrl* self)
+    {
+        delete self;
+    }
+
     // Events
     MAKE_EVENT_WRAPPER(EVT_DIRCTRL_SELECTIONCHANGED)
     MAKE_EVENT_WRAPPER(EVT_DIRCTRL_FILEACTIVATED)

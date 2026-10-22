@@ -64,9 +64,9 @@ extern "C"
         return (void*) self->GetNext();
     }
 
-    EXPORT void wxWizardPageSimple_GetBitmap(wxWizardPageSimple* self, wxBitmap* bitmap)
+    EXPORT wxBitmap* wxWizardPageSimple_GetBitmap(wxWizardPageSimple* self)
     {
-        *bitmap = self->GetBitmap();
+        return new wxBitmap(self->GetBitmap());
     }
 
     EXPORT void wxWizardPageSimple_SetPrev(wxWizardPageSimple* self, void* prev)

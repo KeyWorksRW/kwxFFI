@@ -8,32 +8,32 @@
 
 extern "C"
 {
-    EXPORT wxGCDC* wxGcdc_Create(const wxWindowDC* dc)
+    EXPORT wxGCDC* wxGCDC_Create(const wxWindowDC* dc)
     {
         return new wxGCDC(*dc);
     }
 
-    EXPORT wxGCDC* wxGcdc_CreateFromMemory(const wxMemoryDC* dc)
+    EXPORT wxGCDC* wxGCDC_CreateFromMemory(const wxMemoryDC* dc)
     {
         return new wxGCDC(*dc);
     }
 
-    EXPORT wxGCDC* wxGcdc_CreateFromPrinter(const wxPrinterDC* dc)
+    EXPORT wxGCDC* wxGCDC_CreateFromPrinter(const wxPrinterDC* dc)
     {
         return new wxGCDC(*dc);
     }
 
-    EXPORT wxGraphicsContext* wxGcdc_GetGraphicsContext(const wxGCDC* self)
+    EXPORT wxGraphicsContext* wxGCDC_GetGraphicsContext(const wxGCDC* self)
     {
         return self->GetGraphicsContext();
     }
 
-    EXPORT void wxGcdc_SetGraphicsContext(wxGCDC* self, wxGraphicsContext* gc)
+    EXPORT void wxGCDC_SetGraphicsContext(wxGCDC* self, wxGraphicsContext* gc)
     {
         self->SetGraphicsContext(gc);
     }
 
-    EXPORT void wxGcdc_Delete(wxGCDC* self)
+    EXPORT void wxGCDC_Delete(wxGCDC* self)
     {
         if (self)
             delete self;

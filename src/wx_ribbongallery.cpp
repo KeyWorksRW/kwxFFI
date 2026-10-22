@@ -177,4 +177,27 @@ extern "C"
         return wxRIBBON_GALLERY_BUTTON_DISABLED;
     }
 
+    // wxRibbonGalleryEvent
+    EXPORT wxRibbonGallery* wxRibbonGalleryEvent_GetGallery(wxRibbonGalleryEvent* self)
+    {
+        return self->GetGallery();
+    }
+
+    EXPORT wxRibbonGalleryItem* wxRibbonGalleryEvent_GetGalleryItem(wxRibbonGalleryEvent* self)
+    {
+        return self->GetGalleryItem();
+    }
+
+    EXPORT void wxRibbonGalleryEvent_SetGallery(wxRibbonGalleryEvent* self,
+                                                wxRibbonGallery* gallery)
+    {
+        self->SetGallery(gallery);
+    }
+
+    EXPORT void wxRibbonGalleryEvent_SetGalleryItem(wxRibbonGalleryEvent* self,
+                                                    wxRibbonGalleryItem* item)
+    {
+        self->SetGalleryItem(item);
+    }
+
 }  // extern "C"

@@ -2,6 +2,8 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <algorithm>
+#include <vector>
 #include <wx/dcbuffer.h>
 #include <wx/dcmirror.h>
 #include <wx/metafile.h>
@@ -694,5 +696,257 @@ extern "C"
 
         self->DrawPolyPolygon(numPolygons, cnt.get(), lst.get(), (wxCoord) xoffset,
                               (wxCoord) yoffset, (wxPolygonFillMode) fillStyle);
+    }
+
+    EXPORT wxWindow* wxDC_GetWindow(wxDC* self)
+    {
+        return self->GetWindow();
+    }
+
+    EXPORT int wxDC_GetResolution(wxDC* self)
+    {
+        return self->GetResolution();
+    }
+
+    EXPORT double wxDC_GetContentScaleFactor(wxDC* self)
+    {
+        return self->GetContentScaleFactor();
+    }
+
+    EXPORT int wxDC_FromDIP(wxDC* self, int value)
+    {
+        return self->FromDIP(value);
+    }
+
+    EXPORT int wxDC_ToDIP(wxDC* self, int value)
+    {
+        return self->ToDIP(value);
+    }
+
+    EXPORT wxSize* wxDC_FromDIPSize(wxDC* self, int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->FromDIP(wxSize(width, height));
+        return result;
+    }
+
+    EXPORT wxSize* wxDC_ToDIPSize(wxDC* self, int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->ToDIP(wxSize(width, height));
+        return result;
+    }
+
+    EXPORT void wxDC_SetLayoutDirection(wxDC* self, int direction)
+    {
+        self->SetLayoutDirection(static_cast<wxLayoutDirection>(direction));
+    }
+
+    EXPORT int wxDC_GetLayoutDirection(wxDC* self)
+    {
+        return static_cast<int>(self->GetLayoutDirection());
+    }
+
+    EXPORT wxSize* wxDC_GetTextExtentSize(wxDC* self, wxString* string)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetTextExtent(*string);
+        return result;
+    }
+
+    EXPORT wxSize* wxDC_GetMultiLineTextExtentSize(wxDC* self, wxString* string)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetMultiLineTextExtent(*string);
+        return result;
+    }
+
+    EXPORT bool wxDC_GetPartialTextExtents(wxDC* self, wxString* text, int count, int* widths)
+    {
+        wxArrayInt extents;
+        const bool result = self->GetPartialTextExtents(*text, extents);
+
+        if (widths)
+        {
+            const int limit = std::min(count, static_cast<int>(extents.GetCount()));
+            for (int i = 0; i < limit; ++i)
+            {
+                widths[i] = extents.Item(i);
+            }
+        }
+        return result;
+    }
+
+    EXPORT wxPoint* wxDC_DeviceToLogical(wxDC* self, int x, int y)
+    {
+        wxPoint* result = new wxPoint();
+        *result = self->DeviceToLogical(x, y);
+        return result;
+    }
+
+    EXPORT wxPoint* wxDC_LogicalToDevice(wxDC* self, int x, int y)
+    {
+        wxPoint* result = new wxPoint();
+        *result = self->LogicalToDevice(x, y);
+        return result;
+    }
+
+    EXPORT wxSize* wxDC_DeviceToLogicalRel(wxDC* self, int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->DeviceToLogicalRel(width, height);
+        return result;
+    }
+
+    EXPORT wxSize* wxDC_LogicalToDeviceRel(wxDC* self, int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->LogicalToDeviceRel(width, height);
+        return result;
+    }
+
+    EXPORT wxPoint* wxDC_GetLogicalOriginPoint(wxDC* self)
+    {
+        wxPoint* result = new wxPoint();
+        *result = self->GetLogicalOrigin();
+        return result;
+    }
+
+    EXPORT wxPoint* wxDC_GetDeviceOriginPoint(wxDC* self)
+    {
+        wxPoint* result = new wxPoint();
+        *result = self->GetDeviceOrigin();
+        return result;
+    }
+
+    EXPORT void wxDC_CopyAttributes(wxDC* self, wxDC* dc)
+    {
+        self->CopyAttributes(*dc);
+    }
+
+    EXPORT void* wxDC_GetHandle(wxDC* self)
+    {
+        return self->GetHandle();
+    }
+
+    EXPORT void wxDC_DisableAutomaticBoundingBoxUpdates(wxDC* self)
+    {
+        self->DisableAutomaticBoundingBoxUpdates();
+    }
+
+    EXPORT bool wxDC_AreAutomaticBoundingBoxUpdatesEnabled(wxDC* self)
+    {
+        return self->AreAutomaticBoundingBoxUpdatesEnabled();
+    }
+
+    EXPORT void wxDC_SetClippingRegionPoint(wxDC* self, int x, int y, int width, int height)
+    {
+        self->SetClippingRegion(wxPoint(x, y), wxSize(width, height));
+    }
+
+    EXPORT bool wxDC_GetClippingRect(wxDC* self, void* x, void* y, void* width, void* height)
+    {
+        wxRect rect;
+        const bool clipping = self->GetClippingBox(rect);
+
+        if (x)
+        {
+            *static_cast<int*>(x) = rect.x;
+        }
+        if (y)
+        {
+            *static_cast<int*>(y) = rect.y;
+        }
+        if (width)
+        {
+            *static_cast<int*>(width) = rect.width;
+        }
+        if (height)
+        {
+            *static_cast<int*>(height) = rect.height;
+        }
+        return clipping;
+    }
+
+    EXPORT bool wxDC_FloodFillEx(wxDC* self, int x, int y, wxColour* col, int style)
+    {
+        return self->FloodFill(x, y, *col, static_cast<wxFloodFillStyle>(style));
+    }
+
+    EXPORT void wxDC_GradientFillConcentric(wxDC* self, int x, int y, int width, int height,
+                                            wxColour* initialColour, wxColour* destColour)
+    {
+        self->GradientFillConcentric(wxRect(x, y, width, height), *initialColour, *destColour);
+    }
+
+    EXPORT void wxDC_GradientFillConcentricCenter(wxDC* self, int x, int y, int width, int height,
+                                                  wxColour* initialColour, wxColour* destColour,
+                                                  int cx, int cy)
+    {
+        self->GradientFillConcentric(wxRect(x, y, width, height), *initialColour, *destColour,
+                                     wxPoint(cx, cy));
+    }
+
+    EXPORT void wxDC_GradientFillLinear(wxDC* self, int x, int y, int width, int height,
+                                        wxColour* initialColour, wxColour* destColour,
+                                        int direction)
+    {
+        self->GradientFillLinear(wxRect(x, y, width, height), *initialColour, *destColour,
+                                 static_cast<wxDirection>(direction));
+    }
+
+    EXPORT bool wxDC_StretchBlit(wxDC* self, int dstX, int dstY, int dstWidth, int dstHeight,
+                                 wxDC* source, int srcX, int srcY, int srcWidth, int srcHeight,
+                                 int rop, bool useMask, int maskX, int maskY)
+    {
+        return self->StretchBlit(dstX, dstY, dstWidth, dstHeight, source, srcX, srcY, srcWidth,
+                                 srcHeight, static_cast<wxRasterOperationMode>(rop), useMask, maskX,
+                                 maskY);
+    }
+
+    EXPORT wxBitmap* wxDC_GetAsBitmap(wxDC* self, int x, int y, int width, int height, bool useRect)
+    {
+        if (useRect)
+        {
+            const wxRect rect(x, y, width, height);
+            return new wxBitmap(self->GetAsBitmap(&rect));
+        }
+        return new wxBitmap(self->GetAsBitmap(nullptr));
+    }
+
+    EXPORT void wxDC_DrawSpline(wxDC* self, int x1, int y1, int x2, int y2, int x3, int y3)
+    {
+        self->DrawSpline(x1, y1, x2, y2, x3, y3);
+    }
+
+    EXPORT void wxDC_DrawSplinePoints(wxDC* self, int count, void* x, void* y)
+    {
+        std::vector<wxPoint> points;
+        points.reserve(static_cast<size_t>(count));
+
+        for (int i = 0; i < count; ++i)
+        {
+            points.emplace_back(static_cast<int*>(x)[i], static_cast<int*>(y)[i]);
+        }
+        self->DrawSpline(count, points.data());
+    }
+
+    EXPORT void* wxDC_GetGraphicsContext(wxDC* self)
+    {
+#if wxUSE_GRAPHICS_CONTEXT
+        return static_cast<void*>(self->GetGraphicsContext());
+#else
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxDC_SetGraphicsContext(wxDC* self, void* ctx)
+    {
+#if wxUSE_GRAPHICS_CONTEXT
+        self->SetGraphicsContext(static_cast<wxGraphicsContext*>(ctx));
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(ctx);
+#endif
     }
 }

@@ -221,4 +221,43 @@ extern "C"
     {
         return self->GetStyle(position, *style);
     }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxTextCtrl public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT wxPoint* wxTextCtrl_PositionToCoords(wxTextCtrl* self, long pos)
+    {
+        return new wxPoint(self->PositionToCoords(pos));
+    }
+
+    EXPORT int wxTextCtrl_HitTest(wxTextCtrl* self, int x, int y, long* pos)
+    {
+        return static_cast<int>(self->HitTest(wxPoint(x, y), pos));
+    }
+
+    EXPORT int wxTextCtrl_HitTestColumnRow(wxTextCtrl* self, int x, int y, long* column, long* row)
+    {
+        return static_cast<int>(self->HitTest(wxPoint(x, y), column, row));
+    }
+
+    EXPORT bool wxTextCtrl_IsRTFSupported(wxTextCtrl* self)
+    {
+        return self->IsRTFSupported();
+    }
+
+    EXPORT wxString* wxTextCtrl_GetRTFValue(wxTextCtrl* self)
+    {
+        return new wxString(self->GetRTFValue());
+    }
+
+    EXPORT void wxTextCtrl_SetRTFValue(wxTextCtrl* self, wxString* value)
+    {
+        self->SetRTFValue(*value);
+    }
+
+    EXPORT bool wxTextCtrl_ShouldInheritColours(wxTextCtrl* self)
+    {
+        return self->ShouldInheritColours();
+    }
 }

@@ -66,9 +66,9 @@ extern "C"
     }
 
     // Layout
-    EXPORT void wxRibbonPanel_Realize(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_Realize(wxRibbonPanel* self)
     {
-        self->Realize();
+        return self->Realize();
     }
 
     EXPORT wxSize* wxRibbonPanel_GetMinSize(wxRibbonPanel* self)
@@ -122,5 +122,16 @@ extern "C"
     EXPORT int expEVT_RIBBONPANEL_EXTBUTTON_ACTIVATED()
     {
         return wxEVT_RIBBONPANEL_EXTBUTTON_ACTIVATED;
+    }
+
+    // wxRibbonPanelEvent
+    EXPORT wxRibbonPanel* wxRibbonPanelEvent_GetPanel(wxRibbonPanelEvent* self)
+    {
+        return self->GetPanel();
+    }
+
+    EXPORT void wxRibbonPanelEvent_SetPanel(wxRibbonPanelEvent* self, wxRibbonPanel* panel)
+    {
+        self->SetPanel(panel);
     }
 }

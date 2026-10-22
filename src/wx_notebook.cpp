@@ -164,4 +164,102 @@ extern "C"
     {
         return (void*) self->GetPage(nPage);
     }
+
+    EXPORT wxWindow* wxNotebook_GetCurrentPage(wxNotebook* self)
+    {
+        return self->GetCurrentPage();
+    }
+
+    EXPORT wxSize* wxNotebook_GetControllerSize(wxNotebook* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetControllerSize();
+        return result;
+    }
+
+    EXPORT wxSize* wxNotebook_CalcSizeFromPage(wxNotebook* self, int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->CalcSizeFromPage(wxSize(width, height));
+        return result;
+    }
+
+    EXPORT unsigned int wxNotebook_GetInternalBorder(wxNotebook* self)
+    {
+        return self->GetInternalBorder();
+    }
+
+    EXPORT void wxNotebook_SetInternalBorder(wxNotebook* self, unsigned int border)
+    {
+        self->SetInternalBorder(border);
+    }
+
+    EXPORT void wxNotebook_SetControlMargin(wxNotebook* self, int margin)
+    {
+        self->SetControlMargin(margin);
+    }
+
+    EXPORT int wxNotebook_GetControlMargin(wxNotebook* self)
+    {
+        return self->GetControlMargin();
+    }
+
+    EXPORT bool wxNotebook_IsVertical(wxNotebook* self)
+    {
+        return self->IsVertical();
+    }
+
+    EXPORT void wxNotebook_SetFitToCurrentPage(wxNotebook* self, bool fit)
+    {
+        self->SetFitToCurrentPage(fit);
+    }
+
+    EXPORT bool wxNotebook_GetFitToCurrentPage(wxNotebook* self)
+    {
+        return self->GetFitToCurrentPage();
+    }
+
+    EXPORT int wxNotebook_ChangeSelection(wxNotebook* self, int nPage)
+    {
+        return self->ChangeSelection(static_cast<size_t>(nPage));
+    }
+
+    EXPORT int wxNotebook_FindPage(wxNotebook* self, wxWindow* page)
+    {
+        return self->FindPage(page);
+    }
+
+    EXPORT void wxNotebook_SetTabSize(wxNotebook* self, int width, int height)
+    {
+        self->SetTabSize(wxSize(width, height));
+    }
+
+    EXPORT wxRect* wxNotebook_GetTabRect(wxNotebook* self, int page)
+    {
+        wxRect* result = new wxRect();
+        *result = self->GetTabRect(static_cast<size_t>(page));
+        return result;
+    }
+
+    EXPORT int wxNotebook_GetTabOrientation(wxNotebook* self)
+    {
+        return static_cast<int>(self->GetTabOrientation());
+    }
+
+    EXPORT wxColour* wxNotebook_GetThemeBackgroundColour(wxNotebook* self)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetThemeBackgroundColour();
+        return result;
+    }
+
+    EXPORT bool wxNotebook_SendPageChangingEvent(wxNotebook* self, int nPage)
+    {
+        return self->SendPageChangingEvent(nPage);
+    }
+
+    EXPORT void wxNotebook_SendPageChangedEvent(wxNotebook* self, int nPageOld, int nPageNew)
+    {
+        self->SendPageChangedEvent(nPageOld, nPageNew);
+    }
 }

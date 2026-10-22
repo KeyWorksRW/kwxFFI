@@ -1379,5 +1379,250 @@ extern "C"
         self->SetControl(ctrl);
     }
 
+    // -----------------------------------------------------------------------
+    // wxGridCellEnumEditor
+    // -----------------------------------------------------------------------
+
+    EXPORT void* wxGridCellEnumEditor_Ctor(wxString* choices)
+    {
+        return static_cast<void*>(new wxGridCellEnumEditor(*choices));
+    }
+
+    EXPORT void wxGridCellEnumEditor_Create(wxGridCellEnumEditor* self, wxWindow* parent,
+                                            int window_id, wxEvtHandler* evt_handler)
+    {
+        self->Create(parent, static_cast<wxWindowID>(window_id), evt_handler);
+    }
+
+    EXPORT void wxGridCellEnumEditor_SetParameters(wxGridCellEnumEditor* self, wxString* params)
+    {
+        self->SetParameters(*params);
+    }
+
+    EXPORT void wxGridCellEnumEditor_Delete(wxGridCellEnumEditor* self)
+    {
+        // Cell workers are reference counted; only DecRef() may destroy them.
+        self->DecRef();
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridCellDateEditor
+    // -----------------------------------------------------------------------
+
+    EXPORT void* wxGridCellDateEditor_Ctor(wxString* format)
+    {
+        return static_cast<void*>(new wxGridCellDateEditor(*format));
+    }
+
+    EXPORT void wxGridCellDateEditor_Create(wxGridCellDateEditor* self, wxWindow* parent,
+                                            int window_id, wxEvtHandler* evt_handler)
+    {
+        self->Create(parent, static_cast<wxWindowID>(window_id), evt_handler);
+    }
+
+    EXPORT void wxGridCellDateEditor_SetParameters(wxGridCellDateEditor* self, wxString* params)
+    {
+        self->SetParameters(*params);
+    }
+
+    EXPORT void wxGridCellDateEditor_Delete(wxGridCellDateEditor* self)
+    {
+        self->DecRef();
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridCellDateRenderer / wxGridCellDateTimeRenderer / wxGridCellEnumRenderer
+    // -----------------------------------------------------------------------
+
+    EXPORT void* wxGridCellDateRenderer_Create(wxString* out_format)
+    {
+        return static_cast<void*>(new wxGridCellDateRenderer(*out_format));
+    }
+
+    EXPORT void wxGridCellDateRenderer_SetParameters(wxGridCellDateRenderer* self, wxString* params)
+    {
+        self->SetParameters(*params);
+    }
+
+    EXPORT void wxGridCellDateRenderer_Delete(wxGridCellDateRenderer* self)
+    {
+        self->DecRef();
+    }
+
+    EXPORT void* wxGridCellDateTimeRenderer_Create(wxString* out_format, wxString* in_format)
+    {
+        return static_cast<void*>(new wxGridCellDateTimeRenderer(*out_format, *in_format));
+    }
+
+    EXPORT void wxGridCellDateTimeRenderer_SetParameters(wxGridCellDateTimeRenderer* self,
+                                                         wxString* params)
+    {
+        self->SetParameters(*params);
+    }
+
+    EXPORT void wxGridCellDateTimeRenderer_Delete(wxGridCellDateTimeRenderer* self)
+    {
+        self->DecRef();
+    }
+
+    EXPORT void* wxGridCellEnumRenderer_Create(wxString* choices)
+    {
+        return static_cast<void*>(new wxGridCellEnumRenderer(*choices));
+    }
+
+    EXPORT void wxGridCellEnumRenderer_SetParameters(wxGridCellEnumRenderer* self, wxString* params)
+    {
+        self->SetParameters(*params);
+    }
+
+    EXPORT void wxGridCellEnumRenderer_Delete(wxGridCellEnumRenderer* self)
+    {
+        self->DecRef();
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridStringTable
+    // -----------------------------------------------------------------------
+
+    EXPORT void* wxGridStringTable_Create(int num_rows, int num_cols)
+    {
+        return static_cast<void*>(new wxGridStringTable(num_rows, num_cols));
+    }
+
+    EXPORT void wxGridStringTable_Delete(wxGridStringTable* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxGridStringTable_GetNumberRows(wxGridStringTable* self)
+    {
+        return self->GetNumberRows();
+    }
+
+    EXPORT int wxGridStringTable_GetNumberCols(wxGridStringTable* self)
+    {
+        return self->GetNumberCols();
+    }
+
+    EXPORT wxString* wxGridStringTable_GetValue(wxGridStringTable* self, int row, int col)
+    {
+        wxString* result = new wxString();
+        *result = self->GetValue(row, col);
+        return result;
+    }
+
+    EXPORT void wxGridStringTable_SetValue(wxGridStringTable* self, int row, int col,
+                                           wxString* value)
+    {
+        self->SetValue(row, col, *value);
+    }
+
+    EXPORT void wxGridStringTable_Clear(wxGridStringTable* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT bool wxGridStringTable_InsertRows(wxGridStringTable* self, int pos, int num_rows)
+    {
+        return self->InsertRows(static_cast<size_t>(pos), static_cast<size_t>(num_rows));
+    }
+
+    EXPORT bool wxGridStringTable_AppendRows(wxGridStringTable* self, int num_rows)
+    {
+        return self->AppendRows(static_cast<size_t>(num_rows));
+    }
+
+    EXPORT bool wxGridStringTable_DeleteRows(wxGridStringTable* self, int pos, int num_rows)
+    {
+        return self->DeleteRows(static_cast<size_t>(pos), static_cast<size_t>(num_rows));
+    }
+
+    EXPORT bool wxGridStringTable_InsertCols(wxGridStringTable* self, int pos, int num_cols)
+    {
+        return self->InsertCols(static_cast<size_t>(pos), static_cast<size_t>(num_cols));
+    }
+
+    EXPORT bool wxGridStringTable_AppendCols(wxGridStringTable* self, int num_cols)
+    {
+        return self->AppendCols(static_cast<size_t>(num_cols));
+    }
+
+    EXPORT bool wxGridStringTable_DeleteCols(wxGridStringTable* self, int pos, int num_cols)
+    {
+        return self->DeleteCols(static_cast<size_t>(pos), static_cast<size_t>(num_cols));
+    }
+
+    EXPORT void wxGridStringTable_SetRowLabelValue(wxGridStringTable* self, int row,
+                                                   wxString* label)
+    {
+        self->SetRowLabelValue(row, *label);
+    }
+
+    EXPORT void wxGridStringTable_SetColLabelValue(wxGridStringTable* self, int col,
+                                                   wxString* label)
+    {
+        self->SetColLabelValue(col, *label);
+    }
+
+    EXPORT wxString* wxGridStringTable_GetRowLabelValue(wxGridStringTable* self, int row)
+    {
+        wxString* result = new wxString();
+        *result = self->GetRowLabelValue(row);
+        return result;
+    }
+
+    EXPORT wxString* wxGridStringTable_GetColLabelValue(wxGridStringTable* self, int col)
+    {
+        wxString* result = new wxString();
+        *result = self->GetColLabelValue(col);
+        return result;
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridTableMessage
+    // -----------------------------------------------------------------------
+
+    EXPORT void* wxGridTableMessage_Create(wxGridTableBase* table, int message_id, int command_int,
+                                           int command_int2)
+    {
+        return static_cast<void*>(
+            new wxGridTableMessage(table, message_id, command_int, command_int2));
+    }
+
+    EXPORT void wxGridTableMessage_Delete(wxGridTableMessage* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxGridTableBase* wxGridTableMessage_GetTableObject(wxGridTableMessage* self)
+    {
+        return self->GetTableObject();
+    }
+
+    EXPORT int wxGridTableMessage_GetCommandInt(wxGridTableMessage* self)
+    {
+        return self->GetCommandInt();
+    }
+
+    EXPORT int wxGridTableMessage_GetCommandInt2(wxGridTableMessage* self)
+    {
+        return self->GetCommandInt2();
+    }
+
+    EXPORT void wxGridTableMessage_SetTableObject(wxGridTableMessage* self, wxGridTableBase* table)
+    {
+        self->SetTableObject(table);
+    }
+
+    EXPORT void wxGridTableMessage_SetCommandInt(wxGridTableMessage* self, int command_int)
+    {
+        self->SetCommandInt(command_int);
+    }
+
+    EXPORT void wxGridTableMessage_SetCommandInt2(wxGridTableMessage* self, int command_int2)
+    {
+        self->SetCommandInt2(command_int2);
+    }
+
     MAKE_EVENT_WRAPPER(EVT_GRID_CELL_CHANGE)
 }

@@ -75,4 +75,18 @@ extern "C"
         *result = wxControl::EscapeMnemonics(*str);
         return result;
     }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxControl public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT int wxControl_FindAccelIndex(wxString* label)
+    {
+        return wxControl::FindAccelIndex(*label);
+    }
+
+    EXPORT bool wxControl_ShouldInheritColours(wxControl* self)
+    {
+        return self->ShouldInheritColours();
+    }
 }

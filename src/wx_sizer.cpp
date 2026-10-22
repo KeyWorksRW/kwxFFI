@@ -616,4 +616,156 @@ extern "C"
     {
         return (void*) self->GetStaticBox();
     }
+
+    EXPORT bool wxSizer_RemoveSizer(wxSizer* self, wxSizer* sizer)
+    {
+        return self->Remove(sizer);
+    }
+
+    EXPORT bool wxSizer_Remove(wxSizer* self, int index)
+    {
+        return self->Remove(index);
+    }
+
+    EXPORT void wxSizer_DeleteWindows(wxSizer* self)
+    {
+        self->DeleteWindows();
+    }
+
+    EXPORT wxSize* wxSizer_ComputeFittingClientSize(wxSizer* self, wxWindow* window)
+    {
+        wxSize* result = new wxSize();
+        *result = self->ComputeFittingClientSize(window);
+        return result;
+    }
+
+    EXPORT wxSize* wxSizer_ComputeFittingWindowSize(wxSizer* self, wxWindow* window)
+    {
+        wxSize* result = new wxSize();
+        *result = self->ComputeFittingWindowSize(window);
+        return result;
+    }
+
+    EXPORT wxSize* wxSizer_FitWithSize(wxSizer* self, wxWindow* window)
+    {
+        wxSize* result = new wxSize();
+        *result = self->Fit(window);
+        return result;
+    }
+
+    EXPORT int wxSizer_GetItemCount(wxSizer* self)
+    {
+        return static_cast<int>(self->GetItemCount());
+    }
+
+    EXPORT bool wxSizer_IsEmpty(wxSizer* self)
+    {
+        return self->IsEmpty();
+    }
+
+    EXPORT void* wxSizer_GetItemById(wxSizer* self, int id, bool recursive)
+    {
+        return static_cast<void*>(self->GetItemById(id, recursive));
+    }
+
+    EXPORT void wxSizer_ShowItems(wxSizer* self, bool show)
+    {
+        self->Show(show);
+    }
+
+    EXPORT bool wxSizer_AreAnyItemsShown(wxSizer* self)
+    {
+        return self->AreAnyItemsShown();
+    }
+
+    EXPORT bool wxSizer_InformFirstDirection(wxSizer* self, int direction, int size,
+                                             int availableOtherDir)
+    {
+        return self->InformFirstDirection(direction, size, availableOtherDir);
+    }
+
+    EXPORT void wxSizer_SetContainingWindow(wxSizer* self, wxWindow* window)
+    {
+        self->SetContainingWindow(window);
+    }
+
+    EXPORT bool wxBoxSizer_IsVertical(wxBoxSizer* self)
+    {
+        return self->IsVertical();
+    }
+
+    EXPORT void wxBoxSizer_SetOrientation(wxBoxSizer* self, int orient)
+    {
+        self->SetOrientation(orient);
+    }
+
+    EXPORT int wxGridSizer_GetEffectiveColsCount(wxGridSizer* self)
+    {
+        return self->GetEffectiveColsCount();
+    }
+
+    EXPORT int wxGridSizer_GetEffectiveRowsCount(wxGridSizer* self)
+    {
+        return self->GetEffectiveRowsCount();
+    }
+
+    EXPORT bool wxFlexGridSizer_IsRowGrowable(wxFlexGridSizer* self, size_t idx)
+    {
+        return self->IsRowGrowable(idx);
+    }
+
+    EXPORT bool wxFlexGridSizer_IsColGrowable(wxFlexGridSizer* self, size_t idx)
+    {
+        return self->IsColGrowable(idx);
+    }
+
+    EXPORT void wxFlexGridSizer_SetFlexibleDirection(wxFlexGridSizer* self, int direction)
+    {
+        self->SetFlexibleDirection(direction);
+    }
+
+    EXPORT int wxFlexGridSizer_GetFlexibleDirection(wxFlexGridSizer* self)
+    {
+        return self->GetFlexibleDirection();
+    }
+
+    EXPORT void wxFlexGridSizer_SetNonFlexibleGrowMode(wxFlexGridSizer* self, int mode)
+    {
+        self->SetNonFlexibleGrowMode(static_cast<wxFlexSizerGrowMode>(mode));
+    }
+
+    EXPORT int wxFlexGridSizer_GetNonFlexibleGrowMode(wxFlexGridSizer* self)
+    {
+        return static_cast<int>(self->GetNonFlexibleGrowMode());
+    }
+
+    EXPORT int wxFlexGridSizer_GetRowHeights(wxFlexGridSizer* self, void* heights)
+    {
+        const wxArrayInt& row_heights = self->GetRowHeights();
+        const int count = static_cast<int>(row_heights.GetCount());
+
+        if (heights)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                static_cast<int*>(heights)[i] = row_heights.Item(i);
+            }
+        }
+        return count;
+    }
+
+    EXPORT int wxFlexGridSizer_GetColWidths(wxFlexGridSizer* self, void* widths)
+    {
+        const wxArrayInt& col_widths = self->GetColWidths();
+        const int count = static_cast<int>(col_widths.GetCount());
+
+        if (widths)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                static_cast<int*>(widths)[i] = col_widths.Item(i);
+            }
+        }
+        return count;
+    }
 }

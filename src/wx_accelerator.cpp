@@ -51,6 +51,73 @@ extern "C"
 
     EXPORT void wxAcceleratorTable_Delete(void* pObject)
     {
-        delete (wxAcceleratorEntry*) pObject;
+        delete (wxAcceleratorTable*) pObject;
+    }
+
+    EXPORT wxAcceleratorEntry* wxAcceleratorEntry_CreateFromString(wxString* str)
+    {
+        return wxAcceleratorEntry::Create(*str);
+    }
+
+    EXPORT void wxAcceleratorEntry_SetMenuItem(wxAcceleratorEntry* self, wxMenuItem* item)
+    {
+        self->SetMenuItem(item);
+    }
+
+    EXPORT wxMenuItem* wxAcceleratorEntry_GetMenuItem(wxAcceleratorEntry* self)
+    {
+        return self->GetMenuItem();
+    }
+
+    EXPORT bool wxAcceleratorEntry_IsOk(wxAcceleratorEntry* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT bool wxAcceleratorEntry_MatchesEvent(wxAcceleratorEntry* self, wxKeyEvent* event)
+    {
+        return self->MatchesEvent(*event);
+    }
+
+    EXPORT wxString* wxAcceleratorEntry_ToString(wxAcceleratorEntry* self)
+    {
+        return new wxString(self->ToString());
+    }
+
+    EXPORT wxString* wxAcceleratorEntry_ToRawString(wxAcceleratorEntry* self)
+    {
+        return new wxString(self->ToRawString());
+    }
+
+    EXPORT bool wxAcceleratorEntry_FromString(wxAcceleratorEntry* self, wxString* str)
+    {
+        return self->FromString(*str);
+    }
+
+    EXPORT wxAcceleratorTable* wxAcceleratorTable_CreateFromResource(wxString* resource)
+    {
+#if defined(__WXMSW__)
+        return new wxAcceleratorTable(*resource);
+#else
+        wxUnusedVar(resource);
+        return nullptr;
+#endif
+    }
+
+    EXPORT bool wxAcceleratorTable_IsOk(wxAcceleratorTable* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT wxAcceleratorEntry* wxAcceleratorTable_GetEntry(wxAcceleratorTable* self,
+                                                           wxKeyEvent* event)
+    {
+#if defined(__WXMSW__)
+        return const_cast<wxAcceleratorEntry*>(self->GetEntry(*event));
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(event);
+        return nullptr;
+#endif
     }
 }

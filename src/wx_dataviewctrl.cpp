@@ -229,7 +229,8 @@ extern "C"
     }
 
     EXPORT void wxDataViewCtrl_GetItemRect(wxDataViewCtrl* self, wxDataViewItem* item,
-                                           wxDataViewColumn* column, int* x, int* y, int* width, int* height)
+                                           wxDataViewColumn* column, int* x, int* y, int* width,
+                                           int* height)
     {
         wxRect rect = self->GetItemRect(*item, column);
         *x = rect.x;
@@ -346,76 +347,79 @@ extern "C"
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_AppendIconTextColumn(wxDataViewCtrl* self,
-                                                                  wxString* label,
-                                                                  unsigned int model_column,
-                                                                  int mode, int width, int align,
-                                                                  int flags)
+                                                                 wxString* label,
+                                                                 unsigned int model_column,
+                                                                 int mode, int width, int align,
+                                                                 int flags)
     {
         return self->AppendIconTextColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                           (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_AppendDateColumn(wxDataViewCtrl* self, wxString* label,
-                                                              unsigned int model_column, int mode,
-                                                              int width, int align, int flags)
+                                                             unsigned int model_column, int mode,
+                                                             int width, int align, int flags)
     {
         return self->AppendDateColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                       (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependTextColumn(wxDataViewCtrl* self, wxString* label,
-                                                               unsigned int model_column, int mode,
-                                                               int width, int align, int flags)
+                                                              unsigned int model_column, int mode,
+                                                              int width, int align, int flags)
     {
         return self->PrependTextColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                        (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependIconTextColumn(wxDataViewCtrl* self,
-                                                                   wxString* label,
-                                                                   unsigned int model_column,
-                                                                   int mode, int width, int align,
-                                                                   int flags)
+                                                                  wxString* label,
+                                                                  unsigned int model_column,
+                                                                  int mode, int width, int align,
+                                                                  int flags)
     {
         return self->PrependIconTextColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                            (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependToggleColumn(wxDataViewCtrl* self,
-                                                                 wxString* label,
-                                                                 unsigned int model_column,
-                                                                 int mode, int width, int align,
-                                                                 int flags)
+                                                                wxString* label,
+                                                                unsigned int model_column, int mode,
+                                                                int width, int align, int flags)
     {
         return self->PrependToggleColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                          (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependProgressColumn(wxDataViewCtrl* self,
-                                                                   wxString* label,
-                                                                   unsigned int model_column,
-                                                                   int mode, int width, int align,
-                                                                   int flags)
+                                                                  wxString* label,
+                                                                  unsigned int model_column,
+                                                                  int mode, int width, int align,
+                                                                  int flags)
     {
         return self->PrependProgressColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                            (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependDateColumn(wxDataViewCtrl* self, wxString* label,
-                                                               unsigned int model_column, int mode,
-                                                               int width, int align, int flags)
+                                                              unsigned int model_column, int mode,
+                                                              int width, int align, int flags)
     {
         return self->PrependDateColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                        (wxAlignment) align, flags);
     }
 
     EXPORT wxDataViewColumn* wxDataViewCtrl_PrependBitmapColumn(wxDataViewCtrl* self,
-                                                                 wxString* label,
-                                                                 unsigned int model_column,
-                                                                 int mode, int width, int align,
-                                                                 int flags)
+                                                                wxString* label,
+                                                                unsigned int model_column, int mode,
+                                                                int width, int align, int flags)
     {
         return self->PrependBitmapColumn(*label, model_column, (wxDataViewCellMode) mode, width,
                                          (wxAlignment) align, flags);
+    }
+
+    EXPORT bool wxDataViewCtrl_SetHeaderAttr(wxDataViewCtrl* self, wxItemAttr* attr)
+    {
+        return self->SetHeaderAttr(*attr);
     }
 }

@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <locale>
+#include <set>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -773,6 +774,11 @@ ClassParseResult ParseClasses(const std::filesystem::path& file_path)
             lines.push_back(line);
         }
     }
+
+    // Expand quoted local includes so declarations in module headers are visible to the
+    // binding generators. kwx_types.h, kwx_def.h, and kwx_wrapper.h stay as include lines.
+    std::set<std::filesystem::path> visited { std::filesystem::weakly_canonical(file_path) };
+    ExpandLocalIncludes(lines, file_path, visited, 0);
 
     // Pre-process: strip C and C++ comments from all lines.
     StripComments(lines);

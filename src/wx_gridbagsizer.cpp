@@ -160,4 +160,35 @@ extern "C"
     {
         self->SetEmptyCellSize(wxSize(width, height));
     }
+
+    // Get the size of the specified cell, including gaps
+    EXPORT wxSize* wxGridBagSizer_GetCellSize(wxGridBagSizer* self, int row, int col)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetCellSize(row, col);
+        return result;
+    }
+
+    // Find the sizer item for the given window
+    EXPORT wxSizerItem* wxGridBagSizer_FindItem(wxGridBagSizer* self, wxWindow* window)
+    {
+        return self->FindItem(window);
+    }
+
+    EXPORT wxSizerItem* wxGridBagSizer_FindItemSizer(wxGridBagSizer* self, wxSizer* sizer)
+    {
+        return self->FindItem(sizer);
+    }
+
+    // Find the sizer item located at the given point
+    EXPORT wxSizerItem* wxGridBagSizer_FindItemAtPoint(wxGridBagSizer* self, int x, int y)
+    {
+        return self->FindItemAtPoint(wxPoint(x, y));
+    }
+
+    // Find the sizer item with matching user data
+    EXPORT wxSizerItem* wxGridBagSizer_FindItemWithData(wxGridBagSizer* self, void* userData)
+    {
+        return self->FindItemWithData(static_cast<const wxObject*>(userData));
+    }
 }

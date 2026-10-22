@@ -225,9 +225,9 @@ extern "C"
         self->SetRows(nMin, nMax);
     }
 
-    EXPORT void wxRibbonToolBar_Realize(wxRibbonToolBar* self)
+    EXPORT int wxRibbonToolBar_Realize(wxRibbonToolBar* self)
     {
-        self->Realize();
+        return self->Realize();
     }
 
     // Art provider
@@ -250,6 +250,22 @@ extern "C"
     EXPORT int expEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED()
     {
         return wxEVT_RIBBONTOOLBAR_DROPDOWN_CLICKED;
+    }
+
+    // wxRibbonToolBarEvent
+    EXPORT wxRibbonToolBar* wxRibbonToolBarEvent_GetBar(wxRibbonToolBarEvent* self)
+    {
+        return self->GetBar();
+    }
+
+    EXPORT bool wxRibbonToolBarEvent_PopupMenu(wxRibbonToolBarEvent* self, wxMenu* menu)
+    {
+        return self->PopupMenu(menu);
+    }
+
+    EXPORT void wxRibbonToolBarEvent_SetBar(wxRibbonToolBarEvent* self, wxRibbonToolBar* bar)
+    {
+        self->SetBar(bar);
     }
 
 }  // extern "C"

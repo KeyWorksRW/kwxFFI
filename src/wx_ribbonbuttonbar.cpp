@@ -219,9 +219,9 @@ extern "C"
     }
 
     // Layout
-    EXPORT void wxRibbonButtonBar_Realize(wxRibbonButtonBar* self)
+    EXPORT int wxRibbonButtonBar_Realize(wxRibbonButtonBar* self)
     {
-        self->Realize();
+        return self->Realize();
     }
 
     // Art provider
@@ -281,6 +281,34 @@ extern "C"
     EXPORT int expwxRIBBON_BUTTONBAR_BUTTON_LARGE()
     {
         return wxRIBBON_BUTTONBAR_BUTTON_LARGE;
+    }
+
+    // wxRibbonButtonBarEvent
+    EXPORT wxRibbonButtonBar* wxRibbonButtonBarEvent_GetBar(wxRibbonButtonBarEvent* self)
+    {
+        return self->GetBar();
+    }
+
+    EXPORT wxRibbonButtonBarButtonBase*
+        wxRibbonButtonBarEvent_GetButton(wxRibbonButtonBarEvent* self)
+    {
+        return self->GetButton();
+    }
+
+    EXPORT bool wxRibbonButtonBarEvent_PopupMenu(wxRibbonButtonBarEvent* self, wxMenu* menu)
+    {
+        return self->PopupMenu(menu);
+    }
+
+    EXPORT void wxRibbonButtonBarEvent_SetBar(wxRibbonButtonBarEvent* self, wxRibbonButtonBar* bar)
+    {
+        self->SetBar(bar);
+    }
+
+    EXPORT void wxRibbonButtonBarEvent_SetButton(wxRibbonButtonBarEvent* self,
+                                                 wxRibbonButtonBarButtonBase* button)
+    {
+        self->SetButton(button);
     }
 
 }  // extern "C"

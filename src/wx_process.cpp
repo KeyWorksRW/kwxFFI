@@ -4,6 +4,71 @@
 #include "kwx_wrapper.h"
 #include <wx/process.h>
 
+// wxProcessEx adds a foreign-language callback to wxProcess. When a closure is connected,
+// OnTerminate() invokes it with a wxProcessEvent instead of dispatching a wxEVT_END_PROCESS
+// event, so the object lifetime is owned by the callback rather than by wxWidgets.
+class wxProcessEx : public wxProcess
+{
+private:
+    wxClosure* m_closure;
+
+public:
+    wxProcessEx(wxEvtHandler* parent, int id, int flags);
+    ~wxProcessEx() override;
+
+    void Connect(wxClosure* closure);
+    wxClosure* GetClosure();
+    void OnTerminate(int pid, int status) override;
+};
+
+wxProcessEx::wxProcessEx(wxEvtHandler* parent, int id, int flags) : wxProcess(parent, id)
+{
+    m_closure = nullptr;
+    if (flags != wxPROCESS_DEFAULT)
+    {
+        Redirect();
+    }
+}
+
+wxProcessEx::~wxProcessEx()
+{
+    if (m_closure)
+    {
+        m_closure->DecRef();
+        m_closure = nullptr;
+    }
+}
+
+void wxProcessEx::Connect(wxClosure* closure)
+{
+    if (m_closure)
+    {
+        m_closure->DecRef();
+    }
+    m_closure = closure;
+    if (m_closure)
+    {
+        m_closure->IncRef();
+    }
+}
+
+wxClosure* wxProcessEx::GetClosure()
+{
+    return m_closure;
+}
+
+void wxProcessEx::OnTerminate(int pid, int status)
+{
+    if (!m_closure)
+    {
+        wxProcess::OnTerminate(pid, status);
+        return;
+    }
+
+    wxProcessEvent process_event(m_id, pid, status);
+    m_closure->Invoke(&process_event);
+}
+
 extern "C"
 {
     EXPORT void* wxProcess_CreateDefault(wxEvtHandler* parent, int id)
@@ -164,5 +229,122 @@ extern "C"
     EXPORT int wxInputStream_Ungetch(wxInputStream* self, char c)
     {
         return (int) self->Ungetch(c);
+    }
+
+    // -------------------------------------------------------------------
+    // wxProcess additions
+    // -------------------------------------------------------------------
+
+    EXPORT wxProcess* wxProcess_CreateFlags(int flags)
+    {
+        return new wxProcess(flags);
+    }
+
+    EXPORT bool wxProcess_Activate(wxProcess* self)
+    {
+        return self->Activate();
+    }
+
+    EXPORT long wxProcess_GetPid(wxProcess* self)
+    {
+        return self->GetPid();
+    }
+
+    EXPORT void wxProcess_SetPriority(wxProcess* self, unsigned priority)
+    {
+        self->SetPriority(priority);
+    }
+
+    EXPORT unsigned wxProcess_GetPriority(wxProcess* self)
+    {
+        return self->GetPriority();
+    }
+
+    EXPORT int wxProcess_Kill(int pid, int sig, int flags, int* rc)
+    {
+        const wxKillError kill_error = wxProcess::Kill(pid, static_cast<wxSignal>(sig), flags);
+        if (rc)
+        {
+            *rc = static_cast<int>(kill_error);
+        }
+        return static_cast<int>(kill_error);
+    }
+
+    EXPORT bool wxProcess_Exists(int pid)
+    {
+        return wxProcess::Exists(pid);
+    }
+
+    EXPORT wxProcess* wxProcess_Open(const wxString* cmd, int flags)
+    {
+        return wxProcess::Open(*cmd, flags);
+    }
+
+    EXPORT bool wxProcess_IsInputAvailable(wxProcess* self)
+    {
+        return self->IsInputAvailable();
+    }
+
+    EXPORT bool wxProcess_IsErrorAvailable(wxProcess* self)
+    {
+        return self->IsErrorAvailable();
+    }
+
+    EXPORT bool wxProcess_IsInputOpened(wxProcess* self)
+    {
+        return self->IsInputOpened();
+    }
+
+    EXPORT wxProcessEvent* wxProcessEvent_Create(int id, int pid, int exitcode)
+    {
+        return new wxProcessEvent(id, pid, exitcode);
+    }
+
+    // -------------------------------------------------------------------
+    // wxExecuteEnv
+    // -------------------------------------------------------------------
+
+    EXPORT wxExecuteEnv* wxExecuteEnv_Create()
+    {
+        return new wxExecuteEnv();
+    }
+
+    EXPORT void wxExecuteEnv_Delete(wxExecuteEnv* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxExecuteEnv_SetCwd(wxExecuteEnv* self, const wxString* cwd)
+    {
+        self->cwd = *cwd;
+    }
+
+    EXPORT wxString* wxExecuteEnv_GetCwd(wxExecuteEnv* self)
+    {
+        return new wxString(self->cwd);
+    }
+
+    EXPORT void wxExecuteEnv_AddEnv(wxExecuteEnv* self, const wxString* name, const wxString* value)
+    {
+        self->env[*name] = *value;
+    }
+
+    // -------------------------------------------------------------------
+    // wxProcessEx
+    // -------------------------------------------------------------------
+
+    EXPORT wxProcessEx* wxProcessEx_Create(wxEvtHandler* parent, int id, int flags)
+    {
+        return new wxProcessEx(parent, id, flags);
+    }
+
+    EXPORT void wxProcessEx_Connect(wxProcessEx* self, wxClosure* closure)
+    {
+        self->Connect(closure);
+    }
+
+    EXPORT wxClosure* wxProcessEx_GetClosure(wxProcessEx* self)
+    {
+        return self->GetClosure();
     }
 }

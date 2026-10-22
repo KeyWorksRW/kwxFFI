@@ -245,4 +245,18 @@ extern "C"
     {
         return AsTextEntry(self)->AutoCompleteDirectories();
     }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxTextEntry public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT void wxTextEntry_ConvertToUpperCase(void* self)
+    {
+        AsTextEntry(self)->ConvertToUpperCase();
+    }
+
+    EXPORT void wxTextEntry_ForwardEnableTextChangedEvents(void* self, bool enable)
+    {
+        AsTextEntry(self)->ForwardEnableTextChangedEvents(enable);
+    }
 }

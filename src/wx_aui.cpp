@@ -2804,4 +2804,22 @@ extern "C"
         *info = self->Item(index);
         return info;
     }
+
+    // wxAuiFloatingFrame
+
+    EXPORT wxAuiFloatingFrame* wxAuiFloatingFrame_Create(wxWindow* parent, wxAuiManager* ownerMgr,
+                                                         wxAuiPaneInfo* pane, int id, int style)
+    {
+        return new wxAuiFloatingFrame(parent, ownerMgr, *pane, id, style);
+    }
+
+    EXPORT void wxAuiFloatingFrame_Delete(wxAuiFloatingFrame* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxAuiManager* wxAuiFloatingFrame_GetOwnerManager(wxAuiFloatingFrame* self)
+    {
+        return self->GetOwnerManager();
+    }
 }

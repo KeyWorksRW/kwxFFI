@@ -93,4 +93,16 @@ extern "C"
     {
         return self->GetStatusStyle(n);
     }
+
+    EXPORT wxSize* wxStatusBar_GetBorders(wxStatusBar* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetBorders();
+        return result;
+    }
+
+    EXPORT bool wxStatusBar_AddFieldControl(wxStatusBar* self, int n, wxWindow* win)
+    {
+        return self->AddFieldControl(n, win);
+    }
 }

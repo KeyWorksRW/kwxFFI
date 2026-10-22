@@ -1591,31 +1591,6 @@ extern "C"
         return new wxMenuItem(nullptr, id, *text, *helpstr, (wxItemKind) itemkind, submenu);
     }
 
-    EXPORT bool wxProcess_IsErrorAvailable(wxProcess* self)
-    {
-        return self->IsErrorAvailable();
-    }
-
-    EXPORT bool wxProcess_IsInputAvailable(wxProcess* self)
-    {
-        return self->IsInputAvailable();
-    }
-
-    EXPORT bool wxProcess_IsInputOpened(wxProcess* self)
-    {
-        return self->IsInputOpened();
-    }
-
-    EXPORT wxProcess* wxProcess_Open(wxString* cmd, int flags)
-    {
-        return wxProcess::Open(*cmd, ((flags | wxEXEC_ASYNC) & ~wxEXEC_SYNC));
-    }
-
-    EXPORT wxKillError wxKill(int pid, wxSignal signal)
-    {
-        return wxProcess::Kill(pid, signal);
-    }
-
     EXPORT void wxStreamBase_Delete(wxStreamBase* stream)
     {
         if (stream)
@@ -2019,6 +1994,52 @@ extern "C"
                                                 wxString* path)
     {
         self->WriteCustomization(cfg, *path);
+    }
+
+    EXPORT void* wxHtmlWindow_GetParser(wxHtmlWindow* self)
+    {
+        return self->GetParser();
+    }
+
+    EXPORT bool wxHtmlWindow_LoadFile(wxHtmlWindow* self, wxFileName* filename)
+    {
+        return self->LoadFile(*filename);
+    }
+
+    EXPORT void wxHtmlWindow_SelectAll(wxHtmlWindow* self)
+    {
+        self->SelectAll();
+    }
+
+    EXPORT void wxHtmlWindow_SelectLine(wxHtmlWindow* self, int x, int y)
+    {
+        self->SelectLine(wxPoint(x, y));
+    }
+
+    EXPORT void wxHtmlWindow_SelectWord(wxHtmlWindow* self, int x, int y)
+    {
+        self->SelectWord(wxPoint(x, y));
+    }
+
+    EXPORT wxString* wxHtmlWindow_SelectionToText(wxHtmlWindow* self)
+    {
+        return new wxString(self->SelectionToText());
+    }
+
+    EXPORT void wxHtmlWindow_SetBackgroundImage(wxHtmlWindow* self, wxBitmapBundle* bmpBg)
+    {
+        self->SetBackgroundImage(*bmpBg);
+    }
+
+    EXPORT void wxHtmlWindow_SetStandardFonts(wxHtmlWindow* self, int size, wxString* normal_face,
+                                              wxString* fixed_face)
+    {
+        self->SetStandardFonts(size, *normal_face, *fixed_face);
+    }
+
+    EXPORT wxString* wxHtmlWindow_ToText(wxHtmlWindow* self)
+    {
+        return new wxString(self->ToText());
     }
 
     EXPORT wxLogStderr* wxLogStderr_Create()

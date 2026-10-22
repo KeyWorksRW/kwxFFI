@@ -35,7 +35,8 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxBitmap_GetSubBitmap(wxBitmap* self, int x, int y, int width, int height, wxBitmap* bitmap)
+    EXPORT void wxBitmap_GetSubBitmap(wxBitmap* self, int x, int y, int width, int height,
+                                      wxBitmap* bitmap)
     {
         *bitmap = self->GetSubBitmap(wxRect(x, y, width, height));
     }
@@ -174,5 +175,108 @@ extern "C"
     EXPORT void wxStaticBitmap_Delete(wxStaticBitmap* self)
     {
         delete self;
+    }
+
+    EXPORT bool wxBitmap_Init(wxBitmap* self, int width, int height, int depth)
+    {
+        return self->Create(width, height, depth);
+    }
+
+    EXPORT wxSize* wxBitmap_GetSize(wxBitmap* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetSize();
+        return result;
+    }
+
+    EXPORT void wxBitmap_SetScaleFactor(wxBitmap* self, double scale)
+    {
+        self->SetScaleFactor(scale);
+    }
+
+    EXPORT double wxBitmap_GetScaleFactor(wxBitmap* self)
+    {
+        return self->GetScaleFactor();
+    }
+
+    EXPORT wxSize* wxBitmap_GetDIPSize(wxBitmap* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetDIPSize();
+        return result;
+    }
+
+    EXPORT wxSize* wxBitmap_GetLogicalSize(wxBitmap* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetLogicalSize();
+        return result;
+    }
+
+    EXPORT double wxBitmap_GetLogicalWidth(wxBitmap* self)
+    {
+        return self->GetLogicalWidth();
+    }
+
+    EXPORT double wxBitmap_GetLogicalHeight(wxBitmap* self)
+    {
+        return self->GetLogicalHeight();
+    }
+
+    EXPORT bool wxBitmap_CreateScaled(wxBitmap* self, int width, int height, int depth,
+                                      double scale)
+    {
+        return self->CreateScaled(width, height, depth, scale);
+    }
+
+    EXPORT wxImage* wxBitmap_ConvertToImage(wxBitmap* self)
+    {
+        return new wxImage(self->ConvertToImage());
+    }
+
+    EXPORT wxBitmap* wxBitmap_ConvertToDisabled(wxBitmap* self, char brightness)
+    {
+        return new wxBitmap(self->ConvertToDisabled(static_cast<unsigned char>(brightness)));
+    }
+
+    EXPORT wxPalette* wxBitmap_GetPalette(wxBitmap* self)
+    {
+        wxPalette* palette = self->GetPalette();
+
+        if (palette)
+        {
+            return new wxPalette(*palette);
+        }
+        return new wxPalette();
+    }
+
+    EXPORT void wxBitmap_SetPalette(wxBitmap* self, wxPalette* palette)
+    {
+        self->SetPalette(*palette);
+    }
+
+    EXPORT bool wxBitmap_HasAlpha(wxBitmap* self)
+    {
+        return self->HasAlpha();
+    }
+
+    EXPORT bool wxBitmap_UseAlpha(wxBitmap* self, bool use)
+    {
+        return self->UseAlpha(use);
+    }
+
+    EXPORT void wxBitmap_ResetAlpha(wxBitmap* self)
+    {
+        self->ResetAlpha();
+    }
+
+    EXPORT bool wxBitmap_CopyFromIcon(wxBitmap* self, wxIcon* icon)
+    {
+        return self->CopyFromIcon(*icon);
+    }
+
+    EXPORT wxBitmap* wxBitmap_NewFromPNGData(void* data, size_t size)
+    {
+        return new wxBitmap(wxBitmap::NewFromPNGData(data, size));
     }
 }
