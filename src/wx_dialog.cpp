@@ -74,4 +74,83 @@ extern "C"
     {
         return (void*) self->CreateStdDialogButtonSizer(flags);
     }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxDialog public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT void wxDialog_ShowWindowModal(wxDialog* self)
+    {
+        self->ShowWindowModal();
+    }
+
+    EXPORT int wxDialog_GetModality(wxDialog* self)
+    {
+        return static_cast<int>(self->GetModality());
+    }
+
+    EXPORT void wxDialog_AddMainButtonId(wxDialog* self, int id)
+    {
+        self->AddMainButtonId(static_cast<wxWindowID>(id));
+    }
+
+    EXPORT bool wxDialog_IsMainButtonId(wxDialog* self, int id)
+    {
+        return self->IsMainButtonId(static_cast<wxWindowID>(id));
+    }
+
+    EXPORT void wxDialog_SetLayoutAdaptationLevel(wxDialog* self, int level)
+    {
+        self->SetLayoutAdaptationLevel(level);
+    }
+
+    EXPORT int wxDialog_GetLayoutAdaptationLevel(wxDialog* self)
+    {
+        return self->GetLayoutAdaptationLevel();
+    }
+
+    EXPORT void wxDialog_SetLayoutAdaptationMode(wxDialog* self, int mode)
+    {
+        self->SetLayoutAdaptationMode(static_cast<wxDialogLayoutAdaptationMode>(mode));
+    }
+
+    EXPORT int wxDialog_GetLayoutAdaptationMode(wxDialog* self)
+    {
+        return static_cast<int>(self->GetLayoutAdaptationMode());
+    }
+
+    EXPORT void wxDialog_SetLayoutAdaptationDone(wxDialog* self, bool adaptationDone)
+    {
+        self->SetLayoutAdaptationDone(adaptationDone);
+    }
+
+    EXPORT bool wxDialog_GetLayoutAdaptationDone(wxDialog* self)
+    {
+        return self->GetLayoutAdaptationDone();
+    }
+
+    EXPORT bool wxDialog_IsLayoutAdaptationEnabled()
+    {
+        return wxDialog::IsLayoutAdaptationEnabled();
+    }
+
+    EXPORT void wxDialog_EnableLayoutAdaptation(bool enable)
+    {
+        wxDialog::EnableLayoutAdaptation(enable);
+    }
+
+    EXPORT bool wxDialog_CanDoLayoutAdaptation(wxDialog* self)
+    {
+        return self->CanDoLayoutAdaptation();
+    }
+
+    EXPORT bool wxDialog_DoLayoutAdaptation(wxDialog* self)
+    {
+        return self->DoLayoutAdaptation();
+    }
+
+    EXPORT wxWindow* wxDialog_GetContentWindow(wxDialog* self)
+    {
+        return self->GetContentWindow();
+    }
 }

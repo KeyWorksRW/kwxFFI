@@ -141,4 +141,44 @@ extern "C"
     {
         return AsItemContainer(self)->HasClientData();
     }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxItemContainer public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT void wxItemContainer_AppendString(void* self, wxString* item)
+    {
+        AsItemContainer(self)->AppendString(*item);
+    }
+
+    EXPORT void wxItemContainer_SetClientObject(void* self, unsigned int n,
+                                                wxClientData* clientData)
+    {
+        AsItemContainer(self)->SetClientObject(n, clientData);
+    }
+
+    EXPORT wxClientData* wxItemContainer_GetClientObject(void* self, unsigned int n)
+    {
+        return AsItemContainer(self)->GetClientObject(n);
+    }
+
+    EXPORT wxClientData* wxItemContainer_DetachClientObject(void* self, unsigned int n)
+    {
+        return AsItemContainer(self)->DetachClientObject(n);
+    }
+
+    EXPORT int wxItemContainer_GetClientDataType(void* self)
+    {
+        return static_cast<int>(AsItemContainer(self)->GetClientDataType());
+    }
+
+    EXPORT bool wxItemContainer_HasClientObjectData(void* self)
+    {
+        return AsItemContainer(self)->HasClientObjectData();
+    }
+
+    EXPORT bool wxItemContainer_HasClientUntypedData(void* self)
+    {
+        return AsItemContainer(self)->HasClientUntypedData();
+    }
 }

@@ -582,4 +582,106 @@ extern "C"
     {
         return self->SetHeaderAttr(*attr);
     }
+
+    EXPORT int wxListCtrl_GetColumnOrder(wxListCtrl* self, int col)
+    {
+        return self->GetColumnOrder(col);
+    }
+
+    EXPORT int wxListCtrl_GetColumnIndexFromOrder(wxListCtrl* self, int order)
+    {
+        return self->GetColumnIndexFromOrder(order);
+    }
+
+    EXPORT bool wxListCtrl_SetItemColumnImage(wxListCtrl* self, long item, long column, int image)
+    {
+        return self->SetItemColumnImage(item, column, image);
+    }
+
+    EXPORT bool wxListCtrl_SetItemPtrData(wxListCtrl* self, long item, uintptr_t data)
+    {
+        return self->SetItemPtrData(item, static_cast<wxUIntPtr>(data));
+    }
+
+    EXPORT wxColour* wxListCtrl_GetItemTextColour(wxListCtrl* self, long item)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetItemTextColour(item);
+        return result;
+    }
+
+    EXPORT void wxListCtrl_SetItemTextColour(wxListCtrl* self, long item, wxColour* col)
+    {
+        self->SetItemTextColour(item, *col);
+    }
+
+    EXPORT wxColour* wxListCtrl_GetItemBackgroundColour(wxListCtrl* self, long item)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetItemBackgroundColour(item);
+        return result;
+    }
+
+    EXPORT void wxListCtrl_SetItemBackgroundColour(wxListCtrl* self, long item, wxColour* col)
+    {
+        self->SetItemBackgroundColour(item, *col);
+    }
+
+    EXPORT void wxListCtrl_SetItemFont(wxListCtrl* self, long item, wxFont* font)
+    {
+        self->SetItemFont(item, *font);
+    }
+
+    EXPORT int wxListCtrl_AppendColumn(wxListCtrl* self, wxString* heading, int format, int width)
+    {
+        return static_cast<int>(
+            self->AppendColumn(*heading, static_cast<wxListColumnFormat>(format), width));
+    }
+
+    EXPORT bool wxListCtrl_IsEmpty(wxListCtrl* self)
+    {
+        return self->IsEmpty();
+    }
+
+    EXPORT bool wxListCtrl_InReportView(wxListCtrl* self)
+    {
+        return self->InReportView();
+    }
+
+    EXPORT void wxListCtrl_EnableBellOnNoMatch(wxListCtrl* self, bool on)
+    {
+        self->EnableBellOnNoMatch(on);
+    }
+
+    EXPORT void wxListCtrl_EnableAlternateRowColours(wxListCtrl* self, bool enable)
+    {
+        self->EnableAlternateRowColours(enable);
+    }
+
+    EXPORT void wxListCtrl_SetAlternateRowColour(wxListCtrl* self, wxColour* colour)
+    {
+        self->SetAlternateRowColour(*colour);
+    }
+
+    EXPORT wxColour* wxListCtrl_GetAlternateRowColour(wxListCtrl* self)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetAlternateRowColour();
+        return result;
+    }
+
+    EXPORT void wxListCtrl_ExtendRulesAndAlternateColour(wxListCtrl* self, bool extend)
+    {
+        self->ExtendRulesAndAlternateColour(extend);
+    }
+
+    EXPORT void wxListCtrl_RemoveSortIndicator(wxListCtrl* self)
+    {
+        self->RemoveSortIndicator();
+    }
+
+    EXPORT bool wxListCtrl_GetUpdatedAscendingSortIndicator(wxListCtrl* self, int col)
+    {
+        return self->GetUpdatedAscendingSortIndicator(col);
+    }
 }

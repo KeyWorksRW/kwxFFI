@@ -27,7 +27,9 @@ set( FFI_SRC_FILES
     src/kwx_treectrl.cpp
 
     src/wx_aboutbox.cpp
+    src/wx_aboutdlg.cpp
     src/wx_accelerator.cpp
+    src/wx_accessible.cpp
     src/wx_activityindicator.cpp
     src/wx_animationctrl.cpp
     src/wx_artprov.cpp
@@ -45,6 +47,7 @@ set( FFI_SRC_FILES
     src/wx_checklistbox.cpp
     src/wx_choice.cpp
     src/wx_choicebook.cpp
+    src/wx_choicedlg.cpp
     src/wx_clipboard.cpp
     src/wx_coldata.cpp
     src/wx_collapsiblepane.cpp
@@ -56,6 +59,7 @@ set( FFI_SRC_FILES
     src/wx_commandlinkbutton.cpp
     src/wx_configbase.cpp
     src/wx_control.cpp
+    src/wx_credentialdlg.cpp
     src/wx_ctxhelp.cpp
     src/wx_cursor.cpp
     src/wx_dataformat.cpp
@@ -67,6 +71,7 @@ set( FFI_SRC_FILES
     src/wx_dcsvg.cpp
     src/wx_dialog.cpp
 
+    src/wx_dialup.cpp
     src/wx_dirdlg.cpp
     src/wx_dirpickerctrl.cpp
     src/wx_display.cpp
@@ -74,10 +79,14 @@ set( FFI_SRC_FILES
     src/wx_docframes.cpp
     src/wx_drawing.cpp
     src/wx_event.cpp
+    src/wx_eventfilter.cpp
+    src/wx_exthelp.cpp
     src/wx_filectrl.cpp
     src/wx_filedialog.cpp
+    src/wx_filedlgcustomize.cpp
     src/wx_filehist.cpp
     src/wx_filepickerctrl.cpp
+    src/wx_filesystem.cpp
     src/wx_findrepldlg.cpp
     src/wx_font.cpp
     src/wx_fontdata.cpp
@@ -91,8 +100,13 @@ set( FFI_SRC_FILES
     src/wx_gridbagsizer.cpp
     src/wx_headerctrl.cpp
     src/wx_helpcontroller.cpp
+    src/wx_htmlbox.cpp
+    src/wx_htmlhelp.cpp
+    src/wx_htmlprint.cpp
+    src/wx_htmlwindow.cpp
     src/wx_icnbndl.cpp
     src/wx_icon.cpp
+    src/wx_iconloc.cpp
     src/wx_image.cpp
     src/wx_imagelist.cpp
     src/wx_infobar.cpp
@@ -106,6 +120,7 @@ set( FFI_SRC_FILES
     src/wx_locale.cpp
     src/wx_log.cpp
     src/wx_mask.cpp
+    src/wx_mbconv.cpp
     src/wx_mdi.cpp
     src/wx_menu.cpp
     src/wx_menubar.cpp
@@ -114,9 +129,14 @@ set( FFI_SRC_FILES
     src/wx_miniframe.cpp
     src/wx_notebook.cpp
     src/wx_notifmsg.cpp
+    src/wx_numberdlg.cpp
+    src/wx_numvalidator.cpp
     src/wx_palette.cpp
     src/wx_panel.cpp
     src/wx_pen.cpp
+    src/wx_persist.cpp
+    src/wx_platform_aliases.cpp
+    src/wx_platinfo.cpp
     src/wx_popup.cpp
 
     src/wx_printdlg.cpp
@@ -124,6 +144,7 @@ set( FFI_SRC_FILES
     src/wx_process.cpp
     src/wx_propertygridmanager.cpp
     src/wx_propertysheetdialog.cpp
+    src/wx_propgrid.cpp
     src/wx_radiobox.cpp
     src/wx_radiobutton.cpp
     src/wx_rc.cpp
@@ -136,16 +157,23 @@ set( FFI_SRC_FILES
     src/wx_ribbonpage.cpp
     src/wx_ribbonpanel.cpp
     src/wx_ribbontoolbar.cpp
+    src/wx_richtext.cpp
     src/wx_richtextctrl.cpp
+    src/wx_richtextdlg.cpp
+    src/wx_richtextprint.cpp
+    src/wx_richtextstyles.cpp
+    src/wx_richtooltip.cpp
     src/wx_sash.cpp
     src/wx_scrollbar.cpp
     src/wx_scrolledwindow.cpp
     src/wx_searchctrl.cpp
+    src/wx_secretstore.cpp
     src/wx_simplebook.cpp
     src/wx_simplehtmllistbox.cpp
     src/wx_singleinst.cpp
     src/wx_sizer.cpp
     src/wx_slider.cpp
+    src/wx_spec_residual.cpp
     src/wx_spinctrl.cpp
     src/wx_spinctrldouble.cpp
     src/wx_splash.cpp
@@ -156,6 +184,7 @@ set( FFI_SRC_FILES
     src/wx_statusbar.cpp
     src/wx_stddialogbuttonsizer.cpp
     src/wx_systemsettings.cpp
+    src/wx_taskbarbutton.cpp
     src/wx_textctrl.cpp
     src/wx_textdlg.cpp
     src/wx_textentry.cpp
@@ -170,6 +199,7 @@ set( FFI_SRC_FILES
     src/wx_treebook.cpp
     src/wx_treelistctrl.cpp
     src/wx_uiaction.cpp
+    src/wx_utils.cpp
     src/wx_validator.cpp
     src/wx_vlistbox.cpp
     src/wx_vscroll.cpp
@@ -178,6 +208,7 @@ set( FFI_SRC_FILES
     src/wx_windowdisabler.cpp
     src/wx_wizard.cpp
     src/wx_wrapsizer.cpp
+    src/wx_xmlnode.cpp
 )
 
 set( FFI_HDR_FILES
@@ -190,5 +221,21 @@ set( FFI_HDR_FILES
     include/kwx_keys.h
     include/kwx_constants.h
     include/kwx_classes.h
+    include/kwx_classes_sync.h
+    include/kwx_core_extra.h
+    include/kwx_dialogs_extra.h
+    include/kwx_html.h
+    include/kwx_richtext.h
+    include/kwx_grid_extra.h
+    include/kwx_propgrid_extra.h
+    include/kwx_ribbon_extra.h
+    include/kwx_methods_window.h
+    include/kwx_methods_views.h
+    include/kwx_methods_gdi.h
+    include/kwx_process.h
+    include/kwx_platform_aliases.h
+    include/kwx_log.h
+    include/kwx_accessible.h
+    include/kwx_spec_residual.h
     include/kwx_grid.h
 )

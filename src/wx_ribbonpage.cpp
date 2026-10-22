@@ -43,9 +43,9 @@ extern "C"
     }
 
     // Layout
-    EXPORT void wxRibbonPage_Realize(wxRibbonPage* self)
+    EXPORT int wxRibbonPage_Realize(wxRibbonPage* self)
     {
-        self->Realize();
+        return self->Realize();
     }
 
     EXPORT wxSize* wxRibbonPage_GetMinSize(wxRibbonPage* self)
@@ -64,5 +64,115 @@ extern "C"
     EXPORT wxRibbonArtProvider* wxRibbonPage_GetArtProvider(wxRibbonPage* self)
     {
         return self->GetArtProvider();
+    }
+
+    // wxRibbonArtProvider
+    // Any of the providers installed on a bar, page or panel can be passed here.
+    EXPORT wxRibbonArtProvider* wxRibbonArtProvider_Clone(wxRibbonArtProvider* self)
+    {
+        return self->Clone();
+    }
+
+    EXPORT void wxRibbonArtProvider_Delete(wxRibbonArtProvider* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxColour* wxRibbonArtProvider_GetColour(wxRibbonArtProvider* self, int id)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetColour(id);
+        return result;
+    }
+
+    EXPORT wxFont* wxRibbonArtProvider_GetFont(wxRibbonArtProvider* self, int id)
+    {
+        wxFont* result = new wxFont();
+        *result = self->GetFont(id);
+        return result;
+    }
+
+    EXPORT void wxRibbonArtProvider_SetColour(wxRibbonArtProvider* self, int id, wxColour* colour)
+    {
+        self->SetColour(id, *colour);
+    }
+
+    EXPORT void wxRibbonArtProvider_SetFont(wxRibbonArtProvider* self, int id, wxFont* font)
+    {
+        self->SetFont(id, *font);
+    }
+
+    // wxRibbonControl
+    EXPORT wxRibbonArtProvider* wxRibbonControl_GetArtProvider(wxRibbonControl* self)
+    {
+        return self->GetArtProvider();
+    }
+
+    EXPORT void wxRibbonControl_SetArtProvider(wxRibbonControl* self, wxRibbonArtProvider* art)
+    {
+        self->SetArtProvider(art);
+    }
+
+    EXPORT void wxRibbonControl_DismissKeyTips(wxRibbonControl* self)
+    {
+        self->DismissKeyTips();
+    }
+
+    EXPORT wxRibbonBar* wxRibbonControl_GetAncestorRibbonBar(wxRibbonControl* self)
+    {
+        return self->GetAncestorRibbonBar();
+    }
+
+    EXPORT wxSize* wxRibbonControl_GetBestSizeForParentSize(wxRibbonControl* self, int width,
+                                                            int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetBestSizeForParentSize(wxSize(width, height));
+        return result;
+    }
+
+    EXPORT wxSize* wxRibbonControl_GetNextLargerSize(wxRibbonControl* self, int direction)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetNextLargerSize((wxOrientation) direction);
+        return result;
+    }
+
+    EXPORT wxSize* wxRibbonControl_GetNextLargerSize_Relative(wxRibbonControl* self, int direction,
+                                                              int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetNextLargerSize((wxOrientation) direction, wxSize(width, height));
+        return result;
+    }
+
+    EXPORT wxSize* wxRibbonControl_GetNextSmallerSize(wxRibbonControl* self, int direction)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetNextSmallerSize((wxOrientation) direction);
+        return result;
+    }
+
+    EXPORT wxSize* wxRibbonControl_GetNextSmallerSize_Relative(wxRibbonControl* self, int direction,
+                                                               int width, int height)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetNextSmallerSize((wxOrientation) direction, wxSize(width, height));
+        return result;
+    }
+
+    EXPORT bool wxRibbonControl_IsSizingContinuous(wxRibbonControl* self)
+    {
+        return self->IsSizingContinuous();
+    }
+
+    EXPORT bool wxRibbonControl_Realize(wxRibbonControl* self)
+    {
+        return self->Realize();
+    }
+
+    EXPORT bool wxRibbonControl_Realise(wxRibbonControl* self)
+    {
+        return self->Realise();
     }
 }

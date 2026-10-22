@@ -49,6 +49,7 @@
 #include "verify.h"
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <print>
@@ -84,6 +85,7 @@ static constexpr std::string_view ARG_EXPORTS_FLAG = "--exports";
 static constexpr std::string_view ARG_ALL_MD_FILES = "--amdfiles";
 static constexpr std::string_view ARG_DENO = "--deno";
 static constexpr std::string_view ARG_DENO_CONFIG = "--deno-config";
+static constexpr std::string_view ARG_DENO_LOG = "--deno-log";
 static constexpr std::string_view ARG_DENO_CHECK = "--deno-check";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
@@ -115,6 +117,8 @@ static void PrintUsage(const char* prog_name)
         "  --deno-check       Run `deno check` on the generated TypeScript output during verify");
     std::println(stderr, "  --deno <exe>       deno executable to use (default: deno)");
     std::println(stderr, "  --deno-config <f>  deno.jsonc import map (default: generated shim)");
+    std::println(stderr,
+                 "  --deno-log <file>  write the complete deno diagnostic output to <file>");
 }
 
 struct Args
@@ -130,6 +134,7 @@ struct Args
     bool exports = false;             // --exports
     std::string deno_exe = "deno";    // --deno
     std::string deno_config;          // --deno-config
+    std::string deno_log;             // --deno-log
     bool deno_check = false;          // --deno-check
 };
 
@@ -216,6 +221,10 @@ static bool LoadConfigFile(Args& args)
         {
             args.deno_config = argv[++i];
         }
+        else if (argument == ARG_DENO_LOG && i + 1 < argc)
+        {
+            args.deno_log = argv[++i];
+        }
         else if (argument == ARG_DENO_CHECK)
         {
             args.deno_check = true;
@@ -291,9 +300,30 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
     return { "_gen.go" };
 }
 
-// deno can emit thousands of diagnostic lines; keep terminal output usable.
-static void PrintDenoOutput(const std::string& output)
+// Write the complete deno output to log_path.  No-op when no log path was requested.
+static void WriteDenoLog(const std::string& output, const std::string& log_path)
 {
+    if (log_path.empty())
+    {
+        return;
+    }
+    std::ofstream log_file(log_path, std::ios::binary | std::ios::trunc);
+    if (log_file.is_open())
+    {
+        log_file << output;
+        log_file.close();
+    }
+    else
+    {
+        std::println(stderr, "  Warning: could not write deno log to {}", log_path);
+    }
+}
+
+// deno can emit thousands of diagnostic lines; keep terminal output usable.
+static void PrintDenoOutput(const std::string& output, const std::string& log_path)
+{
+    WriteDenoLog(output, log_path);
+
     static constexpr size_t MAX_DENO_LINES = 200;
     std::istringstream stream(output);
     std::string line;
@@ -302,7 +332,14 @@ static void PrintDenoOutput(const std::string& output)
     {
         if (line_count >= MAX_DENO_LINES)
         {
-            std::println(stderr, "  ... output truncated ...");
+            if (log_path.empty())
+            {
+                std::println(stderr, "  ... output truncated ...");
+            }
+            else
+            {
+                std::println(stderr, "  ... output truncated, full log: {} ...", log_path);
+            }
             break;
         }
         std::println(stderr, "  {}", line);
@@ -578,13 +615,14 @@ int main(int argc, char* argv[])
                 RunDenoCheck(temp_dir / "kwx_gen.ts", deno_config, args.deno_exe);
             if (deno_result.success)
             {
+                WriteDenoLog(deno_result.output, args.deno_log);
                 std::println("Deno check: OK");
             }
             else
             {
                 verify_result.success = false;
                 std::println("Deno check: FAILED");
-                PrintDenoOutput(deno_result.output);
+                PrintDenoOutput(deno_result.output, args.deno_log);
             }
         }
 
@@ -632,12 +670,13 @@ int main(int argc, char* argv[])
             RunDenoCheck(temp_dir / "kwx_gen.ts", deno_config, args.deno_exe);
         if (deno_result.success)
         {
+            WriteDenoLog(deno_result.output, args.deno_log);
             std::println("Deno check: OK");
         }
         else
         {
             std::println("Deno check: FAILED");
-            PrintDenoOutput(deno_result.output);
+            PrintDenoOutput(deno_result.output, args.deno_log);
         }
 
         std::ignore = fs::remove_all(temp_dir);

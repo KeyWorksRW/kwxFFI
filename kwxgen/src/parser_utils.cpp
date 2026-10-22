@@ -7,10 +7,23 @@
 
 #include "parser_utils.h"
 
+#include <array>
 #include <cctype>
+#include <filesystem>
+#include <fstream>
+#include <set>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
+
+// Deepest chain of quoted includes that will be expanded.
+constexpr int MAX_INCLUDE_DEPTH = 8;
+
+// Headers that are intentionally left as include lines: they declare FFI plumbing that the
+// parsers must not treat as wrapper declarations.
+constexpr std::array<std::string_view, 3> SKIPPED_INCLUDE_NAMES { "kwx_types.h", "kwx_def.h",
+                                                                  "kwx_wrapper.h" };
 
 std::string Trim(const std::string& text)
 {
@@ -179,4 +192,99 @@ Param ParseOneParam(const std::string& token)
     // No parameter name — type only
     param.raw_type = token;
     return param;
+}
+
+// Return the target of a quoted `#include "name"` line, or an empty path when the line is not a
+// quoted include or names a header that must never be expanded.
+[[nodiscard]] static std::filesystem::path GetLocalIncludeTarget(const std::string& line)
+{
+    constexpr std::string_view INCLUDE_DIRECTIVE = "#include";
+
+    const std::string stripped = Trim(line);
+    if (!stripped.starts_with(INCLUDE_DIRECTIVE))
+    {
+        return {};
+    }
+
+    // Reject directive variants such as #include_next.
+    if (stripped.size() > INCLUDE_DIRECTIVE.size() &&
+        std::isspace(static_cast<unsigned char>(stripped[INCLUDE_DIRECTIVE.size()])) == 0)
+    {
+        return {};
+    }
+
+    const size_t open_quote = stripped.find('"', INCLUDE_DIRECTIVE.size());
+    if (open_quote == std::string::npos)
+    {
+        return {};
+    }
+    const size_t close_quote = stripped.find('"', open_quote + 1);
+    if (close_quote == std::string::npos)
+    {
+        return {};
+    }
+
+    const std::string include_name = stripped.substr(open_quote + 1, close_quote - open_quote - 1);
+    const std::string file_name = std::filesystem::path(include_name).filename().string();
+    for (const std::string_view skipped_name: SKIPPED_INCLUDE_NAMES)
+    {
+        if (file_name == skipped_name)
+        {
+            return {};
+        }
+    }
+
+    return include_name;
+}
+
+void ExpandLocalIncludes(std::vector<std::string>& lines, const std::filesystem::path& file_path,
+                         std::set<std::filesystem::path>& visited, int depth)
+{
+    if (depth >= MAX_INCLUDE_DEPTH)
+    {
+        return;
+    }
+
+    std::vector<std::string> expanded_lines;
+    expanded_lines.reserve(lines.size());
+
+    for (const std::string& line: lines)
+    {
+        const std::filesystem::path include_target = GetLocalIncludeTarget(line);
+        if (include_target.empty())
+        {
+            expanded_lines.push_back(line);
+            continue;
+        }
+
+        const std::filesystem::path include_path = file_path.parent_path() / include_target;
+        std::ifstream include_file(include_path);
+        if (!include_file.is_open())
+        {
+            expanded_lines.push_back(line);
+            continue;
+        }
+
+        std::error_code canonical_error;
+        const std::filesystem::path canonical_path =
+            std::filesystem::weakly_canonical(include_path, canonical_error);
+        const std::filesystem::path include_key = canonical_error ? include_path : canonical_path;
+        if (!visited.insert(include_key).second)
+        {
+            expanded_lines.push_back(line);
+            continue;
+        }
+
+        std::vector<std::string> include_lines;
+        std::string include_line;
+        while (std::getline(include_file, include_line))
+        {
+            include_lines.push_back(include_line);
+        }
+
+        ExpandLocalIncludes(include_lines, include_path, visited, depth + 1);
+        expanded_lines.insert(expanded_lines.end(), include_lines.begin(), include_lines.end());
+    }
+
+    lines = std::move(expanded_lines);
 }

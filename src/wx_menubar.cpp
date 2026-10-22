@@ -148,4 +148,19 @@ extern "C"
     {
         self->UpdateMenus();
     }
+
+    EXPORT bool wxMenuBar_IsAttached(wxMenuBar* self)
+    {
+        return self->IsAttached();
+    }
+
+    EXPORT void wxMenuBar_Attach(wxMenuBar* self, wxFrame* frame)
+    {
+        self->Attach(frame);
+    }
+
+    EXPORT void wxMenuBar_Detach(wxMenuBar* self)
+    {
+        self->Detach();
+    }
 }

@@ -221,4 +221,22 @@ extern "C"
     {
         return self->IsRowSelected(row);
     }
+
+    EXPORT bool wxDataViewListCtrl_AppendColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
+                                                wxString* variantType)
+    {
+        return self->AppendColumn(column, *variantType);
+    }
+
+    EXPORT bool wxDataViewListCtrl_PrependColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
+                                                 wxString* variantType)
+    {
+        return self->PrependColumn(column, *variantType);
+    }
+
+    EXPORT bool wxDataViewListCtrl_InsertColumn(wxDataViewListCtrl* self, unsigned int pos,
+                                                wxDataViewColumn* column, wxString* variantType)
+    {
+        return self->InsertColumn(pos, column, *variantType);
+    }
 }

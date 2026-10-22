@@ -325,4 +325,21 @@ extern "C"
     WXFFI_CONSTANT_INT(expTL_USER_3STATE, wxTL_USER_3STATE)
     WXFFI_CONSTANT_INT(expTL_NO_HEADER, wxTL_NO_HEADER)
     WXFFI_CONSTANT_INT(expTL_DEFAULT_STYLE, wxTL_DEFAULT_STYLE)
+
+    EXPORT void wxTreeListCtrl_SetItemTextSimple(wxTreeListCtrl* self, wxTreeListItem* item,
+                                                 wxString* text)
+    {
+        self->SetItemText(*item, *text);
+    }
+
+    EXPORT wxClientData* wxTreeListCtrl_GetItemData(wxTreeListCtrl* self, wxTreeListItem* item)
+    {
+        return self->GetItemData(*item);
+    }
+
+    EXPORT void wxTreeListCtrl_SetItemData(wxTreeListCtrl* self, wxTreeListItem* item,
+                                           wxClientData* data)
+    {
+        self->SetItemData(*item, data);
+    }
 }

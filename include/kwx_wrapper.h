@@ -1,12 +1,15 @@
 #pragma once
 
+#include <wx/access.h>
 #include <wx/activityindicator.h>
 #include <wx/animate.h>
+#include <wx/anybutton.h>
 #include <wx/apptrait.h>
 #include <wx/artprov.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
 #include <wx/aui/dockart.h>
+#include <wx/aui/floatpane.h>
 #include <wx/aui/framemanager.h>
 #include <wx/aui/tabmdi.h>
 #include <wx/bannerwindow.h>
@@ -15,6 +18,7 @@
 #include <wx/bmpcbox.h>
 #include <wx/calctrl.h>
 #include <wx/checklst.h>
+#include <wx/choicdlg.h>
 #include <wx/choicebk.h>
 #include <wx/clipbrd.h>
 #include <wx/clrpicker.h>
@@ -23,47 +27,88 @@
 #include <wx/combo.h>
 #include <wx/commandlinkbutton.h>
 #include <wx/config.h>
+#include <wx/creddlg.h>
 #include <wx/dataview.h>
 #include <wx/datectrl.h>
+#include <wx/dcgraph.h>
+#include <wx/dialup.h>
 #include <wx/dirctrl.h>
 #include <wx/display.h>
 #include <wx/dnd.h>
+
 #include <wx/docmdi.h>
 #include <wx/docview.h>
+#include <wx/evtloop.h>
 #include <wx/filectrl.h>
+#include <wx/filedlgcustomize.h>
 #include <wx/filepicker.h>
+#include <wx/filesys.h>
 #include <wx/fontdlg.h>
 #include <wx/fontpicker.h>
 #include <wx/gbsizer.h>
+#include <wx/generic/aboutdlgg.h>
+#include <wx/generic/dirctrlg.h>
+#include <wx/generic/gridctrl.h>
+#include <wx/generic/grideditors.h>
+#include <wx/generic/helpext.h>
+#include <wx/generic/logg.h>
 #include <wx/grid.h>
 #include <wx/headerctrl.h>
 #include <wx/html/helpctrl.h>
+#include <wx/html/helpdata.h>
+#include <wx/html/helpwnd.h>
+#include <wx/html/htmlwin.h>
+#include <wx/html/htmprint.h>
 #include <wx/htmllbox.h>
+#include <wx/iconloc.h>
 #include <wx/image.h>
 #include <wx/imaglist.h>
 #include <wx/infobar.h>
 #include <wx/laywin.h>
 #include <wx/listbook.h>
 #include <wx/listctrl.h>
+#include <wx/log.h>
 #include <wx/minifram.h>
 #include <wx/mstream.h>
+#include <wx/nonownedwnd.h>
 #include <wx/notebook.h>
 #include <wx/notifmsg.h>
+#include <wx/numdlg.h>
 #include <wx/odcombo.h>
+#include <wx/persist.h>
+#include <wx/persist/window.h>
+#include <wx/platinfo.h>
 #include <wx/popupwin.h>
 #include <wx/print.h>
 #include <wx/propdlg.h>
+#include <wx/propgrid/advprops.h>
+#include <wx/propgrid/editors.h>
 #include <wx/propgrid/manager.h>
+#include <wx/propgrid/propgridiface.h>
+#include <wx/propgrid/propgridpagestate.h>
+#include <wx/propgrid/props.h>
 #include <wx/rearrangectrl.h>
+#include <wx/ribbon/art.h>
 #include <wx/ribbon/bar.h>
 #include <wx/ribbon/buttonbar.h>
+#include <wx/ribbon/control.h>
 #include <wx/ribbon/gallery.h>
 #include <wx/ribbon/page.h>
 #include <wx/ribbon/panel.h>
 #include <wx/ribbon/toolbar.h>
+#include <wx/richtext/richtextbuffer.h>
 #include <wx/richtext/richtextctrl.h>
+#include <wx/richtext/richtextformatdlg.h>
+#include <wx/richtext/richtexthtml.h>
+#include <wx/richtext/richtextprint.h>
+#include <wx/richtext/richtextstyledlg.h>
+#include <wx/richtext/richtextstyles.h>
+#include <wx/richtext/richtextsymboldlg.h>
+#include <wx/richtext/richtextxml.h>
+#include <wx/richtooltip.h>
 #include <wx/sashwin.h>
 #include <wx/sckipc.h>
+#include <wx/secretstore.h>
 #include <wx/simplebook.h>
 #include <wx/sizer.h>
 #include <wx/socket.h>
@@ -73,6 +118,8 @@
 #include <wx/splitter.h>
 #include <wx/srchctrl.h>
 #include <wx/statline.h>
+#include <wx/strconv.h>
+#include <wx/taskbarbutton.h>
 #include <wx/textdlg.h>
 #include <wx/timectrl.h>
 #include <wx/toolbook.h>
@@ -81,12 +128,14 @@
 #include <wx/treectrl.h>
 #include <wx/treelist.h>
 #include <wx/uiaction.h>
+#include <wx/valnum.h>
 #include <wx/vlbox.h>
 #include <wx/vscroll.h>
 #include <wx/webview.h>
 #include <wx/wizard.h>
 #include <wx/wrapsizer.h>
 #include <wx/wx.h>
+#include <wx/xml/xml.h>
 #include <wx/zstream.h>
 
 #if !wxCHECK_VERSION(3, 3, 2)
@@ -667,3 +716,8 @@ public:
                            wxTreeCtrl::OnCompareItems(item1, item2);
     }
 };
+
+// Helper classes that depend on the wx headers and declarations above.
+#include "kwx_helper_accessible.h"
+#include "kwx_helper_eventfilter.h"
+#include "kwx_helper_filedlgcustomize.h"

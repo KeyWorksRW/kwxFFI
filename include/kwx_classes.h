@@ -2,6 +2,23 @@
 
 #include "kwx_types.h"
 
+#include "kwx_accessible.h"
+#include "kwx_classes_sync.h"
+#include "kwx_core_extra.h"
+#include "kwx_dialogs_extra.h"
+#include "kwx_grid_extra.h"
+#include "kwx_html.h"
+#include "kwx_log.h"
+#include "kwx_methods_gdi.h"
+#include "kwx_methods_views.h"
+#include "kwx_methods_window.h"
+#include "kwx_platform_aliases.h"
+#include "kwx_process.h"
+#include "kwx_propgrid_extra.h"
+#include "kwx_ribbon_extra.h"
+#include "kwx_richtext.h"
+#include "kwx_spec_residual.h"
+
 TClassDefExtend(kwxArtProv, wxArtProvider) TClass(kwxArtProv)
     kwxArtProv_Create(void* pObject, void* callback);
 void kwxArtProv_Release(TSelf(kwxArtProv) pObject);
@@ -83,12 +100,12 @@ TClassDefExtend(kwxLocale, wxLocale)
 TClass(kwxLog) kwxLog_Create(void* pObject, void* pFunction);
 void kwxLog_Delete(TSelf(kwxLog) pObject);
 void kwxLog_DontCreateOnDemand(TSelf(kwxLog) pObject);
-int kwxLog_EnableLogging(TSelf(kwxLog) pObject, TBool doIt);
+TBool kwxLog_EnableLogging(TSelf(kwxLog) pObject, TBool doIt);
 void kwxLog_Flush(TSelf(kwxLog) pObject);
 void kwxLog_FlushActive(TSelf(kwxLog) pObject);
 void* kwxLog_GetActiveTarget();
 void* kwxLog_GetTimestamp(TSelf(kwxLog) pObject);
-int kwxLog_GetVerbose(TSelf(kwxLog) pObject);
+TBool kwxLog_GetVerbose(TSelf(kwxLog) pObject);
 TBool kwxLog_HasPendingMessages(TSelf(kwxLog) pObject);
 TBool kwxLog_IsAllowedTraceMask(TSelf(kwxLog) pObject, TClass(wxMask) mask);
 TBool kwxLog_IsEnabled(TSelf(kwxLog) pObject);
@@ -97,7 +114,7 @@ void kwxLog_RemoveTraceMask(TSelf(kwxLog) pObject, TStringVoid str);
 void kwxLog_Resume(TSelf(kwxLog) pObject);
 void* kwxLog_SetActiveTarget(TSelf(kwxLog) pLogger);
 void kwxLog_SetTimestamp(TSelf(kwxLog) pObject, void* timestamp);
-void kwxLog_SetVerbose(TSelf(kwxLog) pObject, int bVerbose);
+void kwxLog_SetVerbose(TSelf(kwxLog) pObject, TBool bVerbose);
 void kwxLog_Suspend(TSelf(kwxLog) pObject);
 
 TClassDefExtend(kwxPreviewControlBar, wxPreviewControlBar) TClass(kwxPreviewControlBar)
@@ -3003,22 +3020,20 @@ TBool wxLogChain_IsPassingMessages(TSelf(wxLogChain) pObject);
 void wxLogChain_PassMessages(TSelf(wxLogChain) pObject, TBool bDoPass);
 void wxLogChain_SetLog(TSelf(wxLogChain) pObject, TClass(wxLog) logger);
 
-TClassDefExtend(wxLogGUI, wxLog)
+TClassDefExtend(wxLogGui, wxLog)
 
     TClassDefExtend(wxLogNull, wxLog)
 
-        TClassDefExtend(wxLogPassThrough, wxLogChain)
+        TClassDefExtend(wxLogStderr, wxLog)
 
-            TClassDefExtend(wxLogStderr, wxLog)
+            TClassDefExtend(wxLogStream, wxLog)
 
-                TClassDefExtend(wxLogStream, wxLog)
+                TClassDefExtend(wxLogTextCtrl, wxLog)
 
-                    TClassDefExtend(wxLogTextCtrl, wxLog)
+                    TClassDefExtend(wxLogWindow, wxLogInterposer)
 
-                        TClassDefExtend(wxLogWindow, wxLogPassThrough)
-
-                            TClassDefExtend(wxMDIChildFrame, wxFrame) void wxMDIChildFrame_Activate(
-                                TSelf(wxMDIChildFrame) pObject);
+                        TClassDefExtend(wxMDIChildFrame, wxFrame) void wxMDIChildFrame_Activate(
+                            TSelf(wxMDIChildFrame) pObject);
 TClass(wxMDIChildFrame)
     wxMDIChildFrame_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                            TRect(left, top, width, height), int style);
@@ -4003,8 +4018,8 @@ TClassDefExtend(wxPrintout, wxObject)
 
         TClassDefExtend(wxProcess,
                         wxEvtHandler) void wxProcess_CloseOutput(TSelf(wxProcess) pObject);
-TClass(wxProcess) wxProcess_CreateDefault(TClass(wxWindow) parent, int id);
-TClass(wxProcess) wxProcess_CreateRedirect(TClass(wxWindow) parent, TBool redirect);
+TClass(wxProcess) wxProcess_CreateDefault(TClass(wxEvtHandler) parent, int id);
+TClass(wxProcess) wxProcess_CreateRedirect(TClass(wxEvtHandler) parent, TBool redirect);
 void wxProcess_Delete(TSelf(wxProcess) pObject);
 void wxProcess_Detach(TSelf(wxProcess) pObject);
 TClass(wxInputStream) wxProcess_GetErrorStream(TSelf(wxProcess) pObject);
@@ -4163,7 +4178,7 @@ void wxRibbonBar_ClearPages(TSelf(wxRibbonBar) self);
 int wxRibbonBar_GetActivePage(TSelf(wxRibbonBar) self);
 void wxRibbonBar_SetActivePage_ByIndex(TSelf(wxRibbonBar) self, size_t page);
 void wxRibbonBar_SetActivePage_ByPtr(TSelf(wxRibbonBar) self, TClass(wxRibbonPage) page);
-void wxRibbonBar_Realize(TSelf(wxRibbonBar) self);
+TBool wxRibbonBar_Realize(TSelf(wxRibbonBar) self);
 void wxRibbonBar_SetArtProvider(TSelf(wxRibbonBar) self, TClass(wxRibbonArtProvider) art);
 TClass(wxRibbonArtProvider) wxRibbonBar_GetArtProvider(TSelf(wxRibbonBar) self);
 
@@ -4174,7 +4189,7 @@ void wxRibbonPage_DismissExpandedPanel(TSelf(wxRibbonPage) self);
 TBool wxRibbonPage_ScrollLines(TSelf(wxRibbonPage) self, int lines);
 TBool wxRibbonPage_ScrollPixels(TSelf(wxRibbonPage) self, int pixels);
 TClass(wxString) wxRibbonPage_GetLabel(TSelf(wxRibbonPage) self);
-void wxRibbonPage_Realize(TSelf(wxRibbonPage) self);
+TBool wxRibbonPage_Realize(TSelf(wxRibbonPage) self);
 TClass(wxSize) wxRibbonPage_GetMinSize(TSelf(wxRibbonPage) self);
 void wxRibbonPage_SetArtProvider(TSelf(wxRibbonPage) self, TClass(wxRibbonArtProvider) art);
 TClass(wxRibbonArtProvider) wxRibbonPage_GetArtProvider(TSelf(wxRibbonPage) self);
@@ -4190,7 +4205,7 @@ TBool wxRibbonPanel_IsExtButtonHovered(TSelf(wxRibbonPanel) self);
 TBool wxRibbonPanel_CanAutoMinimise(TSelf(wxRibbonPanel) self);
 TBool wxRibbonPanel_ShowExpanded(TSelf(wxRibbonPanel) self);
 TBool wxRibbonPanel_HideExpanded(TSelf(wxRibbonPanel) self);
-void wxRibbonPanel_Realize(TSelf(wxRibbonPanel) self);
+TBool wxRibbonPanel_Realize(TSelf(wxRibbonPanel) self);
 TClass(wxSize) wxRibbonPanel_GetMinSize(TSelf(wxRibbonPanel) self);
 void wxRibbonPanel_SetArtProvider(TSelf(wxRibbonPanel) self, TClass(wxRibbonArtProvider) art);
 TClass(wxRibbonArtProvider) wxRibbonPanel_GetArtProvider(TSelf(wxRibbonPanel) self);
@@ -4268,7 +4283,7 @@ void* wxRibbonButtonBar_GetItemClientData(TSelf(wxRibbonButtonBar) self,
                                           TClass(wxRibbonButtonBarButtonBase) item);
 void wxRibbonButtonBar_SetShowToolTipsForDisabled(TSelf(wxRibbonButtonBar) self, TBool show);
 TBool wxRibbonButtonBar_GetShowToolTipsForDisabled(TSelf(wxRibbonButtonBar) self);
-void wxRibbonButtonBar_Realize(TSelf(wxRibbonButtonBar) self);
+TBool wxRibbonButtonBar_Realize(TSelf(wxRibbonButtonBar) self);
 void wxRibbonButtonBar_SetArtProvider(TSelf(wxRibbonButtonBar) self,
                                       TClass(wxRibbonArtProvider) art);
 TClass(wxRibbonArtProvider) wxRibbonButtonBar_GetArtProvider(TSelf(wxRibbonButtonBar) self);
@@ -4364,7 +4379,7 @@ void wxRibbonToolBar_SetToolClientData(TSelf(wxRibbonToolBar) self, int tool_id,
                                        TClass(wxObject) clientData);
 TClass(wxObject) wxRibbonToolBar_GetToolClientData(TSelf(wxRibbonToolBar) self, int tool_id);
 void wxRibbonToolBar_SetRows(TSelf(wxRibbonToolBar) self, int nMin, int nMax);
-void wxRibbonToolBar_Realize(TSelf(wxRibbonToolBar) self);
+TBool wxRibbonToolBar_Realize(TSelf(wxRibbonToolBar) self);
 void wxRibbonToolBar_SetArtProvider(TSelf(wxRibbonToolBar) self, TClass(wxRibbonArtProvider) art);
 TClass(wxRibbonArtProvider) wxRibbonToolBar_GetArtProvider(TSelf(wxRibbonToolBar) self);
 
@@ -4491,7 +4506,7 @@ int wxSimpleHtmlListBox_FindString(TSelf(wxSimpleHtmlListBox) self, TClass(wxStr
 void* wxSimpleHtmlListBox_GetClientData(TSelf(wxSimpleHtmlListBox) self, int index);
 void wxSimpleHtmlListBox_SetClientData(TSelf(wxSimpleHtmlListBox) self, int index, void* data);
 TBool wxSimpleHtmlListBox_IsEmpty(TSelf(wxSimpleHtmlListBox) self);
-int wxSimpleHtmlListBox_GetItemCount(TSelf(wxSimpleHtmlListBox) self);
+size_t wxSimpleHtmlListBox_GetItemCount(TSelf(wxSimpleHtmlListBox) self);
 
 TClassDef(wxRealPoint)
 
@@ -5089,7 +5104,7 @@ void wxTextCtrl_Undo(TSelf(wxTextCtrl) pObject);
 void wxTextCtrl_WriteText(TSelf(wxTextCtrl) pObject, TClass(wxString) text);
 long wxTextCtrl_XYToPosition(TSelf(wxTextCtrl) pObject, TPointLong(x, y));
 
-TClassDefExtend(wxTextDataObject, wxDataObjectSimple) TClass(TextDataObject)
+TClassDefExtend(wxTextDataObject, wxDataObjectSimple) TClass(wxTextDataObject)
     TextDataObject_Create(TClass(wxString) text);
 void TextDataObject_Delete(TSelf(TextDataObject) pObject);
 TClass(wxString) TextDataObject_GetText(TSelf(TextDataObject) pObject);
@@ -5821,7 +5836,7 @@ TClassDefExtend(wxWizardPage, wxPanel)
     TClassDefExtend(wxWizardPageSimple, wxWizardPage) TClass(wxWizardPageSimple)
         wxWizardPageSimple_Create(TClass(wxWizard) parent, TClass(wxWizardPage) prev,
                                   TClass(wxWizardPage) next, TClass(wxBitmap) bitmap);
-void wxWizardPageSimple_GetBitmap(TSelf(wxWizardPageSimple) pObject, TClassRef(wxBitmap) ref);
+TClass(wxBitmap) wxWizardPageSimple_GetBitmap(TSelf(wxWizardPageSimple) pObject);
 TClass(wxWizardPageSimple) wxWizardPageSimple_GetNext(TSelf(wxWizardPageSimple) pObject);
 TClass(wxWizardPageSimple) wxWizardPageSimple_GetPrev(TSelf(wxWizardPageSimple) pObject);
 void wxWizardPageSimple_SetNext(TSelf(wxWizardPageSimple) pObject, TClass(wxWizardPageSimple) next);

@@ -123,9 +123,10 @@ extern "C"
         self->Restore();
     }
 
-    EXPORT void wxFrame_Iconize(wxFrame* self)
+    EXPORT int wxFrame_Iconize(wxFrame* self)
     {
         self->Iconize();
+        return 1;
     }
 
     EXPORT bool wxFrame_IsMaximized(wxFrame* self)
@@ -293,5 +294,60 @@ extern "C"
     EXPORT void wxFrame_PopStatusText(wxFrame* self, int field)
     {
         self->PopStatusText(field);
+    }
+
+    // ---------------------------------------------------------------------
+    // Phase 9A: remaining wxFrame/wxTopLevelWindow public methods
+    // ---------------------------------------------------------------------
+
+    EXPORT wxPoint* wxFrame_GetClientAreaOriginPoint(wxFrame* self)
+    {
+        return new wxPoint(self->GetClientAreaOrigin());
+    }
+
+    EXPORT void wxFrame_SetWindowModality(wxFrame* self, int modality)
+    {
+        self->SetWindowModality(static_cast<wxWindowMode>(modality));
+    }
+
+    EXPORT bool wxFrame_ProcessCommandItem(wxFrame* self, wxMenuItem* item)
+    {
+        return self->ProcessCommand(item);
+    }
+
+    EXPORT void wxFrame_DoMenuUpdates(wxFrame* self, wxMenu* menu)
+    {
+        self->DoMenuUpdates(menu);
+    }
+
+    EXPORT bool wxFrame_IsClientAreaChild(wxFrame* self, wxWindow* child)
+    {
+        return self->IsClientAreaChild(child);
+    }
+
+    EXPORT bool wxTopLevelWindow_IsAlwaysMaximized(wxTopLevelWindow* self)
+    {
+        return self->IsAlwaysMaximized();
+    }
+
+    EXPORT wxIconBundle* wxTopLevelWindow_GetIcons(wxTopLevelWindow* self)
+    {
+        return const_cast<wxIconBundle*>(&self->GetIcons());
+    }
+
+    EXPORT bool wxTopLevelWindow_EnableFullScreenView(wxTopLevelWindow* self, bool enable,
+                                                      long style)
+    {
+        return self->EnableFullScreenView(enable, style);
+    }
+
+    EXPORT int wxTopLevelWindow_GetContentProtection(wxTopLevelWindow* self)
+    {
+        return static_cast<int>(self->GetContentProtection());
+    }
+
+    EXPORT wxSize* wxTopLevelWindow_GetDefaultSize()
+    {
+        return new wxSize(wxTopLevelWindow::GetDefaultSize());
     }
 }

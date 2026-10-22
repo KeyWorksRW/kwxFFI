@@ -587,4 +587,49 @@ extern "C"
         *result = self->GetItemFont(*item);
         return result;
     }
+
+    EXPORT bool wxTreeCtrl_HasImages(wxTreeCtrl* self)
+    {
+        return self->HasImages();
+    }
+
+    EXPORT int wxTreeCtrl_GetImageCount(wxTreeCtrl* self)
+    {
+        return self->GetImageCount();
+    }
+
+    EXPORT bool wxTreeCtrl_HasStateImages(wxTreeCtrl* self)
+    {
+        return self->HasStateImages();
+    }
+
+    EXPORT int wxTreeCtrl_GetStateImageCount(wxTreeCtrl* self)
+    {
+        return self->GetStateImageCount();
+    }
+
+    EXPORT bool wxTreeCtrl_HasChildren(wxTreeCtrl* self, wxTreeItemId* item)
+    {
+        return self->HasChildren(*item);
+    }
+
+    EXPORT bool wxTreeCtrl_IsEmpty(wxTreeCtrl* self)
+    {
+        return self->IsEmpty();
+    }
+
+    EXPORT void wxTreeCtrl_UnselectItem(wxTreeCtrl* self, wxTreeItemId* item)
+    {
+        self->UnselectItem(*item);
+    }
+
+    EXPORT void wxTreeCtrl_ToggleItemSelection(wxTreeCtrl* self, wxTreeItemId* item)
+    {
+        self->ToggleItemSelection(*item);
+    }
+
+    EXPORT void wxTreeCtrl_EnableBellOnNoMatch(wxTreeCtrl* self, bool on)
+    {
+        self->EnableBellOnNoMatch(on);
+    }
 }

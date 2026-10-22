@@ -14,8 +14,8 @@
 extern "C"
 {
     // Factory method - create with default backend
-    EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y, int width,
-                                    int height, wxString* backend, int style)
+    EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y,
+                                    int width, int height, wxString* backend, int style)
     {
         return wxWebView::New(parent, id, *url, wxPoint(x, y), wxSize(width, height),
                               backend ? *backend : wxString(wxWebViewBackendDefault), style);
@@ -329,4 +329,34 @@ extern "C"
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_NONE, wxWEBVIEW_NAV_ACTION_NONE)
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_USER, wxWEBVIEW_NAV_ACTION_USER)
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_OTHER, wxWEBVIEW_NAV_ACTION_OTHER)
+
+    // wxWebViewHandler methods
+    EXPORT wxWebViewHandler* wxWebViewHandler_Create(wxString* scheme)
+    {
+        return new wxWebViewHandler(*scheme);
+    }
+
+    EXPORT void wxWebViewHandler_Delete(wxWebViewHandler* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxFSFile* wxWebViewHandler_GetFile(wxWebViewHandler* self, wxString* uri)
+    {
+        return self->GetFile(*uri);
+    }
+
+    EXPORT wxString* wxWebViewHandler_GetName(wxWebViewHandler* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetName();
+        return result;
+    }
+
+    // The handler is owned by the web view after registration, as for the
+    // wxSharedPtr<wxWebViewHandler> parameter of wxWebView::RegisterHandler.
+    EXPORT void wxWebView_RegisterHandler(wxWebView* self, wxWebViewHandler* handler)
+    {
+        self->RegisterHandler(wxSharedPtr<wxWebViewHandler>(handler));
+    }
 }

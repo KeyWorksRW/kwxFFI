@@ -112,7 +112,7 @@ extern "C"
     }
 
     // Get item count (for consistency with other list controls)
-    EXPORT int wxSimpleHtmlListBox_GetItemCount(wxSimpleHtmlListBox* self)
+    EXPORT size_t wxSimpleHtmlListBox_GetItemCount(wxSimpleHtmlListBox* self)
     {
         return self->GetCount();
     }

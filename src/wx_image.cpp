@@ -86,7 +86,8 @@ extern "C"
         self->Destroy();
     }
 
-    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int width, int height, wxImage* image)
+    EXPORT void wxImage_GetSubImage(wxImage* self, int x, int y, int width, int height,
+                                    wxImage* image)
     {
         *image = self->GetSubImage(wxRect(x, y, width, height));
     }
@@ -286,5 +287,387 @@ extern "C"
     EXPORT int wxImage_HasOption(wxImage* self, wxString* key)
     {
         return self->HasOption(*key);
+    }
+
+    EXPORT bool wxImage_CreateFromXPMData(wxImage* self, void* data)
+    {
+        return self->Create(static_cast<const char* const*>(data));
+    }
+
+    EXPORT void wxImage_Clear(wxImage* self, int value)
+    {
+        self->Clear(static_cast<unsigned char>(value));
+    }
+
+    EXPORT wxImage* wxImage_Size(wxImage* self, int width, int height, int x, int y, int r, int g,
+                                 int b)
+    {
+        wxImage* result = new wxImage();
+        *result = self->Size(wxSize(width, height), wxPoint(x, y), r, g, b);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ResampleNearest(wxImage* self, int width, int height)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ResampleNearest(width, height);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ResampleBox(wxImage* self, int width, int height)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ResampleBox(width, height);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ResampleBilinear(wxImage* self, int width, int height)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ResampleBilinear(width, height);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ResampleBicubic(wxImage* self, int width, int height)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ResampleBicubic(width, height);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_Blur(wxImage* self, int radius)
+    {
+        wxImage* result = new wxImage();
+        *result = self->Blur(radius);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_BlurHorizontal(wxImage* self, int radius)
+    {
+        wxImage* result = new wxImage();
+        *result = self->BlurHorizontal(radius);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_BlurVertical(wxImage* self, int radius)
+    {
+        wxImage* result = new wxImage();
+        *result = self->BlurVertical(radius);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ShrinkBy(wxImage* self, int xFactor, int yFactor)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ShrinkBy(xFactor, yFactor);
+        return result;
+    }
+
+    EXPORT void wxImage_Resize(wxImage* self, int width, int height, int x, int y, int r, int g,
+                               int b)
+    {
+        self->Resize(wxSize(width, height), wxPoint(x, y), r, g, b);
+    }
+
+    EXPORT wxImage* wxImage_Rotate180(wxImage* self)
+    {
+        wxImage* result = new wxImage();
+        *result = self->Rotate180();
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ConvertToGreyscale(wxImage* self)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ConvertToGreyscale();
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ConvertToGreyscaleEx(wxImage* self, double weightR, double weightG,
+                                                 double weightB)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ConvertToGreyscale(weightR, weightG, weightB);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ConvertToMono(wxImage* self, wxUint8 r, wxUint8 g, wxUint8 b)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ConvertToMono(r, g, b);
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ConvertToDisabled(wxImage* self, char brightness)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ConvertToDisabled(static_cast<unsigned char>(brightness));
+        return result;
+    }
+
+    EXPORT wxImage* wxImage_ChangeLightness(wxImage* self, int alpha)
+    {
+        wxImage* result = new wxImage();
+        *result = self->ChangeLightness(alpha);
+        return result;
+    }
+
+    EXPORT void wxImage_SetRGBRect(wxImage* self, int x, int y, int width, int height, wxUint8 r,
+                                   wxUint8 g, wxUint8 b)
+    {
+        self->SetRGB(wxRect(x, y, width, height), r, g, b);
+    }
+
+    EXPORT void wxImage_SetAlpha(wxImage* self, int x, int y, char alpha)
+    {
+        self->SetAlpha(x, y, static_cast<unsigned char>(alpha));
+    }
+
+    EXPORT wxUint8 wxImage_GetAlphaPixel(wxImage* self, int x, int y)
+    {
+        return self->GetAlpha(x, y);
+    }
+
+    EXPORT bool wxImage_FindFirstUnusedColour(wxImage* self, char* r, char* g, char* b, char startR,
+                                              char startG, char startB)
+    {
+        unsigned char red = static_cast<unsigned char>(startR);
+        unsigned char green = static_cast<unsigned char>(startG);
+        unsigned char blue = static_cast<unsigned char>(startB);
+        const bool found = self->FindFirstUnusedColour(&red, &green, &blue, red, green, blue);
+
+        if (found)
+        {
+            if (r)
+            {
+                *r = static_cast<char>(red);
+            }
+            if (g)
+            {
+                *g = static_cast<char>(green);
+            }
+            if (b)
+            {
+                *b = static_cast<char>(blue);
+            }
+        }
+        return found;
+    }
+
+    EXPORT bool wxImage_SetMaskFromImage(wxImage* self, wxImage* mask, wxUint8 mr, wxUint8 mg,
+                                         wxUint8 mb)
+    {
+        return self->SetMaskFromImage(*mask, mr, mg, mb);
+    }
+
+    EXPORT bool wxImage_ConvertAlphaToMask(wxImage* self, char threshold)
+    {
+        return self->ConvertAlphaToMask(static_cast<unsigned char>(threshold));
+    }
+
+    EXPORT bool wxImage_ConvertAlphaToMaskColour(wxImage* self, wxUint8 mr, wxUint8 mg, wxUint8 mb,
+                                                 char threshold)
+    {
+        return self->ConvertAlphaToMask(mr, mg, mb, static_cast<unsigned char>(threshold));
+    }
+
+    EXPORT bool wxImage_ConvertColourToAlpha(wxImage* self, wxUint8 r, wxUint8 g, wxUint8 b)
+    {
+        return self->ConvertColourToAlpha(r, g, b);
+    }
+
+    EXPORT void wxImage_SetDefaultLoadFlags(int flags)
+    {
+        wxImage::SetDefaultLoadFlags(flags);
+    }
+
+    EXPORT int wxImage_GetDefaultLoadFlags()
+    {
+        return wxImage::GetDefaultLoadFlags();
+    }
+
+    EXPORT void wxImage_SetLoadFlags(wxImage* self, int flags)
+    {
+        self->SetLoadFlags(flags);
+    }
+
+    EXPORT int wxImage_GetLoadFlags(wxImage* self)
+    {
+        return self->GetLoadFlags();
+    }
+
+    EXPORT int wxImage_GetImageCount(wxString* name, int type)
+    {
+        return wxImage::GetImageCount(*name, static_cast<wxBitmapType>(type));
+    }
+
+    EXPORT bool wxImage_SaveFileMime(wxImage* self, wxString* name, wxString* mimetype)
+    {
+        return self->SaveFile(*name, *mimetype);
+    }
+
+    EXPORT bool wxImage_LoadFileMime(wxImage* self, wxString* name, wxString* mimetype, int index)
+    {
+        return self->LoadFile(*name, *mimetype, index);
+    }
+
+    EXPORT bool wxImage_LoadStreamMime(wxImage* self, wxInputStream* stream, wxString* mimetype,
+                                       int index)
+    {
+        return self->LoadFile(*stream, *mimetype, index);
+    }
+
+    EXPORT bool wxImage_SaveStreamMime(wxImage* self, wxOutputStream* stream, wxString* mimetype)
+    {
+        return self->SaveFile(*stream, *mimetype);
+    }
+
+    EXPORT wxSize* wxImage_GetSize(wxImage* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetSize();
+        return result;
+    }
+
+    EXPORT void wxImage_SetDataRGBA(wxImage* self, void* data)
+    {
+        self->SetDataRGBA(static_cast<const unsigned char*>(data));
+    }
+
+    EXPORT void* wxImage_GetAlphaData(wxImage* self)
+    {
+        return static_cast<void*>(self->GetAlpha());
+    }
+
+    EXPORT bool wxImage_HasAlpha(wxImage* self)
+    {
+        return self->HasAlpha();
+    }
+
+    EXPORT void wxImage_SetAlphaData(wxImage* self, void* alpha, bool staticData)
+    {
+        self->SetAlpha(static_cast<unsigned char*>(alpha), staticData);
+    }
+
+    EXPORT void wxImage_InitAlpha(wxImage* self)
+    {
+        self->InitAlpha();
+    }
+
+    EXPORT void wxImage_ClearAlpha(wxImage* self)
+    {
+        self->ClearAlpha();
+    }
+
+    EXPORT bool wxImage_IsTransparent(wxImage* self, int x, int y, char threshold)
+    {
+        return self->IsTransparent(x, y, static_cast<unsigned char>(threshold));
+    }
+
+    EXPORT bool wxImage_GetOrFindMaskColour(wxImage* self, char* r, char* g, char* b)
+    {
+        unsigned char red = 0;
+        unsigned char green = 0;
+        unsigned char blue = 0;
+        const bool found = self->GetOrFindMaskColour(&red, &green, &blue);
+
+        if (r)
+        {
+            *r = static_cast<char>(red);
+        }
+        if (g)
+        {
+            *g = static_cast<char>(green);
+        }
+        if (b)
+        {
+            *b = static_cast<char>(blue);
+        }
+        return found;
+    }
+
+    EXPORT bool wxImage_HasPalette(wxImage* self)
+    {
+        return self->HasPalette();
+    }
+
+    EXPORT wxPalette* wxImage_GetPalette(wxImage* self)
+    {
+        return new wxPalette(self->GetPalette());
+    }
+
+    EXPORT void wxImage_SetPalette(wxImage* self, wxPalette* palette)
+    {
+        self->SetPalette(*palette);
+    }
+
+    EXPORT void wxImage_RotateHue(wxImage* self, double angle)
+    {
+        self->RotateHue(angle);
+    }
+
+    EXPORT void wxImage_ChangeSaturation(wxImage* self, double factor)
+    {
+        self->ChangeSaturation(factor);
+    }
+
+    EXPORT void wxImage_ChangeBrightness(wxImage* self, double factor)
+    {
+        self->ChangeBrightness(factor);
+    }
+
+    EXPORT void wxImage_ChangeHSV(wxImage* self, double angleH, double factorS, double factorV)
+    {
+        self->ChangeHSV(angleH, factorS, factorV);
+    }
+
+    EXPORT void wxImage_AddHandler(wxImageHandler* handler)
+    {
+        wxImage::AddHandler(handler);
+    }
+
+    EXPORT void wxImage_InsertHandler(wxImageHandler* handler)
+    {
+        wxImage::InsertHandler(handler);
+    }
+
+    EXPORT bool wxImage_RemoveHandler(wxString* name)
+    {
+        return wxImage::RemoveHandler(*name);
+    }
+
+    EXPORT wxImageHandler* wxImage_FindHandlerByName(wxString* name)
+    {
+        return wxImage::FindHandler(*name);
+    }
+
+    EXPORT wxImageHandler* wxImage_FindHandlerByExtension(wxString* extension, int imageType)
+    {
+        return wxImage::FindHandler(*extension, static_cast<wxBitmapType>(imageType));
+    }
+
+    EXPORT wxImageHandler* wxImage_FindHandlerByType(int imageType)
+    {
+        return wxImage::FindHandler(static_cast<wxBitmapType>(imageType));
+    }
+
+    EXPORT wxImageHandler* wxImage_FindHandlerMime(wxString* mimetype)
+    {
+        return wxImage::FindHandlerMime(*mimetype);
+    }
+
+    EXPORT wxString* wxImage_GetImageExtWildcard()
+    {
+        return new wxString(wxImage::GetImageExtWildcard());
+    }
+
+    EXPORT void wxImage_CleanUpHandlers()
+    {
+        wxImage::CleanUpHandlers();
+    }
+
+    EXPORT void wxImage_InitStandardHandlers()
+    {
+        wxImage::InitStandardHandlers();
     }
 }

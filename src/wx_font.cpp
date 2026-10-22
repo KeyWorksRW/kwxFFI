@@ -259,4 +259,191 @@ extern "C"
         }
         return (int) arr.GetCount();
     }
+
+    EXPORT double wxFont_GetFractionalPointSize(wxFont* self)
+    {
+        return self->GetFractionalPointSize();
+    }
+
+    EXPORT wxSize* wxFont_GetPixelSize(wxFont* self)
+    {
+        wxSize* result = new wxSize();
+        *result = self->GetPixelSize();
+        return result;
+    }
+
+    EXPORT bool wxFont_IsUsingSizeInPixels(wxFont* self)
+    {
+        return self->IsUsingSizeInPixels();
+    }
+
+    EXPORT int wxFont_GetNumericWeight(wxFont* self)
+    {
+        return self->GetNumericWeight();
+    }
+
+    EXPORT bool wxFont_GetStrikethrough(wxFont* self)
+    {
+        return self->GetStrikethrough();
+    }
+
+    EXPORT wxString* wxFont_GetNativeFontInfoDesc(wxFont* self)
+    {
+        return new wxString(self->GetNativeFontInfoDesc());
+    }
+
+    EXPORT wxString* wxFont_GetNativeFontInfoUserDesc(wxFont* self)
+    {
+        return new wxString(self->GetNativeFontInfoUserDesc());
+    }
+
+    EXPORT bool wxFont_IsFixedWidth(wxFont* self)
+    {
+        return self->IsFixedWidth();
+    }
+
+    EXPORT void wxFont_SetFractionalPointSize(wxFont* self, double pointSize)
+    {
+        self->SetFractionalPointSize(pointSize);
+    }
+
+    EXPORT void wxFont_SetPixelSize(wxFont* self, int width, int height)
+    {
+        self->SetPixelSize(wxSize(width, height));
+    }
+
+    EXPORT void wxFont_SetNumericWeight(wxFont* self, int weight)
+    {
+        self->SetNumericWeight(weight);
+    }
+
+    EXPORT void wxFont_SetStrikethrough(wxFont* self, bool strikethrough)
+    {
+        self->SetStrikethrough(strikethrough);
+    }
+
+    EXPORT bool wxFont_SetNativeFontInfo(wxFont* self, wxString* info)
+    {
+        return self->SetNativeFontInfo(*info);
+    }
+
+    EXPORT bool wxFont_SetNativeFontInfoUserDesc(wxFont* self, wxString* info)
+    {
+        return self->SetNativeFontInfoUserDesc(*info);
+    }
+
+    EXPORT void wxFont_SetSymbolicSize(wxFont* self, int size)
+    {
+        self->SetSymbolicSize(static_cast<wxFontSymbolicSize>(size));
+    }
+
+    EXPORT void wxFont_SetSymbolicSizeRelativeTo(wxFont* self, int size, int base)
+    {
+        self->SetSymbolicSizeRelativeTo(static_cast<wxFontSymbolicSize>(size), base);
+    }
+
+    EXPORT int wxFont_AdjustToSymbolicSize(int size, int base)
+    {
+        return wxFont::AdjustToSymbolicSize(static_cast<wxFontSymbolicSize>(size), base);
+    }
+
+    EXPORT int wxFont_ConvertFromLegacyWeightIfNecessary(int weight)
+    {
+        return wxFont::ConvertFromLegacyWeightIfNecessary(weight);
+    }
+
+    EXPORT int wxFont_GetNumericWeightOf(int weight)
+    {
+        return wxFont::GetNumericWeightOf(static_cast<wxFontWeight>(weight));
+    }
+
+    EXPORT void wxFont_MakeBold(wxFont* self)
+    {
+        self->MakeBold();
+    }
+
+    EXPORT void wxFont_MakeItalic(wxFont* self)
+    {
+        self->MakeItalic();
+    }
+
+    EXPORT void wxFont_MakeUnderlined(wxFont* self)
+    {
+        self->MakeUnderlined();
+    }
+
+    EXPORT void wxFont_MakeStrikethrough(wxFont* self)
+    {
+        self->MakeStrikethrough();
+    }
+
+    EXPORT void wxFont_MakeLarger(wxFont* self)
+    {
+        self->MakeLarger();
+    }
+
+    EXPORT void wxFont_MakeSmaller(wxFont* self)
+    {
+        self->MakeSmaller();
+    }
+
+    EXPORT void wxFont_Scale(wxFont* self, float factor)
+    {
+        self->Scale(factor);
+    }
+
+    EXPORT wxFont* wxFont_Bold(wxFont* self)
+    {
+        return new wxFont(self->Bold());
+    }
+
+    EXPORT wxFont* wxFont_Italic(wxFont* self)
+    {
+        return new wxFont(self->Italic());
+    }
+
+    EXPORT wxFont* wxFont_Underlined(wxFont* self)
+    {
+        return new wxFont(self->Underlined());
+    }
+
+    EXPORT wxFont* wxFont_Strikethrough(wxFont* self)
+    {
+        return new wxFont(self->Strikethrough());
+    }
+
+    EXPORT wxFont* wxFont_Larger(wxFont* self)
+    {
+        return new wxFont(self->Larger());
+    }
+
+    EXPORT wxFont* wxFont_Smaller(wxFont* self)
+    {
+        return new wxFont(self->Smaller());
+    }
+
+    EXPORT wxFont* wxFont_Scaled(wxFont* self, float factor)
+    {
+        return new wxFont(self->Scaled(factor));
+    }
+
+    EXPORT wxFont* wxFont_GetBaseFont(wxFont* self)
+    {
+        return new wxFont(self->GetBaseFont());
+    }
+
+    EXPORT bool wxFont_AddPrivateFont(wxString* filename)
+    {
+#if wxUSE_PRIVATE_FONTS
+        return wxFont::AddPrivateFont(*filename);
+#else
+        wxUnusedVar(filename);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxFont_IsEqual(wxFont* self, wxFont* font)
+    {
+        return *self == *font;
+    }
 }

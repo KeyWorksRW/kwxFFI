@@ -95,12 +95,12 @@ extern "C"
 
     EXPORT void wxListBox_InsertItems(wxListBox* self, void* items, int pos, int count)
     {
-        wxArrayString array;
+        wxArrayString strings;
 
         for (int i = 0; i < count; i++)
-            array[i] = ((char**) items)[i];
+            strings.Add(((const char**) items)[i]);
 
-        self->InsertItems(array, pos);
+        self->InsertItems(strings, pos);
     }
 
     EXPORT void wxListBox_SetFirstItem(wxListBox* self, int index)

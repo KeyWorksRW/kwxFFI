@@ -14,7 +14,8 @@ extern "C"
 {
     // Constructor
     EXPORT wxPropertyGridManager* wxPropertyGridManager_Create(wxWindow* parent, int id, int x,
-                                                               int y, int width, int height, int style)
+                                                               int y, int width, int height,
+                                                               int style)
     {
         return new wxPropertyGridManager(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
@@ -100,8 +101,8 @@ extern "C"
     }
 
     // Description box
-    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self, int descBoxHeight,
-                                                       bool refresh)
+    EXPORT void wxPropertyGridManager_SetDescBoxHeight(wxPropertyGridManager* self,
+                                                       int descBoxHeight, bool refresh)
     {
         self->SetDescBoxHeight(descBoxHeight, refresh);
     }
@@ -160,4 +161,442 @@ extern "C"
 
     // Style constants
     WXFFI_CONSTANT_INT(expPGMAN_DEFAULT_STYLE, wxPGMAN_DEFAULT_STYLE)
+
+    // -----------------------------------------------------------------------
+    // wxPropertyGrid methods (see include/kwx_propgrid_extra.h)
+    // -----------------------------------------------------------------------
+
+    EXPORT int wxPropertyGrid_GetColumnCount(wxPropertyGrid* self)
+    {
+        return static_cast<int>(self->GetColumnCount());
+    }
+
+    EXPORT int wxPropertyGrid_GetRowHeight(wxPropertyGrid* self)
+    {
+        return self->GetRowHeight();
+    }
+
+    EXPORT int wxPropertyGrid_GetFontHeight(wxPropertyGrid* self)
+    {
+        return self->GetFontHeight();
+    }
+
+    EXPORT int wxPropertyGrid_GetMarginWidth(wxPropertyGrid* self)
+    {
+        return self->GetMarginWidth();
+    }
+
+    EXPORT int wxPropertyGrid_GetVerticalSpacing(wxPropertyGrid* self)
+    {
+        return self->GetVerticalSpacing();
+    }
+
+    EXPORT int wxPropertyGrid_GetSpacingY(wxPropertyGrid* self)
+    {
+        return self->GetSpacingY();
+    }
+
+    EXPORT wxWindow* wxPropertyGrid_GetPanel(wxPropertyGrid* self)
+    {
+        return self->GetPanel();
+    }
+
+    EXPORT wxPropertyGrid* wxPropertyGrid_GetGrid(wxPropertyGrid* self)
+    {
+        return self->GetGrid();
+    }
+
+    EXPORT wxPGProperty* wxPropertyGrid_GetRoot(wxPropertyGrid* self)
+    {
+        return self->GetRoot();
+    }
+
+    EXPORT wxPGProperty* wxPropertyGrid_GetLastItem(wxPropertyGrid* self, int flags)
+    {
+        return self->GetLastItem(flags);
+    }
+
+    EXPORT wxPGProperty* wxPropertyGrid_GetSelectedProperty(wxPropertyGrid* self)
+    {
+        return self->GetSelectedProperty();
+    }
+
+    EXPORT wxPGProperty* wxPropertyGrid_GetSelection(wxPropertyGrid* self)
+    {
+        return self->GetSelection();
+    }
+
+    EXPORT wxTextCtrl* wxPropertyGrid_GetEditorTextCtrl(wxPropertyGrid* self)
+    {
+        return self->GetEditorTextCtrl();
+    }
+
+    EXPORT wxWindow* wxPropertyGrid_GetEditorControl(wxPropertyGrid* self)
+    {
+        return self->GetEditorControl();
+    }
+
+    EXPORT wxWindow* wxPropertyGrid_GetEditorControlSecondary(wxPropertyGrid* self)
+    {
+        return self->GetEditorControlSecondary();
+    }
+
+    EXPORT wxTextCtrl* wxPropertyGrid_GetLabelEditor(wxPropertyGrid* self)
+    {
+        return self->GetLabelEditor();
+    }
+
+    EXPORT wxPGValidationInfo* wxPropertyGrid_GetValidationInfo(wxPropertyGrid* self)
+    {
+        return new wxPGValidationInfo(self->GetValidationInfo());
+    }
+
+    EXPORT wxSize* wxPropertyGrid_GetImageSize(wxPropertyGrid* self, wxPGProperty* property,
+                                               int item)
+    {
+        return new wxSize(self->GetImageSize(property, item));
+    }
+
+    EXPORT wxRect* wxPropertyGrid_GetImageRect(wxPropertyGrid* self, wxPGProperty* property,
+                                               int item)
+    {
+        return new wxRect(self->GetImageRect(property, item));
+    }
+
+    EXPORT wxRect* wxPropertyGrid_GetPropertyRect(wxPropertyGrid* self, wxPGProperty* first,
+                                                  wxPGProperty* last)
+    {
+        return new wxRect(self->GetPropertyRect(first, last));
+    }
+
+    EXPORT wxSize* wxPropertyGrid_FitColumns(wxPropertyGrid* self)
+    {
+        return new wxSize(self->FitColumns());
+    }
+
+    EXPORT wxFont* wxPropertyGrid_GetCaptionFont(wxPropertyGrid* self)
+    {
+        return new wxFont(self->GetCaptionFont());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetCaptionBackgroundColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetCaptionBackgroundColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetCaptionForegroundColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetCaptionForegroundColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetCellBackgroundColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetCellBackgroundColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetCellDisabledTextColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetCellDisabledTextColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetCellTextColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetCellTextColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetEmptySpaceColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetEmptySpaceColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetLineColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetLineColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetMarginColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetMarginColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetSelectionBackgroundColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetSelectionBackgroundColour());
+    }
+
+    EXPORT wxColour* wxPropertyGrid_GetSelectionForegroundColour(wxPropertyGrid* self)
+    {
+        return new wxColour(self->GetSelectionForegroundColour());
+    }
+
+    EXPORT void wxPropertyGrid_SetCaptionBackgroundColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetCaptionBackgroundColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetCaptionTextColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetCaptionTextColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetCellBackgroundColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetCellBackgroundColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetCellDisabledTextColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetCellDisabledTextColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetCellTextColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetCellTextColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetEmptySpaceColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetEmptySpaceColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetLineColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetLineColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetMarginColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetMarginColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetSelectionBackgroundColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetSelectionBackgroundColour(*colour);
+    }
+
+    EXPORT void wxPropertyGrid_SetSelectionTextColour(wxPropertyGrid* self, wxColour* colour)
+    {
+        self->SetSelectionTextColour(*colour);
+    }
+
+    EXPORT wxPGCell* wxPropertyGrid_GetPropertyDefaultCell(wxPropertyGrid* self)
+    {
+        return new wxPGCell(self->GetPropertyDefaultCell());
+    }
+
+    EXPORT wxPGCell* wxPropertyGrid_GetCategoryDefaultCell(wxPropertyGrid* self)
+    {
+        return new wxPGCell(self->GetCategoryDefaultCell());
+    }
+
+    EXPORT wxPGCell* wxPropertyGrid_GetUnspecifiedValueAppearance(wxPropertyGrid* self)
+    {
+        return new wxPGCell(self->GetUnspecifiedValueAppearance());
+    }
+
+    EXPORT void wxPropertyGrid_SetUnspecifiedValueAppearance(wxPropertyGrid* self, wxPGCell* cell)
+    {
+        self->SetUnspecifiedValueAppearance(*cell);
+    }
+
+    EXPORT void wxPropertyGrid_SetColumnCount(wxPropertyGrid* self, int column_count)
+    {
+        self->SetColumnCount(column_count);
+    }
+
+    EXPORT void wxPropertyGrid_SetSplitterPosition(wxPropertyGrid* self, int position, int column)
+    {
+        self->SetSplitterPosition(position, column);
+    }
+
+    EXPORT int wxPropertyGrid_GetSplitterPosition(wxPropertyGrid* self, unsigned int splitter_index)
+    {
+        return self->GetSplitterPosition(splitter_index);
+    }
+
+    EXPORT void wxPropertyGrid_SetSplitterLeft(wxPropertyGrid* self, bool private_children_too)
+    {
+        self->SetSplitterLeft(private_children_too);
+    }
+
+    EXPORT void wxPropertyGrid_SetVirtualWidth(wxPropertyGrid* self, int width)
+    {
+        self->SetVirtualWidth(width);
+    }
+
+    EXPORT bool wxPropertyGrid_HasVirtualWidth(wxPropertyGrid* self)
+    {
+        return self->HasVirtualWidth();
+    }
+
+    EXPORT void wxPropertyGrid_CenterSplitter(wxPropertyGrid* self, bool enable_auto_resizing)
+    {
+        self->CenterSplitter(enable_auto_resizing);
+    }
+
+    EXPORT void wxPropertyGrid_ResetColumnSizes(wxPropertyGrid* self, bool enable_auto_resizing)
+    {
+        self->ResetColumnSizes(enable_auto_resizing);
+    }
+
+    EXPORT void wxPropertyGrid_ResetColours(wxPropertyGrid* self)
+    {
+        self->ResetColours();
+    }
+
+    EXPORT void wxPropertyGrid_MakeColumnEditable(wxPropertyGrid* self, unsigned int column,
+                                                  bool editable)
+    {
+        self->MakeColumnEditable(column, editable);
+    }
+
+    EXPORT void wxPropertyGrid_SetVerticalSpacing(wxPropertyGrid* self, int spacing)
+    {
+        self->SetVerticalSpacing(spacing);
+    }
+
+    EXPORT bool wxPropertyGrid_SelectProperty(wxPropertyGrid* self, wxPGProperty* id, bool focus)
+    {
+        return self->SelectProperty(id, focus);
+    }
+
+    EXPORT bool wxPropertyGrid_AddToSelection(wxPropertyGrid* self, wxPGProperty* id)
+    {
+        return self->AddToSelection(id);
+    }
+
+    EXPORT bool wxPropertyGrid_RemoveFromSelection(wxPropertyGrid* self, wxPGProperty* id)
+    {
+        return self->RemoveFromSelection(id);
+    }
+
+    EXPORT bool wxPropertyGrid_EnsureVisible(wxPropertyGrid* self, wxPGProperty* id)
+    {
+        return self->EnsureVisible(id);
+    }
+
+    EXPORT bool wxPropertyGrid_EnableCategories(wxPropertyGrid* self, bool enable)
+    {
+        return self->EnableCategories(enable);
+    }
+
+    EXPORT bool wxPropertyGrid_CommitChangesFromEditor(wxPropertyGrid* self, int flags)
+    {
+        return self->CommitChangesFromEditor(static_cast<wxPGSelectPropertyFlags>(flags));
+    }
+
+    EXPORT void wxPropertyGrid_BeginLabelEdit(wxPropertyGrid* self, unsigned int column)
+    {
+        self->BeginLabelEdit(column);
+    }
+
+    EXPORT void wxPropertyGrid_EndLabelEdit(wxPropertyGrid* self, bool commit)
+    {
+        self->EndLabelEdit(commit);
+    }
+
+    EXPORT bool wxPropertyGrid_IsAnyModified(wxPropertyGrid* self)
+    {
+        return self->IsAnyModified();
+    }
+
+    EXPORT bool wxPropertyGrid_IsEditorFocused(wxPropertyGrid* self)
+    {
+        return self->IsEditorFocused();
+    }
+
+    EXPORT bool wxPropertyGrid_IsEditorsValueModified(wxPropertyGrid* self)
+    {
+        return self->IsEditorsValueModified();
+    }
+
+    EXPORT void wxPropertyGrid_EditorsValueWasModified(wxPropertyGrid* self)
+    {
+        self->EditorsValueWasModified();
+    }
+
+    EXPORT void wxPropertyGrid_EditorsValueWasNotModified(wxPropertyGrid* self)
+    {
+        self->EditorsValueWasNotModified();
+    }
+
+    EXPORT void wxPropertyGrid_RefreshEditor(wxPropertyGrid* self)
+    {
+        self->RefreshEditor();
+    }
+
+    EXPORT bool wxPropertyGrid_UnfocusEditor(wxPropertyGrid* self)
+    {
+        return self->UnfocusEditor();
+    }
+
+    EXPORT void wxPropertyGrid_RefreshProperty(wxPropertyGrid* self, wxPGProperty* property)
+    {
+        self->RefreshProperty(property);
+    }
+
+    EXPORT void wxPropertyGrid_SetCurrentCategory(wxPropertyGrid* self, wxPGProperty* id)
+    {
+        self->SetCurrentCategory(id);
+    }
+
+    EXPORT void wxPropertyGrid_DedicateKey(wxPropertyGrid* self, int keycode)
+    {
+        self->DedicateKey(keycode);
+    }
+
+    EXPORT void wxPropertyGrid_AddActionTrigger(wxPropertyGrid* self, int action, int keycode,
+                                                int modifiers)
+    {
+        self->AddActionTrigger(static_cast<wxPGKeyboardAction>(action), keycode, modifiers);
+    }
+
+    EXPORT void wxPropertyGrid_ClearActionTriggers(wxPropertyGrid* self, int action)
+    {
+        self->ClearActionTriggers(static_cast<wxPGKeyboardAction>(action));
+    }
+
+    EXPORT bool wxPropertyGrid_SetFont(wxPropertyGrid* self, wxFont* font)
+    {
+        return self->SetFont(*font);
+    }
+
+    // -----------------------------------------------------------------------
+    // wxPropertyGridPage methods (see include/kwx_propgrid_extra.h)
+    // -----------------------------------------------------------------------
+
+    EXPORT wxSize* wxPropertyGridPage_FitColumns(wxPropertyGridPage* self)
+    {
+        return new wxSize(self->FitColumns());
+    }
+
+    EXPORT wxPropertyGridPageState* wxPropertyGridPage_GetStatePtr(wxPropertyGridPage* self)
+    {
+        return self->GetStatePtr();
+    }
+
+    EXPORT int wxPropertyGridPage_GetToolId(wxPropertyGridPage* self)
+    {
+        return self->GetToolId();
+    }
+
+    EXPORT void wxPropertyGridPage_Init(wxPropertyGridPage* self)
+    {
+        self->Init();
+    }
+
+    EXPORT bool wxPropertyGridPage_IsHandlingAllEvents(wxPropertyGridPage* self)
+    {
+        return self->IsHandlingAllEvents();
+    }
+
+    EXPORT void wxPropertyGridPage_OnShow(wxPropertyGridPage* self)
+    {
+        self->OnShow();
+    }
+
+    EXPORT void wxPropertyGridPage_RefreshProperty(wxPropertyGridPage* self, wxPGProperty* property)
+    {
+        self->RefreshProperty(property);
+    }
 }

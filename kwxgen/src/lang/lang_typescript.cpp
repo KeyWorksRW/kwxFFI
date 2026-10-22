@@ -215,67 +215,6 @@ static constexpr std::array<TsMemberRename, 11> TS_MEMBER_RENAMES = { {
     return factory_name;
 }
 
-// Member names exposed by the TypeScript ancestors of a class.  Used to decide where
-// an `override` modifier is required (TS4114 / TS4113).
-struct AncestorMembers
-{
-    std::unordered_set<std::string> instance_names;
-    bool has_ptr = false;
-    bool has_delete = false;
-};
-
-[[nodiscard]] static AncestorMembers
-    CollectAncestorMembers(const std::string& class_name, const ParsedFFI& ffi,
-                           const std::unordered_set<std::string>& wrapped_classes,
-                           const std::unordered_map<std::string, const ClassInfo*>& class_index)
-{
-    AncestorMembers members;
-    std::set<std::string> visited;
-    visited.insert(class_name);  // seed the walk so a self-parent or cycle is caught
-    std::unordered_map<std::string, std::string>::const_iterator iter =
-        ffi.parent_map.find(class_name);
-    while (iter != ffi.parent_map.end())
-    {
-        const std::string& parent = iter->second;
-        if (!visited.insert(parent).second)
-        {
-            break;  // cycle guard
-        }
-
-        if (wrapped_classes.contains(parent))
-        {
-            const std::unordered_map<std::string, const ClassInfo*>::const_iterator found =
-                class_index.find(parent);
-            const ClassInfo* const parent_class =
-                found != class_index.end() ? found->second : nullptr;
-            if (parent_class)
-            {
-                members.has_ptr = true;
-                for (const auto& func: parent_class->methods)
-                {
-                    if (!IsValidFunction(func))
-                    {
-                        continue;
-                    }
-                    if (IsFactoryMethod(func))
-                    {
-                        continue;  // factories are module-level, not inherited statics
-                    }
-                    if (IsTrueDestructor(func))
-                    {
-                        members.has_delete = true;
-                        continue;
-                    }
-                    members.instance_names.insert(TsMethodName(parent, func));
-                }
-            }
-        }
-
-        iter = ffi.parent_map.find(parent);
-    }
-    return members;
-}
-
 // True if an FFI return type is an integer type safe to read through an int-returning
 // C accessor.  Anything else (including pointers) must NOT be declared with an `int`
 // prototype — such constants are skipped with a diagnostic instead.
@@ -422,17 +361,24 @@ struct WrapParam
 }
 
 // The class a factory wrapper constructs.  return_arg holds the actual returned class
-// (e.g. TClass(wxButton) → "wxButton"); fall back to the enclosing class.
-[[nodiscard]] static std::string EffectiveFactoryClass(const FunctionDecl& func,
-                                                       const std::string& class_name)
+// (e.g. TClass(wxButton) → "wxButton"); fall back to the enclosing class when the name
+// does not denote a generated class (it would otherwise be an unresolved identifier).
+[[nodiscard]] static std::string
+    EffectiveFactoryClass(const FunctionDecl& func, const std::string& class_name,
+                          const std::unordered_set<std::string>& wrapped_classes)
 {
-    return func.return_arg.empty() ? class_name : func.return_arg;
+    if (!func.return_arg.empty() && wrapped_classes.contains(func.return_arg))
+    {
+        return func.return_arg;
+    }
+    return class_name;
 }
 
 // Return the TypeScript return type annotation for a method in the class wrapper layer.
 // class_name is the enclosing class (used when return is TClass/TSelf → ClassName | null).
-[[nodiscard]] static std::string WrapReturnType(const FunctionDecl& func,
-                                                const std::string& class_name)
+[[nodiscard]] static std::string
+    WrapReturnType(const FunctionDecl& func, const std::string& class_name,
+                   const std::unordered_set<std::string>& wrapped_classes)
 {
     if (func.return_type == "void" || func.return_type.empty())
     {
@@ -445,7 +391,7 @@ struct WrapParam
         // enclosing class, so it never takes the factory path.
         if (IsFactoryMethod(func) && !class_name.empty())
         {
-            return EffectiveFactoryClass(func, class_name) + " | null";
+            return EffectiveFactoryClass(func, class_name, wrapped_classes) + " | null";
         }
         return "Pointer";
     }
@@ -476,7 +422,8 @@ struct WrapParam
 // Emit the return statement for a method wrapper, applying any needed conversions.
 // call_expr is the raw lib.symbols.Func(...) expression (without trailing semicolon).
 static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
-                           const std::string& class_name, const std::string& call_expr)
+                           const std::string& class_name, const std::string& call_expr,
+                           const std::unordered_set<std::string>& wrapped_classes)
 {
     const bool is_void = func.return_type.empty() || func.return_type == "void";
     const bool is_ctor = !class_name.empty() && IsFactoryMethod(func) &&
@@ -495,7 +442,8 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     {
         output << "    const rawPtr = " << call_expr << ";\n";
         output << "    if (rawPtr === null) return null;\n";
-        output << "    return new " << EffectiveFactoryClass(func, class_name) << "(rawPtr);\n";
+        output << "    return new " << EffectiveFactoryClass(func, class_name, wrapped_classes)
+               << "(rawPtr);\n";
         return;
     }
 
@@ -514,15 +462,298 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     output << "    return " << call_expr << ";\n";
 }
 
+// The visible TypeScript signature of one member: parameter types in order, then the
+// return type.  Used to decide whether a derived member can legally override it.
+struct AncestorMemberInfo
+{
+    std::vector<std::string> param_types;
+    std::string return_type;
+    std::string origin_name;  // declared name before any ancestor-side rename
+};
+
+// Member names exposed by the TypeScript ancestors of a class.  Used to decide where
+// an `override` modifier is required (TS4114 / TS4113) and whether a same-named member
+// has a compatible signature.
+struct AncestorMembers
+{
+    std::unordered_set<std::string> instance_names;
+    std::unordered_map<std::string, AncestorMemberInfo> signatures;
+    bool has_ptr = false;
+    bool has_delete = false;
+};
+
+// True when `derived` can legally override `base`: it adds no required parameters and has
+// an identical return type.  Extra parameters make the member non-assignable, which
+// TypeScript rejects with TS2416.
+[[nodiscard]] static bool IsAssignableOverride(const AncestorMemberInfo& derived,
+                                               const AncestorMemberInfo& base)
+{
+    if (derived.param_types.size() > base.param_types.size())
+    {
+        return false;
+    }
+    for (size_t idx = 0; idx < derived.param_types.size(); ++idx)
+    {
+        if (derived.param_types[idx] != base.param_types[idx])
+        {
+            return false;
+        }
+    }
+    return derived.return_type == base.return_type;
+}
+
+// Pick a deterministic member name for a method that hides an incompatible ancestor
+// signature: <name>_<arity>, then <name>_<arity>v2, <name>_<arity>v3, ...
+[[nodiscard]] static std::string
+    DisambiguateName(const std::string& name, size_t arity, const std::set<std::string>& taken,
+                     const std::unordered_set<std::string>& ancestor_names)
+{
+    const std::string base_name = name + "_" + std::to_string(arity);
+    std::string candidate = base_name;
+    for (size_t suffix = 2; taken.contains(candidate) || ancestor_names.contains(candidate);
+         ++suffix)
+    {
+        candidate = base_name + "v" + std::to_string(suffix);
+    }
+    return candidate;
+}
+
+// How a member is exposed on the TypeScript side of a class.
+struct MemberNameResolution
+{
+    std::string name;             // identifier to emit
+    bool use_override = false;    // an ancestor exposes the same member name
+    bool adopted_rename = false;  // took over an ancestor's renamed member
+    bool renamed = false;         // fresh disambiguated name; hides an incompatible ancestor
+};
+
+// Resolve the name under which a member is emitted.  A member that cannot override the
+// same-named inherited member either adopts an ancestor's renamed member with a matching
+// signature (which keeps the override intact) or gets a fresh disambiguated name.
+[[nodiscard]] static MemberNameResolution ResolveMemberName(const std::string& declared_name,
+                                                            const AncestorMemberInfo& info,
+                                                            const AncestorMembers& inherited,
+                                                            const std::set<std::string>& taken)
+{
+    MemberNameResolution resolution;
+    resolution.name = declared_name;
+
+    const std::unordered_map<std::string, AncestorMemberInfo>::const_iterator base_iter =
+        inherited.signatures.find(declared_name);
+    if (base_iter == inherited.signatures.end())
+    {
+        return resolution;  // no inherited member of that name
+    }
+    if (IsAssignableOverride(info, base_iter->second))
+    {
+        resolution.use_override = true;
+        return resolution;
+    }
+
+    // Pick the lexicographically smallest matching renamed member so the choice does not
+    // depend on unordered_map iteration order.
+    for (const auto& entry: inherited.signatures)
+    {
+        if (entry.second.origin_name != declared_name || !IsAssignableOverride(info, entry.second))
+        {
+            continue;
+        }
+        if (!resolution.adopted_rename || entry.first < resolution.name)
+        {
+            resolution.name = entry.first;
+            resolution.adopted_rename = true;
+        }
+    }
+    if (resolution.adopted_rename)
+    {
+        resolution.use_override = true;
+        return resolution;
+    }
+
+    resolution.name =
+        DisambiguateName(declared_name, info.param_types.size(), taken, inherited.instance_names);
+    resolution.renamed = true;
+    return resolution;
+}
+
+// Compute the member signature exactly as EmitInstanceMethod emits it.  Hidden receivers
+// (TSelf, or a TClass(ClassName) pseudo-self first parameter) are not visible parameters.
+[[nodiscard]] static AncestorMemberInfo BuildAncestorMemberInfo(const FunctionDecl& func,
+                                                                const std::string& owner)
+{
+    AncestorMemberInfo info;
+    // Factory methods never reach this point (callers skip them), so the wrapped-class
+    // filter is irrelevant here.
+    const std::unordered_set<std::string> no_wrapped_classes;
+    info.return_type = WrapReturnType(func, owner, no_wrapped_classes);
+
+    const bool pseudo_self = IsPseudoSelf(func);
+    for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
+    {
+        if (pseudo_self && pidx == 0)
+        {
+            continue;  // TClass(ClassName) first parameter acts as the receiver
+        }
+        const std::vector<WrapParam> params = BuildWrapParams(func.params[pidx]);
+        for (const auto& wpar: params)
+        {
+            if (!wpar.is_self)
+            {
+                info.param_types.push_back(wpar.ts_type);
+            }
+        }
+    }
+    return info;
+}
+
+[[nodiscard]] static AncestorMembers
+    CollectAncestorMembers(const std::string& class_name, const ParsedFFI& ffi,
+                           const std::unordered_set<std::string>& wrapped_classes,
+                           const std::unordered_map<std::string, const ClassInfo*>& class_index)
+{
+    // Walk the parent chain nearest-first and keep every wrapped ancestor in order.
+    std::vector<const ClassInfo*> ancestor_chain;
+    std::set<std::string> visited;
+    visited.insert(class_name);  // seed the walk so a self-parent or cycle is caught
+    std::unordered_map<std::string, std::string>::const_iterator iter =
+        ffi.parent_map.find(class_name);
+    while (iter != ffi.parent_map.end())
+    {
+        const std::string& parent = iter->second;
+        if (!visited.insert(parent).second)
+        {
+            break;  // cycle guard
+        }
+        if (wrapped_classes.contains(parent))
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator found =
+                class_index.find(parent);
+            if (found != class_index.end())
+            {
+                ancestor_chain.push_back(found->second);
+            }
+        }
+        iter = ffi.parent_map.find(parent);
+    }
+
+    // Resolve from the farthest ancestor down: each ancestor's own rename decision depends
+    // on what it inherits, so nearer ancestors must see the already-resolved names.
+    AncestorMembers members;
+    for (std::vector<const ClassInfo*>::const_reverse_iterator chain_iter = ancestor_chain.rbegin();
+         chain_iter != ancestor_chain.rend(); ++chain_iter)
+    {
+        const ClassInfo& parent_class = **chain_iter;
+        AncestorMembers resolved;
+        std::set<std::string> emitted;
+        bool declares_delete = false;
+
+        for (const auto& func: parent_class.methods)
+        {
+            if (!IsValidFunction(func))
+            {
+                continue;
+            }
+            if (IsFactoryMethod(func))
+            {
+                continue;  // factories are module-level, not inherited statics
+            }
+            if (IsTrueDestructor(func))
+            {
+                declares_delete = true;
+                continue;
+            }
+            const std::string member_name = TsMethodName(parent_class.name, func);
+            if (emitted.contains(member_name))
+            {
+                continue;  // EmitClassFile drops this duplicate
+            }
+            AncestorMemberInfo info = BuildAncestorMemberInfo(func, parent_class.name);
+            info.origin_name = member_name;
+            const MemberNameResolution resolution =
+                ResolveMemberName(member_name, info, members, emitted);
+            resolved.instance_names.insert(resolution.name);
+            resolved.signatures.insert({ resolution.name, info });
+            emitted.insert(resolution.name);
+        }
+
+        // A wrapped ancestor re-emits its own mixin members on the TypeScript side, so a
+        // consumer inherits them too — under the same names the ancestor exposes them.
+        const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+            ffi.mixin_map.find(parent_class.name);
+        if (mixin_iter != ffi.mixin_map.end())
+        {
+            for (const std::string& mixin_name: mixin_iter->second)
+            {
+                const std::unordered_map<std::string, const ClassInfo*>::const_iterator
+                    mixin_found = class_index.find(mixin_name);
+                const ClassInfo* const mixin_class =
+                    mixin_found != class_index.end() ? mixin_found->second : nullptr;
+                if (!mixin_class)
+                {
+                    continue;
+                }
+                for (const auto& func: mixin_class->methods)
+                {
+                    if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func))
+                    {
+                        continue;
+                    }
+                    const std::string member_name = TsMethodName(mixin_name, func);
+                    if (members.instance_names.contains(member_name) ||
+                        emitted.contains(member_name))
+                    {
+                        continue;  // ancestor already exposes (or re-emits) this name
+                    }
+                    AncestorMemberInfo info = BuildAncestorMemberInfo(func, mixin_name);
+                    info.origin_name = member_name;
+                    const MemberNameResolution resolution =
+                        ResolveMemberName(member_name, info, members, emitted);
+                    resolved.instance_names.insert(resolution.name);
+                    resolved.signatures.insert({ resolution.name, info });
+                    emitted.insert(resolution.name);
+                }
+            }
+        }
+
+        // The nearer ancestor shadows same-named members of the farther ones.
+        for (const auto& name: resolved.instance_names)
+        {
+            members.instance_names.insert(name);
+        }
+        for (const auto& entry: resolved.signatures)
+        {
+            members.signatures.insert_or_assign(entry.first, entry.second);
+        }
+        members.has_ptr = true;
+        members.has_delete = members.has_delete || declares_delete;
+    }
+    return members;
+}
+
 // Emit a single instance-method wrapper.  method_owner is the class the method is
 // declared against (used for member renames); the receiver is always this._ptr.
-static void EmitInstanceMethod(std::ostream& output, const AncestorMembers& ancestors,
-                               const std::string& method_owner, const FunctionDecl& func)
+// Returns the emitted TypeScript member name, which differs from TsMethodName() when the
+// member hides an ancestor signature it cannot override.
+static std::string EmitInstanceMethod(std::ostream& output, const AncestorMembers& ancestors,
+                                      const std::string& method_owner, const FunctionDecl& func,
+                                      const std::set<std::string>& taken,
+                                      const std::unordered_set<std::string>& wrapped_classes)
 {
     const bool pseudo_self = IsPseudoSelf(func);
-    const std::string method_name = TsMethodName(method_owner, func);
+    const std::string original_name = TsMethodName(method_owner, func);
     const std::string func_name = CFuncName(func);
-    const std::string ret_type = WrapReturnType(func, method_owner);
+    const std::string ret_type = WrapReturnType(func, method_owner, wrapped_classes);
+
+    // A same-named ancestor member either accepts the override or forces a rename.
+    const AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, method_owner);
+    const MemberNameResolution resolution =
+        ResolveMemberName(original_name, own_info, ancestors, taken);
+    const std::string method_name = resolution.name;
+    if (resolution.renamed)
+    {
+        std::println(stderr, "  {}: {} hides an incompatible ancestor signature - exposed as {}",
+                     method_owner, original_name, method_name);
+    }
 
     std::vector<WrapParam> wrap_params;
     for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
@@ -537,8 +768,7 @@ static void EmitInstanceMethod(std::ostream& output, const AncestorMembers& ance
         const std::vector<WrapParam> params = BuildWrapParams(param);
         wrap_params.insert(wrap_params.end(), params.begin(), params.end());
     }
-    output << "  " << (ancestors.instance_names.contains(method_name) ? "override " : "")
-           << method_name << "(";
+    output << "  " << (resolution.use_override ? "override " : "") << method_name << "(";
     bool first = true;
     for (const auto& wpar: wrap_params)
     {
@@ -555,9 +785,29 @@ static void EmitInstanceMethod(std::ostream& output, const AncestorMembers& ance
     }
     output << "): " << ret_type << " {\n";
 
-    if (method_name == "DeleteItem")
+    if (original_name == "DeleteItem")
     {
-        output << "    if (this._disposed) return;\n";
+        // The guard must return a value of the declared type, not a bare `return`.
+        if (ret_type == "void")
+        {
+            output << "    if (this._disposed) return;\n";
+        }
+        else if (ret_type == "boolean")
+        {
+            output << "    if (this._disposed) return false;\n";
+        }
+        else if (ret_type == "number")
+        {
+            output << "    if (this._disposed) return 0;\n";
+        }
+        else if (ret_type == "bigint")
+        {
+            output << "    if (this._disposed) return 0n;\n";
+        }
+        else
+        {
+            output << "    if (this._disposed) return null;\n";
+        }
     }
 
     std::string call = "lib.symbols." + func_name + "(";
@@ -573,9 +823,10 @@ static void EmitInstanceMethod(std::ostream& output, const AncestorMembers& ance
     }
     call += ")";
 
-    EmitWrapReturn(output, func, method_owner, call);
+    EmitWrapReturn(output, func, method_owner, call, wrapped_classes);
 
     output << "  }\n\n";
+    return method_name;
 }
 
 // Emit the dlopen symbol entry for a single function.
@@ -1104,7 +1355,9 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
         }
 
         const std::string func_name = CFuncName(func);
-        const std::string ret_type = WrapReturnType(func, "");
+        // Free functions have no enclosing class, so the factory path never applies.
+        const std::unordered_set<std::string> no_wrapped_classes;
+        const std::string ret_type = WrapReturnType(func, "", no_wrapped_classes);
 
         // Build visible parameters
         std::vector<WrapParam> wrap_params;
@@ -1143,7 +1396,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
         }
         call += ")";
 
-        EmitWrapReturn(body, func, "", call);
+        EmitWrapReturn(body, func, "", call, no_wrapped_classes);
 
         body << "}\n\n";
         ++func_count;
@@ -1240,13 +1493,15 @@ void TypeScriptEmitter::EmitClassFile(
         }
 
         const std::string method_name = TsMethodName(cls.name, func);
-        if (!emitted_instance_names.insert(method_name).second)
+        if (emitted_instance_names.contains(method_name))
         {
             std::println(stderr, "  Warning: {}: dropping duplicate method {} (C symbol {})",
                          cls.name, method_name, CFuncName(func));
             continue;  // skip duplicate overload
         }
-        EmitInstanceMethod(body, ancestors, cls.name, func);
+        const std::string emitted_name = EmitInstanceMethod(
+            body, ancestors, cls.name, func, emitted_instance_names, wrapped_classes);
+        emitted_instance_names.insert(emitted_name);
     }
 
     // --- Mixin methods ---
@@ -1274,11 +1529,20 @@ void TypeScriptEmitter::EmitClassFile(
                 {
                     continue;
                 }
-                if (!emitted_instance_names.insert(TsMethodName(mixin_name, func)).second)
+                const std::string mixin_member_name = TsMethodName(mixin_name, func);
+                if (ancestors.instance_names.contains(mixin_member_name))
+                {
+                    // A wrapped ancestor already exposes this member; re-emitting it here
+                    // would produce a duplicate member (TS4114) or a signature clash (TS2416).
+                    continue;
+                }
+                if (emitted_instance_names.contains(mixin_member_name))
                 {
                     continue;  // consumer already exposes this name
                 }
-                EmitInstanceMethod(body, ancestors, mixin_name, func);
+                const std::string emitted_name = EmitInstanceMethod(
+                    body, ancestors, mixin_name, func, emitted_instance_names, wrapped_classes);
+                emitted_instance_names.insert(emitted_name);
             }
         }
     }
@@ -1290,6 +1554,7 @@ void TypeScriptEmitter::EmitClassFile(
     // member to be assignable to the ancestor's static side (TS2417), which is
     // impossible when each class declares a different Create() signature.
     std::set<std::string> emitted_factory_names;
+    std::set<std::string> factory_return_imports;
     for (const auto& func: cls.methods)
     {
         if (!IsValidFunction(func))
@@ -1310,7 +1575,15 @@ void TypeScriptEmitter::EmitClassFile(
         }
 
         const std::string func_name = CFuncName(func);
-        const std::string ret_type = WrapReturnType(func, cls.name);
+        const std::string ret_type = WrapReturnType(func, cls.name, wrapped_classes);
+
+        // A factory may construct a different generated class; that name must be imported
+        // or the emitted identifier is unresolved (TS2552).
+        const std::string created_class = EffectiveFactoryClass(func, cls.name, wrapped_classes);
+        if (created_class != cls.name && created_class != parent_name)
+        {
+            factory_return_imports.insert(created_class);
+        }
 
         std::vector<WrapParam> wrap_params;
         for (const auto& param: func.params)
@@ -1348,7 +1621,7 @@ void TypeScriptEmitter::EmitClassFile(
         }
         call += ")";
 
-        EmitWrapReturn(body, func, cls.name, call);
+        EmitWrapReturn(body, func, cls.name, call, wrapped_classes);
 
         body << "}\n";
     }
@@ -1362,6 +1635,11 @@ void TypeScriptEmitter::EmitClassFile(
     if (!parent_name.empty())
     {
         output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
+               << "\";\n";
+    }
+    for (const std::string& imported_class: factory_return_imports)
+    {
+        output << "import { " << imported_class << " } from \"" << TsClassImportPath(imported_class)
                << "\";\n";
     }
     output << "\n";

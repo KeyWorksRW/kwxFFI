@@ -11,9 +11,11 @@
 #include <fstream>
 #include <iostream>
 #include <regex>
+#include <set>
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <vector>
 
 // Parse a single-line free function declaration.
 // Returns true if parsed, false otherwise.
@@ -158,10 +160,23 @@ ConstantsFileResult ParseConstants(const std::filesystem::path& file_path)
     // WXFFI_EXPORT pattern: "WXFFI_EXPORT(int, expNAME)();"
     const std::regex re_wxffi(R"(^\s*WXFFI_EXPORT\s*\(\s*(\w+)\s*,\s*(exp\w+)\s*\)\s*\(\s*\)\s*;)");
 
-    std::string accumulated;
-    std::string line;
+    std::vector<std::string> lines;
+    {
+        std::string raw_line;
+        while (std::getline(file, raw_line))
+        {
+            lines.push_back(raw_line);
+        }
+    }
 
-    while (std::getline(file, line))
+    // Expand quoted local includes so free functions declared in included headers are parsed.
+    // kwx_types.h, kwx_def.h, and kwx_wrapper.h stay as include lines.
+    std::set<std::filesystem::path> visited { std::filesystem::weakly_canonical(file_path) };
+    ExpandLocalIncludes(lines, file_path, visited, 0);
+
+    std::string accumulated;
+
+    for (const std::string& line: lines)
     {
         // Skip preprocessor, comment, and blank lines
         if (line.empty() || line[0] == '#')

@@ -18,7 +18,8 @@ extern "C"
                                                            wxString* title, int x, int y, int width,
                                                            int height, int style)
     {
-        return new wxAuiMDIParentFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
+        return new wxAuiMDIParentFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height),
+                                       style);
     }
 
     EXPORT wxAuiMDIChildFrame* wxAuiMDIParentFrame_GetActiveChild(wxAuiMDIParentFrame* self)
@@ -97,7 +98,8 @@ extern "C"
                                                          wxString* title, int x, int y, int width,
                                                          int height, int style)
     {
-        return new wxAuiMDIChildFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
+        return new wxAuiMDIChildFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height),
+                                      style);
     }
 
     EXPORT void wxAuiMDIChildFrame_Activate(wxAuiMDIChildFrame* self)
@@ -175,5 +177,36 @@ extern "C"
     EXPORT wxWindow* wxAuiMDIChildFrame_GetMDIParent(wxAuiMDIChildFrame* self)
     {
         return self->GetMDIParent();
+    }
+
+    // ============================================================================
+    // wxAuiMDIClientWindow - AUI MDI client window
+    // ============================================================================
+
+    EXPORT bool wxAuiMDIClientWindow_CreateClient(wxAuiMDIClientWindow* self,
+                                                  wxAuiMDIParentFrame* parent, int style)
+    {
+        return self->CreateClient(parent, style);
+    }
+
+    EXPORT void wxAuiMDIClientWindow_Delete(wxAuiMDIClientWindow* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxAuiMDIChildFrame* wxAuiMDIClientWindow_GetActiveChild(wxAuiMDIClientWindow* self)
+    {
+        return self->GetActiveChild();
+    }
+
+    EXPORT void wxAuiMDIClientWindow_SetActiveChild(wxAuiMDIClientWindow* self,
+                                                    wxAuiMDIChildFrame* child)
+    {
+        self->SetActiveChild(child);
+    }
+
+    EXPORT int wxAuiMDIClientWindow_SetSelection(wxAuiMDIClientWindow* self, size_t page)
+    {
+        return self->SetSelection(page);
     }
 }

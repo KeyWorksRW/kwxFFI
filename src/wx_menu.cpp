@@ -437,4 +437,35 @@ extern "C"
         *result = self->GetBitmap();
         return result;
     }
+
+    EXPORT wxMenuItem* wxMenu_AppendSubMenu(wxMenu* self, wxMenu* submenu, wxString* text,
+                                            wxString* help)
+    {
+        return self->AppendSubMenu(submenu, *text, *help);
+    }
+
+    EXPORT wxMenuItem* wxMenu_RemoveItem(wxMenu* self, int id)
+    {
+        return self->Remove(id);
+    }
+
+    EXPORT wxString* wxMenu_GetLabel(wxMenu* self, int id)
+    {
+        return new wxString(self->GetLabel(id));
+    }
+
+    EXPORT wxWindow* wxMenu_GetWindow(wxMenu* self)
+    {
+        return self->GetWindow();
+    }
+
+    EXPORT void wxMenu_Detach(wxMenu* self)
+    {
+        self->Detach();
+    }
+
+    EXPORT void wxMenu_LockAccels(bool locked)
+    {
+        wxMenu::LockAccels(locked);
+    }
 }
