@@ -40,14 +40,24 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
     --out     src/gen/
 ```
 
-**Generated output** (`src/gen/`): one `wx_button.f90`-style `module` per class using
-`ISO_C_BINDING` `interface` blocks, plus `wx_events.f90`, `wx_keys.f90`,
-`wx_constants.f90`. Compile and `use` normally:
+**Generated output** (`src/gen/`):
+
+- `kwxffi_gen.f90` — the `kwxffi` module: every class method, free function, event, key
+  and constant as an `ISO_C_BINDING` `interface` body. This is the single entry point for
+  the raw C API; import the names you need with `only:`.
+- `kwx_types.f90`, `wx_string.f90` — opaque pointer types and string conversion helpers.
+- `wx_window.f90`, `wx_frame.f90`, `wx_controls.f90`, `wx_menus.f90`, `wx_sizers.f90`,
+  `wx_events.f90`, `wx_dialogs.f90` — idiomatic wrappers over a subset of the raw API.
+
+Compile and `use` normally:
 
 ```fortran
-use wx_button
-use wx_events
+use kwxffi, only: wxOK, wxICON_INFORMATION, wxFrame_Create
+use wx_frame
 ```
+
+There is deliberately no separate constants module: constants, events and keys are part of
+`kwxffi`, so `use kwxffi` is the only import needed for the raw API.
 
 ---
 

@@ -14,7 +14,10 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <map>
 #include <print>
+#include <set>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -57,6 +60,85 @@ static std::string FortranName(const std::string& exportName)
         return exportName.substr(EXP_PREFIX.size());  // strip "exp"
     }
     return exportName;
+}
+
+// Fortran identifiers are case-insensitive, so a constant such as wxPROCESS_REDIRECT cannot be
+// declared next to the wxProcess_Redirect method in the same module — that would be a duplicate
+// identifier. The method keeps its exact C name; a colliding constant gets a "_FLAG" suffix,
+// which keeps it recognizable as the wxWidgets flag it represents. Constants, events, keys and
+// methods all live in the single kwxffi module, so this pass is the only naming authority.
+struct ConstantFortranName
+{
+    std::string name;
+    bool renamed = false;
+};
+
+// Map every constant's C export name to the Fortran identifier that must be used for it. The
+// result is independent of parser order, so emitted identifiers are stable across runs.
+[[nodiscard]] static std::map<std::string, ConstantFortranName>
+    BuildConstantNames(const ParsedFFI& ffi_data)
+{
+    // Case-insensitive names already claimed by events, keys, methods and free functions.
+    std::set<std::string> used;
+    for (const auto& event: ffi_data.events)
+    {
+        used.insert(ToLower(FortranName(event.export_name)));
+    }
+    for (const auto& key_decl: ffi_data.keys)
+    {
+        used.insert(ToLower(FortranName(key_decl.export_name)));
+    }
+    for (const auto& class_info: ffi_data.classes)
+    {
+        for (const auto& method: class_info.methods)
+        {
+            if (IsValidFunction(method))
+            {
+                used.insert(ToLower(CFuncName(method)));
+            }
+        }
+    }
+    for (const auto& func: ffi_data.free_functions)
+    {
+        if (IsValidFunction(func))
+        {
+            used.insert(ToLower(CFuncName(func)));
+        }
+    }
+
+    std::vector<const ConstantDecl*> sorted_constants;
+    sorted_constants.reserve(ffi_data.constants.size());
+    for (const auto& constant: ffi_data.constants)
+    {
+        sorted_constants.push_back(&constant);
+    }
+    std::ranges::sort(sorted_constants,
+                      [](const ConstantDecl* left, const ConstantDecl* right)
+                      {
+                          return left->export_name < right->export_name;
+                      });
+
+    std::map<std::string, ConstantFortranName> names;
+    for (const ConstantDecl* constant: sorted_constants)
+    {
+        std::string name = FortranName(constant->export_name);
+        bool renamed = false;
+        if (used.contains(ToLower(name)))
+        {
+            const std::string base_name = name + "_FLAG";
+            name = base_name;
+            renamed = true;
+            int suffix = 0;
+            while (used.contains(ToLower(name)))
+            {
+                ++suffix;
+                name = base_name + std::to_string(suffix);
+            }
+        }
+        used.insert(ToLower(name));
+        names.insert_or_assign(constant->export_name, ConstantFortranName { name, renamed });
+    }
+    return names;
 }
 
 // Emit a single Fortran interface declaration for a C function.
@@ -174,13 +256,6 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
                           return left.key_name < right.key_name;
                       });
 
-    std::vector<ConstantDecl> sorted_constants = ffi_data.constants;
-    std::ranges::sort(sorted_constants,
-                      [](const ConstantDecl& left, const ConstantDecl& right)
-                      {
-                          return left.export_name < right.export_name;
-                      });
-
     // 1. Raw C interface module (kwxffi_gen.f90)
     {
         const fs::path path = outDir / "kwxffi_gen.f90";
@@ -194,7 +269,7 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
 
         GenerateEvents(sorted_events, output);
         GenerateKeys(sorted_keys, output);
-        GenerateConstants(sorted_constants, output);
+        GenerateConstants(ffi_data, output);
         GenerateClasses(ffi_data, output);
         GenerateFreeFunctions(ffi_data, output);
 
@@ -205,7 +280,6 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
     // 2. Idiomatic Fortran wrapper modules
     GenerateTypes(ffi_data, outDir);
     GenerateStringModule(outDir);
-    GenerateConstantsModule(ffi_data, outDir);
     GenerateWindowModule(ffi_data, outDir);
     GenerateFrameModule(ffi_data, outDir);
     GenerateControlsModule(ffi_data, outDir);
@@ -269,12 +343,20 @@ void FortranEmitter::GenerateKeys(const std::vector<KeyDecl>& keys, std::ostream
 // Constants
 // -------------------------------------------------------------------------
 
-void FortranEmitter::GenerateConstants(const std::vector<ConstantDecl>& constants,
-                                       std::ostream& output)
+void FortranEmitter::GenerateConstants(const ParsedFFI& ffi_data, std::ostream& output)
 {
     output << "    ! Constants\n\n";
 
-    for (const auto& constant: constants)
+    const std::map<std::string, ConstantFortranName> constant_names = BuildConstantNames(ffi_data);
+
+    std::vector<ConstantDecl> sorted_constants = ffi_data.constants;
+    std::ranges::sort(sorted_constants,
+                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      {
+                          return left.export_name < right.export_name;
+                      });
+
+    for (const auto& constant: sorted_constants)
     {
         std::string fType;
         std::string importSym;
@@ -289,14 +371,20 @@ void FortranEmitter::GenerateConstants(const std::vector<ConstantDecl>& constant
             importSym = "c_int";
         }
 
-        const std::string fname = FortranName(constant.export_name);
-        output << "    " << fType << " function " << fname << "() &\n";
+        const ConstantFortranName& fortran_name = constant_names.at(constant.export_name);
+        if (fortran_name.renamed)
+        {
+            output << "    ! " << FortranName(constant.export_name) << " renamed to "
+                   << fortran_name.name << ":\n";
+            output << "    ! Fortran identifiers are case-insensitive.\n";
+        }
+        output << "    " << fType << " function " << fortran_name.name << "() &\n";
         output << "        bind(C, name='" << constant.export_name << "')\n";
         output << "      import :: " << importSym << "\n";
         output << "    end function\n\n";
     }
 
-    std::println(stderr, "  Constants:        {:L}", constants.size());
+    std::println(stderr, "  Constants:        {:L}", sorted_constants.size());
 }
 
 // -------------------------------------------------------------------------
@@ -556,87 +644,6 @@ end module wx_string
 }
 
 // -------------------------------------------------------------------------
-// kwx_constants.f90 — Friendly constant names
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateConstantsModule(const ParsedFFI& ffi_data, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "kwx_constants.f90");
-
-    output << "! Code generated by kwxgen. DO NOT EDIT.\n";
-    output << "module kwx_constants\n";
-    output << "    use, intrinsic :: iso_c_binding\n";
-    output << "    implicit none\n";
-    output << "    private\n\n";
-
-    // Collect all constants + events into a unified list of (fortran_name, c_name, return_type)
-    struct ConstEntry
-    {
-        std::string fortran_name;
-        std::string c_name;
-        std::string return_type;  // "int" or has '*'
-    };
-
-    std::vector<ConstEntry> entries;
-
-    // Constants from kwx_defs.cpp
-    for (const auto& constant: ffi_data.constants)
-    {
-        const std::string fname = FortranName(constant.export_name);
-        entries.push_back({ fname, constant.export_name, constant.return_type });
-    }
-
-    // Events
-    for (const auto& event: ffi_data.events)
-    {
-        const std::string fname = FortranName(event.export_name);
-        entries.push_back({ fname, event.export_name, "int" });
-    }
-
-    // Sort by Fortran name
-    std::ranges::sort(entries,
-                      [](const ConstEntry& left, const ConstEntry& right)
-                      {
-                          return left.fortran_name < right.fortran_name;
-                      });
-
-    // Public declarations — emit all
-    for (const auto& entry: entries)
-    {
-        output << "    public :: " << entry.fortran_name << "\n";
-    }
-    output << "\n";
-
-    // Interface block
-    output << "    interface\n\n";
-
-    for (const auto& entry: entries)
-    {
-        std::string ftype;
-        std::string import_sym;
-        if (entry.return_type.find('*') != std::string::npos)
-        {
-            ftype = "type(c_ptr)";
-            import_sym = "c_ptr";
-        }
-        else
-        {
-            ftype = "integer(c_int)";
-            import_sym = "c_int";
-        }
-
-        output << "        " << ftype << " function " << entry.fortran_name << "() &\n";
-        output << "            bind(C, name='" << entry.c_name << "')\n";
-        output << "            import :: " << import_sym << "\n";
-        output << "        end function\n\n";
-    }
-
-    output << "    end interface\n\n";
-    output << "end module kwx_constants\n";
-    std::println(stderr, "  Generated kwx_constants.f90 ({} entries)", entries.size());
-}
-
-// -------------------------------------------------------------------------
 // wx_window.f90 — wxWindow base class wrapper
 // -------------------------------------------------------------------------
 
@@ -701,7 +708,7 @@ contains
     subroutine wx_window_enable(window)
         class(wxWindow_t), intent(in) :: window
         integer(c_int) :: result_
-        result_ = wxWindow_Enable(window%ptr)
+        result_ = wxWindow_Enable(window%ptr, 1_c_int)
     end subroutine
 
     subroutine wx_window_disable(window)
@@ -976,15 +983,15 @@ contains
     subroutine wx_frame_create_status_bar(frame, number, style)
         type(wxFrame_t), intent(in) :: frame
         integer, intent(in), optional :: number
-        integer(c_long), intent(in), optional :: style
+        integer(c_int), intent(in), optional :: style
         type(c_ptr) :: result_
         integer(c_int) :: c_num
-        integer(c_long) :: c_style
+        integer(c_int) :: c_style
         c_num = 1_c_int
         if (present(number)) c_num = int(number, c_int)
-        c_style = 0_c_long
+        c_style = 0_c_int
         if (present(style)) c_style = style
-        result_ = wxFrame_CreateStatusBar(frame%ptr, c_num, c_style)
+        result_ = wxFrame_CreateStatusBar(frame%ptr, c_num, c_style, -1_c_int)
     end subroutine
 
     subroutine wx_frame_set_status_text(frame, text, number)
@@ -1045,7 +1052,7 @@ contains
         integer(c_long) :: c_style
         c_style = -1_c_long
         if (present(style)) c_style = style
-        toolbar%ptr = wxFrame_CreateToolBar(frame%ptr, c_style)
+        toolbar%ptr = wxFrame_CreateToolBar(frame%ptr, c_style, -1_c_int)
     end function
 
     function wx_frame_get_tool_bar(frame) result(toolbar)
@@ -2376,7 +2383,7 @@ void FortranEmitter::GenerateEventsModule(const ParsedFFI& /* ffi_data */, const
 module wx_events
     use, intrinsic :: iso_c_binding
     use kwx_types
-    use kwxffi, wxClosure_C_ptr => wxClosure_Create
+    use kwxffi
     use wx_string, only: from_wxstring
     implicit none
     private
@@ -2407,16 +2414,6 @@ module wx_events
         end subroutine event_callback
     end interface
 
-    ! Private wxClosure binding with c_funptr
-    interface
-        function wxClosure_Create(fun, data) bind(C, name="wxClosure_Create")
-            import :: c_ptr, c_funptr
-            type(c_funptr), value :: fun
-            type(c_ptr), value :: data
-            type(c_ptr) :: wxClosure_Create
-        end function
-    end interface
-
 contains
 
     !--- Connection ---
@@ -2442,8 +2439,9 @@ contains
         if (present(last_id)) c_last = int(last_id, c_int)
         c_type = int(event_type, c_int)
 
+        ! TClosureFun is void* in C, so the function pointer crosses as a c_ptr.
         dummy = wxEvtHandler_Connect(window%ptr, c_first, c_last, c_type, &
-            wxClosure_Create(fptr, data_ptr))
+            wxClosure_Create(transfer(fptr, c_null_ptr), data_ptr))
     end subroutine
 
     subroutine wx_disconnect(window, event_type, id, last_id)

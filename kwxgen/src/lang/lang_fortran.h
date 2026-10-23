@@ -20,15 +20,13 @@ private:
     // kwxffi_gen.f90 — raw C interface declarations
     static void GenerateEvents(const std::vector<EventDecl>& events, std::ostream& output);
     static void GenerateKeys(const std::vector<KeyDecl>& keys, std::ostream& output);
-    static void GenerateConstants(const std::vector<ConstantDecl>& constants, std::ostream& output);
+    static void GenerateConstants(const ParsedFFI& ffi_data, std::ostream& output);
     static void GenerateClasses(const ParsedFFI& ffi_data, std::ostream& output);
     static void GenerateFreeFunctions(const ParsedFFI& ffi_data, std::ostream& output);
 
     // Idiomatic Fortran wrapper modules
     static void GenerateTypes(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
     static void GenerateStringModule(const std::filesystem::path& outDir);
-    static void GenerateConstantsModule(const ParsedFFI& ffi_data,
-                                        const std::filesystem::path& outDir);
     static void GenerateWindowModule(const ParsedFFI& ffi_data,
                                      const std::filesystem::path& outDir);
     static void GenerateFrameModule(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
