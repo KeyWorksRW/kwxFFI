@@ -24,7 +24,7 @@ public:
 wxProcessEx::wxProcessEx(wxEvtHandler* parent, int id, int flags) : wxProcess(parent, id)
 {
     m_closure = nullptr;
-    if (flags != wxPROCESS_DEFAULT)
+    if ((flags & wxPROCESS_REDIRECT) != 0)
     {
         Redirect();
     }
@@ -78,7 +78,14 @@ extern "C"
 
     EXPORT void* wxProcess_CreateRedirect(wxEvtHandler* parent, bool redirect)
     {
-        return new wxProcess(parent, redirect);
+        // The two-argument wxProcess constructor takes (parent, id), so passing `redirect` here
+        // would silently bind to the id instead of enabling redirection.
+        wxProcess* process = new wxProcess(parent, wxID_ANY);
+        if (redirect)
+        {
+            process->Redirect();
+        }
+        return process;
     }
 
     EXPORT void wxProcess_Delete(wxProcess* self)
