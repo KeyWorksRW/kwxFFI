@@ -72,6 +72,7 @@ set( FFI_SRC_FILES
     src/wx_dialog.cpp
 
     src/wx_dialup.cpp
+    src/wx_dir.cpp
     src/wx_dirdlg.cpp
     src/wx_dirpickerctrl.cpp
     src/wx_display.cpp
@@ -85,6 +86,7 @@ set( FFI_SRC_FILES
     src/wx_filedialog.cpp
     src/wx_filedlgcustomize.cpp
     src/wx_filehist.cpp
+    src/wx_filename.cpp
     src/wx_filepickerctrl.cpp
     src/wx_filesystem.cpp
     src/wx_findrepldlg.cpp
@@ -178,6 +180,7 @@ set( FFI_SRC_FILES
     src/wx_spinctrldouble.cpp
     src/wx_splash.cpp
     src/wx_splitterwindow.cpp
+    src/wx_standardpaths.cpp
     src/wx_staticbox.cpp
     src/wx_staticline.cpp
     src/wx_statictext.cpp

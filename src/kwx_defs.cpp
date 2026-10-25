@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/dir.h>
+#include <wx/filename.h>
 #include <wx/process.h>
 
 extern "C"
@@ -5855,4 +5857,110 @@ extern "C"
     }
 
 #endif  // wxUSE_ACCESSIBILITY
+
+    // ---- wxDir enumeration and traversal flags (wx/dir.h) ----
+
+    EXPORT int expwxDIR_FILES()
+    {
+        return static_cast<int>(wxDIR_FILES);
+    }
+    EXPORT int expwxDIR_DIRS()
+    {
+        return static_cast<int>(wxDIR_DIRS);
+    }
+    EXPORT int expwxDIR_HIDDEN()
+    {
+        return static_cast<int>(wxDIR_HIDDEN);
+    }
+    EXPORT int expwxDIR_DOTDOT()
+    {
+        return static_cast<int>(wxDIR_DOTDOT);
+    }
+    EXPORT int expwxDIR_NO_FOLLOW()
+    {
+        return static_cast<int>(wxDIR_NO_FOLLOW);
+    }
+    EXPORT int expwxDIR_DEFAULT()
+    {
+        return static_cast<int>(wxDIR_DEFAULT);
+    }
+
+    // Traversal results for the wxDir_Traverse callback return value.
+
+    EXPORT int expwxDIR_IGNORE()
+    {
+        return static_cast<int>(wxDIR_IGNORE);
+    }
+    EXPORT int expwxDIR_STOP()
+    {
+        return static_cast<int>(wxDIR_STOP);
+    }
+    EXPORT int expwxDIR_CONTINUE()
+    {
+        return static_cast<int>(wxDIR_CONTINUE);
+    }
+
+    // ---- wxFileName path, mkdir, rmdir and file-existence flags (wx/filename.h) ----
+
+    EXPORT int expwxPATH_NO_SEPARATOR()
+    {
+        return static_cast<int>(wxPATH_NO_SEPARATOR);
+    }
+    EXPORT int expwxPATH_GET_VOLUME()
+    {
+        return static_cast<int>(wxPATH_GET_VOLUME);
+    }
+    EXPORT int expwxPATH_GET_SEPARATOR()
+    {
+        return static_cast<int>(wxPATH_GET_SEPARATOR);
+    }
+    EXPORT int expwxPATH_MKDIR_FULL()
+    {
+        return static_cast<int>(wxPATH_MKDIR_FULL);
+    }
+    EXPORT int expwxPATH_RMDIR_FULL()
+    {
+        return static_cast<int>(wxPATH_RMDIR_FULL);
+    }
+    EXPORT int expwxPATH_RMDIR_RECURSIVE()
+    {
+        return static_cast<int>(wxPATH_RMDIR_RECURSIVE);
+    }
+    EXPORT int expwxPATH_RMDIR_PARENTS()
+    {
+        return static_cast<int>(wxPATH_RMDIR_PARENTS);
+    }
+
+    EXPORT int expwxFILE_EXISTS_REGULAR()
+    {
+        return static_cast<int>(wxFILE_EXISTS_REGULAR);
+    }
+    EXPORT int expwxFILE_EXISTS_DIR()
+    {
+        return static_cast<int>(wxFILE_EXISTS_DIR);
+    }
+    EXPORT int expwxFILE_EXISTS_SYMLINK()
+    {
+        return static_cast<int>(wxFILE_EXISTS_SYMLINK);
+    }
+    EXPORT int expwxFILE_EXISTS_DEVICE()
+    {
+        return static_cast<int>(wxFILE_EXISTS_DEVICE);
+    }
+    EXPORT int expwxFILE_EXISTS_FIFO()
+    {
+        return static_cast<int>(wxFILE_EXISTS_FIFO);
+    }
+    EXPORT int expwxFILE_EXISTS_SOCKET()
+    {
+        return static_cast<int>(wxFILE_EXISTS_SOCKET);
+    }
+    EXPORT int expwxFILE_EXISTS_NO_FOLLOW()
+    {
+        return static_cast<int>(wxFILE_EXISTS_NO_FOLLOW);
+    }
+    EXPORT int expwxFILE_EXISTS_ANY()
+    {
+        return static_cast<int>(wxFILE_EXISTS_ANY);
+    }
 }

@@ -150,7 +150,8 @@ void wxXmlNode_SetNoConversion(TSelf(wxXmlNode) pObject, TBool no_conversion);
 // ---------------------------------------------------------------------------
 
 // URLToFileName and FileNameToURL exchange wxFileName objects with the caller
-// as plain strings, because wxFileName has no other FFI representation.
+// as plain strings. The wxFileName class itself is exported below as an opaque
+// handle class; these two functions are kept for backward compatibility.
 TClassDefExtend(wxFSFile, wxObject) void wxFSFile_Delete(TSelf(wxFSFile) pObject);
 TClass(wxInputStream) wxFSFile_GetStream(TSelf(wxFSFile) pObject);
 TClass(wxInputStream) wxFSFile_DetachStream(TSelf(wxFSFile) pObject);
@@ -172,6 +173,229 @@ TClass(wxString) wxFileSystem_FindNext(TSelf(wxFileSystem) pObject);
 TClass(wxString)
     wxFileSystem_FileNameToURL(TSelf(wxFileSystem) pObject, TClass(wxString) file_name);
 TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(wxString) url);
+
+// ---------------------------------------------------------------------------
+// wxFileName
+// ---------------------------------------------------------------------------
+//
+// Path format values (wxPathFormat): 0 = native, 1 = Unix, 2 = Mac,
+// 3 = DOS/Windows, 5 = VMS.
+//
+// GetPath flags: 0x0001 = include volume, 0x0002 = trailing separator.
+// Normalize flags: 0x0001 = env vars, 0x0002 = dots, 0x0004 = tilde,
+// 0x0008 = case, 0x0010 = absolute, 0x0020 = long, 0x0040 = shortcut.
+// Exists flags: 0x0001 = regular file, 0x0002 = directory, 0x0008 = device,
+// 0x0010 = FIFO, 0x0020 = socket, 0x1000 = don't follow links,
+// 0x1004 = symlink, 0x1FFF = anything.
+//
+// Optional string parameters accept null, which is treated as an empty string.
+
+TClassDef(wxFileName) TClass(wxFileName) wxFileName_Create();
+TClass(wxFileName) wxFileName_CreateFromPath(TClass(wxString) full_path, int format);
+TClass(wxFileName)
+    wxFileName_CreateWithName(TClass(wxString) path, TClass(wxString) name, int format);
+TClass(wxFileName) wxFileName_CreateWithExt(TClass(wxString) path, TClass(wxString) name,
+                                            TClass(wxString) ext, int format);
+TClass(wxFileName) wxFileName_CreateFull(TClass(wxString) volume, TClass(wxString) path,
+                                         TClass(wxString) name, TClass(wxString) ext, int format);
+void wxFileName_Delete(TSelf(wxFileName) pObject);
+
+// Static pseudo-constructors - the returned object is owned by the caller.
+TClass(wxFileName) wxFileName_DirName(TClass(wxString) dir, int format);
+TClass(wxFileName) wxFileName_FileName(TClass(wxString) file, int format);
+TClass(wxFileName) wxFileName_URLToFileName(TClass(wxString) url);
+
+// Components.
+TClass(wxString) wxFileName_GetFullPath(TSelf(wxFileName) pObject, int format);
+TClass(wxString) wxFileName_GetPath(TSelf(wxFileName) pObject, int flags, int format);
+TClass(wxString) wxFileName_GetPathWithSep(TSelf(wxFileName) pObject, int format);
+TClass(wxString) wxFileName_GetFullName(TSelf(wxFileName) pObject);
+TClass(wxString) wxFileName_GetName(TSelf(wxFileName) pObject);
+TClass(wxString) wxFileName_GetExt(TSelf(wxFileName) pObject);
+TClass(wxString) wxFileName_GetVolume(TSelf(wxFileName) pObject);
+size_t wxFileName_GetDirCount(TSelf(wxFileName) pObject);
+TArrayLen wxFileName_GetDirs(TSelf(wxFileName) pObject, TArrayStringOutVoid dirs);
+TBool wxFileName_HasName(TSelf(wxFileName) pObject);
+TBool wxFileName_HasExt(TSelf(wxFileName) pObject);
+TBool wxFileName_HasVolume(TSelf(wxFileName) pObject);
+
+void wxFileName_SetPath(TSelf(wxFileName) pObject, TClass(wxString) path, int format);
+void wxFileName_SetName(TSelf(wxFileName) pObject, TClass(wxString) name);
+void wxFileName_SetFullName(TSelf(wxFileName) pObject, TClass(wxString) full_name);
+void wxFileName_SetExt(TSelf(wxFileName) pObject, TClass(wxString) ext);
+void wxFileName_SetEmptyExt(TSelf(wxFileName) pObject);
+void wxFileName_ClearExt(TSelf(wxFileName) pObject);
+void wxFileName_SetVolume(TSelf(wxFileName) pObject, TClass(wxString) volume);
+void wxFileName_Assign(TSelf(wxFileName) pObject, TClass(wxString) full_path, int format);
+void wxFileName_AssignDir(TSelf(wxFileName) pObject, TClass(wxString) dir, int format);
+void wxFileName_AssignCwd(TSelf(wxFileName) pObject, TClass(wxString) volume);
+void wxFileName_AssignHomeDir(TSelf(wxFileName) pObject);
+void wxFileName_Clear(TSelf(wxFileName) pObject);
+
+// Directory components of the path.
+TBool wxFileName_AppendDir(TSelf(wxFileName) pObject, TClass(wxString) dir);
+void wxFileName_PrependDir(TSelf(wxFileName) pObject, TClass(wxString) dir);
+TBool wxFileName_InsertDir(TSelf(wxFileName) pObject, size_t before, TClass(wxString) dir);
+void wxFileName_RemoveDir(TSelf(wxFileName) pObject, size_t position);
+void wxFileName_RemoveLastDir(TSelf(wxFileName) pObject);
+
+// Path manipulation.
+TBool wxFileName_Normalize(TSelf(wxFileName) pObject, int flags, TClass(wxString) cwd, int format);
+TBool wxFileName_MakeAbsolute(TSelf(wxFileName) pObject, TClass(wxString) cwd, int format);
+TBool wxFileName_MakeRelativeTo(TSelf(wxFileName) pObject, TClass(wxString) path_base, int format);
+TClass(wxString)
+    wxFileName_GetAbsolutePath(TSelf(wxFileName) pObject, TClass(wxString) cwd, int format);
+TBool wxFileName_ReplaceEnvVariable(TSelf(wxFileName) pObject, TClass(wxString) env_name,
+                                    TClass(wxString) replacement_format, int format);
+TBool wxFileName_ReplaceHomeDir(TSelf(wxFileName) pObject, int format);
+
+// Tests, comparisons and file system operations.
+TBool wxFileName_IsOk(TSelf(wxFileName) pObject);
+TBool wxFileName_IsDir(TSelf(wxFileName) pObject);
+TBool wxFileName_IsAbsolute(TSelf(wxFileName) pObject, int format);
+TBool wxFileName_IsRelative(TSelf(wxFileName) pObject, int format);
+TBool wxFileName_FileExists(TSelf(wxFileName) pObject);
+TBool wxFileName_DirExists(TSelf(wxFileName) pObject);
+TBool wxFileName_Exists(TSelf(wxFileName) pObject, int flags);
+TBool wxFileName_IsFileReadable(TSelf(wxFileName) pObject);
+TBool wxFileName_IsFileWritable(TSelf(wxFileName) pObject);
+TBool wxFileName_IsFileExecutable(TSelf(wxFileName) pObject);
+TBool wxFileName_IsDirReadable(TSelf(wxFileName) pObject);
+TBool wxFileName_IsDirWritable(TSelf(wxFileName) pObject);
+TBool wxFileName_SameAs(TSelf(wxFileName) pObject, TClass(wxFileName) other, int format);
+TBool wxFileName_ShouldFollowLink(TSelf(wxFileName) pObject);
+void wxFileName_DontFollowLink(TSelf(wxFileName) pObject);
+TClass(wxFileName) wxFileName_ResolveLink(TSelf(wxFileName) pObject);
+TBool wxFileName_Mkdir(TSelf(wxFileName) pObject, int perm, int flags);
+TBool wxFileName_Rmdir(TSelf(wxFileName) pObject, int flags);
+TBool wxFileName_SetPermissions(TSelf(wxFileName) pObject, int permissions);
+TBool wxFileName_Touch(TSelf(wxFileName) pObject);
+TBool wxFileName_GetTimes(TSelf(wxFileName) pObject, TClass(wxDateTime) access_time,
+                          TClass(wxDateTime) mod_time, TClass(wxDateTime) create_time);
+TClass(wxDateTime) wxFileName_GetModificationTime(TSelf(wxFileName) pObject);
+// Returns the file size in bytes, or -1.0 if it cannot be determined.
+double wxFileName_GetSize(TSelf(wxFileName) pObject);
+TClass(wxString)
+    wxFileName_GetHumanReadableSize(TSelf(wxFileName) pObject, TClass(wxString) fail_message,
+                                    int precision, int convention);
+TClass(wxString) wxFileName_FileNameToURL(TSelf(wxFileName) pObject);
+
+// Static helpers that operate on a path string instead of an instance. The
+// instance testers use the same names without the ForPath suffix.
+TBool wxFileName_FileExistsForPath(TClass(wxString) file);
+TBool wxFileName_DirExistsForPath(TClass(wxString) dir);
+TBool wxFileName_ExistsForPath(TClass(wxString) path, int flags);
+TBool wxFileName_IsFileReadableForPath(TClass(wxString) file);
+TBool wxFileName_IsFileWritableForPath(TClass(wxString) file);
+TBool wxFileName_IsFileExecutableForPath(TClass(wxString) file);
+TBool wxFileName_IsDirReadableForPath(TClass(wxString) dir);
+TBool wxFileName_IsDirWritableForPath(TClass(wxString) dir);
+TBool wxFileName_MkdirForPath(TClass(wxString) dir, int perm, int flags);
+TBool wxFileName_RmdirForPath(TClass(wxString) dir, int flags);
+TBool wxFileName_SetCwdForPath(TClass(wxString) cwd);
+TClass(wxString) wxFileName_GetCwd(TClass(wxString) volume);
+TClass(wxString) wxFileName_GetHomeDir();
+TClass(wxString) wxFileName_GetTempDir();
+TClass(wxString) wxFileName_GetTempFileName(TClass(wxString) prefix);
+TClass(wxString) wxFileName_GetForbiddenChars(int format);
+TClass(wxString) wxFileName_StripExtension(TClass(wxString) full_name);
+TBool wxFileName_IsCaseSensitive(int format);
+
+// ---------------------------------------------------------------------------
+// wxDir / wxDirTraverser
+// ---------------------------------------------------------------------------
+//
+// Enumeration flags (wxDirFlags): 0x0001 = files, 0x0002 = directories,
+// 0x0004 = hidden entries, 0x0008 = '.' and '..', 0x0010 = don't follow
+// symlinks. wxWidgets 3.3 defines wxDIR_DEFAULT as 0x0007. The named values
+// are exported as expwxDIR_* accessors (see src/kwx_defs.cpp), including the
+// wxDIR_IGNORE/STOP/CONTINUE traversal results used by wxDir_Traverse.
+
+TClassDef(wxDir) TClass(wxDir) wxDir_Create();
+TClass(wxDir) wxDir_CreateFromPath(TClass(wxString) directory);
+void wxDir_Delete(TSelf(wxDir) pObject);
+TBool wxDir_Open(TSelf(wxDir) pObject, TClass(wxString) directory);
+void wxDir_Close(TSelf(wxDir) pObject);
+TBool wxDir_IsOpened(TSelf(wxDir) pObject);
+TClass(wxString) wxDir_GetName(TSelf(wxDir) pObject);
+TClass(wxString) wxDir_GetNameWithSep(TSelf(wxDir) pObject);
+// GetFirst/GetNext write the next entry into the caller-supplied filename.
+TBool wxDir_GetFirst(TSelf(wxDir) pObject, TClass(wxString) filename, TClass(wxString) spec,
+                     int flags);
+TBool wxDir_GetNext(TSelf(wxDir) pObject, TClass(wxString) filename);
+TBool wxDir_HasFiles(TSelf(wxDir) pObject, TClass(wxString) spec);
+TBool wxDir_HasSubDirs(TSelf(wxDir) pObject, TClass(wxString) spec);
+size_t wxDir_Traverse(TSelf(wxDir) pObject, TClass(wxDirTraverser) sink, TClass(wxString) spec,
+                      int flags);
+// GetAllFiles appends to the caller-supplied array and returns the total count.
+size_t wxDir_GetAllFiles(TClass(wxString) dir_name, TArrayStringOutVoid files,
+                         TClass(wxString) spec, int flags);
+TClass(wxString) wxDir_FindFirst(TClass(wxString) dir_name, TClass(wxString) spec, int flags);
+// Returns the total size in bytes, or -1.0 if it cannot be determined.
+double wxDir_GetTotalSize(TClass(wxString) dir_name);
+TBool wxDir_Exists(TClass(wxString) dir);
+TBool wxDir_Make(TClass(wxString) dir, int perm, int flags);
+TBool wxDir_Remove(TClass(wxString) dir, int flags);
+
+// kwxDirTraverser forwards the wxDirTraverser virtuals to a C callback with the
+// signature: int callback(void* pObject, int action, wxString* path).
+// action is 0 for a file, 1 for a directory and 2 for an open error. The return
+// value is a wxDirTraverseResult: -1 = ignore, 0 = stop, 1 = continue.
+TClassDef(wxDirTraverser) TClass(wxDirTraverser)
+    wxDirTraverser_Create(void* pObject, void* pFunction);
+void wxDirTraverser_Delete(TSelf(wxDirTraverser) pObject);
+
+// ---------------------------------------------------------------------------
+// wxStandardPaths
+// ---------------------------------------------------------------------------
+//
+// Dir values: 0 = cache, 1 = config, 2 = documents, 3 = desktop,
+// 4 = downloads, 5 = music, 6 = pictures, 7 = videos.
+// ResourceCat: 0 = none, 1 = messages.
+// FileLayout: 0 = classic, 1 = XDG.  ConfigFileConv: 0 = dot, 1 = .conf.
+// UseAppInfo flags: 0 = none, 1 = app name, 2 = vendor name.
+
+// Returns the global singleton - the caller must not delete it.
+TClassDef(wxStandardPaths) TClass(wxStandardPaths) wxStandardPaths_Get();
+TClass(wxString) wxStandardPaths_GetConfigDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetUserConfigDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetDataDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetLocalDataDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetUserDataDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetUserLocalDataDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetDocumentsDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetAppDocumentsDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetExecutablePath(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetPluginsDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetResourcesDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetSharedLibrariesDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetTempDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_GetUserDir(TSelf(wxStandardPaths) pObject, int user_dir);
+TClass(wxString) wxStandardPaths_GetLocalizedResourcesDir(TSelf(wxStandardPaths) pObject,
+                                                          TClass(wxString) lang, int category);
+TClass(wxString)
+    wxStandardPaths_AppendAppInfo(TSelf(wxStandardPaths) pObject, TClass(wxString) dir);
+TClass(wxString) wxStandardPaths_MakeConfigFileName(TSelf(wxStandardPaths) pObject,
+                                                    TClass(wxString) base_name, int convention);
+int wxStandardPaths_GetFileLayout(TSelf(wxStandardPaths) pObject);
+void wxStandardPaths_SetFileLayout(TSelf(wxStandardPaths) pObject, int layout);
+void wxStandardPaths_UseAppInfo(TSelf(wxStandardPaths) pObject, int info);
+
+// Install prefix management is only available on platforms that implement it
+// (Unix and the generic fallback); Windows and macOS do not export these.
+#ifdef wxHAS_STDPATHS_INSTALL_PREFIX
+TClass(wxString) wxStandardPaths_GetInstallPrefix(TSelf(wxStandardPaths) pObject);
+void wxStandardPaths_SetInstallPrefix(TSelf(wxStandardPaths) pObject, TClass(wxString) prefix);
+#endif
+
+// MSW-only helpers; the symbols are absent on other platforms.
+#ifdef __WINDOWS__
+void wxStandardPaths_IgnoreAppSubDir(TSelf(wxStandardPaths) pObject,
+                                     TClass(wxString) subdir_pattern);
+void wxStandardPaths_IgnoreAppBuildSubDirs(TSelf(wxStandardPaths) pObject);
+void wxStandardPaths_DontIgnoreAppSubDir(TSelf(wxStandardPaths) pObject);
+TClass(wxString) wxStandardPaths_MSWGetShellDir(int csidl);
+#endif
 
 // ---------------------------------------------------------------------------
 // wxPersistenceManager / wxPersistentObject / wxPersistentWindow
