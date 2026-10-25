@@ -121,37 +121,62 @@ extern "C"
         self->UseAppInfo(info);
     }
 
-#ifdef wxHAS_STDPATHS_INSTALL_PREFIX
     wxString* wxStandardPaths_GetInstallPrefix(wxStandardPaths* self)
     {
+#if defined(wxHAS_STDPATHS_INSTALL_PREFIX)
         return new wxString(self->GetInstallPrefix());
+#else
+        // This platform has no install prefix.
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     void wxStandardPaths_SetInstallPrefix(wxStandardPaths* self, wxString* prefix)
     {
+#if defined(wxHAS_STDPATHS_INSTALL_PREFIX)
         self->SetInstallPrefix(PathOrEmpty(prefix));
-    }
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(prefix);
 #endif
+    }
 
-#ifdef __WINDOWS__
     void wxStandardPaths_IgnoreAppSubDir(wxStandardPaths* self, wxString* subdir_pattern)
     {
+#if defined(__WINDOWS__)
         self->IgnoreAppSubDir(PathOrEmpty(subdir_pattern));
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(subdir_pattern);
+#endif
     }
 
     void wxStandardPaths_IgnoreAppBuildSubDirs(wxStandardPaths* self)
     {
+#if defined(__WINDOWS__)
         self->IgnoreAppBuildSubDirs();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     void wxStandardPaths_DontIgnoreAppSubDir(wxStandardPaths* self)
     {
+#if defined(__WINDOWS__)
         self->DontIgnoreAppSubDir();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     wxString* wxStandardPaths_MSWGetShellDir(int csidl)
     {
+#if defined(__WINDOWS__)
         return new wxString(wxStandardPaths::MSWGetShellDir(csidl));
-    }
+#else
+        wxUnusedVar(csidl);
+        return new wxString();
 #endif
+    }
 }

@@ -381,21 +381,16 @@ int wxStandardPaths_GetFileLayout(TSelf(wxStandardPaths) pObject);
 void wxStandardPaths_SetFileLayout(TSelf(wxStandardPaths) pObject, int layout);
 void wxStandardPaths_UseAppInfo(TSelf(wxStandardPaths) pObject, int info);
 
-// Install prefix management is only available on platforms that implement it
-// (Unix and the generic fallback); Windows and macOS do not export these.
-#ifdef wxHAS_STDPATHS_INSTALL_PREFIX
+// Both groups below are exported on every platform; a platform that does not
+// implement a wrapper returns an empty string or performs no operation.
+
 TClass(wxString) wxStandardPaths_GetInstallPrefix(TSelf(wxStandardPaths) pObject);
 void wxStandardPaths_SetInstallPrefix(TSelf(wxStandardPaths) pObject, TClass(wxString) prefix);
-#endif
-
-// MSW-only helpers; the symbols are absent on other platforms.
-#ifdef __WINDOWS__
 void wxStandardPaths_IgnoreAppSubDir(TSelf(wxStandardPaths) pObject,
                                      TClass(wxString) subdir_pattern);
 void wxStandardPaths_IgnoreAppBuildSubDirs(TSelf(wxStandardPaths) pObject);
 void wxStandardPaths_DontIgnoreAppSubDir(TSelf(wxStandardPaths) pObject);
 TClass(wxString) wxStandardPaths_MSWGetShellDir(int csidl);
-#endif
 
 // ---------------------------------------------------------------------------
 // wxPersistenceManager / wxPersistentObject / wxPersistentWindow
