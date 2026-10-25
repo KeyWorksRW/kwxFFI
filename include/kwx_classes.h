@@ -1698,12 +1698,9 @@ void wxDirDialog_SetMessage(TSelf(wxDirDialog) pObject, TClass(wxString) msg);
 void wxDirDialog_SetPath(TSelf(wxDirDialog) pObject, TClass(wxString) pth);
 void wxDirDialog_SetStyle(TSelf(wxDirDialog) pObject, int style);
 
-TClassDef(wxDirTraverser)
-
-    TClassDefExtend(wxDocChildFrame, wxFrame) TClass(wxDocChildFrame)
-        wxDocChildFrame_Create(TClass(wxDocument) doc, TClass(wxView) view, TClass(wxFrame) parent,
-                               int id, TClass(wxString) title, TRect(x, y, width, height),
-                               int style);
+TClassDefExtend(wxDocChildFrame, wxFrame) TClass(wxDocChildFrame)
+    wxDocChildFrame_Create(TClass(wxDocument) doc, TClass(wxView) view, TClass(wxFrame) parent,
+                           int id, TClass(wxString) title, TRect(x, y, width, height), int style);
 TClass(wxDocument) wxDocChildFrame_GetDocument(TSelf(wxDocChildFrame) self);
 TClass(wxView) wxDocChildFrame_GetView(TSelf(wxDocChildFrame) self);
 void wxDocChildFrame_SetDocument(TSelf(wxDocChildFrame) self, TClass(wxDocument) doc);
@@ -1920,15 +1917,13 @@ void wxFileHistory_UseMenu(TSelf(wxFileHistory) pObject, TClass(wxMenu) menu);
 
 TClassDefExtend(wxFileInputStream, wxInputStream)
 
-    TClassDef(wxFileName)
+    TClassDefExtend(wxFileOutputStream, wxOutputStream)
 
-        TClassDefExtend(wxFileOutputStream, wxOutputStream)
+        TClassDefExtend(wxFileSystem, wxObject)
 
-            TClassDefExtend(wxFileSystem, wxObject)
+            TClassDefExtend(wxFileSystemHandler, wxObject)
 
-                TClassDefExtend(wxFileSystemHandler, wxObject)
-
-                    TClassDef(wxFileType) void wxFileType_Delete(TSelf(wxFileType) pObject);
+                TClassDef(wxFileType) void wxFileType_Delete(TSelf(wxFileType) pObject);
 TClass(wxString) wxFileType_ExpandCommand(TSelf(wxFileType) pObject, void* command, void* params);
 TClass(wxString) wxFileType_GetDescription(TSelf(wxFileType) pObject);
 int wxFileType_GetExtensions(TSelf(wxFileType) pObject, TClass(wxList) list);
