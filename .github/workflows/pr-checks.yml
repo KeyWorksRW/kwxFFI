@@ -29,15 +29,101 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: Install unzip and python3 (GitHub-hosted runner only)
-      if: ${{ github.actor != 'Randalphwa' }}
-      run: sudo apt-get update && sudo apt-get install -y unzip python3
+    - name: Select a C++23 compiler
+      id: cxx
+      # Enumerated rather than hard-coded: take every g++/clang++ on the box, keep
+      # those meeting the minimum major version (g++ >= 14, clang++ >= 20), newest
+      # first (GCC preferred over Clang), then compile a <print> probe. The probe
+      # stays the deciding test because Clang only has <print> when the libstdc++
+      # it finds is 14 or newer.
+      run: |
+        probe_dir=$(mktemp -d)
+        candidates="$probe_dir/candidates"
+        printf '#include <print>\nint main() { std::println("ok"); }\n' > "$probe_dir/probe.cpp"
 
-    - name: Setup CMake 4.2+ and Ninja
+        add_candidates() {
+          local prefix=$1 min_major=$2 comp major
+          for comp in /usr/bin/"$prefix" /usr/bin/"$prefix"-[0-9]*; do
+            [ -x "$comp" ] || continue
+            major=$("$comp" -dumpversion 2>/dev/null | grep -oE '^[0-9]+' || true)
+            [ -n "$major" ] || continue
+            [ "$major" -ge "$min_major" ] || continue
+            printf '%s %s\n' "$major" "$comp"
+          done | sort -rn -k1,1
+        }
+        add_candidates g++ 14 > "$candidates"
+        add_candidates clang++ 20 >> "$candidates"
+
+        while read -r major comp; do
+          [ -n "$comp" ] || continue
+          if "$comp" -std=c++23 "$probe_dir/probe.cpp" -o "$probe_dir/probe" 2>/dev/null; then
+            echo "Using CXX=$comp (major $major)"
+            echo "CXX=$comp" >> "$GITHUB_ENV"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            rm -rf "$probe_dir"
+            exit 0
+          fi
+        done < "$candidates"
+
+        rm -rf "$probe_dir"
+        echo "needed=true" >> "$GITHUB_OUTPUT"
+        echo "::notice::No C++23-capable compiler (g++ >= 14 or clang++ >= 20) found; g++-14 will be installed."
+
+    - name: Install g++-14 (only if the runner has no newer compiler)
+      # Reached on GitHub-hosted ubuntu-24.04, which ships GCC 13 only. A runner
+      # with g++ >= 14 or clang++ >= 20 skips this step entirely.
+      if: steps.cxx.outputs.needed == 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip python3 g++-14
+        echo "CXX=g++-14" >> "$GITHUB_ENV"
+
+    - name: Check CMake
+      id: cmake
+      # Use the runner's own CMake when it is already >= 4.2; only download
+      # 4.2 when CMake is missing or too old.
+      run: |
+        if command -v cmake >/dev/null 2>&1; then
+          version=$(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n1)
+        else
+          version=""
+        fi
+
+        if [ -z "$version" ]; then
+          echo "CMake not found -- will install 4.2"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        elif [ "$(printf '4.2\n%s\n' "$version" | sort -V | head -n1)" = "4.2" ]; then
+          echo "Found CMake $version (>= 4.2) -- keeping it"
+          echo "needed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Found CMake $version (< 4.2) -- will install 4.2"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Check Ninja
+      id: ninja
+      # Any Ninja version is fine -- presence is the only requirement.
+      run: |
+        if command -v ninja >/dev/null 2>&1; then
+          echo "Found Ninja $(ninja --version) -- keeping it"
+          echo "needed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Ninja not found -- will install it"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup CMake 4.2 (only if missing or too old)
+      if: steps.cmake.outputs.needed == 'true'
       uses: lukka/get-cmake@latest
       with:
         cmakeVersion: '~4.2.0'
         ninjaVersion: 'latest'
+
+    - name: Setup Ninja (only if missing)
+      if: steps.ninja.outputs.needed == 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
 
     - name: Setup Deno
       uses: denoland/setup-deno@v2
@@ -45,7 +131,9 @@ jobs:
         deno-version: v2.x
 
     - name: Configure tests
-      run: cmake -S tests -B build/tests -G "Ninja Multi-Config"
+      run: |
+        cmake -S tests -B build/tests -G "Ninja Multi-Config" \
+          -DCMAKE_CXX_COMPILER="$CXX"
 
     - name: Build tests
       run: cmake --build build/tests --config Release --parallel 4
