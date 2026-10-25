@@ -40,22 +40,127 @@ jobs:
       if: inputs.runner-type != 'self-hosted'
       run: sudo apt-get update && sudo apt-get install -y unzip python3
 
-    - name: Setup CMake 4.2+ and Ninja
+    - name: Install GTK toolchain (GitHub-hosted runner only)
+      # The self-hosted runner already has the GTK toolchain. Compilers are
+      # handled by the C++23 probe below, not by a fixed package list.
+      if: inputs.runner-type != 'self-hosted'
+      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config
+
+    - name: Select a C++23 compiler
+      id: cxx
+      # Enumerated rather than hard-coded: take every g++/clang++ on the box,
+      # keep those meeting the minimum major version (clang++ >= 20, g++ >= 14),
+      # then compile a <print> probe. The probe stays the deciding test because
+      # Clang only has <print> when the libstdc++ it finds is 14 or newer.
+      # Clang is tried first here (the reverse of pr-checks.yml) because this
+      # workflow publishes the libraries, and the Linux artifacts have always
+      # been built with Clang; GCC is only the fallback.
+      run: |
+        probe_dir=$(mktemp -d)
+        candidates="$probe_dir/candidates"
+        printf '#include <print>\nint main() { std::println("ok"); }\n' > "$probe_dir/probe.cpp"
+
+        add_candidates() {
+          local prefix=$1 min_major=$2 comp major
+          for comp in /usr/bin/"$prefix" /usr/bin/"$prefix"-[0-9]*; do
+            [ -x "$comp" ] || continue
+            major=$("$comp" -dumpversion 2>/dev/null | grep -oE '^[0-9]+' || true)
+            [ -n "$major" ] || continue
+            [ "$major" -ge "$min_major" ] || continue
+            printf '%s %s\n' "$major" "$comp"
+          done | sort -rn -k1,1
+        }
+        add_candidates clang++ 20 > "$candidates"
+        add_candidates g++ 14 >> "$candidates"
+
+        while read -r major comp; do
+          [ -n "$comp" ] || continue
+          if "$comp" -std=c++23 "$probe_dir/probe.cpp" -o "$probe_dir/probe" 2>/dev/null; then
+            name=$(basename "$comp")
+            case "$name" in
+              clang++*) cc_name="clang${name#clang++}" ;;
+              g++*)     cc_name="gcc${name#g++}" ;;
+            esac
+            cc="$(dirname "$comp")/$cc_name"
+            if [ -x "$cc" ]; then
+              echo "Using CXX=$comp CC=$cc (major $major)"
+              echo "CC=$cc" >> "$GITHUB_ENV"
+            else
+              echo "Using CXX=$comp (major $major); matching C compiler $cc not found"
+            fi
+            echo "CXX=$comp" >> "$GITHUB_ENV"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            rm -rf "$probe_dir"
+            exit 0
+          fi
+        done < "$candidates"
+
+        rm -rf "$probe_dir"
+        echo "needed=true" >> "$GITHUB_OUTPUT"
+        echo "::notice::No C++23-capable compiler (clang++ >= 20 or g++ >= 14) found; g++-14 will be installed."
+
+    - name: Install g++-14 (only if the runner has no newer compiler)
+      # Reached on GitHub-hosted ubuntu-24.04, which ships GCC 13 only. A runner
+      # with clang++ >= 20 or g++ >= 14 skips this step entirely.
+      if: steps.cxx.outputs.needed == 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++-14
+        echo "CXX=g++-14" >> "$GITHUB_ENV"
+        echo "CC=gcc-14" >> "$GITHUB_ENV"
+
+    - name: Check CMake
+      id: cmake
+      # Use the runner's own CMake when it is already >= 4.2; only download
+      # 4.2 when CMake is missing or too old.
+      run: |
+        if command -v cmake >/dev/null 2>&1; then
+          version=$(cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n1)
+        else
+          version=""
+        fi
+
+        if [ -z "$version" ]; then
+          echo "CMake not found -- will install 4.2"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        elif [ "$(printf '4.2\n%s\n' "$version" | sort -V | head -n1)" = "4.2" ]; then
+          echo "Found CMake $version (>= 4.2) -- keeping it"
+          echo "needed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Found CMake $version (< 4.2) -- will install 4.2"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Check Ninja
+      id: ninja
+      # Any Ninja version is fine -- presence is the only requirement.
+      run: |
+        if command -v ninja >/dev/null 2>&1; then
+          echo "Found Ninja $(ninja --version) -- keeping it"
+          echo "needed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "Ninja not found -- will install it"
+          echo "needed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Setup CMake 4.2 (only if missing or too old)
+      if: steps.cmake.outputs.needed == 'true'
       uses: lukka/get-cmake@latest
       with:
         cmakeVersion: '~4.2.0'
         ninjaVersion: 'latest'
 
-    - name: Install GTK and compiler toolchain (GitHub-hosted runner only)
-      # The self-hosted runner already has the GTK toolchain.
-      if: inputs.runner-type != 'self-hosted'
-      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libx11-dev pkg-config clang-20 g++-14
+    - name: Setup Ninja (only if missing)
+      if: steps.ninja.outputs.needed == 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DKWXFFI_BUILD_BOTH=${{inputs.build-both}} -DKWXFFI_BUILD_SHARED=${{inputs.build-shared}} -DKWXFFI_BUILD_TESTS=ON
+      run: cmake -B ${{github.workspace}}/build -G "Ninja Multi-Config" -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DKWXFFI_BUILD_BOTH=${{inputs.build-both}} -DKWXFFI_BUILD_SHARED=${{inputs.build-shared}} -DKWXFFI_BUILD_TESTS=ON
 
     - name: Build kwxFFI static library
       run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel $(nproc) --target kwxFFI
