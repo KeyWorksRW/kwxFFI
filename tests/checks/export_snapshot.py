@@ -1,33 +1,49 @@
 #!/usr/bin/env python3
-"""Regenerate the FFI export manifest and compare it with the committed snapshot.
+"""Verify the FFI export surface against a committed count+sha256 digest.
 
 `kwxgen exports` writes three views of the same symbol set (.def for Windows,
 .map for ELF, .exp for Mach-O). Cross-checking all three catches a generator
-change that forgets one of the writers; diffing the set against
-`tests/expected/symbols.txt` turns any parser regression into a reviewable diff.
+change that forgets one of the writers. The resulting set is then reduced to a
+count and a sha256 digest and compared with `tests/expected/symbols.sha256`: a
+200 KB sorted list is unreviewable in a pull request, while a digest mismatch
+still tells CI that the exported FFI surface changed.
 
-Exit codes: 0 when the snapshot matches, 1 on any mismatch or generator failure.
+The digest normalizes the symbol set first -- sorted, deduplicated, joined with
+LF, plus a trailing LF, encoded UTF-8 -- so it does not depend on the platform
+that generated it or on the file's line endings.
+
+Exit codes: 0 when the digest matches, 1 on any mismatch or generator failure.
 """
 
 from __future__ import annotations
 
 import argparse
-import subprocess
+import hashlib
 import sys
 import tempfile
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_ROOT = SCRIPT_DIR.parent.parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
-DEF_FILE_NAME = "kwxffi_exports.def"
-MAP_FILE_NAME = "kwxffi_exports.map"
-EXP_FILE_NAME = "kwxffi_exports.exp"
+from _exports import (
+    DEF_FILE_NAME,
+    EXP_FILE_NAME,
+    MAP_FILE_NAME,
+    generate,
+    read_def_symbols,
+    read_text_lines,
+)
+
+DEFAULT_ROOT = SCRIPT_DIR.parent.parent
+DIGEST_FILE_NAME = "symbols.sha256"
+GENERATED_LIST_PATH = Path("build") / "tests" / "exports" / "symbols.generated.txt"
 
 
 def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Regenerate the kwxFFI export manifest and compare it with the snapshot."
+        description="Verify the kwxFFI export surface against the digest baseline."
     )
     parser.add_argument(
         "--root",
@@ -43,43 +59,15 @@ def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--update",
         action="store_true",
-        help="Rewrite tests/expected/symbols.txt instead of comparing against it",
+        help=f"Rewrite tests/expected/{DIGEST_FILE_NAME} instead of comparing",
+    )
+    parser.add_argument(
+        "--write-list",
+        type=Path,
+        default=None,
+        help="Write the sorted symbol list to this path and exit",
     )
     return parser.parse_args(argv)
-
-
-def run_exports(kwxgen: Path, root: Path, out_dir: Path) -> int:
-    """Run `kwxgen exports`; return its exit code (output is streamed unchanged)."""
-    command = [
-        str(kwxgen),
-        "exports",
-        "--headers",
-        str(root / "include"),
-        "--defs",
-        str(root / "src" / "kwx_defs.cpp"),
-        "--out",
-        str(out_dir),
-    ]
-    print(f"--- {' '.join(command)}")
-    completed = subprocess.run(command, cwd=str(root), check=False)
-    return completed.returncode
-
-
-def read_text_lines(path: Path) -> list[str]:
-    # splitlines() strips both LF and CRLF, which matters because
-    # .gitattributes sets `* text=auto` and the snapshot is CRLF on Windows.
-    return path.read_text(encoding="utf-8", errors="replace").splitlines()
-
-
-def read_def_symbols(path: Path) -> list[str]:
-    """Parse a Windows module-definition file: drop comments and the header."""
-    symbols: list[str] = []
-    for raw_line in read_text_lines(path):
-        line = raw_line.strip()
-        if not line or line.startswith(";") or line == "EXPORTS":
-            continue
-        symbols.append(line)
-    return symbols
 
 
 def read_map_symbols(path: Path) -> list[str]:
@@ -111,10 +99,6 @@ def read_exp_symbols(path: Path) -> list[str]:
     return symbols
 
 
-def read_snapshot(path: Path) -> list[str]:
-    return [line.strip() for line in read_text_lines(path) if line.strip()]
-
-
 def report_file_mismatch(label: str, symbols: list[str], reference: set[str]) -> bool:
     """Print a + / - diff for one generated file against the reference set."""
     actual = set(symbols)
@@ -130,11 +114,55 @@ def report_file_mismatch(label: str, symbols: list[str], reference: set[str]) ->
     return False
 
 
-def write_snapshot(path: Path, symbols: list[str]) -> None:
+def normalize(symbols: list[str]) -> list[str]:
+    """Return the sorted, deduplicated symbol list the digest is built from."""
+    return sorted(set(symbols))
+
+
+def compute_digest(symbols: list[str]) -> tuple[int, str]:
+    """Return ``(count, sha256)`` for the normalized symbol list."""
+    normalized = normalize(symbols)
+    payload = "\n".join(normalized) + "\n"
+    return len(normalized), hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def write_symbol_list(path: Path, symbols: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="\n") as snapshot_file:
+    with path.open("w", encoding="utf-8", newline="\n") as symbol_file:
         for symbol in symbols:
-            snapshot_file.write(f"{symbol}\n")
+            symbol_file.write(f"{symbol}\n")
+
+
+def write_digest(path: Path, count: int, digest: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as digest_file:
+        digest_file.write("# kwxFFI FFI export surface digest.\n")
+        digest_file.write("# Regenerate with tests/checks/export_snapshot.py --update.\n")
+        digest_file.write(f"count {count}\n")
+        digest_file.write(f"sha256 {digest}\n")
+
+
+def read_digest(path: Path) -> tuple[int, str]:
+    """Read a ``count <n>`` / ``sha256 <hex>`` baseline; raise ``ValueError``."""
+    count = -1
+    digest = ""
+    for number, raw_line in enumerate(read_text_lines(path), 1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split()
+        if len(parts) != 2:
+            raise ValueError(f"{path}:{number}: expected '<key> <value>'")
+        key, value = parts
+        if key == "count":
+            count = int(value)
+        elif key == "sha256":
+            digest = value
+        else:
+            raise ValueError(f"{path}:{number}: unknown key '{key}'")
+    if count < 0 or not digest:
+        raise ValueError(f"{path}: missing 'count' or 'sha256'")
+    return count, digest
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -149,11 +177,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: kwxgen executable not found at {kwxgen}", file=sys.stderr)
         return 1
 
-    snapshot_path = root / "tests" / "expected" / "symbols.txt"
+    digest_path = root / "tests" / "expected" / DIGEST_FILE_NAME
 
     with tempfile.TemporaryDirectory(prefix="kwxffi_exports_") as temp_dir_name:
         out_dir = Path(temp_dir_name)
-        return_code = run_exports(kwxgen, root, out_dir)
+        return_code = generate(kwxgen, root, out_dir)
         if return_code != 0:
             print(f"error: kwxgen exports failed with exit {return_code}", file=sys.stderr)
             return 1
@@ -180,44 +208,54 @@ def main(argv: list[str] | None = None) -> int:
     if not consistent:
         return 1
 
-    generated = sorted(reference)
+    generated = normalize(def_symbols)
+    count, digest = compute_digest(generated)
+
+    if options.write_list is not None:
+        list_path = options.write_list
+        if not list_path.is_absolute():
+            list_path = root / list_path
+        write_symbol_list(list_path, generated)
+        print(f"Wrote {count} symbols to {list_path}")
+        if not options.update:
+            return 0
 
     if options.update:
-        write_snapshot(snapshot_path, generated)
-        print(f"Wrote {len(generated)} symbols to {snapshot_path}")
+        write_digest(digest_path, count, digest)
+        print(f"Wrote digest to {digest_path}: count {count}, sha256 {digest}")
         return 0
 
-    if not snapshot_path.is_file():
+    if not digest_path.is_file():
         print(
-            f"error: snapshot {snapshot_path} is missing; re-run with --update",
+            f"error: digest baseline {digest_path} is missing; re-run with --update",
             file=sys.stderr,
         )
         return 1
 
-    expected = read_snapshot(snapshot_path)
-    if expected == generated:
-        print(f"OK: {len(generated)} symbols match {snapshot_path}")
+    try:
+        expected_count, expected_digest = read_digest(digest_path)
+    except ValueError as digest_error:
+        print(f"error: {digest_error}", file=sys.stderr)
+        return 1
+
+    if expected_count == count and expected_digest == digest:
+        print(f"OK: count {count}, sha256 {digest} match {digest_path}")
         return 0
 
-    expected_set = set(expected)
-    generated_set = set(generated)
-
-    for symbol in sorted(generated_set - expected_set):
-        print(f"+ {symbol}")
-    for symbol in sorted(expected_set - generated_set):
-        print(f"- {symbol}")
-
-    if expected_set == generated_set:
-        print("error: the snapshot has the right symbols but the wrong order", file=sys.stderr)
-    if len(expected) != len(expected_set):
-        print("error: the snapshot contains duplicate entries", file=sys.stderr)
-
+    generated_list_path = root / GENERATED_LIST_PATH
+    write_symbol_list(generated_list_path, generated)
     print(
-        f"MISMATCH: {len(generated_set - expected_set)} added, "
-        f"{len(expected_set - generated_set)} removed "
-        f"({len(expected)} snapshot symbols, {len(generated)} generated symbols)"
+        f"error: export digest mismatch: expected count {expected_count}, "
+        f"sha256 {expected_digest}; got count {count}, sha256 {digest}",
+        file=sys.stderr,
     )
-    print("Re-run with --update to accept the new manifest.")
+    print("The exported FFI surface changed. Compare it with the merge base:")
+    print("  git worktree add ../kwxFFI-base <merge-base>")
+    print(
+        f"  python tests/checks/export_snapshot.py --root ../kwxFFI-base "
+        f"--kwxgen {kwxgen} --write-list /tmp/base-symbols.txt"
+    )
+    print(f"  diff -u /tmp/base-symbols.txt {GENERATED_LIST_PATH.as_posix()}")
     return 1
 
 

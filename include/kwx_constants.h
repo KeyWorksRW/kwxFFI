@@ -103,9 +103,7 @@ long wxExecuteWithOutputAndError(TClass(wxString) command, TClass(wxArrayString)
                                  TClass(wxExecuteEnv) execute_env);
 long wxExecuteArgv(TArrayString(n, argv), int flags, TClass(wxProcess) process,
                    TClass(wxExecuteEnv) execute_env);
-#if defined(__WINDOWS__) && wxUSE_IPC
 TBool wxExecuteDDE(TClass(wxString) server, TClass(wxString) topic, TClass(wxString) command);
-#endif
 TBool wxShutdown(int flags);
 int wxKill(long pid, int sig, int* rc, int flags);
 TBool wxShell(TClass(wxString) command);
@@ -134,9 +132,7 @@ TBool wxCheckForInterrupt(TClass(wxWindow) window);
 void wxFlushEvents();
 TBool wxYield();
 TBool wxYieldIfNeeded();
-#ifdef __WINDOWS__
 TBool wxMSWIsOnSecureScreen();
-#endif
 
 // ---------------------------------------------------------------------------
 // File selectors and stock items (wxFunctions surface)

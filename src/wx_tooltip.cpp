@@ -50,10 +50,12 @@ extern "C"
         wxToolTip::SetReshow(milliseconds);
     }
 
-#ifdef __WXMSW__
     EXPORT void wxToolTip_SetMaxWidth(int width)
     {
+#ifdef __WXMSW__
         wxToolTip::SetMaxWidth(width);
-    }
+#else
+        wxUnusedVar(width);
 #endif
+    }
 }

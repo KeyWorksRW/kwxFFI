@@ -255,13 +255,18 @@ namespace kwx
             return ::wxExecute(arguments.data(), flags, process, execute_env);
         }
 
-#if defined(__WINDOWS__) && wxUSE_IPC
         EXPORT bool wxExecuteDDE(const wxString* server, const wxString* topic,
                                  const wxString* command)
         {
+#if defined(__WINDOWS__) && wxUSE_IPC
             return ::wxExecuteDDE(*server, *topic, *command);
-        }
+#else
+            wxUnusedVar(server);
+            wxUnusedVar(topic);
+            wxUnusedVar(command);
+            return false;
 #endif
+        }
 
         EXPORT bool wxShutdown(int flags)
         {
@@ -385,12 +390,14 @@ namespace kwx
             return ::wxYieldIfNeeded();
         }
 
-#ifdef __WINDOWS__
         EXPORT bool wxMSWIsOnSecureScreen()
         {
+#ifdef __WINDOWS__
             return ::wxMSWIsOnSecureScreen();
-        }
+#else
+            return false;
 #endif
+        }
 
         // -------------------------------------------------------------------
         // File selectors and stock items (wxFunctions surface)

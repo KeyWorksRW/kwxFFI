@@ -8,6 +8,16 @@ on:
         required: false
         type: string
         default: 'Release'
+      build-both:
+        description: "Build static and shared kwxFFI from one wxWidgets build ('ON') or honor build-shared"
+        required: false
+        type: string
+        default: 'ON'
+      build-shared:
+        description: "Deprecated; ignored when build-both is 'ON'"
+        required: false
+        type: string
+        default: 'ON'
       runner-type:
         description: 'Runner label (macos-15 for the universal build, or self-hosted labels)'
         required: false
@@ -40,10 +50,13 @@ jobs:
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Configure CMake (universal binary)
-      run: cmake -B ${{github.workspace}}/build -G "Ninja Multi-Config" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DKWXFFI_BUILD_SHARED=ON -DKWXFFI_BUILD_TESTS=ON
+      run: cmake -B ${{github.workspace}}/build -G "Ninja Multi-Config" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DKWXFFI_BUILD_BOTH=${{inputs.build-both}} -DKWXFFI_BUILD_SHARED=${{inputs.build-shared}} -DKWXFFI_BUILD_TESTS=ON
 
-    - name: Build kwxFFI
+    - name: Build kwxFFI static library
       run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --target kwxFFI
+
+    - name: Build kwxFFI shared library
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --target kwxFFI_shared
 
     - name: Build parser tests
       run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --target kwx_parser_tests
@@ -51,12 +64,22 @@ jobs:
     - name: Run cheap tests
       run: ctest --test-dir ${{github.workspace}}/build -C ${{inputs.build-type}} -L cheap --output-on-failure
 
-    - name: Resolve export symbols against the shared library
-      run: python3 tests/checks/symbol_resolve.py --root . --library lib/${{inputs.build-type}}/libkwxFFI.dylib
+    - name: Run library tests
+      run: ctest --test-dir ${{github.workspace}}/build -C ${{inputs.build-type}} -L library --output-on-failure
+
+    # The dual build writes both library types to separate directories.
+    # if-no-files-found makes a missing library type fail loudly instead of
+    # producing an empty artifact.
+    - name: Publish kwxFFI static library
+      uses: actions/upload-artifact@v5
+      with:
+        name: kwxFFI-macOS-${{inputs.build-type}}-static
+        path: lib/static/${{inputs.build-type}}/libkwxFFI.a
+        if-no-files-found: error
 
     - name: Publish kwxFFI shared library
       uses: actions/upload-artifact@v5
       with:
-        name: kwxFFI-macOS-${{inputs.build-type}}-universal
-        path: lib/${{inputs.build-type}}/libkwxFFI.dylib
+        name: kwxFFI-macOS-${{inputs.build-type}}-shared
+        path: lib/shared/${{inputs.build-type}}/libkwxFFI.dylib
         if-no-files-found: error

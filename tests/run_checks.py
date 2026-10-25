@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Run the kwxFFI checks without requiring a CMake build.
 
-`--static` runs only the checks that read the source tree. Without it the
-export snapshot and `deno check` wrappers run too, using the newest kwxgen
-binary that can be found under `bin/` or `build/`.
+`--static` runs only the checks that read the source tree: the two guard
+checkers and their self-test. Without it the export-surface digest and the
+`deno check` wrapper run too, using the newest kwxgen binary that can be found
+under `bin/` or `build/`. The digest check compares a count and a sha256 hash
+with `tests/expected/symbols.sha256`, so a mismatch means the exported FFI
+surface changed.
 
 Exit code is 1 when any check failed, 0 otherwise (skips are not failures).
 """
@@ -97,7 +100,7 @@ def main(argv: list[str] | None = None) -> int:
 
     results: list[tuple[str, str]] = []
 
-    for name in ("guard_lint", "guard_parity"):
+    for name in ("guard_lint", "guard_parity", "checker_self_test"):
         status = run_check(name, checks_dir / f"{name}.py", ["--root", str(root)], root)
         results.append((name, status))
 

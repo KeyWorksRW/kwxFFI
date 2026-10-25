@@ -84,6 +84,11 @@ add_test(NAME guard_parity
 )
 set_tests_properties(guard_parity PROPERTIES LABELS cheap)
 
+add_test(NAME checker_self_test
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/checker_self_test.py"
+)
+set_tests_properties(checker_self_test PROPERTIES LABELS cheap)
+
 add_test(NAME export_snapshot
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/export_snapshot.py"
         --root "${KWXFFI_ROOT}"
@@ -98,13 +103,22 @@ add_test(NAME deno_check
 )
 set_tests_properties(deno_check PROPERTIES LABELS cheap SKIP_RETURN_CODE 77)
 
-# Runtime symbol resolution needs a shared library, which only exists when the
-# tests are added from the root project with KWXFFI_BUILD_SHARED enabled.
-if(TARGET kwxFFI AND KWXFFI_BUILD_SHARED)
+# Runtime symbol resolution needs a shared library. A KWXFFI_BUILD_BOTH build
+# names the shared target kwxFFI_shared; a plain shared build names it kwxFFI.
+if(TARGET kwxFFI_shared)
+    set(kwxfi_shared_target kwxFFI_shared)
+elseif(TARGET kwxFFI AND KWXFFI_BUILD_SHARED)
+    set(kwxfi_shared_target kwxFFI)
+else()
+    set(kwxfi_shared_target "")
+endif()
+
+if(kwxfi_shared_target)
     add_test(NAME symbol_resolve
         COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/symbol_resolve.py"
             --root "${KWXFFI_ROOT}"
-            --library "$<TARGET_FILE:kwxFFI>"
+            --library "$<TARGET_FILE:${kwxfi_shared_target}>"
+            --kwxgen "$<TARGET_FILE:kwxgen>"
     )
     set_tests_properties(symbol_resolve PROPERTIES LABELS library)
 endif()
