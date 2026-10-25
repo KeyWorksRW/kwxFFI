@@ -1,0 +1,32 @@
+name: Daily Build
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows
+    uses: ./.github/workflows/build-win-reusable.yml
+    with:
+      build-type: Release
+      build-both: 'ON'
+
+  linux:
+    name: Linux
+    uses: ./.github/workflows/build-unix-reusable.yml
+    with:
+      build-type: Release
+      build-both: 'ON'
+      # The self-hosted runner stays behind the maintainer-only gate; scheduled
+      # runs whose actor is anyone else use a GitHub-hosted runner instead.
+      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted' || 'github-hosted' }}
+
+  macosUniversal:
+    name: macOS universal
+    uses: ./.github/workflows/build-macos-reusable.yml
+    with:
+      build-type: Release
+      build-both: 'ON'
+      runner-type: 'macos-15'

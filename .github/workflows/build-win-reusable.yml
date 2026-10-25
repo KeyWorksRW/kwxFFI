@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       create-setup:
-        description: 'Whether to create NSIS setup installer'
+        description: 'Unused; kept so existing callers stay compatible'
         required: false
         type: boolean
         default: false
@@ -13,6 +13,21 @@ on:
         required: false
         type: string
         default: 'Release'
+      build-both:
+        description: "Build static and shared kwxFFI from one wxWidgets build ('ON') or honor build-shared"
+        required: false
+        type: string
+        default: 'ON'
+      build-shared:
+        description: "Deprecated; ignored when build-both is 'ON'"
+        required: false
+        type: string
+        default: 'ON'
+
+env:
+  # This is a public repository, so the GitHub Actions cache backend for
+  # sccache is free. Without this the sccache install below caches nothing.
+  SCCACHE_GHA_ENABLED: "true"
 
 jobs:
   buildWindows:
@@ -27,24 +42,42 @@ jobs:
         cmakeVersion: '~4.2.0'
         ninjaVersion: 'latest'
 
-    - run: mkdir ${{github.workspace}}/build
-
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Configure CMake
-      run: cmake -G "Visual Studio 18 2026" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
+      run: cmake -G "Visual Studio 18 2026" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -DKWXFFI_BUILD_BOTH=${{inputs.build-both}} -DKWXFFI_BUILD_SHARED=${{inputs.build-shared}} -DKWXFFI_BUILD_TESTS=ON
 
-    - name: Build kwxFFI
-      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 2 --target kwxFFI
+    - name: Build kwxFFI static library
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 4 --target kwxFFI
 
-    # Remove NSIS installer steps
+    - name: Build kwxFFI shared library
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 4 --target kwxFFI_shared
 
-    - name: Publish kwxFFI DLL and import libs
+    - name: Build parser tests
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 4 --target kwx_parser_tests
+
+    - name: Run cheap tests
+      run: ctest --test-dir ${{github.workspace}}/build -C ${{inputs.build-type}} -L cheap --output-on-failure
+
+    - name: Run library tests
+      run: ctest --test-dir ${{github.workspace}}/build -C ${{inputs.build-type}} -L library --output-on-failure
+
+    # A dual build writes the static library and the shared library to separate
+    # directories because MSVC names the static library and the import library
+    # kwxFFI.lib. The paths use inputs.build-type instead of a hardcoded Release
+    # so a Debug build does not upload nothing, and if-no-files-found makes a
+    # missing library type fail loudly instead of producing an empty artifact.
+    - name: Publish kwxFFI static library
       uses: actions/upload-artifact@v5
       with:
-        name: kwxFFI-Windows-Release
-        path: |
-          lib/Release/kwxFFI.dll
-          lib/Release/kwxFFI.exp
-          lib/Release/kwxFFI.lib
+        name: kwxFFI-Windows-${{inputs.build-type}}-static
+        path: lib/static/${{inputs.build-type}}/kwxFFI.lib
+        if-no-files-found: error
+
+    - name: Publish kwxFFI DLL and import library
+      uses: actions/upload-artifact@v5
+      with:
+        name: kwxFFI-Windows-${{inputs.build-type}}-shared
+        path: lib/shared/${{inputs.build-type}}/kwxFFI.*
+        if-no-files-found: error

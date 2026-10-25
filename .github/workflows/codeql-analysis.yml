@@ -1,12 +1,22 @@
 name: "CodeQL"
 
 on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - 'include/**'
+      - 'src/**'
+      - 'kwxgen/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
   schedule:
     - cron: '47 6 * * *'
   workflow_dispatch:
 
-env:
-  BUILD_TYPE: Release
+concurrency:
+  group: "codeql-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -26,19 +36,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - run: mkdir ${{github.workspace}}/build
-
-    - name: Configure CMake
-      run: cmake -G "Visual Studio 18 2026" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-
+    # build-mode: none is required: the project needs a full wxWidgets
+    # FetchContent configure (a long, network-heavy CMake configure), and any
+    # manual build mode would have to reproduce it exactly. The cost is reduced
+    # analysis accuracy -- no translation units are compiled, so interprocedural
+    # facts are weaker and header-only or macro-heavy code is seen less clearly.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         build-mode: none
-
-    - name: Build all
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.30)
 
-# Control whether kwxFFI is built as static or shared library
+# Control which kwxFFI libraries are built (static, shared, or both)
 # Must be defined before project() for runtime library configuration
 option(KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF)
+option(KWXFFI_BUILD_BOTH "Build both static and shared kwxFFI from one wxWidgets build" OFF)
+option(KWXFFI_BUILD_TESTS "Build and register kwxFFI tests" OFF)
 
 string(TIMESTAMP YEAR "%y") # e.g., "25"
 string(TIMESTAMP DOY "%j") # e.g., "192"
@@ -23,9 +25,17 @@ project(kwxFFI
     HOMEPAGE_URL "https://github.com/KeyWorksRW/kwxFFI"
 )
 
+# True when this configure produces any shared kwxFFI library, either from a
+# dedicated shared build or from the shared half of a KWXFFI_BUILD_BOTH build.
+if(KWXFFI_BUILD_SHARED OR KWXFFI_BUILD_BOTH)
+    set(KWXFFI_ANY_SHARED ON)
+else()
+    set(KWXFFI_ANY_SHARED OFF)
+endif()
+
 # Force release runtime in Debug builds when building shared DLL
 # Must be AFTER project() so compiler is detected, but BEFORE any targets are created
-if(MSVC AND KWXFFI_BUILD_SHARED)
+if(MSVC AND KWXFFI_ANY_SHARED)
     # Explicitly set runtime flags for Debug configuration
     set(CMAKE_CXX_FLAGS_DEBUG "/MD /Zi /Ob0 /Od /RTC1" CACHE STRING "C++ Debug with release runtime" FORCE)
     set(CMAKE_C_FLAGS_DEBUG "/MD /Zi /Ob0 /Od /RTC1" CACHE STRING "C Debug with release runtime" FORCE)
@@ -80,10 +90,19 @@ if(NOT DEFINED ENV{CI})
 endif()
 
 # Keep BUILD_SHARED_LIBS OFF so wxWidgets dependencies (libwebp) build as static.
-# kwxFFI library type is controlled by KWXFFI_BUILD_SHARED option.
+# kwxFFI library types are controlled by the KWXFFI_BUILD_SHARED and
+# KWXFFI_BUILD_BOTH options.
 set(BUILD_SHARED_LIBS OFF)
 
-if(KWXFFI_BUILD_SHARED)
+if(KWXFFI_BUILD_BOTH)
+    message(NOTICE "Building kwxFFI as static and shared libraries with static wxWidgets libraries")
+    if(KWXFFI_BUILD_SHARED)
+        message(NOTICE "  KWXFFI_BUILD_BOTH takes precedence; KWXFFI_BUILD_SHARED is ignored")
+    endif()
+    if(MSVC)
+        message(NOTICE "  Using release runtime library (/MD) for DLL compatibility")
+    endif()
+elseif(KWXFFI_BUILD_SHARED)
     message(NOTICE "Building kwxFFI as shared DLL with static wxWidgets libraries")
     if(MSVC)
         message(NOTICE "  Using release runtime library (/MD) for DLL compatibility")
@@ -237,12 +256,16 @@ endif()
 
 # Force wxWidgets to build in Release mode even if parent is Debug
 # This ensures wx libraries use release runtime (/MD) instead of debug (/MDd)
-if(MSVC AND KWXFFI_BUILD_SHARED)
+if(MSVC AND KWXFFI_ANY_SHARED)
     set(CMAKE_TRY_COMPILE_CONFIGURATION Release)
     # Tell wxWidgets CMakeLists to build Release
     set(CMAKE_BUILD_TYPE_INIT Release)
 endif()
 
+# wxWidgets is downloaded once per build tree. When configuring an additional
+# build directory, pass
+#   -DFETCHCONTENT_SOURCE_DIR_WXWIDGETS=<absolute path to downloaded sources>
+# and FetchContent reuses that tree instead of downloading it again.
 message(STATUS "Fetching wxWidgets")
 
 FetchContent_Declare(
@@ -272,57 +295,90 @@ endif()
 
 include(files_list.cmake)
 
-# Library type controlled by KWXFFI_BUILD_SHARED option
-if(KWXFFI_BUILD_SHARED)
-    add_library(kwxFFI SHARED ${FFI_SRC_FILES} ${FFI_HDR_FILES})
+# Library types produced by this configure. KWXFFI_BUILD_BOTH takes precedence
+# over KWXFFI_BUILD_SHARED so a single configure yields both artifacts.
+if(KWXFFI_BUILD_BOTH)
+    set(kwxfi_library_types static shared)
+elseif(KWXFFI_BUILD_SHARED)
+    set(kwxfi_library_types shared)
 else()
-    add_library(kwxFFI STATIC ${FFI_SRC_FILES} ${FFI_HDR_FILES})
+    set(kwxfi_library_types static)
 endif()
 
-target_precompile_headers(kwxFFI PRIVATE "include/kwx_wrapper.h")
+# Apply the settings shared by every kwxFFI library type. Variables such as
+# WX_LIB_DIR and wxWidgets_LIBRARIES are read when a target is configured.
+#   target       - CMake target to configure
+#   library_type - "static" or "shared"
+function(kwxfi_configure_target target library_type)
+    target_precompile_headers(${target} PRIVATE "include/kwx_wrapper.h")
 
-# Force release runtime in Debug builds for shared DLL via target options
-if(MSVC AND KWXFFI_BUILD_SHARED)
-    target_compile_options(kwxFFI PRIVATE
-        $<$<CONFIG:Debug>:/MD>  # Use release runtime in Debug builds
+    # Force release runtime in Debug builds for shared DLL via target options
+    if(MSVC AND library_type STREQUAL "shared")
+        target_compile_options(${target} PRIVATE
+            $<$<CONFIG:Debug>:/MD>  # Use release runtime in Debug builds
+        )
+    endif()
+
+    # wxWidgets is static, so we don't define WXUSINGDLL
+    # target_compile_definitions( ${target} PRIVATE WXUSINGDLL )
+
+    if(MSVC)
+        target_link_directories(${target} PRIVATE ${WX_LIB_DIR})
+    elseif(UNIX)
+        target_compile_definitions(${target} PRIVATE __WXGTK__)
+        target_link_directories(${target} PRIVATE ${WX_LIB_DIR})
+    endif()
+
+    # Define SHARED_LIBRARY when building as shared DLL
+    if(WIN32 AND library_type STREQUAL "shared")
+        target_compile_definitions(${target} PRIVATE SHARED_LIBRARY)
+    endif()
+
+    target_include_directories(${target} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${wxWidgets_SOURCE_DIR}/include
     )
-endif()
 
-# wxWidgets is static, so we don't define WXUSINGDLL
-# target_compile_definitions( kwxFFI PRIVATE WXUSINGDLL )
+    if(WIN32)
+        target_include_directories(${target} PRIVATE
+            ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib/mswu
+        )
+    elseif(APPLE)
+        target_include_directories(${target} PRIVATE
+            ${wxWidgets_BUILD_DIR}/lib/osx_cocoa-unicode-static
+        )
+    elseif(UNIX)
+        target_include_directories(${target} PRIVATE
+            ${wxWidgets_BUILD_DIR}/lib/gtk3_unixu-3.3/include
+        )
+    else()
+        message(FATAL_ERROR "Unsupported platform: Only WIN32, APPLE, or UNIX are supported.")
+    endif()
 
-if(MSVC)
-    target_link_directories(kwxFFI PRIVATE ${WX_LIB_DIR})
-elseif(UNIX)
-    target_compile_definitions(kwxFFI PRIVATE __WXGTK__)
-    target_link_directories(kwxFFI PRIVATE ${WX_LIB_DIR})
-endif()
+    # PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
+    target_link_libraries(${target} PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})
 
-# Define SHARED_LIBRARY when building as shared DLL
-if(WIN32 AND KWXFFI_BUILD_SHARED)
-    target_compile_definitions(kwxFFI PRIVATE SHARED_LIBRARY)
-endif()
+    # On MSVC the static library and the shared library's import library are both
+    # named kwxFFI.lib, so a BOTH build gives each library type its own directory.
+    # Multi-config generators append /<CONFIG> to these paths.
+    if(KWXFFI_BUILD_BOTH)
+        set(output_dir "${CMAKE_BINARY_DIR}/../lib/${library_type}")
+    else()
+        set(output_dir "${CMAKE_BINARY_DIR}/../lib")
+    endif()
 
-target_include_directories(kwxFFI PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${wxWidgets_SOURCE_DIR}/include
-)
-
-if(WIN32)
-    target_include_directories(kwxFFI PRIVATE
-        ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib/mswu
+    set_target_properties(${target} PROPERTIES
+        OUTPUT_NAME kwxFFI
+        ARCHIVE_OUTPUT_DIRECTORY "${output_dir}"
+        LIBRARY_OUTPUT_DIRECTORY "${output_dir}"
+        RUNTIME_OUTPUT_DIRECTORY "${output_dir}"
     )
-elseif(APPLE)
-    target_include_directories(kwxFFI PRIVATE
-        ${wxWidgets_BUILD_DIR}/lib/osx_cocoa-unicode-static
-    )
-elseif(UNIX)
-    target_include_directories(kwxFFI PRIVATE
-        ${wxWidgets_BUILD_DIR}/lib/gtk3_unixu-3.3/include
-    )
-else()
-    message(FATAL_ERROR "Unsupported platform: Only WIN32, APPLE, or UNIX are supported.")
-endif()
+
+    # Force consistent DLL name on Windows regardless of compiler (MSVC vs Clang)
+    if(WIN32 AND library_type STREQUAL "shared")
+        set_target_properties(${target} PROPERTIES PREFIX "")
+    endif()
+endfunction()
 
 foreach(component ${wxWidgets_REQUIRED_COMPONENTS})
     list(APPEND wxWidgets_LIBRARIES wx${component})
@@ -341,19 +397,30 @@ if(NOT APPLE)
     list(APPEND wxWidgets_BUILTIN_LIBS wxtiff wxregex)
 endif()
 
+# Create one library target per requested type from the same wxWidgets build.
+foreach(library_type IN LISTS kwxfi_library_types)
+    if(library_type STREQUAL "static")
+        set(target_name kwxFFI)
+        add_library(${target_name} STATIC ${FFI_SRC_FILES} ${FFI_HDR_FILES})
+    else()
+        # A shared-only build keeps the historical target name; a BOTH build
+        # needs a distinct name because both artifacts are emitted.
+        if(KWXFFI_BUILD_BOTH)
+            set(target_name kwxFFI_shared)
+        else()
+            set(target_name kwxFFI)
+        endif()
+        add_library(${target_name} SHARED ${FFI_SRC_FILES} ${FFI_HDR_FILES})
+    endif()
+
+    kwxfi_configure_target(${target_name} ${library_type})
+endforeach()
+
 # ###################### kwxgen code generator subdirectory #######################
 add_subdirectory(kwxgen)
 
-# PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
-target_link_libraries(kwxFFI PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})
-
-set_target_properties(kwxFFI PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/../lib"
-)
-
-# Force consistent DLL name on Windows regardless of compiler (MSVC vs Clang)
-if(WIN32 AND KWXFFI_BUILD_SHARED)
-    set_target_properties(kwxFFI PROPERTIES PREFIX "")
+# ###################### Tests #######################
+if(KWXFFI_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
