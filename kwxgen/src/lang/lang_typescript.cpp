@@ -130,6 +130,9 @@ namespace fs = std::filesystem;
 // A C++ method that hides a same-named base method with an incompatible signature
 // cannot keep that name on the TypeScript side.  Rename only the TS wrapper; the
 // exported C symbol and its ABI stay unchanged.
+// Entries are sorted by class, then method.  Every class that redeclares a renamed
+// ancestor method needs its own entry: a derived member adopts the name the ancestor
+// *exposes*, not the original method name, so a missing entry renames it again.
 struct TsMemberRename
 {
     std::string_view class_name;
@@ -137,18 +140,37 @@ struct TsMemberRename
     std::string_view ts_name;
 };
 
-static constexpr std::array<TsMemberRename, 11> TS_MEMBER_RENAMES = { {
+static constexpr std::array<TsMemberRename, 30> TS_MEMBER_RENAMES = { {
     { "wxBitmapComboBox", "Append", "AppendWithBitmap" },
+    { "wxBitmapComboBox", "Insert", "InsertWithBitmap" },
+    { "wxBookCtrlBase", "HitTest", "HitTestPage" },
+    { "wxCalendarCtrl", "HitTest", "HitTestDate" },
+    { "wxChoicebook", "HitTest", "HitTestPage" },
     { "wxComboBox", "GetClientData", "GetItemClientData" },
     { "wxComboBox", "SetClientData", "SetItemClientData" },
-    { "wxListBox", "GetClientData", "GetItemClientData" },
-    { "wxListBox", "SetClientData", "SetItemClientData" },
-    { "wxTreeCtrl", "GetParent", "GetItemParent" },
-    { "wxScrolledWindow", "GetVirtualSize", "GetVirtualSizeXY" },
-    { "wxTipWindow", "Close", "CloseTip" },
-    { "wxGridBagSizer", "AddWindow", "AddWindowAt" },
     { "wxGridBagSizer", "AddSizer", "AddSizerAt" },
     { "wxGridBagSizer", "AddSpacer", "AddSpacerAt" },
+    { "wxGridBagSizer", "AddWindow", "AddWindowAt" },
+    { "wxListBox", "GetClientData", "GetItemClientData" },
+    { "wxListBox", "SetClientData", "SetItemClientData" },
+    { "wxListCtrl", "HitTest", "HitTestItem" },
+    { "wxListbook", "HitTest", "HitTestPage" },
+    { "wxNotebook", "HitTest", "HitTestPage" },
+    { "wxProcessEx", "Connect", "SetClosure" },
+    { "wxProgressDialog", "Update", "UpdateProgress" },
+    { "wxRichTextCtrl", "HitTest", "HitTestPosition" },
+    { "wxRichTextCtrl", "PageDown", "PageDownBy" },
+    { "wxRichTextCtrl", "PageUp", "PageUpBy" },
+    { "wxScrolledWindow", "GetVirtualSize", "GetVirtualSizeXY" },
+    { "wxSimpleHtmlListBox", "GetClientData", "GetItemClientData" },
+    { "wxSimpleHtmlListBox", "SetClientData", "SetItemClientData" },
+    { "wxTextCtrl", "HitTest", "HitTestPosition" },
+    { "wxTimerEx", "Connect", "SetClosure" },
+    { "wxTipWindow", "Close", "CloseTip" },
+    { "wxToolbook", "HitTest", "HitTestPage" },
+    { "wxTreeCtrl", "GetParent", "GetItemParent" },
+    { "wxTreeCtrl", "HitTest", "HitTestItem" },
+    { "wxTreebook", "HitTest", "HitTestPage" },
 } };
 
 // Return the TypeScript member name for a method.  Item-level Delete methods

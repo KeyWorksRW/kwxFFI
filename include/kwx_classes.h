@@ -5182,7 +5182,7 @@ TClassDef(wxThread)
 
     TClassDef(wxTimeSpan)
 
-        TClassDefExtend(wxTimer, wxObject) TClass(wxTimer)
+        TClassDefExtend(wxTimer, wxEvtHandler) TClass(wxTimer)
             wxTimer_Create(TClass(wxWindow) parent, int id);
 void wxTimer_Delete(TSelf(wxTimer) pObject);
 int wxTimer_GetInterval(TSelf(wxTimer) pObject);

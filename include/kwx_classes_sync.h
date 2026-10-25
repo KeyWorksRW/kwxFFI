@@ -195,8 +195,8 @@ TBool wxDragImage_Show(TSelf(wxDragImage) pObject);
 TClassDef(wxEvent) void* wxEvent_GetCallbackUserData(TSelf(wxEvent) pObject);
 void wxEvent_SetCallbackUserData(TSelf(wxEvent) pObject, TClass(wxObject) obj);
 
-TClassDef(wxEvtHandler) void* wxEvtHandler_GetClientClosure(void* pObject);
-void wxEvtHandler_SetClientClosure(void* pObject, TClass(wxClosure) closure);
+TClassDef(wxEvtHandler) void* wxEvtHandler_GetClientClosure(TSelf(wxEvtHandler) pObject);
+void wxEvtHandler_SetClientClosure(TSelf(wxEvtHandler) pObject, TClass(wxClosure) closure);
 
 TClassDef(wxFileConfig) TClass(wxFileConfig) wxFileConfig_Create(TClass(wxInputStream) inp);
 
