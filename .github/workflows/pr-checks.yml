@@ -5,17 +5,11 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-      - '.ttm/**'
-      - '.ttd/**'
-      - '.tts/**'
   push:
     branches: [main]
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
-      - '.ttm/**'
-      - '.ttd/**'
-      - '.tts/**'
   workflow_dispatch:
 
 concurrency:
@@ -26,8 +20,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  cheap:
-    name: Cheap tests
+  quick:
+    name: quick tests
     # Maintainer-only gate: a fork PR would otherwise execute untrusted code on
     # the self-hosted runner. Everyone else falls back to a GitHub-hosted box.
     runs-on: ${{ github.actor == 'Randalphwa' && fromJSON('["self-hosted", "Linux", "X64"]') || 'ubuntu-latest' }}
