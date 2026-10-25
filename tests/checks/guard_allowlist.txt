@@ -1,0 +1,23 @@
+# Platform-guard allowlist for tests/checks/guard_lint.py
+#
+# Format, one entry per line:
+#   path_glob|condition_regex|reason
+#
+#   path_glob        fnmatch glob matched against the path relative to --root,
+#                    e.g. include/kwx_constants.h or include/*.h
+#   condition_regex  Python regular expression searched in the active guard
+#                    condition text, e.g. defined\(__WINDOWS__\)
+#   reason           free text explaining why the exception is safe
+#
+# A finding matching an entry is downgraded from `error` to `note`. It is still
+# printed, so the exception remains visible in every run.
+#
+# Why an exception can ever be safe: kwxgen skips preprocessor directives, so it
+# cannot see a guard. A guarded declaration therefore leaks into the generated
+# bindings and only links on the guarded platform(s). An exception is safe only
+# when the symbol is genuinely absent from the generated bindings (for example
+# because it is filtered out of the export list) -- never merely because the
+# current machine compiles it.
+#
+# No entries. The two findings in include/kwx_constants.h are real defects and
+# must stay red until the guarded declarations are removed.

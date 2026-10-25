@@ -1,0 +1,60 @@
+name: "PR Checks"
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.ttm/**'
+      - '.ttd/**'
+      - '.tts/**'
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.ttm/**'
+      - '.ttd/**'
+      - '.tts/**'
+  workflow_dispatch:
+
+concurrency:
+  group: "pr-checks-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  cheap:
+    name: Cheap tests
+    # Maintainer-only gate: a fork PR would otherwise execute untrusted code on
+    # the self-hosted runner. Everyone else falls back to a GitHub-hosted box.
+    runs-on: ${{ github.actor == 'Randalphwa' && fromJSON('["self-hosted", "Linux", "X64"]') || 'ubuntu-latest' }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Install unzip and python3 (GitHub-hosted runner only)
+      if: ${{ github.actor != 'Randalphwa' }}
+      run: sudo apt-get update && sudo apt-get install -y unzip python3
+
+    - name: Setup CMake 4.2+ and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: '~4.2.0'
+        ninjaVersion: 'latest'
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+
+    - name: Configure tests
+      run: cmake -S tests -B build/tests -G "Ninja Multi-Config"
+
+    - name: Build tests
+      run: cmake --build build/tests --config Release --parallel 4
+
+    - name: Run cheap tests
+      run: ctest --test-dir build/tests -C Release -L cheap --output-on-failure

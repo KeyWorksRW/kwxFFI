@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.30)
 # Control whether kwxFFI is built as static or shared library
 # Must be defined before project() for runtime library configuration
 option(KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF)
+option(KWXFFI_BUILD_TESTS "Build and register kwxFFI tests" OFF)
 
 string(TIMESTAMP YEAR "%y") # e.g., "25"
 string(TIMESTAMP DOY "%j") # e.g., "192"
@@ -343,6 +344,12 @@ endif()
 
 # ###################### kwxgen code generator subdirectory #######################
 add_subdirectory(kwxgen)
+
+# ###################### Tests #######################
+if(KWXFFI_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
 target_link_libraries(kwxFFI PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})

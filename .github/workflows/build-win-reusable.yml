@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       create-setup:
-        description: 'Whether to create NSIS setup installer'
+        description: 'Unused; kept so existing callers stay compatible'
         required: false
         type: boolean
         default: false
@@ -13,6 +13,16 @@ on:
         required: false
         type: string
         default: 'Release'
+      build-shared:
+        description: "Build kwxFFI as a shared library ('ON') or static ('OFF')"
+        required: false
+        type: string
+        default: 'ON'
+
+env:
+  # This is a public repository, so the GitHub Actions cache backend for
+  # sccache is free. Without this the sccache install below caches nothing.
+  SCCACHE_GHA_ENABLED: "true"
 
 jobs:
   buildWindows:
@@ -27,24 +37,31 @@ jobs:
         cmakeVersion: '~4.2.0'
         ninjaVersion: 'latest'
 
-    - run: mkdir ${{github.workspace}}/build
-
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Configure CMake
-      run: cmake -G "Visual Studio 18 2026" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
+      run: cmake -G "Visual Studio 18 2026" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -DKWXFFI_BUILD_SHARED=${{inputs.build-shared}} -DKWXFFI_BUILD_TESTS=ON
 
     - name: Build kwxFFI
-      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 2 --target kwxFFI
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 4 --target kwxFFI
 
-    # Remove NSIS installer steps
+    - name: Build parser tests
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --parallel 4 --target kwx_parser_tests
 
+    - name: Run cheap tests
+      run: ctest --test-dir ${{github.workspace}}/build -C ${{inputs.build-type}} -L cheap --output-on-failure
+
+    - name: Resolve export symbols against the DLL
+      if: inputs.build-shared == 'ON'
+      run: python tests/checks/symbol_resolve.py --root . --library lib/${{inputs.build-type}}/kwxFFI.dll
+
+    # The path uses inputs.build-type instead of a hardcoded Release so a Debug
+    # build does not upload nothing, and if-no-files-found makes a regression in
+    # KWXFFI_BUILD_SHARED fail loudly instead of producing an empty artifact.
     - name: Publish kwxFFI DLL and import libs
       uses: actions/upload-artifact@v5
       with:
-        name: kwxFFI-Windows-Release
-        path: |
-          lib/Release/kwxFFI.dll
-          lib/Release/kwxFFI.exp
-          lib/Release/kwxFFI.lib
+        name: kwxFFI-Windows-${{inputs.build-type}}-${{inputs.build-shared == 'ON' && 'shared' || 'static'}}
+        path: lib/${{inputs.build-type}}/kwxFFI.*
+        if-no-files-found: error
