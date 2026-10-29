@@ -5,6 +5,7 @@
 
 #include <wx/dir.h>
 #include <wx/filename.h>
+#include <wx/numformatter.h>
 #include <wx/process.h>
 
 extern "C"
@@ -3866,6 +3867,38 @@ extern "C"
     EXPORT int expwxLOCALE_LOAD_DEFAULT()
     {
         return (int) wxLOCALE_LOAD_DEFAULT;
+    }
+    EXPORT int expwxStyle_None()
+    {
+        return (int) wxNumberFormatter::Style_None;
+    }
+    EXPORT int expwxStyle_WithThousandsSep()
+    {
+        return (int) wxNumberFormatter::Style_WithThousandsSep;
+    }
+    EXPORT int expwxStyle_NoTrailingZeroes()
+    {
+        return (int) wxNumberFormatter::Style_NoTrailingZeroes;
+    }
+    EXPORT int expwxStyle_SignPlus()
+    {
+        return (int) wxNumberFormatter::Style_SignPlus;
+    }
+    EXPORT int expwxStyle_SignSpace()
+    {
+        return (int) wxNumberFormatter::Style_SignSpace;
+    }
+    EXPORT int expwxStyle_Currency()
+    {
+        return (int) wxNumberFormatter::Style_Currency;
+    }
+    EXPORT int expwxStyle_CurrencySymbol()
+    {
+        return (int) wxNumberFormatter::Style_CurrencySymbol;
+    }
+    EXPORT int expwxStyle_CurrencyCode()
+    {
+        return (int) wxNumberFormatter::Style_CurrencyCode;
     }
 
     EXPORT int expwxBU_EXACTFIT()

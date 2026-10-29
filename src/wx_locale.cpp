@@ -3,6 +3,28 @@
 
 #include "kwx_wrapper.h"
 #include <wx/intl.h>
+#include <wx/numformatter.h>
+#include <wx/uilocale.h>
+
+#include <cstdint>
+#include <mutex>
+
+static void EnsureUILocale()
+{
+    // wxNumberFormatter resolves locale data through wxUILocale::GetCurrent(),
+    // which remains the "C" locale until UseDefault() or UseLocaleName() is
+    // called. Initialise the default UI locale on first use, but never override
+    // a locale the caller already selected.
+    static std::once_flag s_locale_once;
+    std::call_once(s_locale_once,
+                   []
+                   {
+                       if (!wxUILocale::IsSet())
+                       {
+                           wxUILocale::UseDefault();
+                       }
+                   });
+}
 
 extern "C"
 {
@@ -63,6 +85,57 @@ extern "C"
     EXPORT void* wxGetkwxTranslation(void* text)
     {
         wxString retVal = wxGetTranslation((const char*) text);
+        return (void*) strdup(retVal.utf8_string().data());
+    }
+
+    EXPORT void* wxNumberFormatter_ToStringLongLong(int64_t value, int style)
+    {
+        EnsureUILocale();
+        wxString retVal = wxNumberFormatter::ToString(static_cast<wxLongLong_t>(value), style);
+        return (void*) strdup(retVal.utf8_string().data());
+    }
+
+    EXPORT void* wxNumberFormatter_ToStringDouble(double value, int precision, int style)
+    {
+        EnsureUILocale();
+        wxString retVal = wxNumberFormatter::ToString(value, precision, style);
+        return (void*) strdup(retVal.utf8_string().data());
+    }
+
+    EXPORT void* wxNumberFormatter_GetThousandsSeparator()
+    {
+        EnsureUILocale();
+        const wxLocaleNumberFormatting formatting = wxUILocale::GetCurrent().GetNumberFormatting();
+        if (formatting.groupSeparator.empty() || formatting.grouping.empty() ||
+            formatting.grouping.front() == 0)
+        {
+            return (void*) strdup("");
+        }
+        return (void*) strdup(formatting.groupSeparator.utf8_string().data());
+    }
+
+    EXPORT void* wxNumberFormatter_GetDecimalSeparator()
+    {
+        EnsureUILocale();
+        wxString retVal(wxNumberFormatter::GetDecimalSeparator());
+        return (void*) strdup(retVal.utf8_string().data());
+    }
+
+    EXPORT bool wxUILocale_UseDefault()
+    {
+        return wxUILocale::UseDefault();
+    }
+
+    EXPORT bool wxUILocale_IsSet()
+    {
+        return wxUILocale::IsSet();
+    }
+
+    EXPORT void* wxUILocale_GetInfo(int index, int category)
+    {
+        EnsureUILocale();
+        wxString retVal = wxUILocale::GetCurrent().GetInfo(static_cast<wxLocaleInfo>(index),
+                                                           static_cast<wxLocaleCategory>(category));
         return (void*) strdup(retVal.utf8_string().data());
     }
 }

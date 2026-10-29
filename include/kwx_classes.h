@@ -3006,6 +3006,15 @@ TString wxLocale_GetString(TSelf(wxLocale) pObject, TClass(wxString) szOrigStrin
 TBool wxLocale_IsLoaded(TSelf(wxLocale) pObject, TClass(wxString) szDomain);
 TBool wxLocale_IsOk(TSelf(wxLocale) pObject);
 
+TClassDef(wxNumberFormatter) TString wxNumberFormatter_GetDecimalSeparator();
+TString wxNumberFormatter_GetThousandsSeparator();
+TString wxNumberFormatter_ToStringDouble(double value, int precision, int style);
+TString wxNumberFormatter_ToStringLongLong(TInt64 value, int style);
+
+TClassDef(wxUILocale) TString wxUILocale_GetInfo(int index, int category);
+TBool wxUILocale_IsSet();
+TBool wxUILocale_UseDefault();
+
 TClassDef(wxLog)
 
     TClassDefExtend(wxLogChain, wxLog) TClass(wxLogChain) wxLogChain_Create(TClass(wxLog) logger);
