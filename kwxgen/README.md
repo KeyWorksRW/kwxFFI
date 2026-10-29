@@ -2,7 +2,7 @@
 
 `kwxgen` parses the kwxFFI C header files and generates foreign-language bindings for wxWidgets.
 It reads the `include/` headers and `src/kwx_defs.cpp` to build a complete model of the FFI
-surface (~572 classes, ~4,679 methods, ~485 events, 99 key constants, ~1,174 defined constants),
+surface (~653 classes, ~7,925 methods, ~308 events, 99 key constants, ~1,388 defined constants),
 then emits idiomatic bindings for each target language.
 
 kwxgen lives in the `kwxgen/` subdirectory of kwxFFI. When a language port fetches kwxFFI (as a
@@ -242,12 +242,12 @@ extern/kwxFFI/bin/Debug/kwxgen verify \
 
 | Category | Count |
 |---|---|
-| Classes | 572 |
-| Class methods | 4,679 |
-| Events | 315 |
+| Classes | 653 |
+| Class methods | 7,925 |
+| Events | 308 |
 | Key constants | 99 |
-| Defined constants | 1,174 |
-| Free functions | 23 |
+| Defined constants | 1,388 |
+| Free functions | 214 |
 
 ## Building
 
@@ -297,15 +297,18 @@ Parses the headers and generates binding source files for the specified language
 | `--lang <lang>` | Target language (see `kwxgen langs`) |
 | `--out <dir>` | Output directory for generated files |
 | `--libname <name>` | Runtime shared-lib name embedded in bindings (default: `kwxFFI`) |
+| `--profile <name>` | Surface profile: `full` or `gui` (default: per language — see [Profiles](#profiles)) |
 
 ### `verify` — Verify existing bindings
 
 ```
 kwxgen verify --headers <dir> --defs <file> --lang <lang> --dir <dir>
-              [--deno-check] [--deno <exe>] [--deno-config <file>]
+              [--profile <name>] [--deno-check] [--deno <exe>] [--deno-config <file>]
 ```
 
 Checks that generated bindings in `--dir` are up to date with the current headers.
+Generate and verify must use the same profile, otherwise `verify` will report the excluded
+classes as missing.
 With `--deno-check`, it also generates into a temp directory and runs `deno check`
 on the TypeScript barrel (`kwx_gen.ts`). Without `--deno-config`, kwxgen writes a
 small compile-time `kwx/platform` shim and a temporary `deno.jsonc`; pass the
@@ -343,3 +346,73 @@ kwxgen langs
 ```
 
 Prints the list of available language backends.
+
+### `profiles` — List profiles and per-language defaults
+
+```
+kwxgen profiles
+```
+
+Prints every profile name and the default profile for each language.
+
+## Profiles
+
+A profile selects how much of the kwxFFI surface a language binding exposes.
+
+| Profile | Description |
+|---|---|
+| `full` | Every parsed class, free function, event, key and constant. |
+| `gui` | Drops base-utility classes (regex, XML, threads/sync, sockets/HTTP/FTP, URL/URI, streams/compression, process spawn, config parsing, date/time, variants, text/temp files) because the runtime's standard library already provides that functionality. Any class still referenced by a retained signature is kept, so the generated code continues to compile. |
+
+Default profile per language:
+
+| Language | Default profile |
+|---|---|
+| `fortran` | `full` |
+| `go` | `gui` |
+| `julia` | `gui` |
+| `luajit` | `full` |
+| `typescript` | `full` |
+
+The `exports` command always emits the complete surface and rejects `--profile`.
+
+### Profile categories
+
+Every class in the parsed model belongs to exactly one category. The authoritative,
+regenerated list is `.private/coverage_expansion_inventory.md` (one line per class:
+`name | method count | category | owning phase`).
+
+| Category | In `gui`? | Meaning |
+|---|---|---|
+| `gui` | yes | Wrapped and exposed in every profile. |
+| `base-utility` | no | The Go/Julia standard library already provides this functionality (date/time, filesystem paths, streams and compression, XML, threads/sync, process spawn, sockets/HTTP/FTP, URL/URI, regex, memory buffers, command-line parsing, dynamic libraries, variants, text/temp files, tokenizers, containers). Listed in `GuiExcludedClasses()` in `kwxgen/src/profile.cpp`. |
+| `msw-excluded` | no | MSW-only and never wrapped (`wxAutomationObject`, `wxActiveXContainer`). |
+| `legacy` | no | Deprecated base class, never wrapped (`wxNodeBase`, `wxVariantData`, `wxObjectRefData`). |
+
+`wxFileName`, `wxDir`, `wxDirTraverser`, `wxStandardPaths`, `wxConfigBase`,
+`wxFileConfig`, `wxLocale`, `wxUILocale`, `wxNumberFormatter` and `wxTranslations` stay
+in `gui` by an explicit scope decision, even though a runtime could substitute its own
+implementation.
+
+MSW-only classes that survive through the alias pattern in
+`include/kwx_msw_aliases.h` (`wxTaskBarButton`, `wxRegConfig`, `wxRegKey`,
+`wxDDEClient`, `wxDDEServer`, `wxAuiMSWToolBarArt`, `wxWebViewIE`, `wxWebViewEdge`)
+stay in `gui`.
+
+### Rule: a new class must be classified
+
+Adding a class to `include/` without classifying it is a defect: an unclassified
+base-utility class silently leaks into the Go and Julia surface. To add a class:
+
+1. Run `kwxgen parse --headers include --defs src/kwx_defs.cpp --out <model.json>`.
+2. Regenerate `.private/coverage_expansion_inventory.md` from the new model.
+3. If the class is `base-utility`, add its exact name to `GuiExcludedClasses()` in
+   `kwxgen/src/profile.cpp`, keeping the list sorted.
+4. Confirm `kwxgen generate --lang go --profile gui --out <temp>` omits it while
+   `--profile full` includes it.
+
+A `base-utility` class that a retained signature still references (as an ancestor,
+mixin, parameter type or return type) is added back automatically, so the generated
+bindings continue to compile. That is why `wxDateTime`, `wxVariant`, `wxArray`,
+`wxArrayString`, `wxList`, `wxStreamBase`, `wxInputStream` and `wxOutputStream` appear
+in `gui` output even though they are `base-utility`.

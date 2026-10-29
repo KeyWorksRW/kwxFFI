@@ -24,7 +24,7 @@ TBool Quantize(TClass(wxImage) src, TClass(wxImage) dest, int desiredNoColours, 
 TBool QuantizePalette(TClass(wxImage) src, TClass(wxImage) dest, void* pPalette,
                       int desiredNoColours, void* eightBitData, int flags);
 void wxCFree(void* pointer);
-TClass(kwxLocale) wxGetkwxLocale();
+TClass(wxLocale) wxGetkwxLocale();
 void* wxGetkwxTranslation(TStringVoid text);
 void wxMutexGui_Enter();
 void wxMutexGui_Leave();

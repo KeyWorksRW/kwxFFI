@@ -266,4 +266,84 @@ extern "C"
     {
         return const_cast<wxHtmlLinkInfo*>(&self->GetLinkInfo());
     }
+
+    EXPORT void* wxHtmlLinkInfo_Create()
+    {
+#if wxUSE_HTML
+        return new wxHtmlLinkInfo();
+#else
+        return nullptr;
+#endif
+    }
+
+    EXPORT void* wxHtmlLinkInfo_CreateWithHref(wxString* href, wxString* target)
+    {
+#if wxUSE_HTML
+        return new wxHtmlLinkInfo(*href, *target);
+#else
+        wxUnusedVar(href);
+        wxUnusedVar(target);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxHtmlLinkInfo_Delete(wxHtmlLinkInfo* self)
+    {
+#if wxUSE_HTML
+        delete self;
+#else
+        wxUnusedVar(self);
+#endif
+    }
+
+    EXPORT wxString* wxHtmlLinkInfo_GetHref(wxHtmlLinkInfo* self)
+    {
+#if wxUSE_HTML
+        return new wxString(self->GetHref());
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
+    }
+
+    EXPORT wxString* wxHtmlLinkInfo_GetTarget(wxHtmlLinkInfo* self)
+    {
+#if wxUSE_HTML
+        return new wxString(self->GetTarget());
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
+    }
+
+    EXPORT wxMouseEvent* wxHtmlLinkInfo_GetEvent(wxHtmlLinkInfo* self)
+    {
+#if wxUSE_HTML
+        const wxMouseEvent* event = self->GetEvent();
+        return event != nullptr ? new wxMouseEvent(*event) : nullptr;
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxHtmlLinkInfo_SetEvent(wxHtmlLinkInfo* self, wxMouseEvent* event)
+    {
+#if wxUSE_HTML
+        self->SetEvent(event);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(event);
+#endif
+    }
+
+    EXPORT wxHtmlCell* wxHtmlLinkInfo_GetHtmlCell(wxHtmlLinkInfo* self)
+    {
+#if wxUSE_HTML
+        return const_cast<wxHtmlCell*>(self->GetHtmlCell());
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
 }

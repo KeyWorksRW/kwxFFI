@@ -116,6 +116,42 @@ This document records key architectural and design decisions made for the kwxFFI
 
 ---
 
+## Decision: Single Library with Generation Profiles Instead of Multiple Bindings
+
+**Date**: 2026-10-29
+
+**Context**: The five language runtimes (Fortran, Go, Julia, LuaJIT, TypeScript) each need a different share of the wxWidgets surface. Go and Julia ship their own date/time, filesystem, stream, XML, thread, socket, regex and command-line libraries, so wrapping those classes there duplicates the runtime; Fortran, LuaJIT and TypeScript have no such standard library and need everything kwxFFI can offer. Two designs were on the table: build several `kwxFFI` shared-library variants, one per surface size, or keep one library and filter the *generated bindings* per consumer.
+
+**Decision**: Build one `kwxFFI` shared library that exports the complete surface, and let `kwxgen --profile` decide which bindings each consumer generates (Option C). The `exports` command always emits the complete surface and rejects `--profile`, so `tests/expected/symbols.sha256` covers everything the library ships.
+
+**Rationale**:
+
+1. **One binary, one digest**: A single shared library means one build artifact, one CI job and one export digest. Filtering at generation time gives each runtime a surface sized to its needs without a second DLL to build, sign, ship and keep in sync.
+
+2. **Multiple compiled variants were rejected**: Building a minimal and a full library variant doubles the build and CI artifacts while shrinking neither the generated binding size nor the maintenance burden — the runtime gap is on the binding side, not the library side.
+
+3. **Defaults match the runtime**: `gui` is the default for Go and Julia, whose standard libraries already cover the base-utility classes; `full` is the default for Fortran, LuaJIT and TypeScript, which have nothing to fall back on.
+
+4. **Closure keeps the output compilable**: `ApplyProfile` drops only the excluded classes and then adds back any class a retained signature still references (ancestor, mixin, parameter or return type), so a `gui` binding never names a type it cannot resolve.
+
+5. **MSW OLE/automation is not portable at all**: `wxAutomationObject` and `wxActiveXContainer` exist only for Windows COM automation and have no cross-platform meaning, so they are excluded permanently from every profile. The other MSW-only classes — `wxTaskBarButton`, `wxRegConfig`, `wxRegKey`, `wxDDEClient`, `wxDDEServer`, `wxAuiMSWToolBarArt`, `wxWebViewIE`, `wxWebViewEdge` — stay in the surface through the alias pattern in `include/kwx_msw_aliases.h` plus guarded bodies in `src/`, which keeps declarations unguarded and the bindings identical on every platform.
+
+6. **Regex must be available unconditionally**: `wxUSE_REGEX` is enabled (builtin PCRE2) on macOS as well as the other platforms so `wxRegEx` can be wrapped without a platform guard.
+
+7. **Scope is runtime gaps, not total coverage**: the target is "close the runtime gaps the five language runtimes cannot fill themselves" — base-library utilities plus the zero-method GUI stubs — not "wrap every public wxWidgets class". Classes with no consumer value stay unwrapped.
+
+**Implications**:
+
+- Every class in `include/` must be classified as `gui` or `base-utility`; an unclassified base-utility class silently leaks into the Go and Julia surface. The authoritative list is `.private/coverage_expansion_inventory.md`, mirrored by `GuiExcludedClasses()` in `kwxgen/src/profile.cpp`
+- `kwxgen generate` and `kwxgen verify` must be run with the same `--profile`; a mismatch reports every profile-filtered symbol as missing
+- `kwxgen exports` must never be given `--profile`, so the digest baseline covers the complete surface regardless of which profile a consumer generates with
+- `TInt64` / `wxUIntPtr` exports remain deferred pending the downstream TypeScript type-map issue; the pending symbols are tracked in `.private/deferred_i64.md`
+- Adding a platform-specific class means extending `include/kwx_msw_aliases.h` and guarding the body in `src/`, never guarding the declaration in `include/`
+
+**Status**: Accepted
+
+---
+
 <!-- Template for future decisions:
 
 ## Decision: [Title]

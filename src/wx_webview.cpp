@@ -17,271 +17,505 @@ extern "C"
     EXPORT wxWebView* wxWebView_New(wxWindow* parent, int id, wxString* url, int x, int y,
                                     int width, int height, wxString* backend, int style)
     {
+#if wxUSE_WEBVIEW
         return wxWebView::New(parent, id, *url, wxPoint(x, y), wxSize(width, height),
                               backend ? *backend : wxString(wxWebViewBackendDefault), style);
+#else
+        // No web view backend exists in this build, so no instance can be created.
+        wxUnusedVar(parent);
+        wxUnusedVar(id);
+        wxUnusedVar(url);
+        wxUnusedVar(x);
+        wxUnusedVar(y);
+        wxUnusedVar(width);
+        wxUnusedVar(height);
+        wxUnusedVar(backend);
+        wxUnusedVar(style);
+        return nullptr;
+#endif
     }
 
     // Navigation
     EXPORT void wxWebView_LoadURL(wxWebView* self, wxString* url)
     {
+#if wxUSE_WEBVIEW
         self->LoadURL(*url);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(url);
+#endif
     }
 
     EXPORT void wxWebView_GoBack(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->GoBack();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT void wxWebView_GoForward(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->GoForward();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT void wxWebView_Stop(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->Stop();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT void wxWebView_Reload(wxWebView* self, int flags)
     {
+#if wxUSE_WEBVIEW
         self->Reload((wxWebViewReloadFlags) flags);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(flags);
+#endif
     }
 
     EXPORT bool wxWebView_CanGoBack(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->CanGoBack();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     EXPORT bool wxWebView_CanGoForward(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->CanGoForward();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     // Content access
     EXPORT wxString* wxWebView_GetCurrentURL(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetCurrentURL();
         return result;
+#else
+        // Keep the allocation contract: callers always own a wxString here.
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT wxString* wxWebView_GetCurrentTitle(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetCurrentTitle();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT wxString* wxWebView_GetPageSource(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetPageSource();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT wxString* wxWebView_GetPageText(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetPageText();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     // Status
     EXPORT bool wxWebView_IsBusy(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->IsBusy();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     // HTML content
     EXPORT void wxWebView_SetPage(wxWebView* self, wxString* html, wxString* baseUrl)
     {
+#if wxUSE_WEBVIEW
         self->SetPage(*html, *baseUrl);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(html);
+        wxUnusedVar(baseUrl);
+#endif
     }
 
     // JavaScript execution
     EXPORT bool wxWebView_RunScript(wxWebView* self, wxString* javascript, wxString* output)
     {
+#if wxUSE_WEBVIEW
         if (output)
         {
             return self->RunScript(*javascript, output);
         }
-        else
-        {
-            return self->RunScript(*javascript);
-        }
+        return self->RunScript(*javascript);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(javascript);
+        // Nothing runs, so the caller's output string is left untouched.
+        wxUnusedVar(output);
+        return false;
+#endif
     }
 
     // Zoom
     EXPORT void wxWebView_SetZoom(wxWebView* self, int zoom)
     {
+#if wxUSE_WEBVIEW
         self->SetZoom((wxWebViewZoom) zoom);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(zoom);
+#endif
     }
 
     EXPORT int wxWebView_GetZoom(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return (int) self->GetZoom();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
     }
 
     EXPORT void wxWebView_SetZoomType(wxWebView* self, int zoomType)
     {
+#if wxUSE_WEBVIEW
         self->SetZoomType((wxWebViewZoomType) zoomType);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(zoomType);
+#endif
     }
 
     EXPORT int wxWebView_GetZoomType(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return (int) self->GetZoomType();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
     }
 
     EXPORT float wxWebView_GetZoomFactor(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->GetZoomFactor();
+#else
+        wxUnusedVar(self);
+        return 0.0F;
+#endif
     }
 
     EXPORT void wxWebView_SetZoomFactor(wxWebView* self, float zoom)
     {
+#if wxUSE_WEBVIEW
         self->SetZoomFactor(zoom);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(zoom);
+#endif
     }
 
     // Context menu
     EXPORT void wxWebView_EnableContextMenu(wxWebView* self, bool enable)
     {
+#if wxUSE_WEBVIEW
         self->EnableContextMenu(enable);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(enable);
+#endif
     }
 
     EXPORT bool wxWebView_IsContextMenuEnabled(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->IsContextMenuEnabled();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     // Editing
     EXPORT bool wxWebView_CanCut(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->CanCut();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     EXPORT bool wxWebView_CanCopy(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->CanCopy();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     EXPORT bool wxWebView_CanPaste(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->CanPaste();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     EXPORT void wxWebView_Cut(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->Cut();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT void wxWebView_Copy(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->Copy();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT void wxWebView_Paste(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->Paste();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     // Selection
     EXPORT wxString* wxWebView_GetSelectedText(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetSelectedText();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT wxString* wxWebView_GetSelectedSource(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetSelectedSource();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT void wxWebView_ClearSelection(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->ClearSelection();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT bool wxWebView_HasSelection(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->HasSelection();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     // Find
     EXPORT long wxWebView_Find(wxWebView* self, wxString* text, int flags)
     {
+#if wxUSE_WEBVIEW
         return self->Find(*text, flags);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(text);
+        wxUnusedVar(flags);
+        return 0;
+#endif
     }
 
     // Print
     EXPORT void wxWebView_Print(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         self->Print();
+#else
+        wxUnusedVar(self);
+#endif
     }
 
     // Access control
     EXPORT bool wxWebView_IsAccessToDevToolsEnabled(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->IsAccessToDevToolsEnabled();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     EXPORT void wxWebView_EnableAccessToDevTools(wxWebView* self, bool enable)
     {
+#if wxUSE_WEBVIEW
         self->EnableAccessToDevTools(enable);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(enable);
+#endif
     }
 
     // Backend info
     EXPORT bool wxWebView_IsBackendAvailable(wxString* backend)
     {
+#if wxUSE_WEBVIEW
         return wxWebView::IsBackendAvailable(*backend);
+#else
+        wxUnusedVar(backend);
+        return false;
+#endif
     }
 
     // Editable mode
     EXPORT void wxWebView_SetEditable(wxWebView* self, bool enable)
     {
+#if wxUSE_WEBVIEW
         self->SetEditable(enable);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(enable);
+#endif
     }
 
     EXPORT bool wxWebView_IsEditable(wxWebView* self)
     {
+#if wxUSE_WEBVIEW
         return self->IsEditable();
+#else
+        wxUnusedVar(self);
+        return false;
+#endif
     }
 
     // wxWebViewEvent methods
     EXPORT wxString* wxWebViewEvent_GetURL(wxWebViewEvent* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetURL();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT wxString* wxWebViewEvent_GetTarget(wxWebViewEvent* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetTarget();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     EXPORT int wxWebViewEvent_GetNavigationAction(wxWebViewEvent* self)
     {
+#if wxUSE_WEBVIEW
         return (int) self->GetNavigationAction();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
     }
 
     EXPORT int wxWebViewEvent_GetInt(wxWebViewEvent* self)
     {
+#if wxUSE_WEBVIEW
         return self->GetInt();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
     }
 
     EXPORT wxString* wxWebViewEvent_GetString(wxWebViewEvent* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetString();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     // Event exports
+    // The wxEVT_WEBVIEW_* identifiers only exist when wxUSE_WEBVIEW is enabled;
+    // the disabled branch emits the same exported symbols with a neutral value so
+    // the FFI surface is identical on every build.
+#if wxUSE_WEBVIEW
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NAVIGATING)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NAVIGATED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_LOADED)
@@ -291,8 +525,58 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_FULLSCREEN_CHANGED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_SCRIPT_RESULT)
+#else
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_NAVIGATING)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_NAVIGATED)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_LOADED)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_ERROR)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_NEWWINDOW)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_TITLE_CHANGED)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_FULLSCREEN_CHANGED)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED)()
+    {
+        return (int) wxEVT_NULL;
+    }
+
+    WXFFI_EXPORT(int, exp_wxEVT_WEBVIEW_SCRIPT_RESULT)()
+    {
+        return (int) wxEVT_NULL;
+    }
+#endif
 
     // Zoom constants
+    // The wxWEBVIEW_* constants only exist when wxUSE_WEBVIEW is enabled; the
+    // disabled branch emits the same exported symbols with neutral values so the
+    // FFI surface is identical on every build.
+#if wxUSE_WEBVIEW
     WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TINY, wxWEBVIEW_ZOOM_TINY)
     WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_SMALL, wxWEBVIEW_ZOOM_SMALL)
     WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_MEDIUM, wxWEBVIEW_ZOOM_MEDIUM)
@@ -329,34 +613,89 @@ extern "C"
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_NONE, wxWEBVIEW_NAV_ACTION_NONE)
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_USER, wxWEBVIEW_NAV_ACTION_USER)
     WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_OTHER, wxWEBVIEW_NAV_ACTION_OTHER)
+#else
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TINY, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_SMALL, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_MEDIUM, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_LARGE, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_LARGEST, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TYPE_LAYOUT, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_ZOOM_TYPE_TEXT, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_RELOAD_DEFAULT, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_RELOAD_NO_CACHE, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_WRAP, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_ENTIRE_WORD, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_MATCH_CASE, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_HIGHLIGHT_RESULT, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_BACKWARDS, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_FIND_DEFAULT, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_CONNECTION, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_CERTIFICATE, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_AUTH, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_SECURITY, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_NOT_FOUND, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_REQUEST, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_USER_CANCELLED, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ERR_OTHER, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_NONE, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_USER, 0)
+    WXFFI_CONSTANT_INT(expWEBVIEW_NAV_ACTION_OTHER, 0)
+#endif
 
     // wxWebViewHandler methods
     EXPORT wxWebViewHandler* wxWebViewHandler_Create(wxString* scheme)
     {
+#if wxUSE_WEBVIEW
         return new wxWebViewHandler(*scheme);
+#else
+        wxUnusedVar(scheme);
+        return nullptr;
+#endif
     }
 
     EXPORT void wxWebViewHandler_Delete(wxWebViewHandler* self)
     {
+#if wxUSE_WEBVIEW
         delete self;
+#else
+        // A handler can only be created when wxUSE_WEBVIEW is enabled, so there is
+        // nothing to release here.
+        wxUnusedVar(self);
+#endif
     }
 
     EXPORT wxFSFile* wxWebViewHandler_GetFile(wxWebViewHandler* self, wxString* uri)
     {
+#if wxUSE_WEBVIEW
         return self->GetFile(*uri);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(uri);
+        return nullptr;
+#endif
     }
 
     EXPORT wxString* wxWebViewHandler_GetName(wxWebViewHandler* self)
     {
+#if wxUSE_WEBVIEW
         wxString* result = new wxString();
         *result = self->GetName();
         return result;
+#else
+        wxUnusedVar(self);
+        return new wxString();
+#endif
     }
 
     // The handler is owned by the web view after registration, as for the
     // wxSharedPtr<wxWebViewHandler> parameter of wxWebView::RegisterHandler.
     EXPORT void wxWebView_RegisterHandler(wxWebView* self, wxWebViewHandler* handler)
     {
+#if wxUSE_WEBVIEW
         self->RegisterHandler(wxSharedPtr<wxWebViewHandler>(handler));
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(handler);
+#endif
     }
 }

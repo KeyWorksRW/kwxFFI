@@ -138,6 +138,8 @@
 #include <wx/xml/xml.h>
 #include <wx/zstream.h>
 
+#include "kwx_msw_aliases.h"
+
 #if !wxCHECK_VERSION(3, 3, 2)
     #error "This code requires wxWidgets 3.3.2 or later"
 #endif
@@ -721,3 +723,4 @@ public:
 #include "kwx_helper_accessible.h"
 #include "kwx_helper_eventfilter.h"
 #include "kwx_helper_filedlgcustomize.h"
+#include "kwx_helper_thread.h"

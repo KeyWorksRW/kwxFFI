@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/quantize.h>
+
 extern "C"
 {
     EXPORT void wxImage_Copy(wxImage* self, wxImage* image)
@@ -669,5 +671,122 @@ extern "C"
     EXPORT void wxImage_InitStandardHandlers()
     {
         wxImage::InitStandardHandlers();
+    }
+
+    EXPORT void* wxQuantize_Create()
+    {
+        return new wxQuantize();
+    }
+
+    EXPORT void wxQuantize_Delete(wxQuantize* self)
+    {
+        delete self;
+    }
+
+    EXPORT bool wxQuantize_Quantize(wxImage* src, wxImage* dest, int desiredNoColours, int flags)
+    {
+        return wxQuantize::Quantize(*src, *dest, desiredNoColours, nullptr, flags);
+    }
+
+    EXPORT wxString* wxImageHandler_GetName(wxImageHandler* self)
+    {
+        return new wxString(self->GetName());
+    }
+
+    EXPORT void wxImageHandler_SetName(wxImageHandler* self, wxString* name)
+    {
+        self->SetName(*name);
+    }
+
+    EXPORT wxString* wxImageHandler_GetExtension(wxImageHandler* self)
+    {
+        return new wxString(self->GetExtension());
+    }
+
+    EXPORT void wxImageHandler_SetExtension(wxImageHandler* self, wxString* ext)
+    {
+        self->SetExtension(*ext);
+    }
+
+    EXPORT wxString* wxImageHandler_GetMimeType(wxImageHandler* self)
+    {
+        return new wxString(self->GetMimeType());
+    }
+
+    EXPORT void wxImageHandler_SetMimeType(wxImageHandler* self, wxString* mime)
+    {
+        self->SetMimeType(*mime);
+    }
+
+    EXPORT int wxImageHandler_GetType(wxImageHandler* self)
+    {
+        return static_cast<int>(self->GetType());
+    }
+
+    EXPORT void wxImageHandler_SetType(wxImageHandler* self, int type)
+    {
+        self->SetType(static_cast<wxBitmapType>(type));
+    }
+
+    EXPORT int wxImageHandler_GetImageCount(wxImageHandler* self, wxInputStream* stream)
+    {
+#if wxUSE_STREAMS
+        return self->GetImageCount(*stream);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(stream);
+        return 0;
+#endif
+    }
+
+    EXPORT bool wxImageHandler_CanReadStream(wxImageHandler* self, wxInputStream* stream)
+    {
+#if wxUSE_STREAMS
+        return self->CanRead(*stream);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(stream);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxImageHandler_CanReadFile(wxImageHandler* self, wxString* name)
+    {
+#if wxUSE_STREAMS
+        return self->CanRead(*name);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(name);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxImageHandler_LoadFile(wxImageHandler* self, wxImage* image, wxInputStream* stream,
+                                        bool verbose, int index)
+    {
+#if wxUSE_STREAMS
+        return self->LoadFile(image, *stream, verbose, index);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(image);
+        wxUnusedVar(stream);
+        wxUnusedVar(verbose);
+        wxUnusedVar(index);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxImageHandler_SaveFile(wxImageHandler* self, wxImage* image,
+                                        wxOutputStream* stream, bool verbose)
+    {
+#if wxUSE_STREAMS
+        return self->SaveFile(image, *stream, verbose);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(image);
+        wxUnusedVar(stream);
+        wxUnusedVar(verbose);
+        return false;
+#endif
     }
 }

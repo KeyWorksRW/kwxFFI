@@ -1151,6 +1151,41 @@ extern "C"
         ((wxPoint*) pObject)->y = y;
     }
 
+    EXPORT void* wxRealPoint_Create(double x, double y)
+    {
+        return new wxRealPoint(x, y);
+    }
+
+    EXPORT void* wxRealPoint_CreateFromPoint(void* point)
+    {
+        return new wxRealPoint(*((wxPoint*) point));
+    }
+
+    EXPORT void wxRealPoint_Delete(void* pObject)
+    {
+        delete (wxRealPoint*) pObject;
+    }
+
+    EXPORT double wxRealPoint_GetX(void* pObject)
+    {
+        return ((wxRealPoint*) pObject)->x;
+    }
+
+    EXPORT double wxRealPoint_GetY(void* pObject)
+    {
+        return ((wxRealPoint*) pObject)->y;
+    }
+
+    EXPORT void wxRealPoint_SetX(void* pObject, double x)
+    {
+        ((wxRealPoint*) pObject)->x = x;
+    }
+
+    EXPORT void wxRealPoint_SetY(void* pObject, double y)
+    {
+        ((wxRealPoint*) pObject)->y = y;
+    }
+
     EXPORT void* wxSize_Create(int width, int height)
     {
         return new wxSize(width, height);

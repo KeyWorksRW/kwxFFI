@@ -32,6 +32,7 @@ set( FFI_SRC_FILES
     src/wx_accessible.cpp
     src/wx_activityindicator.cpp
     src/wx_animationctrl.cpp
+    src/wx_app.cpp
     src/wx_artprov.cpp
     src/wx_aui.cpp
     src/wx_auimdi.cpp
@@ -48,6 +49,7 @@ set( FFI_SRC_FILES
     src/wx_choice.cpp
     src/wx_choicebook.cpp
     src/wx_choicedlg.cpp
+    src/wx_clientdata.cpp
     src/wx_clipboard.cpp
     src/wx_coldata.cpp
     src/wx_collapsiblepane.cpp
@@ -66,6 +68,7 @@ set( FFI_SRC_FILES
     src/wx_dataviewctrl.cpp
     src/wx_dataviewlistctrl.cpp
     src/wx_datepickerctrl.cpp
+    src/wx_date_locale_extra.cpp
     src/wx_datetime.cpp
     src/wx_dc.cpp
     src/wx_dcsvg.cpp
@@ -89,6 +92,7 @@ set( FFI_SRC_FILES
     src/wx_filename.cpp
     src/wx_filepickerctrl.cpp
     src/wx_filesystem.cpp
+    src/wx_file_stream_extra.cpp
     src/wx_findrepldlg.cpp
     src/wx_font.cpp
     src/wx_fontdata.cpp
@@ -129,6 +133,7 @@ set( FFI_SRC_FILES
     src/wx_messagedialog.cpp
     src/wx_mime.cpp
     src/wx_miniframe.cpp
+    src/wx_net_extra.cpp
     src/wx_notebook.cpp
     src/wx_notifmsg.cpp
     src/wx_numberdlg.cpp
@@ -151,6 +156,7 @@ set( FFI_SRC_FILES
     src/wx_radiobutton.cpp
     src/wx_rc.cpp
     src/wx_rearrangectrl.cpp
+    src/wx_regex_xml_extra.cpp
     src/wx_region.cpp
     src/wx_regioniter.cpp
     src/wx_ribbonbar.cpp
@@ -196,6 +202,7 @@ set( FFI_SRC_FILES
     src/wx_timer.cpp
     src/wx_tipwnd.cpp
     src/wx_thread.cpp
+    src/wx_thread_extra.cpp
     src/wx_toolbar.cpp
     src/wx_toolbook.cpp
     src/wx_tooltip.cpp
@@ -226,19 +233,27 @@ set( FFI_HDR_FILES
     include/kwx_classes.h
     include/kwx_classes_sync.h
     include/kwx_core_extra.h
+    include/kwx_date_locale_extra.h
     include/kwx_dialogs_extra.h
+    include/kwx_file_stream_extra.h
     include/kwx_html.h
     include/kwx_richtext.h
     include/kwx_grid_extra.h
     include/kwx_propgrid_extra.h
+    include/kwx_regex_xml_extra.h
     include/kwx_ribbon_extra.h
     include/kwx_methods_window.h
     include/kwx_methods_views.h
     include/kwx_methods_gdi.h
     include/kwx_process.h
     include/kwx_platform_aliases.h
+    include/kwx_msw_aliases.h
+    include/kwx_net_extra.h
     include/kwx_log.h
     include/kwx_accessible.h
+    include/kwx_helper_cmdline.h
+    include/kwx_helper_thread.h
     include/kwx_spec_residual.h
+    include/kwx_thread_extra.h
     include/kwx_grid.h
 )

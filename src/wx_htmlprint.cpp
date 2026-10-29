@@ -144,4 +144,106 @@ extern "C"
     {
         self->SetMargins(top, bottom, left, right, spaces);
     }
+
+    EXPORT void* wxHtmlDCRenderer_Create()
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        return new wxHtmlDCRenderer();
+#else
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_Delete(wxHtmlDCRenderer* self)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        delete self;
+#else
+        wxUnusedVar(self);
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_SetDC(wxHtmlDCRenderer* self, wxDC* dc, double pixelScale,
+                                       double fontScale)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        self->SetDC(dc, pixelScale, fontScale);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(dc);
+        wxUnusedVar(pixelScale);
+        wxUnusedVar(fontScale);
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_SetSize(wxHtmlDCRenderer* self, int width, int height)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        self->SetSize(width, height);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(width);
+        wxUnusedVar(height);
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_SetHtmlText(wxHtmlDCRenderer* self, wxString* html,
+                                             wxString* basepath, bool isdir)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        self->SetHtmlText(*html, *basepath, isdir);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(html);
+        wxUnusedVar(basepath);
+        wxUnusedVar(isdir);
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_SetStandardFonts(wxHtmlDCRenderer* self, int size,
+                                                  wxString* normalFace, wxString* fixedFace)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        self->SetStandardFonts(size, *normalFace, *fixedFace);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(size);
+        wxUnusedVar(normalFace);
+        wxUnusedVar(fixedFace);
+#endif
+    }
+
+    EXPORT int wxHtmlDCRenderer_FindNextPageBreak(wxHtmlDCRenderer* self, int pos)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        return self->FindNextPageBreak(pos);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(pos);
+        return 0;
+#endif
+    }
+
+    EXPORT void wxHtmlDCRenderer_Render(wxHtmlDCRenderer* self, int x, int y, int from, int to)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        self->Render(x, y, from, to);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(x);
+        wxUnusedVar(y);
+        wxUnusedVar(from);
+        wxUnusedVar(to);
+#endif
+    }
+
+    EXPORT int wxHtmlDCRenderer_GetTotalHeight(wxHtmlDCRenderer* self)
+    {
+#if wxUSE_HTML && wxUSE_PRINTING_ARCHITECTURE
+        return self->GetTotalHeight();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
+    }
 }
