@@ -26,6 +26,7 @@
 //     "verify_dir": "./reference",
 //     "manifest_file": "./manifest.json",
 //     "lib_name": "kwxFFI",
+//     "profile": "gui",
 //     "exports": false
 // }
 
@@ -46,8 +47,10 @@
 #include "lang/lang_typescript.h"
 #include "md_files_gen.h"
 #include "model.h"
+#include "profile.h"
 #include "verify.h"
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -71,6 +74,7 @@ static constexpr std::string_view CMD_CHECK = "check";
 static constexpr std::string_view CMD_EXPORTS = "exports";
 static constexpr std::string_view CMD_DIFF = "diff";
 static constexpr std::string_view CMD_LANGS = "langs";
+static constexpr std::string_view CMD_PROFILES = "profiles";
 static constexpr std::string_view CMD_ALL_MD_FILES = "all_md_files";
 
 // Argument flags
@@ -81,6 +85,7 @@ static constexpr std::string_view ARG_LANG = "--lang";
 static constexpr std::string_view ARG_DIR = "--dir";
 static constexpr std::string_view ARG_MANIFEST = "--manifest";
 static constexpr std::string_view ARG_LIBNAME = "--libname";
+static constexpr std::string_view ARG_PROFILE = "--profile";
 static constexpr std::string_view ARG_EXPORTS_FLAG = "--exports";
 static constexpr std::string_view ARG_ALL_MD_FILES = "--amdfiles";
 static constexpr std::string_view ARG_DENO = "--deno";
@@ -105,11 +110,16 @@ static void PrintUsage(const char* prog_name)
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
+    std::println(stderr, "  {} profiles", prog_name);
     std::println(stderr, "");
     std::println(stderr, "Global options (for generate/verify):");
     std::println(
         stderr,
         "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
+    std::println(stderr,
+                 "  --profile <name>   Surface profile: full or gui (default: per language; run "
+                 "`{} profiles`)",
+                 prog_name);
     std::println(stderr,
                  "  --exports          Also generate platform export files (.def/.map/.exp)");
     std::println(
@@ -131,6 +141,7 @@ struct Args
     std::string verify_dir;
     std::string manifest_file;
     std::string lib_name = "kwxFFI";  // --libname
+    std::string profile;              // --profile (empty means the language default)
     bool exports = false;             // --exports
     std::string deno_exe = "deno";    // --deno
     std::string deno_config;          // --deno-config
@@ -208,6 +219,10 @@ static bool LoadConfigFile(Args& args)
         else if (argument == ARG_LIBNAME && i + 1 < argc)
         {
             args.lib_name = argv[++i];
+        }
+        else if (argument == ARG_PROFILE && i + 1 < argc)
+        {
+            args.profile = argv[++i];
         }
         else if (argument == ARG_EXPORTS_FLAG)
         {
@@ -428,6 +443,32 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     return parsed_ffi;
 }
 
+// Resolve the effective profile: an explicit --profile wins, otherwise the language default.
+// Prints an error and returns an empty string when the requested profile is unknown.
+[[nodiscard]] static std::string ResolveProfile(const Args& args)
+{
+    std::string profile = args.profile;
+    if (profile.empty())
+    {
+        profile = DefaultProfileForLanguage(args.lang);
+        return profile;
+    }
+
+    if (!IsKnownProfile(profile))
+    {
+        std::println(stderr, "Error: unknown profile '{}'", profile);
+        std::print(stderr, "Available:");
+        for (const std::string_view profile_name: ProfileNames())
+        {
+            std::print(stderr, " {}", profile_name);
+        }
+        std::println(stderr, "");
+        return {};
+    }
+
+    return profile;
+}
+
 int main(int argc, char* argv[])
 {
     Args args;
@@ -504,11 +545,18 @@ int main(int argc, char* argv[])
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
-        std::println(stderr, "Generating {} bindings...", args.lang);
-        emitter->Generate(parsed_ffi, args.out_path);
+        const std::string profile = ResolveProfile(args);
+        if (profile.empty())
+        {
+            return 1;
+        }
+
+        std::println(stderr, "Generating {} bindings (profile: {})...", args.lang, profile);
+        emitter->Generate(ApplyProfile(parsed_ffi, profile), args.out_path);
 
         if (args.exports)
         {
+            // Export files always describe the complete surface, never a filtered profile.
             GenerateExportFiles(parsed_ffi, args.out_path);
         }
 
@@ -550,8 +598,14 @@ int main(int argc, char* argv[])
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
+        const std::string profile = ResolveProfile(args);
+        if (profile.empty())
+        {
+            return 1;
+        }
+
         std::println(stderr, "Generating to temp dir: {}", temp_dir.string());
-        emitter->Generate(parsed_ffi, temp_dir);
+        emitter->Generate(ApplyProfile(parsed_ffi, profile), temp_dir);
 
         std::println(stderr, "Verifying against: {}", args.verify_dir);
         VerifyResult verify_result =
@@ -649,6 +703,12 @@ int main(int argc, char* argv[])
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
+        const std::string profile = ResolveProfile(args);
+        if (profile.empty())
+        {
+            return 1;
+        }
+
         // Generate into a temp directory so the caller's tree is untouched.
         const fs::path temp_dir = fs::temp_directory_path() / "kwxgen_check";
         std::ignore = fs::remove_all(temp_dir);
@@ -656,7 +716,7 @@ int main(int argc, char* argv[])
 
         std::println(stderr, "Generating TypeScript bindings to temp dir: {}", temp_dir.string());
         TypeScriptEmitter emitter;
-        emitter.Generate(parsed_ffi, temp_dir);
+        emitter.Generate(ApplyProfile(parsed_ffi, profile), temp_dir);
 
         fs::path deno_config = args.deno_config;
         if (deno_config.empty())
@@ -717,6 +777,13 @@ int main(int argc, char* argv[])
             std::println(stderr, "Error: 'exports' requires --out");
             return 1;
         }
+        if (!args.profile.empty())
+        {
+            std::println(stderr,
+                         "Error: 'exports' always emits the complete surface; --profile is not "
+                         "supported");
+            return 1;
+        }
 
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
@@ -739,6 +806,23 @@ int main(int argc, char* argv[])
         for (const auto& emitter: emitters)
         {
             std::println("  {}", emitter->Name());
+        }
+        return 0;
+    }
+
+    if (args.command == CMD_PROFILES)
+    {
+        std::println("Available profiles:");
+        for (const std::string_view profile_name: ProfileNames())
+        {
+            std::println("  {}", profile_name);
+        }
+        std::println("\nDefault profile per language:");
+        static constexpr std::array<std::string_view, 5> LANGS { "fortran", "go", "julia", "luajit",
+                                                                 "typescript" };
+        for (const std::string_view lang: LANGS)
+        {
+            std::println("  {:<11} {}", lang, DefaultProfileForLanguage(lang));
         }
         return 0;
     }

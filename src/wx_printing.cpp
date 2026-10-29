@@ -202,6 +202,85 @@ extern "C"
                                                (long) style);
     }
 
+    EXPORT void* wxPreviewControlBar_Create(void* preview, int buttons, wxWindow* parent, int x,
+                                            int y, int width, int height, int style)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        return (void*) new wxPreviewControlBar(static_cast<wxPrintPreviewBase*>(preview),
+                                               (long) buttons, parent, wxPoint(x, y),
+                                               wxSize(width, height), (long) style);
+#else
+        wxUnusedVar(preview);
+        wxUnusedVar(buttons);
+        wxUnusedVar(parent);
+        wxUnusedVar(x);
+        wxUnusedVar(y);
+        wxUnusedVar(width);
+        wxUnusedVar(height);
+        wxUnusedVar(style);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxPreviewControlBar_Delete(wxPreviewControlBar* self)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        delete self;
+#else
+        wxUnusedVar(self);
+#endif
+    }
+
+    EXPORT void wxPreviewControlBar_CreateButtons(wxPreviewControlBar* self)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        self->CreateButtons();
+#else
+        wxUnusedVar(self);
+#endif
+    }
+
+    EXPORT void wxPreviewControlBar_SetPageInfo(wxPreviewControlBar* self, int minPage, int maxPage)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        self->SetPageInfo(minPage, maxPage);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(minPage);
+        wxUnusedVar(maxPage);
+#endif
+    }
+
+    EXPORT void wxPreviewControlBar_SetZoomControl(wxPreviewControlBar* self, int zoom)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        self->SetZoomControl(zoom);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(zoom);
+#endif
+    }
+
+    EXPORT int wxPreviewControlBar_GetZoomControl(wxPreviewControlBar* self)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        return self->GetZoomControl();
+#else
+        wxUnusedVar(self);
+        return 0;
+#endif
+    }
+
+    EXPORT void* wxPreviewControlBar_GetPrintPreview(wxPreviewControlBar* self)
+    {
+#if wxUSE_PRINTING_ARCHITECTURE
+        return static_cast<void*>(self->GetPrintPreview());
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
     EXPORT void* wxPrintPreview_CreateFromDialogData(void* printout, void* printoutForPrinting,
                                                      void* data)
     {

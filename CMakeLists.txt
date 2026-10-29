@@ -248,11 +248,13 @@ endif()
 
 if(APPLE)
     set(wxUSE_LIBTIFF OFF CACHE STRING "Don't use libtiff (problems compiling on Mac)" FORCE)
-    set(wxUSE_REGEX OFF CACHE STRING "Don't use pcre (problems compiling on Mac)" FORCE)
 else()
     set(wxUSE_LIBTIFF builtin CACHE STRING "Use builtin libtiff" FORCE)
-    set(wxUSE_REGEX builtin CACHE STRING "Use builtin regex (PCRE2)" FORCE)
 endif()
+
+# Regex (PCRE2) is builtin on every platform so wxRegEx can be wrapped
+# unconditionally by the FFI.
+set(wxUSE_REGEX builtin CACHE STRING "Use builtin regex (PCRE2)" FORCE)
 
 # Force wxWidgets to build in Release mode even if parent is Debug
 # This ensures wx libraries use release runtime (/MD) instead of debug (/MDd)
@@ -393,8 +395,10 @@ set(wxWidgets_BUILTIN_LIBS wxzlib wxpng wxjpeg wxexpat wxscintilla wxlexilla)
 # only renames the output file, not the CMake target)
 list(APPEND wxWidgets_BUILTIN_LIBS webp webpdemux sharpyuv)
 
+list(APPEND wxWidgets_BUILTIN_LIBS wxregex)
+
 if(NOT APPLE)
-    list(APPEND wxWidgets_BUILTIN_LIBS wxtiff wxregex)
+    list(APPEND wxWidgets_BUILTIN_LIBS wxtiff)
 endif()
 
 # Create one library target per requested type from the same wxWidgets build.

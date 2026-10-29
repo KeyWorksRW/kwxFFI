@@ -949,4 +949,25 @@ extern "C"
         wxUnusedVar(ctx);
 #endif
     }
+
+    EXPORT void* wxDCClipper_Create(wxDC* dc, int x, int y, int width, int height)
+    {
+        return new wxDCClipper(*dc, static_cast<wxCoord>(x), static_cast<wxCoord>(y),
+                               static_cast<wxCoord>(width), static_cast<wxCoord>(height));
+    }
+
+    EXPORT void* wxDCClipper_CreateFromRect(wxDC* dc, wxRect* rect)
+    {
+        return new wxDCClipper(*dc, *rect);
+    }
+
+    EXPORT void* wxDCClipper_CreateFromRegion(wxDC* dc, wxRegion* region)
+    {
+        return new wxDCClipper(*dc, *region);
+    }
+
+    EXPORT void wxDCClipper_Delete(wxDCClipper* self)
+    {
+        delete self;
+    }
 }

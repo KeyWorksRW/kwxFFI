@@ -9,6 +9,7 @@
 #include "constants_parser.h"
 #include "exports_gen.h"
 #include "model.h"
+#include "profile.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -114,6 +115,61 @@ static void TestClassParser(const std::filesystem::path& fixture_path)
     }
 }
 
+static void TestProfileFilter()
+{
+    ParsedFFI ffi_data;
+
+    ClassInfo frame_class;
+    frame_class.name = "wxFrame";
+    frame_class.parent = "wxWindow";
+    FunctionDecl get_variant_method;
+    get_variant_method.class_name = "wxFrame";
+    get_variant_method.method_name = "GetVariant";
+    get_variant_method.return_macro = "TClass";
+    get_variant_method.return_arg = "wxVariant";
+    frame_class.methods.push_back(get_variant_method);
+    ffi_data.classes.push_back(frame_class);
+
+    ClassInfo window_class;
+    window_class.name = "wxWindow";
+    window_class.parent = "wxObject";
+    ffi_data.classes.push_back(window_class);
+
+    ClassInfo socket_class;
+    socket_class.name = "wxSocketBase";
+    ffi_data.classes.push_back(socket_class);
+
+    ClassInfo regex_class;
+    regex_class.name = "wxRegEx";
+    ffi_data.classes.push_back(regex_class);
+
+    ClassInfo variant_class;
+    variant_class.name = "wxVariant";
+    ffi_data.classes.push_back(variant_class);
+
+    ffi_data.parent_map["wxFrame"] = "wxWindow";
+    ffi_data.parent_map["wxWindow"] = "wxObject";
+    ffi_data.parent_map["wxSocketBase"] = "wxObject";
+
+    const ParsedFFI gui_ffi = ApplyProfile(ffi_data, "gui");
+    CHECK(FindClass(gui_ffi.classes, "wxSocketBase") == nullptr);
+    CHECK(FindClass(gui_ffi.classes, "wxRegEx") == nullptr);
+    CHECK(FindClass(gui_ffi.classes, "wxFrame") != nullptr);
+    CHECK(FindClass(gui_ffi.classes, "wxWindow") != nullptr);
+    CHECK(FindClass(gui_ffi.classes, "wxVariant") != nullptr);
+
+    const ParsedFFI full_ffi = ApplyProfile(ffi_data, "full");
+    CHECK_EQ(full_ffi.classes.size(), ffi_data.classes.size());
+    CHECK(FindClass(full_ffi.classes, "wxSocketBase") != nullptr);
+    CHECK(FindClass(full_ffi.classes, "wxRegEx") != nullptr);
+
+    CHECK_EQ(DefaultProfileForLanguage("go"), std::string("gui"));
+    CHECK_EQ(DefaultProfileForLanguage("julia"), std::string("gui"));
+    CHECK_EQ(DefaultProfileForLanguage("typescript"), std::string("full"));
+    CHECK_EQ(DefaultProfileForLanguage("fortran"), std::string("full"));
+    CHECK_EQ(DefaultProfileForLanguage("luajit"), std::string("full"));
+}
+
 static void TestExportSymbols()
 {
     ParsedFFI ffi_data;
@@ -160,6 +216,7 @@ int main(int argc, char** argv)
 
     TestConstantsParser(fixture_dir / "guard_constants.h");
     TestClassParser(fixture_dir / "guard_classes.h");
+    TestProfileFilter();
     TestExportSymbols();
 
     if (failure_count != 0)

@@ -393,4 +393,79 @@ extern "C"
     {
         ((wxDataObjectComposite*) self)->Add((wxDataObjectSimple*) dataObject, preferred);
     }
+
+    EXPORT void* wxDataObjectSimple_Create(wxDataFormat* format)
+    {
+        return new wxDataObjectSimple(*format);
+    }
+
+    EXPORT void wxDataObjectSimple_Delete(wxDataObjectSimple* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxDataFormat* wxDataObjectSimple_GetFormat(wxDataObjectSimple* self)
+    {
+        return new wxDataFormat(self->GetFormat());
+    }
+
+    EXPORT void wxDataObjectSimple_SetFormat(wxDataObjectSimple* self, wxDataFormat* format)
+    {
+        self->SetFormat(*format);
+    }
+
+    EXPORT size_t wxDataObjectSimple_GetDataSize(wxDataObjectSimple* self)
+    {
+        return self->GetDataSize();
+    }
+
+    EXPORT bool wxDataObjectSimple_GetDataHere(wxDataObjectSimple* self, void* buffer)
+    {
+        return self->GetDataHere(buffer);
+    }
+
+    EXPORT bool wxDataObjectSimple_SetData(wxDataObjectSimple* self, size_t len, void* buffer)
+    {
+        return self->SetData(len, buffer);
+    }
+
+    EXPORT void* wxCustomDataObject_Create(wxDataFormat* format)
+    {
+        return new wxCustomDataObject(*format);
+    }
+
+    EXPORT void wxCustomDataObject_Delete(wxCustomDataObject* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxCustomDataObject_TakeData(wxCustomDataObject* self, size_t size, void* data)
+    {
+        self->TakeData(size, data);
+    }
+
+    EXPORT void* wxCustomDataObject_Alloc(wxCustomDataObject* self, size_t size)
+    {
+        return self->Alloc(size);
+    }
+
+    EXPORT void wxCustomDataObject_Free(wxCustomDataObject* self)
+    {
+        self->Free();
+    }
+
+    EXPORT size_t wxCustomDataObject_GetSize(wxCustomDataObject* self)
+    {
+        return self->GetSize();
+    }
+
+    EXPORT void* wxCustomDataObject_GetData(wxCustomDataObject* self)
+    {
+        return self->GetData();
+    }
+
+    EXPORT bool wxCustomDataObject_SetData(wxCustomDataObject* self, size_t size, void* buffer)
+    {
+        return self->SetData(size, buffer);
+    }
 }

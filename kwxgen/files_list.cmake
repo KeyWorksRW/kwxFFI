@@ -11,6 +11,7 @@ set(KWXGEN_SRC_FILES
     src/parser_utils.cpp       # Common parsing utilities: trim, split, macros
     src/json_dump.cpp          # Serializes parsed data to JSON
     src/md_files_gen.cpp        # Generates agent-oriented markdown docs for all languages
+    src/profile.cpp            # Filters the parsed model for the selected generation profile
     src/verify.cpp             # Validates generated files against references
     src/lang/lang_fortran.cpp  # Generates Fortran FFI bindings
     src/lang/lang_go.cpp       # Generates Go FFI bindings
@@ -24,5 +25,6 @@ set(KWXGEN_SRC_FILES
     src/model.h                # Data structures representing parsed classes, events, keys, etc.
     src/lang/lang_common.h     # Common definitions and utilities for language bindings
     src/md_files_gen.h          # Header for agent-oriented markdown doc generation
+    src/profile.h               # Declarations for the generation profile filter
 
 )

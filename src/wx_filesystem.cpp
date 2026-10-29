@@ -1,5 +1,7 @@
 #include "kwx_wrapper.h"
 
+#include <wx/fs_mem.h>
+
 extern "C"
 {
     EXPORT void wxFSFile_Delete(wxFSFile* self)
@@ -81,5 +83,54 @@ extern "C"
     EXPORT wxString* wxFileSystem_URLToFileName([[maybe_unused]] wxFileSystem* self, wxString* url)
     {
         return new wxString(wxFileSystem::URLToFileName(*url).GetFullPath());
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFile(wxString* filename, wxString* textdata)
+    {
+        wxMemoryFSHandler::AddFile(*filename, *textdata);
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFileBinary(wxString* filename, void* binarydata, size_t size)
+    {
+        wxMemoryFSHandler::AddFile(*filename, binarydata, size);
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFileWithMimeType(wxString* filename, wxString* textdata,
+                                                      wxString* mimetype)
+    {
+        wxMemoryFSHandler::AddFileWithMimeType(*filename, *textdata, *mimetype);
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFileWithMimeTypeBinary(wxString* filename, void* binarydata,
+                                                            size_t size, wxString* mimetype)
+    {
+        wxMemoryFSHandler::AddFileWithMimeType(*filename, binarydata, size, *mimetype);
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFileImage(wxString* filename, wxImage* image, int type)
+    {
+#if wxUSE_IMAGE
+        wxMemoryFSHandler::AddFile(*filename, *image, static_cast<wxBitmapType>(type));
+#else
+        wxUnusedVar(filename);
+        wxUnusedVar(image);
+        wxUnusedVar(type);
+#endif
+    }
+
+    EXPORT void wxMemoryFSHandler_AddFileBitmap(wxString* filename, wxBitmap* bitmap, int type)
+    {
+#if wxUSE_IMAGE
+        wxMemoryFSHandler::AddFile(*filename, *bitmap, static_cast<wxBitmapType>(type));
+#else
+        wxUnusedVar(filename);
+        wxUnusedVar(bitmap);
+        wxUnusedVar(type);
+#endif
+    }
+
+    EXPORT void wxMemoryFSHandler_RemoveFile(wxString* filename)
+    {
+        wxMemoryFSHandler::RemoveFile(*filename);
     }
 }

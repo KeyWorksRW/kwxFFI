@@ -742,6 +742,105 @@ extern "C"
         return self->MoreRequested();
     }
 
+    EXPORT void* wxFocusEvent_Create(int type, int winid)
+    {
+        return new wxFocusEvent((wxEventType) type, winid);
+    }
+
+    EXPORT void wxFocusEvent_Delete(wxFocusEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxWindow* wxFocusEvent_GetWindow(wxFocusEvent* self)
+    {
+        return self->GetWindow();
+    }
+
+    EXPORT void wxFocusEvent_SetWindow(wxFocusEvent* self, wxWindow* win)
+    {
+        self->SetWindow(win);
+    }
+
+    EXPORT void* wxIconizeEvent_Create(int winid, bool iconized)
+    {
+        return new wxIconizeEvent(winid, iconized);
+    }
+
+    EXPORT void wxIconizeEvent_Delete(wxIconizeEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT bool wxIconizeEvent_IsIconized(wxIconizeEvent* self)
+    {
+        return self->IsIconized();
+    }
+
+    EXPORT void* wxInitDialogEvent_Create(int id)
+    {
+        return new wxInitDialogEvent(id);
+    }
+
+    EXPORT void wxInitDialogEvent_Delete(wxInitDialogEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxMaximizeEvent_Create(int winid)
+    {
+        return new wxMaximizeEvent(winid);
+    }
+
+    EXPORT void wxMaximizeEvent_Delete(wxMaximizeEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxMouseCaptureChangedEvent_Create(int winid, wxWindow* gainedCapture)
+    {
+        return new wxMouseCaptureChangedEvent((wxWindowID) winid, gainedCapture);
+    }
+
+    EXPORT void wxMouseCaptureChangedEvent_Delete(wxMouseCaptureChangedEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxWindow* wxMouseCaptureChangedEvent_GetCapturedWindow(wxMouseCaptureChangedEvent* self)
+    {
+        return self->GetCapturedWindow();
+    }
+
+    EXPORT void* wxSysColourChangedEvent_Create()
+    {
+        return new wxSysColourChangedEvent();
+    }
+
+    EXPORT void wxSysColourChangedEvent_Delete(wxSysColourChangedEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxPoint* wxDropFilesEvent_GetPosition(wxDropFilesEvent* self)
+    {
+        return new wxPoint(self->GetPosition());
+    }
+
+    EXPORT int wxDropFilesEvent_GetNumberOfFiles(wxDropFilesEvent* self)
+    {
+        return self->GetNumberOfFiles();
+    }
+
+    EXPORT wxString* wxDropFilesEvent_GetFile(wxDropFilesEvent* self, int index)
+    {
+        if (index < 0 || index >= self->GetNumberOfFiles())
+        {
+            return new wxString();
+        }
+        return new wxString(self->GetFiles()[index]);
+    }
+
     EXPORT int wxListEvent_GetCode(wxListEvent* self)
     {
         return self->GetKeyCode();
