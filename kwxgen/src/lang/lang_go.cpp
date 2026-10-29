@@ -494,10 +494,15 @@ static std::vector<GoParam> ConvertParam(const Param& param)
             go_param.go_type = "uint";
             go_param.cgo_expr = "C.uint(" + go_param.name + ")";
         }
-        else if (raw_type == "unsigned long" || raw_type == "wxUIntPtr")
+        else if (raw_type == "unsigned long")
         {
             go_param.go_type = "uint";
             go_param.cgo_expr = "C.ulong(" + go_param.name + ")";
+        }
+        else if (raw_type == "wxUIntPtr")
+        {
+            go_param.go_type = "uintptr";
+            go_param.cgo_expr = "C.uintptr_t(" + go_param.name + ")";
         }
         else if (raw_type == "uintptr_t")
         {
@@ -518,6 +523,18 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         {
             go_param.go_type = "int";
             go_param.cgo_expr = "C.size_t(" + go_param.name + ")";
+        }
+        else if (raw_type == "TInt64" || raw_type == "int64_t")
+        {
+            go_param.go_type = "int64";
+            go_param.cgo_expr = "C.longlong(" + go_param.name + ")";
+        }
+        else if (raw_type == "TInt64*" || raw_type == "int64_t*" || raw_type == "const TInt64*" ||
+                 raw_type == "const int64_t*")
+        {
+            go_param.go_type = "unsafe.Pointer";
+            go_param.cgo_expr = "(*C.longlong)(" + go_param.name + ")";
+            go_param.needs_unsafe = true;
         }
         else if (raw_type == "int*" || raw_type == "const int*")
         {
@@ -602,6 +619,10 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
     {
         return "bool";
     }
+    if (func_decl.return_type == "TInt64" || func_decl.return_type == "int64_t")
+    {
+        return "int64";
+    }
     if (func_decl.return_type == "int" || func_decl.return_type == "long" ||
         func_decl.return_type == "TArrayLen" || func_decl.return_type == "TByteStringLen" ||
         func_decl.return_type == "size_t" || func_decl.return_type == "time_t")
@@ -609,9 +630,13 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
         return "int";
     }
     if (func_decl.return_type == "unsigned" || func_decl.return_type == "unsigned int" ||
-        func_decl.return_type == "wxUIntPtr" || func_decl.return_type == "unsigned long")
+        func_decl.return_type == "unsigned long")
     {
         return "uint";
+    }
+    if (func_decl.return_type == "wxUIntPtr")
+    {
+        return "uintptr";
     }
     if (func_decl.return_type == "uintptr_t")
     {
@@ -789,6 +814,10 @@ static std::string GlueReturnType(const FunctionDecl& func_decl)
     {
         return "bool";
     }
+    if (func_decl.return_type == "TInt64" || func_decl.return_type == "int64_t")
+    {
+        return "int64";
+    }
     if (func_decl.return_type == "int" || func_decl.return_type == "long" ||
         func_decl.return_type == "TArrayLen" || func_decl.return_type == "TByteStringLen" ||
         func_decl.return_type == "size_t" || func_decl.return_type == "time_t")
@@ -796,9 +825,13 @@ static std::string GlueReturnType(const FunctionDecl& func_decl)
         return "int";
     }
     if (func_decl.return_type == "unsigned" || func_decl.return_type == "unsigned int" ||
-        func_decl.return_type == "wxUIntPtr" || func_decl.return_type == "unsigned long")
+        func_decl.return_type == "unsigned long")
     {
         return "uint";
+    }
+    if (func_decl.return_type == "wxUIntPtr")
+    {
+        return "uintptr";
     }
     if (func_decl.return_type == "uintptr_t")
     {

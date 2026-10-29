@@ -398,17 +398,29 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
     {
         result.push_back({ name + "::Float32", "Cfloat(" + name + ")", "", "" });
     }
-    else if (raw_type == "long" || raw_type == "time_t")
+    else if (raw_type == "TInt64" || raw_type == "int64_t")
+    {
+        result.push_back({ name + "::Int64", "Clonglong(" + name + ")", "", "" });
+    }
+    else if (raw_type == "long")
     {
         result.push_back({ name + "::Integer", "Clong(" + name + ")", "", "" });
+    }
+    else if (raw_type == "time_t")
+    {
+        result.push_back({ name + "::Integer", "Clonglong(" + name + ")", "", "" });
     }
     else if (raw_type == "unsigned" || raw_type == "unsigned int")
     {
         result.push_back({ name + "::Integer", "Cuint(" + name + ")", "", "" });
     }
-    else if (raw_type == "unsigned long" || raw_type == "wxUIntPtr" || raw_type == "uintptr_t")
+    else if (raw_type == "unsigned long")
     {
         result.push_back({ name + "::Integer", "Culong(" + name + ")", "", "" });
+    }
+    else if (raw_type == "wxUIntPtr" || raw_type == "uintptr_t")
+    {
+        result.push_back({ name + "::Integer", "Csize_t(" + name + ")", "", "" });
     }
     else if (raw_type == "TChar")
     {
@@ -464,9 +476,21 @@ static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& 
     {
         return "Float32(" + call + ")";
     }
-    if (func.return_type == "long" || func.return_type == "time_t")
+    if (func.return_type == "long")
     {
         return "Int(" + call + ")";
+    }
+    if (func.return_type == "time_t")
+    {
+        return "Int64(" + call + ")";
+    }
+    if (func.return_type == "wxUIntPtr" || func.return_type == "uintptr_t")
+    {
+        return "UInt(" + call + ")";
+    }
+    if (func.return_type == "TInt64" || func.return_type == "int64_t")
+    {
+        return "Int64(" + call + ")";
     }
     // Pointers, void*, and anything else: return as-is.
     return call;

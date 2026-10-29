@@ -44,12 +44,18 @@ inline std::string LuaJITReturnType(const std::string& return_type, const std::s
         return "void*";
     if (return_type == "int" || return_type == "TArrayLen" || return_type == "TByteStringLen")
         return "int";
-    if (return_type == "long" || return_type == "time_t")
+    if (return_type == "TInt64" || return_type == "int64_t")
+        return "int64_t";
+    if (return_type == "long")
         return "long";
+    if (return_type == "time_t")
+        return "int64_t";
     if (return_type == "unsigned" || return_type == "unsigned int")
         return "unsigned int";
-    if (return_type == "unsigned long" || return_type == "wxUIntPtr")
+    if (return_type == "unsigned long")
         return "unsigned long";
+    if (return_type == "wxUIntPtr")
+        return "uintptr_t";
     if (return_type == "uintptr_t")
         return "uintptr_t";
     if (return_type == "double")
@@ -233,12 +239,18 @@ inline std::vector<LuaCParam> ExpandParamToC(const Param& p)
 
     if (raw.empty() || raw == "int")
         result.push_back({ "int", name });
+    else if (raw == "TInt64" || raw == "int64_t")
+        result.push_back({ "int64_t", name });
     else if (raw == "long")
         result.push_back({ "long", name });
+    else if (raw == "time_t")
+        result.push_back({ "int64_t", name });
     else if (raw == "unsigned" || raw == "unsigned int")
         result.push_back({ "unsigned int", name });
-    else if (raw == "unsigned long" || raw == "wxUIntPtr")
+    else if (raw == "unsigned long")
         result.push_back({ "unsigned long", name });
+    else if (raw == "wxUIntPtr")
+        result.push_back({ "uintptr_t", name });
     else if (raw == "uintptr_t")
         result.push_back({ "uintptr_t", name });
     else if (raw == "double")

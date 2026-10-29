@@ -48,14 +48,18 @@ inline std::string JuliaReturnType(const std::string& return_type, const std::st
         return "Ptr{Cvoid}";
     if (return_type == "int" || return_type == "TArrayLen" || return_type == "TByteStringLen")
         return "Cint";
-    if (return_type == "long" || return_type == "time_t")
+    if (return_type == "TInt64" || return_type == "int64_t")
+        return "Clonglong";
+    if (return_type == "long")
         return "Clong";
+    if (return_type == "time_t")
+        return "Clonglong";
     if (return_type == "unsigned" || return_type == "unsigned int")
         return "Cuint";
-    if (return_type == "unsigned long" || return_type == "wxUIntPtr")
+    if (return_type == "unsigned long")
         return "Culong";
-    if (return_type == "uintptr_t")
-        return "Culong";
+    if (return_type == "wxUIntPtr" || return_type == "uintptr_t")
+        return "Csize_t";
     if (return_type == "double")
         return "Cdouble";
     if (return_type == "float")
@@ -235,14 +239,18 @@ inline std::vector<JuliaParam> ExpandParamToJulia(const Param& p)
 
     if (raw.empty() || raw == "int")
         result.push_back({ "Cint", name });
+    else if (raw == "TInt64" || raw == "int64_t")
+        result.push_back({ "Clonglong", name });
     else if (raw == "long")
         result.push_back({ "Clong", name });
+    else if (raw == "time_t")
+        result.push_back({ "Clonglong", name });
     else if (raw == "unsigned" || raw == "unsigned int")
         result.push_back({ "Cuint", name });
-    else if (raw == "unsigned long" || raw == "wxUIntPtr")
+    else if (raw == "unsigned long")
         result.push_back({ "Culong", name });
-    else if (raw == "uintptr_t")
-        result.push_back({ "Culong", name });
+    else if (raw == "wxUIntPtr" || raw == "uintptr_t")
+        result.push_back({ "Csize_t", name });
     else if (raw == "double")
         result.push_back({ "Cdouble", name });
     else if (raw == "float")
