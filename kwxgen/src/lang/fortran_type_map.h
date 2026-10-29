@@ -64,10 +64,22 @@ inline FortranReturnInfo FortranReturnType(const std::string& return_type,
         info.import_sym = "c_int";
         return info;
     }
-    if (return_type == "long" || return_type == "time_t")
+    if (return_type == "TInt64" || return_type == "int64_t")
+    {
+        info.fortran_type = "integer(c_int64_t)";
+        info.import_sym = "c_int64_t";
+        return info;
+    }
+    if (return_type == "long")
     {
         info.fortran_type = "integer(c_long)";
         info.import_sym = "c_long";
+        return info;
+    }
+    if (return_type == "time_t")
+    {
+        info.fortran_type = "integer(c_int64_t)";
+        info.import_sym = "c_int64_t";
         return info;
     }
     if (return_type == "unsigned" || return_type == "unsigned int")
@@ -77,10 +89,16 @@ inline FortranReturnInfo FortranReturnType(const std::string& return_type,
         info.import_sym = "c_int";
         return info;
     }
-    if (return_type == "unsigned long" || return_type == "wxUIntPtr" || return_type == "uintptr_t")
+    if (return_type == "unsigned long")
     {
         info.fortran_type = "integer(c_long)";
         info.import_sym = "c_long";
+        return info;
+    }
+    if (return_type == "wxUIntPtr" || return_type == "uintptr_t")
+    {
+        info.fortran_type = "integer(c_size_t)";
+        info.import_sym = "c_size_t";
         return info;
     }
     if (return_type == "double")
@@ -325,14 +343,20 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         result.push_back({ "integer(c_long)", "c_long", name });
     else if (raw == "unsigned" || raw == "unsigned int")
         result.push_back({ "integer(c_int)", "c_int", name });
-    else if (raw == "unsigned long" || raw == "wxUIntPtr" || raw == "uintptr_t")
+    else if (raw == "time_t")
+        result.push_back({ "integer(c_int64_t)", "c_int64_t", name });
+    else if (raw == "unsigned long")
         result.push_back({ "integer(c_long)", "c_long", name });
+    else if (raw == "wxUIntPtr" || raw == "uintptr_t")
+        result.push_back({ "integer(c_size_t)", "c_size_t", name });
     else if (raw == "double")
         result.push_back({ "real(c_double)", "c_double", name });
     else if (raw == "float")
         result.push_back({ "real(c_float)", "c_float", name });
     else if (raw == "size_t")
         result.push_back({ "integer(c_size_t)", "c_size_t", name });
+    else if (raw == "TInt64" || raw == "int64_t")
+        result.push_back({ "integer(c_int64_t)", "c_int64_t", name });
     else if (raw.find('*') != std::string::npos)
         result.push_back({ "type(c_ptr)", "c_ptr", name });
     else

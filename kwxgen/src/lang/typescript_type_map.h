@@ -20,8 +20,14 @@
 //   BufferSource | null — buffer
 //   void       — void (result only)
 //
-// Note: C "long" maps to "i32" here. On Windows, C long is 32-bit.
-// On POSIX 64-bit, C long is 64-bit. wx long usage (IDs, flags) fits in 32 bits.
+// Note: every supported platform is 64-bit (Win64, macOS, 64-bit Linux), so the 64-bit C
+// integer types map to genuine 64-bit FFI types: "long" and "time_t" → "i64",
+// "unsigned long" → "u64", and "wxUIntPtr"/"uintptr_t"/"size_t" → "usize".
+// No platform-conditional selection is emitted anywhere — 32-bit targets are unsupported.
+// Declaring "i64" for a C long does not mis-state the ABI: this table feeds kwxTypeScript's
+// thunk generator, which declares a local of that type and passes it to the real
+// statically-linked C function, so the implicit conversion to the prototype's long happens
+// at the call site.
 
 #include "../model.h"
 
@@ -101,17 +107,25 @@ inline std::string TsFFIReturnType(const std::string& return_type, const std::st
     {
         return "\"i32\"";
     }
+    if (return_type == "TInt64" || return_type == "int64_t")
+    {
+        return "\"i64\"";
+    }
     if (return_type == "long" || return_type == "time_t")
     {
-        return "\"i32\"";
+        return "\"i64\"";
     }
     if (return_type == "unsigned" || return_type == "unsigned int")
     {
         return "\"u32\"";
     }
-    if (return_type == "unsigned long" || return_type == "wxUIntPtr")
+    if (return_type == "unsigned long")
     {
-        return "\"u32\"";
+        return "\"u64\"";
+    }
+    if (return_type == "wxUIntPtr")
+    {
+        return "\"usize\"";
     }
     if (return_type == "uintptr_t")
     {
@@ -181,7 +195,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     {
         for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
-            result.push_back({ "\"i32\"", TsEscapeName(name_str) });
+            result.push_back({ "\"i64\"", TsEscapeName(name_str) });
         }
         return result;
     }
@@ -346,17 +360,21 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     {
         result.push_back({ "\"i32\"", pname });
     }
-    else if (rtype == "long")
+    else if (rtype == "long" || rtype == "time_t")
     {
-        result.push_back({ "\"i32\"", pname });
+        result.push_back({ "\"i64\"", pname });
     }
     else if (rtype == "unsigned" || rtype == "unsigned int")
     {
         result.push_back({ "\"u32\"", pname });
     }
-    else if (rtype == "unsigned long" || rtype == "wxUIntPtr")
+    else if (rtype == "unsigned long")
     {
-        result.push_back({ "\"u32\"", pname });
+        result.push_back({ "\"u64\"", pname });
+    }
+    else if (rtype == "wxUIntPtr")
+    {
+        result.push_back({ "\"usize\"", pname });
     }
     else if (rtype == "uintptr_t")
     {
@@ -373,6 +391,10 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     else if (rtype == "size_t")
     {
         result.push_back({ "\"usize\"", pname });
+    }
+    else if (rtype == "TInt64" || rtype == "int64_t")
+    {
+        result.push_back({ "\"i64\"", pname });
     }
     else if (rtype.find('*') != std::string::npos)
     {

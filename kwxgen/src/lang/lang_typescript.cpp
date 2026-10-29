@@ -430,14 +430,19 @@ struct WrapParam
     {
         return "Pointer";
     }
-    if (func.return_type == "uintptr_t" || func.return_type == "size_t")
+    if (func.return_type == "uintptr_t" || func.return_type == "wxUIntPtr" ||
+        func.return_type == "size_t" || func.return_type == "long" ||
+        func.return_type == "unsigned long" || func.return_type == "time_t")
+    {
+        return "bigint";
+    }
+    if (func.return_type == "TInt64" || func.return_type == "int64_t")
     {
         return "bigint";
     }
 
-    // All remaining numeric types (int, long, unsigned, unsigned long, double,
-    // float, TArrayLen, TByteStringLen, TChar, TUInt8, time_t, wxUIntPtr, etc.)
-    // map to a JavaScript number.
+    // All remaining numeric types (int, unsigned, double, float, TArrayLen,
+    // TByteStringLen, TChar, TUInt8, etc.) map to a JavaScript number.
     return "number";
 }
 
@@ -452,7 +457,10 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
                          (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
                           func.return_macro == "TClassRef");
     const bool is_bool = func.return_type == "TBool" || func.return_type == "TBoolInt";
-    const bool is_bigint = func.return_type == "uintptr_t" || func.return_type == "size_t";
+    const bool is_bigint = func.return_type == "uintptr_t" || func.return_type == "wxUIntPtr" ||
+                           func.return_type == "size_t" || func.return_type == "TInt64" ||
+                           func.return_type == "int64_t" || func.return_type == "long" ||
+                           func.return_type == "unsigned long" || func.return_type == "time_t";
 
     if (is_void)
     {
