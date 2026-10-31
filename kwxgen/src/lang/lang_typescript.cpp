@@ -1352,7 +1352,29 @@ void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::
     }
     output << "    });\n";
     output << "    return s_values;\n";
-    output << "}\n";
+    output << "}\n\n";
+
+    // Name table: one entry per value, in the same order and cardinality so callers can
+    // pair kwxConstants_IntTable()[i] with kwxConstants_NameTable()[i].
+    if (table.empty())
+    {
+        output << "WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n{\n";
+        output << "    static const char* const s_names[1] = { nullptr };\n";
+        output << "    return s_names;\n";
+        output << "}\n";
+    }
+    else
+    {
+        output << "WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n{\n";
+        output << "    static const char* const s_names[" << table_size << "] = {\n";
+        for (const auto& entry: table)
+        {
+            output << "        \"" << entry.ts_name << "\",\n";
+        }
+        output << "    };\n";
+        output << "    return s_names;\n";
+        output << "}\n";
+    }
 
     output << "}\n";
 

@@ -18,12 +18,15 @@ set(KWXGEN_SRC_FILES
     src/lang/lang_julia.cpp    # Generates Julia FFI wrappers
     src/lang/lang_luajit.cpp   # Generates LuaJIT FFI declarations
     # src/lang/lang_perl.cpp     # Generates Perl FFI bindings
+    src/lang/lang_rust.cpp     # Generates Rust FFI bindings
     src/lang/lang_typescript.cpp # Generates TypeScript FFI bindings
 
     src/deno_check.h           # Declarations for the deno check integration
     src/emitter.h              # Base class for language-specific code emitters
     src/model.h                # Data structures representing parsed classes, events, keys, etc.
     src/lang/lang_common.h     # Common definitions and utilities for language bindings
+    src/lang/lang_rust.h       # Declarations for the Rust FFI generator
+    src/lang/rust_type_map.h   # Rust type mapping for the FFI declarations
     src/md_files_gen.h          # Header for agent-oriented markdown doc generation
     src/profile.h               # Declarations for the generation profile filter
 

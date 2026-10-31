@@ -74,5 +74,8 @@ struct ParsedFFI
     // Maps concrete class → list of mixin classes it implements.
     // E.g., "wxTextCtrl" → ["wxTextEntry"], "wxComboBox" → ["wxTextEntry", "wxItemContainer"]
     std::unordered_map<std::string, std::vector<std::string>> mixin_map;
+    // NAME -> integer value, loaded from --constants-values.  Empty when the flag is absent;
+    // emitters use it to emit true `const` declarations instead of accessor wrappers.
+    std::unordered_map<std::string, long long> constant_values;
     std::string lib_name = "kwxFFI";  // Runtime DLL/shared-lib name (overridden by --libname)
 };
