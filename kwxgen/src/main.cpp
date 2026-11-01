@@ -44,6 +44,7 @@
 #include "lang/lang_julia.h"
 #include "lang/lang_luajit.h"
 // #include "lang/lang_perl.h"
+#include "lang/lang_rust.h"
 #include "lang/lang_typescript.h"
 #include "md_files_gen.h"
 #include "model.h"
@@ -51,6 +52,7 @@
 #include "verify.h"
 
 #include <array>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -92,6 +94,7 @@ static constexpr std::string_view ARG_DENO = "--deno";
 static constexpr std::string_view ARG_DENO_CONFIG = "--deno-config";
 static constexpr std::string_view ARG_DENO_LOG = "--deno-log";
 static constexpr std::string_view ARG_DENO_CHECK = "--deno-check";
+static constexpr std::string_view ARG_CONSTANTS_VALUES = "--constants-values";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
@@ -106,7 +109,7 @@ static void PrintUsage(const char* prog_name)
     std::println(
         stderr, "  {} check    --headers <dir> --defs <file> [--deno <exe>] [--deno-config <file>]",
         prog_name);
-    std::println(stderr, "  Available langs: fortran go julia lua typescript");
+    std::println(stderr, "  Available langs: fortran go julia lua rust typescript");
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
@@ -129,6 +132,9 @@ static void PrintUsage(const char* prog_name)
     std::println(stderr, "  --deno-config <f>  deno.jsonc import map (default: generated shim)");
     std::println(stderr,
                  "  --deno-log <file>  write the complete deno diagnostic output to <file>");
+    std::println(stderr,
+                 "  --constants-values <file>  NAME<TAB>VALUE dump used to emit true `const` "
+                 "declarations");
 }
 
 struct Args
@@ -147,6 +153,7 @@ struct Args
     std::string deno_config;          // --deno-config
     std::string deno_log;             // --deno-log
     bool deno_check = false;          // --deno-check
+    std::string constants_values;     // --constants-values (NAME<TAB>VALUE dump)
 };
 
 static constexpr std::string_view CONFIG_FILE_NAME = "kwxgen.config.json";
@@ -244,6 +251,10 @@ static bool LoadConfigFile(Args& args)
         {
             args.deno_check = true;
         }
+        else if (argument == ARG_CONSTANTS_VALUES && i + 1 < argc)
+        {
+            args.constants_values = argv[++i];
+        }
         else if (argument == ARG_ALL_MD_FILES)
         {
             // Override command — generate all markdown docs instead of code
@@ -271,6 +282,7 @@ static std::vector<std::unique_ptr<LanguageEmitter>> CreateEmitters()
     emitters.push_back(std::make_unique<LuaJITEmitter>());
     // emitters.push_back(std::make_unique<PerlEmitter>());
     emitters.push_back(std::make_unique<TypeScriptEmitter>());
+    emitters.push_back(std::make_unique<RustEmitter>());
     return emitters;
 }
 
@@ -311,6 +323,10 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
     if (lang == "luajit")
     {
         return { ".lua" };
+    }
+    if (lang == "rust")
+    {
+        return { ".rs" };
     }
     return { "_gen.go" };
 }
@@ -443,6 +459,69 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     return parsed_ffi;
 }
 
+// Parse a NAME<TAB>VALUE dump produced by kwx_constants_dump.  Blank lines and lines
+// starting with '#' are ignored.  A malformed value is reported with its line number.
+[[nodiscard]] static bool LoadConstantsValues(const std::string& path,
+                                              std::unordered_map<std::string, long long>& values)
+{
+    std::ifstream input(path);
+    if (!input.is_open())
+    {
+        std::println(stderr, "Error: cannot open constants values file '{}'", path);
+        return false;
+    }
+
+    std::string line;
+    long line_number = 0;
+    while (std::getline(input, line))
+    {
+        ++line_number;
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.pop_back();
+        }
+        if (line.empty() || line.starts_with('#'))
+        {
+            continue;
+        }
+
+        const size_t tab_pos = line.find('\t');
+        if (tab_pos == std::string::npos || tab_pos == 0 || tab_pos + 1 >= line.size())
+        {
+            std::println(stderr, "Error: {}:{}: malformed line '{}' (expected NAME<TAB>VALUE)",
+                         path, line_number, line);
+            return false;
+        }
+
+        const std::string value_text = line.substr(tab_pos + 1);
+        long long value = 0;
+        const char* const value_begin = value_text.data();
+        const char* const value_end = value_begin + value_text.size();
+        const std::from_chars_result parse_result = std::from_chars(value_begin, value_end, value);
+        if (parse_result.ec != std::errc() || parse_result.ptr != value_end)
+        {
+            std::println(stderr, "Error: {}:{}: malformed value '{}'", path, line_number,
+                         value_text);
+            return false;
+        }
+
+        values[line.substr(0, tab_pos)] = value;
+    }
+
+    std::println(stderr, "  Constant values: {:L} entries from {}", values.size(), path);
+    return true;
+}
+
+// Apply --constants-values to a freshly parsed model.  No-op when the flag is absent.
+[[nodiscard]] static bool ApplyConstantsValues(const Args& args, ParsedFFI& parsed_ffi)
+{
+    if (args.constants_values.empty())
+    {
+        return true;
+    }
+    return LoadConstantsValues(args.constants_values, parsed_ffi.constant_values);
+}
+
 // Resolve the effective profile: an explicit --profile wins, otherwise the language default.
 // Prints an error and returns an empty string when the requested profile is unknown.
 [[nodiscard]] static std::string ResolveProfile(const Args& args)
@@ -491,6 +570,10 @@ int main(int argc, char* argv[])
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         // See json_dump.h for a description of why one might want to dump the parsed FFI as JSON.
 
@@ -544,6 +627,10 @@ int main(int argc, char* argv[])
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         const std::string profile = ResolveProfile(args);
         if (profile.empty())
@@ -597,6 +684,10 @@ int main(int argc, char* argv[])
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         const std::string profile = ResolveProfile(args);
         if (profile.empty())
@@ -702,6 +793,10 @@ int main(int argc, char* argv[])
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         const std::string profile = ResolveProfile(args);
         if (profile.empty())
@@ -757,7 +852,11 @@ int main(int argc, char* argv[])
         }
 
         std::println(stderr, "Parsing...");
-        const ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         std::println(stderr, "Generating agent markdown documentation...");
         GenerateAllMarkdownFiles(parsed_ffi, args.out_path);
@@ -788,6 +887,10 @@ int main(int argc, char* argv[])
         std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
 
         GenerateExportFiles(parsed_ffi, args.out_path);
         return 0;

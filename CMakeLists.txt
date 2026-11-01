@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.30)
 option(KWXFFI_BUILD_SHARED "Build kwxFFI as shared library (DLL/SO)" OFF)
 option(KWXFFI_BUILD_BOTH "Build both static and shared kwxFFI from one wxWidgets build" OFF)
 option(KWXFFI_BUILD_TESTS "Build and register kwxFFI tests" OFF)
+option(KWXFFI_BUILD_TOOLS "Build kwxFFI developer tools" OFF)
 
 string(TIMESTAMP YEAR "%y") # e.g., "25"
 string(TIMESTAMP DOY "%j") # e.g., "192"
@@ -419,6 +420,15 @@ foreach(library_type IN LISTS kwxfi_library_types)
 
     kwxfi_configure_target(${target_name} ${library_type})
 endforeach()
+
+# ###################### Developer tools #######################
+if(KWXFFI_BUILD_TOOLS AND TARGET kwxFFI)
+    add_executable(kwx_constants_dump tools/kwx_constants_dump.cpp)
+    target_link_libraries(kwx_constants_dump PRIVATE kwxFFI)
+    set_target_properties(kwx_constants_dump PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+endif()
 
 # ###################### kwxgen code generator subdirectory #######################
 add_subdirectory(kwxgen)
