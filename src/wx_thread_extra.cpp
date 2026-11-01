@@ -7,6 +7,7 @@
 
 #include <wx/dynlib.h>
 
+#include <bit>
 #include <cstdint>
 #include <tuple>
 #include <unordered_map>
@@ -41,6 +42,47 @@ static void ForgetLibraryName(const wxDynamicLibrary* library)
 {
     const wxCriticalSectionLocker locker(s_library_names_crit_section);
     std::ignore = s_library_names.erase(library);
+}
+
+// ---------------------------------------------------------------------------
+// kwxThread
+// ---------------------------------------------------------------------------
+
+kwxThread::kwxThread(void* pObject, void* entryFunc, wxThreadKind kind) : wxThread(kind)
+{
+    m_object = pObject;
+    m_entry_func = std::bit_cast<kwxThreadEntryFunc>(entryFunc);
+    m_test_destroy_func = nullptr;
+    m_on_exit_func = nullptr;
+}
+
+wxThread::ExitCode kwxThread::Entry()
+{
+    if (!m_entry_func)
+    {
+        return nullptr;
+    }
+    return m_entry_func(m_object);
+}
+
+bool kwxThread::TestDestroy()
+{
+    // A registered callback decides whether the thread should stop; that is what makes Pause()
+    // and Delete() work, because the base implementation only reports a cancellation the thread
+    // already observed. Without a callback the wxWidgets default behavior applies.
+    if (!m_test_destroy_func)
+    {
+        return wxThread::TestDestroy();
+    }
+    return m_test_destroy_func(m_object) != 0;
+}
+
+void kwxThread::OnExit()
+{
+    if (m_on_exit_func)
+    {
+        m_on_exit_func(m_object);
+    }
 }
 
 extern "C"

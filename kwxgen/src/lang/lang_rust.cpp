@@ -275,12 +275,41 @@ struct RustConvertContext
     const std::set<std::string>& parent_classes;
     const std::string& rust_name;
     std::set<std::string>& support_imports;
+    // Names already used in the signature being built; nullptr disables uniquing.
+    std::set<std::string>* used_param_names = nullptr;
 };
 
 // Convert a C parameter name to a Rust-safe snake_case identifier.
 [[nodiscard]] static std::string RustSafeParamName(const std::string& raw_name)
 {
     return RustEscapeName(ToSnakeCase(raw_name));
+}
+
+// Allocate a parameter name unique within the current signature. Macro-expanded parameters
+// (TRect, TPoint, TArrayString, ...) can repeat a component name, which would otherwise
+// produce a duplicate binding in the generated function.
+[[nodiscard]] static std::string UniqueParamName(const std::string& base,
+                                                 const RustConvertContext& context)
+{
+    if (context.used_param_names == nullptr)
+    {
+        return base;
+    }
+    if (context.used_param_names->insert(base).second)
+    {
+        return base;
+    }
+
+    int suffix = 2;
+    while (true)
+    {
+        const std::string candidate = base + "_" + std::to_string(suffix);
+        if (context.used_param_names->insert(candidate).second)
+        {
+            return candidate;
+        }
+        ++suffix;
+    }
 }
 
 // Classes that serve as parents get a marker trait in traits.rs.
@@ -368,7 +397,15 @@ struct RustConvertContext
     {
         return "create_std_button_sizer";
     }
-    return RustSafeMethodName(func.method_name);
+
+    const std::string name = RustSafeMethodName(func.method_name);
+    // These names are already defined by the generated handle type (from_raw, as_ptr) or by
+    // the WxObject trait (is_null); suffixing keeps the inherent impl free of duplicates.
+    if (name == "from_raw" || name == "as_ptr" || name == "is_null")
+    {
+        return name + "_wx";
+    }
+    return name;
 }
 
 // Expand a value-geometry parameter (TRect/TPoint/TSize) into one support.rs struct argument.
@@ -405,14 +442,15 @@ struct RustConvertContext
         // Unexpected shape: keep the raw component expansion so the FFI call stays correct.
         for (const std::string& component: components)
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, "i32", name + " as c_int", {}, {}, false });
         }
         return result;
     }
 
     RustSafeParam safe_param;
-    safe_param.name = RustSafeParamName(param.param_name.empty() ? default_name : param.param_name);
+    safe_param.name = UniqueParamName(
+        RustSafeParamName(param.param_name.empty() ? default_name : param.param_name), context);
     const std::string display_type = SupportTypeName(type_name, context.rust_name);
     if (display_type == type_name)
     {
@@ -464,7 +502,7 @@ struct RustConvertContext
         const std::string cast = is_long ? " as c_long" : " as c_int";
         for (const std::string& component: RustSplitMacroArg(param.macro_arg))
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, type_name, name + cast, {}, {}, false });
         }
         return result;
@@ -476,7 +514,7 @@ struct RustConvertContext
     {
         for (const std::string& component: RustSplitMacroArg(param.macro_arg))
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, "*mut i32", name + " as *mut c_int", {}, {}, false });
         }
         return result;
@@ -487,7 +525,7 @@ struct RustConvertContext
     {
         for (const std::string& component: RustSplitMacroArg(param.macro_arg))
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, "*mut c_void", name, {}, {}, false });
         }
         return result;
@@ -497,7 +535,7 @@ struct RustConvertContext
     {
         for (const std::string& component: RustSplitMacroArg(param.macro_arg))
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, "*mut f64", name + " as *mut c_double", {}, {}, false });
         }
         return result;
@@ -507,7 +545,7 @@ struct RustConvertContext
     {
         for (const std::string& component: RustSplitMacroArg(param.macro_arg))
         {
-            const std::string name = RustSafeParamName(component);
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
             result.push_back({ name, "u8", name, {}, {}, false });
         }
         return result;
@@ -520,8 +558,8 @@ struct RustConvertContext
         const std::vector<std::string> names = RustSplitMacroArg(param.macro_arg);
         if (names.size() >= 2)
         {
-            const std::string count_name = RustSafeParamName(names[0]);
-            const std::string array_name = RustSafeParamName(names[1]);
+            const std::string count_name = UniqueParamName(RustSafeParamName(names[0]), context);
+            const std::string array_name = UniqueParamName(RustSafeParamName(names[1]), context);
             result.push_back({ count_name, "i32", count_name + " as c_int", {}, {}, false });
             result.push_back({ array_name, "*mut c_void", array_name, {}, {}, false });
         }
@@ -530,15 +568,16 @@ struct RustConvertContext
 
     if (param.macro_name == "TArrayObjectOutVoid")
     {
-        const std::string name =
-            RustSafeParamName(param.param_name.empty() ? "arr" : param.param_name);
+        const std::string name = UniqueParamName(
+            RustSafeParamName(param.param_name.empty() ? "arr" : param.param_name), context);
         result.push_back({ name, "*mut c_void", name, {}, {}, false });
         return result;
     }
 
     // Single parameter
     RustSafeParam safe_param;
-    safe_param.name = RustSafeParamName(param.param_name.empty() ? "arg" : param.param_name);
+    safe_param.name = UniqueParamName(
+        RustSafeParamName(param.param_name.empty() ? "arg" : param.param_name), context);
 
     if (param.macro_name == "TSelf")
     {
@@ -680,7 +719,10 @@ struct RustConvertContext
             safe_param.new_excluded = true;
             // Use the literal wxID_ANY value so the short constructor compiles
             // whether ID_ANY is emitted as a `const` or as an accessor function.
-            safe_param.new_default = "-1";
+            // Pointer-typed ids (for example wxDataViewItem_Create(void* id)) need a null
+            // pointer, not an integer literal.
+            safe_param.new_default =
+                safe_param.safe_type.contains('*') ? "std::ptr::null_mut()" : "-1";
         }
         else if (safe_param.name == "style")
         {
@@ -1120,6 +1162,31 @@ static void WriteDriftTests(std::ostream& out, const std::vector<ConstEmitEntry>
     out << "}\n";
 }
 
+// Event type ids are assigned by wxNewEventType() while the static initializers of the linked
+// wxWidgets libraries run, so the number a given binary observes depends on link order.  There
+// is no snapshot to compare against; the invariant that must hold is that each event name is
+// wired to the accessor for that same name and yields a usable event type.
+static void WriteEventDriftTest(std::ostream& out, const std::vector<ConstEmitEntry>& entries)
+{
+    if (entries.empty())
+    {
+        return;
+    }
+
+    out << "#[cfg(test)]\n";
+    out << "mod drift {\n";
+    out << "    use super::*;\n\n";
+    out << "    #[test]\n";
+    out << "    fn assigns_event_ids() {\n";
+    for (const auto& entry: entries)
+    {
+        out << "        assert!(" << entry.rust_name << "() >= 10000, \"" << entry.rust_name
+            << " is not a wx event type\");\n";
+    }
+    out << "    }\n";
+    out << "}\n";
+}
+
 void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
 {
     const fs::path path = srcDir / "events.rs";
@@ -1137,7 +1204,6 @@ void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
     std::ranges::sort(sorted, {}, &EventDecl::event_name);
 
     std::vector<ConstEmitEntry> const_entries;
-    size_t const_count = 0;
     size_t fallback_count = 0;
     std::string lastEvtName;
     for (const auto& event: sorted)
@@ -1148,25 +1214,21 @@ void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
         }
         lastEvtName = event.event_name;
 
-        const std::unordered_map<std::string, long long>::const_iterator value_iter =
-            ffi.constant_values.find(event.event_name);
-        const bool has_value = value_iter != ffi.constant_values.end();
-        if (EmitConstOrFallback(out, event.event_name, event.export_name, has_value,
-                                has_value ? value_iter->second : 0))
-        {
-            ++const_count;
-            const_entries.push_back({ event.event_name, event.export_name });
-        }
-        else
-        {
-            ++fallback_count;
-        }
+        // Event type ids are produced by wxNewEventType() while the static initializers of
+        // the linked wxWidgets libraries run, so their numeric value depends on link order.
+        // A value captured by a separate --constants-values dump is therefore never equal to
+        // the value this binary assigns, and hard-coding it would make every generated
+        // Connect() use an event type wxWidgets never raises.  Always go through the exported
+        // accessor so the id is resolved at run time.
+        std::ignore = EmitConstOrFallback(out, event.event_name, event.export_name, false, 0);
+        ++fallback_count;
+        const_entries.push_back({ event.event_name, event.export_name });
     }
 
-    WriteDriftTests(out, const_entries);
+    WriteEventDriftTest(out, const_entries);
 
-    std::println(stderr, "  events.rs:           {} events ({} consts, {} fallbacks)",
-                 ffi.events.size(), const_count, fallback_count);
+    std::println(stderr, "  events.rs:           {} events (0 consts, {} accessors)",
+                 ffi.events.size(), fallback_count);
 }
 
 // -------------------------------------------------------------------------
@@ -1559,7 +1621,7 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
 
     const std::set<std::string> parentClasses = BuildParentClassSet(ffi);
     const std::string currentModule = RustModuleName(cls.name);
-    const RustConvertContext context { ffi, parentClasses, rustName, supportImports };
+    RustConvertContext context { ffi, parentClasses, rustName, supportImports, nullptr };
     const RustReturnContext returnContext { ffi,        rustName,     currentModule,
                                             parentType, classImports, supportImports };
 
@@ -1574,6 +1636,11 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
         {
             continue;
         }
+
+        // Each method gets a fresh namespace for its parameter names: macro-expanded
+        // parameters may otherwise repeat a component name and produce duplicate bindings.
+        std::set<std::string> usedParamNames;
+        context.used_param_names = &usedParamNames;
 
         // Collect safe params (excluding the first TSelf which becomes &self)
         std::vector<RustSafeParam> params;
