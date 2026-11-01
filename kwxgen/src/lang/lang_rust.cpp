@@ -678,7 +678,9 @@ struct RustConvertContext
         if (safe_param.name == "id")
         {
             safe_param.new_excluded = true;
-            safe_param.new_default = "crate::constants::ID_ANY()";
+            // Use the literal wxID_ANY value so the short constructor compiles
+            // whether ID_ANY is emitted as a `const` or as an accessor function.
+            safe_param.new_default = "-1";
         }
         else if (safe_param.name == "style")
         {
@@ -866,6 +868,11 @@ void RustEmitter::GenerateCargoToml(const fs::path& outDir)
     out << "[lib]\n";
     out << "name = \"kwxffi_sys\"\n";
     out << "path = \"src/lib.rs\"\n";
+    out << "\n";
+    // build.rs is hand-maintained (Phase 5 rule: regeneration must not disturb it), so the
+    // generated manifest must keep declaring the helper crates build.rs depends on.
+    out << "[build-dependencies]\n";
+    out << "cc = \"1\"\n";
 
     std::println(stderr, "  Cargo.toml");
 }
