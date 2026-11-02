@@ -789,4 +789,36 @@ extern "C"
         return false;
 #endif
     }
+
+    // ── Concrete image handler factories ────────────────────────────
+    // The handler classes only exist when their format is enabled, so the body is
+    // guarded; the exported symbol exists on every platform and returns nullptr
+    // when the format is not compiled in.
+
+    EXPORT wxImageHandler* wxPNGHandler_Create()
+    {
+#if wxUSE_LIBPNG
+        return new wxPNGHandler();
+#else
+        return nullptr;
+#endif
+    }
+
+    EXPORT wxImageHandler* wxJPEGHandler_Create()
+    {
+#if wxUSE_LIBJPEG
+        return new wxJPEGHandler();
+#else
+        return nullptr;
+#endif
+    }
+
+    EXPORT wxImageHandler* wxGIFHandler_Create()
+    {
+#if wxUSE_GIF
+        return new wxGIFHandler();
+#else
+        return nullptr;
+#endif
+    }
 }

@@ -61,7 +61,10 @@
 #include <wx/htmllbox.h>
 #include <wx/iconloc.h>
 #include <wx/image.h>
+#include <wx/imaggif.h>
+#include <wx/imagjpeg.h>
 #include <wx/imaglist.h>
+#include <wx/imagpng.h>
 #include <wx/infobar.h>
 #include <wx/laywin.h>
 #include <wx/listbook.h>

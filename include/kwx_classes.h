@@ -2753,6 +2753,14 @@ TBool wxImageHandler_LoadFile(TSelf(wxImageHandler) pObject, TClass(wxImage) ima
 TBool wxImageHandler_SaveFile(TSelf(wxImageHandler) pObject, TClass(wxImage) image,
                               TClass(wxOutputStream) stream, TBool verbose);
 
+// Concrete image handler factories. The handler classes only exist when their
+// wxWidgets feature is compiled in, but these declarations must stay unguarded:
+// kwxgen skips preprocessor lines and every binding has to see the symbols. The
+// implementations return nullptr when the format is not available.
+TClassDefExtend(wxPNGHandler, wxImageHandler) TClass(wxImageHandler) wxPNGHandler_Create();
+TClassDefExtend(wxJPEGHandler, wxImageHandler) TClass(wxImageHandler) wxJPEGHandler_Create();
+TClassDefExtend(wxGIFHandler, wxImageHandler) TClass(wxImageHandler) wxGIFHandler_Create();
+
 TClassDefExtend(wxImageList, wxObject) int wxImageList_AddBitmap(TSelf(wxImageList) pObject,
                                                                  TClass(wxBitmap) bitmap,
                                                                  TClass(wxBitmap) mask);
