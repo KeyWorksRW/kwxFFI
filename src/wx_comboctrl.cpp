@@ -333,4 +333,664 @@ extern "C"
     {
         return self->IsTextEmpty();
     }
+
+    // wxComboPopup ------------------------------------------------------------
+
+    EXPORT void wxComboPopup_Init(wxComboPopup* self)
+    {
+        self->Init();
+    }
+
+    EXPORT void wxComboPopup_DestroyPopup(wxComboPopup* self)
+    {
+        self->DestroyPopup();
+    }
+
+    EXPORT wxWindow* wxComboPopup_GetControl(wxComboPopup* self)
+    {
+        return self->GetControl();
+    }
+
+    EXPORT void wxComboPopup_OnPopup(wxComboPopup* self)
+    {
+        self->OnPopup();
+    }
+
+    EXPORT void wxComboPopup_OnDismiss(wxComboPopup* self)
+    {
+        self->OnDismiss();
+    }
+
+    EXPORT void wxComboPopup_SetStringValue(wxComboPopup* self, wxString* value)
+    {
+        self->SetStringValue(*value);
+    }
+
+    EXPORT wxString* wxComboPopup_GetStringValue(wxComboPopup* self)
+    {
+        return new wxString(self->GetStringValue());
+    }
+
+    EXPORT bool wxComboPopup_FindItem(wxComboPopup* self, wxString* item, wxString* trueItem)
+    {
+        return self->FindItem(*item, trueItem);
+    }
+
+    EXPORT void wxComboPopup_PaintComboControl(wxComboPopup* self, wxDC* dc, int x, int y,
+                                               int width, int height)
+    {
+        wxRect rect(x, y, width, height);
+        self->PaintComboControl(*dc, rect);
+    }
+
+    EXPORT void wxComboPopup_OnComboKeyEvent(wxComboPopup* self, wxKeyEvent* event)
+    {
+        self->OnComboKeyEvent(*event);
+    }
+
+    EXPORT void wxComboPopup_OnComboCharEvent(wxComboPopup* self, wxKeyEvent* event)
+    {
+        self->OnComboCharEvent(*event);
+    }
+
+    EXPORT void wxComboPopup_OnComboDoubleClick(wxComboPopup* self)
+    {
+        self->OnComboDoubleClick();
+    }
+
+    EXPORT void wxComboPopup_GetAdjustedSize(wxComboPopup* self, int minWidth, int prefHeight,
+                                             int maxHeight, int* width, int* height)
+    {
+        wxSize size = self->GetAdjustedSize(minWidth, prefHeight, maxHeight);
+        if (width)
+            *width = size.x;
+        if (height)
+            *height = size.y;
+    }
+
+    EXPORT bool wxComboPopup_LazyCreate(wxComboPopup* self)
+    {
+        return self->LazyCreate();
+    }
+
+    EXPORT void wxComboPopup_Dismiss(wxComboPopup* self)
+    {
+        self->Dismiss();
+    }
+
+    EXPORT bool wxComboPopup_IsCreated(wxComboPopup* self)
+    {
+        return self->IsCreated();
+    }
+
+    EXPORT wxComboCtrl* wxComboPopup_GetComboCtrl(wxComboPopup* self)
+    {
+        return self->GetComboCtrl();
+    }
+
+    // wxComboCtrl additions ---------------------------------------------------
+
+    EXPORT wxBitmap* wxComboCtrl_GetBitmapDisabled(wxComboCtrl* self)
+    {
+        return new wxBitmap(self->GetBitmapDisabled());
+    }
+
+    EXPORT wxBitmap* wxComboCtrl_GetBitmapHover(wxComboCtrl* self)
+    {
+        return new wxBitmap(self->GetBitmapHover());
+    }
+
+    EXPORT wxBitmap* wxComboCtrl_GetBitmapNormal(wxComboCtrl* self)
+    {
+        return new wxBitmap(self->GetBitmapNormal());
+    }
+
+    EXPORT wxBitmap* wxComboCtrl_GetBitmapPressed(wxComboCtrl* self)
+    {
+        return new wxBitmap(self->GetBitmapPressed());
+    }
+
+    EXPORT wxSize* wxComboCtrl_GetButtonSize(wxComboCtrl* self)
+    {
+        return new wxSize(self->GetButtonSize());
+    }
+
+    EXPORT int wxComboCtrl_GetFeatures()
+    {
+        return wxComboCtrl::GetFeatures();
+    }
+
+    EXPORT wxString* wxComboCtrl_GetHint(wxComboCtrl* self)
+    {
+        return new wxString(self->GetHint());
+    }
+
+    EXPORT void wxComboCtrl_GetMargins(wxComboCtrl* self, int* left, int* top)
+    {
+        wxPoint margins = self->GetMargins();
+        if (left)
+            *left = margins.x;
+        if (top)
+            *top = margins.y;
+    }
+
+    EXPORT wxComboPopup* wxComboCtrl_GetPopupControl(wxComboCtrl* self)
+    {
+        return self->GetPopupControl();
+    }
+
+    EXPORT wxRect* wxComboCtrl_GetTextRect(wxComboCtrl* self)
+    {
+        return new wxRect(self->GetTextRect());
+    }
+
+    EXPORT bool wxComboCtrl_IsKeyPopupToggle(wxComboCtrl* self, wxKeyEvent* event)
+    {
+        return self->IsKeyPopupToggle(*event);
+    }
+
+    EXPORT void wxComboCtrl_PrepareBackground(wxComboCtrl* self, wxDC* dc, int x, int y, int width,
+                                              int height, int flags)
+    {
+        wxRect rect(x, y, width, height);
+        self->PrepareBackground(*dc, rect, flags);
+    }
+
+    EXPORT bool wxComboCtrl_SetHint(wxComboCtrl* self, wxString* hint)
+    {
+        return self->SetHint(*hint);
+    }
+
+    EXPORT void wxComboCtrl_SetMainControl(wxComboCtrl* self, wxWindow* win)
+    {
+        self->SetMainControl(win);
+    }
+
+    EXPORT void wxComboCtrl_SetPopupControl(wxComboCtrl* self, wxComboPopup* popup)
+    {
+        self->SetPopupControl(popup);
+    }
+
+    EXPORT void wxComboCtrl_SetValueByUser(wxComboCtrl* self, wxString* value)
+    {
+        self->SetValueByUser(*value);
+    }
+
+    EXPORT bool wxComboCtrl_ShouldDrawFocus(wxComboCtrl* self)
+    {
+        return self->ShouldDrawFocus();
+    }
+
+    EXPORT void wxComboCtrl_UseAltPopupWindow(wxComboCtrl* self, bool enable)
+    {
+        self->UseAltPopupWindow(enable);
+    }
+
+    // wxGenericComboCtrl ------------------------------------------------------
+
+    EXPORT void* wxGenericComboCtrl_Create(wxWindow* parent, int id, wxString* value, int x, int y,
+                                           int width, int height, long style)
+    {
+        wxString val = value ? *value : wxString();
+        return (void*) new wxGenericComboCtrl(parent, id, val, wxPoint(x, y), wxSize(width, height),
+                                              style);
+    }
+
+    // kwxComboCtrl ------------------------------------------------------------
+
+    EXPORT void* kwxComboCtrl_CreateDefault(void* pObject)
+    {
+        return (void*) new kwxComboCtrl(pObject);
+    }
+
+    EXPORT void* kwxComboCtrl_CreateWith(void* pObject, wxWindow* parent, int id, wxString* value,
+                                         int x, int y, int width, int height, long style)
+    {
+        return (void*) new kwxComboCtrl(pObject, parent, id, value ? *value : wxString(),
+                                        wxPoint(x, y), wxSize(width, height), style);
+    }
+
+    EXPORT bool kwxComboCtrl_Create(kwxComboCtrl* self, wxWindow* parent, int id, wxString* value,
+                                    int x, int y, int width, int height, long style)
+    {
+        return self->Create(parent, id, value ? *value : wxString(), wxPoint(x, y),
+                            wxSize(width, height), style);
+    }
+
+    EXPORT void kwxComboCtrl_SetOnButtonClick(kwxComboCtrl* self, void* pFunction)
+    {
+        self->SetOnButtonClick(pFunction);
+    }
+
+    EXPORT void kwxComboCtrl_SetOnAnimateShow(kwxComboCtrl* self, void* pFunction)
+    {
+        self->SetOnAnimateShow(pFunction);
+    }
+
+    EXPORT void kwxComboCtrl_SetOnDoSetPopupControl(kwxComboCtrl* self, void* pFunction)
+    {
+        self->SetOnDoSetPopupControl(pFunction);
+    }
+
+    EXPORT void kwxComboCtrl_SetOnDoShowPopup(kwxComboCtrl* self, void* pFunction)
+    {
+        self->SetOnDoShowPopup(pFunction);
+    }
+
+    // kwxOwnerDrawnComboBox ---------------------------------------------------
+
+    EXPORT void* kwxOwnerDrawnComboBox_CreateDefault(void* pObject)
+    {
+        return (void*) new kwxOwnerDrawnComboBox(pObject);
+    }
+
+    EXPORT void* kwxOwnerDrawnComboBox_CreateWith(void* pObject, wxWindow* parent, int id,
+                                                  wxString* value, int x, int y, int width,
+                                                  int height, long style)
+    {
+        return (void*) new kwxOwnerDrawnComboBox(pObject, parent, id, value ? *value : wxString(),
+                                                 wxPoint(x, y), wxSize(width, height), style);
+    }
+
+    EXPORT bool kwxOwnerDrawnComboBox_Create(kwxOwnerDrawnComboBox* self, wxWindow* parent, int id,
+                                             wxString* value, int x, int y, int width, int height,
+                                             long style)
+    {
+        return self->Create(parent, id, value ? *value : wxString(), wxPoint(x, y),
+                            wxSize(width, height), style);
+    }
+
+    EXPORT void kwxOwnerDrawnComboBox_SetOnDrawItem(kwxOwnerDrawnComboBox* self, void* pFunction)
+    {
+        self->SetOnDrawItem(pFunction);
+    }
+
+    EXPORT void kwxOwnerDrawnComboBox_SetOnDrawBackground(kwxOwnerDrawnComboBox* self,
+                                                          void* pFunction)
+    {
+        self->SetOnDrawBackground(pFunction);
+    }
+
+    EXPORT void kwxOwnerDrawnComboBox_SetOnMeasureItem(kwxOwnerDrawnComboBox* self, void* pFunction)
+    {
+        self->SetOnMeasureItem(pFunction);
+    }
+
+    EXPORT void kwxOwnerDrawnComboBox_SetOnMeasureItemWidth(kwxOwnerDrawnComboBox* self,
+                                                            void* pFunction)
+    {
+        self->SetOnMeasureItemWidth(pFunction);
+    }
+
+    // Popups ------------------------------------------------------------------
+
+    EXPORT void* kwxListViewComboPopup_Create()
+    {
+        return (void*) new kwxListViewComboPopup();
+    }
+
+    EXPORT void kwxListViewComboPopup_AddString(kwxListViewComboPopup* self, wxString* item)
+    {
+        self->AddString(*item);
+    }
+
+    EXPORT int kwxListViewComboPopup_GetItemCount(kwxListViewComboPopup* self)
+    {
+        return self->GetItemCount();
+    }
+
+    EXPORT void* kwxTreeCtrlComboPopup_Create()
+    {
+        return (void*) new kwxTreeCtrlComboPopup();
+    }
+
+    EXPORT void kwxTreeCtrlComboPopup_AddRoot(kwxTreeCtrlComboPopup* self, wxString* text,
+                                              void* result)
+    {
+        *((wxTreeItemId*) result) = self->AddRoot(*text);
+    }
+
+    EXPORT void kwxTreeCtrlComboPopup_AppendItem(kwxTreeCtrlComboPopup* self, wxTreeItemId* parent,
+                                                 wxString* text, void* result)
+    {
+        *((wxTreeItemId*) result) = self->AppendItem(*parent, *text);
+    }
+}
+
+kwxComboCtrl::kwxComboCtrl(void* pObject) : wxComboCtrl()
+{
+    m_object = pObject;
+    m_button_click_func = nullptr;
+    m_animate_show_func = nullptr;
+    m_set_popup_control_func = nullptr;
+    m_do_show_popup_func = nullptr;
+}
+
+kwxComboCtrl::kwxComboCtrl(void* pObject, wxWindow* parent, wxWindowID id, const wxString& value,
+                           const wxPoint& pos, const wxSize& size, long style) :
+    wxComboCtrl(parent, id, value, pos, size, style)
+{
+    m_object = pObject;
+    m_button_click_func = nullptr;
+    m_animate_show_func = nullptr;
+    m_set_popup_control_func = nullptr;
+    m_do_show_popup_func = nullptr;
+}
+
+void kwxComboCtrl::OnButtonClick()
+{
+    if (m_button_click_func)
+    {
+        m_button_click_func(m_object);
+        return;
+    }
+    wxComboCtrl::OnButtonClick();
+}
+
+bool kwxComboCtrl::AnimateShow(const wxRect& rect, int flags)
+{
+    if (m_animate_show_func)
+    {
+        return m_animate_show_func(m_object, rect.x, rect.y, rect.width, rect.height, flags) != 0;
+    }
+    return wxComboCtrl::AnimateShow(rect, flags);
+}
+
+void kwxComboCtrl::DoSetPopupControl(wxComboPopup* popup)
+{
+    if (m_set_popup_control_func)
+    {
+        m_set_popup_control_func(m_object, popup);
+        return;
+    }
+    wxComboCtrl::DoSetPopupControl(popup);
+}
+
+void kwxComboCtrl::DoShowPopup(const wxRect& rect, int flags)
+{
+    if (m_do_show_popup_func)
+    {
+        m_do_show_popup_func(m_object, rect.x, rect.y, rect.width, rect.height, flags);
+        return;
+    }
+    wxComboCtrl::DoShowPopup(rect, flags);
+}
+
+kwxOwnerDrawnComboBox::kwxOwnerDrawnComboBox(void* pObject) : wxOwnerDrawnComboBox()
+{
+    m_object = pObject;
+    m_draw_item_func = nullptr;
+    m_draw_background_func = nullptr;
+    m_measure_item_func = nullptr;
+    m_measure_item_width_func = nullptr;
+}
+
+kwxOwnerDrawnComboBox::kwxOwnerDrawnComboBox(void* pObject, wxWindow* parent, wxWindowID id,
+                                             const wxString& value, const wxPoint& pos,
+                                             const wxSize& size, long style) :
+    wxOwnerDrawnComboBox(parent, id, value, pos, size, style)
+{
+    m_object = pObject;
+    m_draw_item_func = nullptr;
+    m_draw_background_func = nullptr;
+    m_measure_item_func = nullptr;
+    m_measure_item_width_func = nullptr;
+}
+
+void kwxOwnerDrawnComboBox::OnDrawItem(wxDC& dc, const wxRect& rect, int item, int flags) const
+{
+    if (m_draw_item_func)
+    {
+        m_draw_item_func(m_object, &dc, const_cast<wxRect*>(&rect), item, flags);
+        return;
+    }
+    wxOwnerDrawnComboBox::OnDrawItem(dc, rect, item, flags);
+}
+
+void kwxOwnerDrawnComboBox::OnDrawBackground(wxDC& dc, const wxRect& rect, int item,
+                                             int flags) const
+{
+    if (m_draw_background_func)
+    {
+        m_draw_background_func(m_object, &dc, const_cast<wxRect*>(&rect), item, flags);
+        return;
+    }
+    wxOwnerDrawnComboBox::OnDrawBackground(dc, rect, item, flags);
+}
+
+wxCoord kwxOwnerDrawnComboBox::OnMeasureItem(size_t item) const
+{
+    if (m_measure_item_func)
+    {
+        return m_measure_item_func(m_object, item);
+    }
+    return wxOwnerDrawnComboBox::OnMeasureItem(item);
+}
+
+wxCoord kwxOwnerDrawnComboBox::OnMeasureItemWidth(size_t item) const
+{
+    if (m_measure_item_width_func)
+    {
+        return m_measure_item_width_func(m_object, item);
+    }
+    return wxOwnerDrawnComboBox::OnMeasureItemWidth(item);
+}
+
+kwxListViewComboPopup::kwxListViewComboPopup() :
+    wxComboPopup(), m_listView(nullptr), m_value(-1), m_itemHere(-1)
+{
+}
+
+void kwxListViewComboPopup::Init()
+{
+    // Keep the values set by AddString()/SetStringValue() when wxComboCtrl calls
+    // Init() again; only reset the transient hot item when nothing is selected.
+    m_itemHere = -1;
+}
+
+bool kwxListViewComboPopup::Create(wxWindow* parent)
+{
+    m_listView = new wxListView();
+    if (!m_listView->Create(parent, 1, wxPoint(0, 0), wxDefaultSize,
+                            wxLC_LIST | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING | wxSIMPLE_BORDER))
+    {
+        delete m_listView;
+        m_listView = nullptr;
+        return false;
+    }
+
+    m_listView->Bind(wxEVT_MOTION, &kwxListViewComboPopup::OnMouseMove, this);
+    m_listView->Bind(wxEVT_LEFT_DOWN, &kwxListViewComboPopup::OnMouseLeftDown, this);
+    return true;
+}
+
+wxWindow* kwxListViewComboPopup::GetControl()
+{
+    return m_listView;
+}
+
+void kwxListViewComboPopup::SetStringValue(const wxString& value)
+{
+    if (!m_listView)
+        return;
+
+    long n = m_listView->FindItem(-1, value);
+    if (n >= 0 && n < m_listView->GetItemCount())
+    {
+        m_listView->Select(n, true);
+        m_value = (int) n;
+    }
+}
+
+wxString kwxListViewComboPopup::GetStringValue() const
+{
+    if (!m_listView || m_value < 0 || m_value >= m_listView->GetItemCount())
+        return wxString();
+    return m_listView->GetItemText(m_value);
+}
+
+void kwxListViewComboPopup::AddString(const wxString& item)
+{
+    if (m_listView)
+        m_listView->InsertItem(m_listView->GetItemCount(), item);
+}
+
+int kwxListViewComboPopup::GetItemCount() const
+{
+    return m_listView ? (int) m_listView->GetItemCount() : 0;
+}
+
+void kwxListViewComboPopup::OnMouseMove(wxMouseEvent& event)
+{
+    if (m_listView)
+    {
+        int flags = 0;
+        long item = m_listView->HitTest(event.GetPosition(), flags);
+        if (item >= 0)
+        {
+            m_listView->Select(item, true);
+            m_itemHere = (int) item;
+        }
+    }
+    event.Skip();
+}
+
+void kwxListViewComboPopup::OnMouseLeftDown(wxMouseEvent& event)
+{
+    (void) event;
+    if (m_itemHere >= 0)
+        m_value = m_itemHere;
+    Dismiss();
+}
+
+kwxTreeCtrlComboPopup::kwxTreeCtrlComboPopup() : wxComboPopup(), m_treeCtrl(nullptr) {}
+
+void kwxTreeCtrlComboPopup::Init()
+{
+    m_itemHere = wxTreeItemId();
+}
+
+bool kwxTreeCtrlComboPopup::Create(wxWindow* parent)
+{
+    m_treeCtrl = new wxTreeCtrl();
+    if (!m_treeCtrl->Create(parent, 1, wxPoint(0, 0), wxDefaultSize,
+                            wxTR_DEFAULT_STYLE | wxTR_HIDE_ROOT | wxSIMPLE_BORDER))
+    {
+        delete m_treeCtrl;
+        m_treeCtrl = nullptr;
+        return false;
+    }
+
+    m_treeCtrl->Bind(wxEVT_MOTION, &kwxTreeCtrlComboPopup::OnMouseMove, this);
+    m_treeCtrl->Bind(wxEVT_LEFT_DOWN, &kwxTreeCtrlComboPopup::OnMouseLeftDown, this);
+    return true;
+}
+
+wxWindow* kwxTreeCtrlComboPopup::GetControl()
+{
+    return m_treeCtrl;
+}
+
+void kwxTreeCtrlComboPopup::OnPopup()
+{
+    if (m_treeCtrl && m_value.IsOk())
+        m_treeCtrl->EnsureVisible(m_value);
+}
+
+wxSize kwxTreeCtrlComboPopup::GetAdjustedSize(int minWidth, int prefHeight, int maxHeight)
+{
+    (void) prefHeight;
+    return wxSize(wxMax(300, minWidth), wxMin(250, maxHeight));
+}
+
+wxTreeItemId kwxTreeCtrlComboPopup::FindItemByText(wxTreeItemId parent, const wxString& text)
+{
+    if (!m_treeCtrl)
+        return wxTreeItemId();
+
+    wxTreeItemIdValue cookie;
+    wxTreeItemId child = m_treeCtrl->GetFirstChild(parent, cookie);
+    while (child.IsOk())
+    {
+        if (m_treeCtrl->GetItemText(child) == text)
+            return child;
+        if (m_treeCtrl->ItemHasChildren(child))
+        {
+            wxTreeItemId found = FindItemByText(child, text);
+            if (found.IsOk())
+                return found;
+        }
+        child = m_treeCtrl->GetNextChild(parent, cookie);
+    }
+    return wxTreeItemId();
+}
+
+void kwxTreeCtrlComboPopup::SetStringValue(const wxString& value)
+{
+    if (!m_treeCtrl)
+        return;
+
+    wxTreeItemId root = m_treeCtrl->GetRootItem();
+    if (!root.IsOk())
+        return;
+
+    wxTreeItemId found = FindItemByText(root, value);
+    if (found.IsOk())
+    {
+        m_value = found;
+        m_itemHere = found;
+        m_treeCtrl->SelectItem(found);
+    }
+}
+
+wxString kwxTreeCtrlComboPopup::GetStringValue() const
+{
+    if (!m_treeCtrl || !m_value.IsOk())
+        return wxString();
+    return m_treeCtrl->GetItemText(m_value);
+}
+
+wxTreeItemId kwxTreeCtrlComboPopup::AddRoot(const wxString& text)
+{
+    if (!m_treeCtrl)
+        return wxTreeItemId();
+    return m_treeCtrl->AddRoot(text);
+}
+
+wxTreeItemId kwxTreeCtrlComboPopup::AppendItem(wxTreeItemId parent, const wxString& text)
+{
+    if (!m_treeCtrl)
+        return wxTreeItemId();
+    return m_treeCtrl->AppendItem(parent, text);
+}
+
+void kwxTreeCtrlComboPopup::OnMouseMove(wxMouseEvent& event)
+{
+    if (m_treeCtrl)
+    {
+        int flags = 0;
+        wxTreeItemId item = m_treeCtrl->HitTest(event.GetPosition(), flags);
+        if (item.IsOk() && (flags & wxTREE_HITTEST_ONITEMLABEL))
+        {
+            m_treeCtrl->SelectItem(item, true);
+            m_itemHere = item;
+        }
+    }
+    event.Skip();
+}
+
+void kwxTreeCtrlComboPopup::OnMouseLeftDown(wxMouseEvent& event)
+{
+    if (m_treeCtrl)
+    {
+        int flags = 0;
+        wxTreeItemId item = m_treeCtrl->HitTest(event.GetPosition(), flags);
+        if (item.IsOk() && (flags & wxTREE_HITTEST_ONITEMLABEL))
+        {
+            m_itemHere = item;
+            m_value = item;
+            Dismiss();
+        }
+    }
+    event.Skip();
 }

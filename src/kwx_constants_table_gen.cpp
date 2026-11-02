@@ -596,6 +596,8 @@ int expwxCB_DROPDOWN();
 int expwxCB_READONLY();
 int expwxCB_SIMPLE();
 int expwxCB_SORT();
+int expwxCC_SPECIAL_DCLICK();
+int expwxCC_STD_BUTTON();
 int expwxCENTER();
 int expwxCENTER_FRAME();
 int expwxCENTRE();
@@ -1252,6 +1254,8 @@ int expwxOBJID_SYSMENU();
 int expwxOBJID_TITLEBAR();
 int expwxOBJID_VSCROLL();
 int expwxOBJID_WINDOW();
+int expwxODCB_PAINTING_CONTROL();
+int expwxODCB_PAINTING_SELECTED();
 int expwxODDEVEN_RULE();
 int expwxOK();
 int expwxOR();
@@ -1332,9 +1336,14 @@ int expwxPATH_RMDIR_FULL();
 int expwxPATH_RMDIR_PARENTS();
 int expwxPATH_RMDIR_RECURSIVE();
 int expwxPDP_ENDIAN();
+int expwxPENSTYLE_BDIAGONAL_HATCH();
+int expwxPENSTYLE_CROSSDIAG_HATCH();
+int expwxPENSTYLE_CROSS_HATCH();
 int expwxPENSTYLE_DOT();
 int expwxPENSTYLE_DOT_DASH();
+int expwxPENSTYLE_FDIAGONAL_HATCH();
 int expwxPENSTYLE_FIRST_HATCH();
+int expwxPENSTYLE_HORIZONTAL_HATCH();
 int expwxPENSTYLE_INVALID();
 int expwxPENSTYLE_LAST_HATCH();
 int expwxPENSTYLE_LONG_DASH();
@@ -1345,6 +1354,7 @@ int expwxPENSTYLE_STIPPLE_MASK();
 int expwxPENSTYLE_STIPPLE_MASK_OPAQUE();
 int expwxPENSTYLE_TRANSPARENT();
 int expwxPENSTYLE_USER_DASH();
+int expwxPENSTYLE_VERTICAL_HATCH();
 int expwxPLATFORM_CURRENT();
 int expwxPLATFORM_MAC();
 int expwxPLATFORM_UNIX();
@@ -1478,6 +1488,18 @@ int expwxSASH_TOP();
 int expwxSET();
 int expwxSETUP();
 int expwxSHAPED();
+int expwxSHOW_EFFECT_BLEND();
+int expwxSHOW_EFFECT_EXPAND();
+int expwxSHOW_EFFECT_MAX();
+int expwxSHOW_EFFECT_NONE();
+int expwxSHOW_EFFECT_ROLL_TO_BOTTOM();
+int expwxSHOW_EFFECT_ROLL_TO_LEFT();
+int expwxSHOW_EFFECT_ROLL_TO_RIGHT();
+int expwxSHOW_EFFECT_ROLL_TO_TOP();
+int expwxSHOW_EFFECT_SLIDE_TO_BOTTOM();
+int expwxSHOW_EFFECT_SLIDE_TO_LEFT();
+int expwxSHOW_EFFECT_SLIDE_TO_RIGHT();
+int expwxSHOW_EFFECT_SLIDE_TO_TOP();
 int expwxSHRINK();
 int expwxSHUTDOWN_FORCE();
 int expwxSHUTDOWN_LOGOFF();
@@ -1685,6 +1707,7 @@ int expwxTREE_HITTEST_ONITEMSTATEICON();
 int expwxTREE_HITTEST_ONITEMUPPERPART();
 int expwxTREE_HITTEST_TOLEFT();
 int expwxTREE_HITTEST_TORIGHT();
+int expwxTR_DEFAULT_STYLE();
 int expwxTR_EDIT_LABELS();
 int expwxTR_FULL_ROW_HIGHLIGHT();
 int expwxTR_HAS_BUTTONS();
@@ -1713,12 +1736,12 @@ int expwxYES();
 int expwxYES_DEFAULT();
 int expwxYES_NO();
 
-static int s_values[1708];
+static int s_values[1731];
 static std::once_flag s_once;
 
 WXFFI_EXPORT(int, kwxConstants_IntCount)()
 {
-    return 1708;
+    return 1731;
 }
 
 WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
@@ -2317,6 +2340,8 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxCB_READONLY();
         s_values[i++] = expwxCB_SIMPLE();
         s_values[i++] = expwxCB_SORT();
+        s_values[i++] = expwxCC_SPECIAL_DCLICK();
+        s_values[i++] = expwxCC_STD_BUTTON();
         s_values[i++] = expwxCENTER();
         s_values[i++] = expwxCENTER_FRAME();
         s_values[i++] = expwxCENTRE();
@@ -2973,6 +2998,8 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxOBJID_TITLEBAR();
         s_values[i++] = expwxOBJID_VSCROLL();
         s_values[i++] = expwxOBJID_WINDOW();
+        s_values[i++] = expwxODCB_PAINTING_CONTROL();
+        s_values[i++] = expwxODCB_PAINTING_SELECTED();
         s_values[i++] = expwxODDEVEN_RULE();
         s_values[i++] = expwxOK();
         s_values[i++] = expwxOR();
@@ -3053,9 +3080,14 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxPATH_RMDIR_PARENTS();
         s_values[i++] = expwxPATH_RMDIR_RECURSIVE();
         s_values[i++] = expwxPDP_ENDIAN();
+        s_values[i++] = expwxPENSTYLE_BDIAGONAL_HATCH();
+        s_values[i++] = expwxPENSTYLE_CROSSDIAG_HATCH();
+        s_values[i++] = expwxPENSTYLE_CROSS_HATCH();
         s_values[i++] = expwxPENSTYLE_DOT();
         s_values[i++] = expwxPENSTYLE_DOT_DASH();
+        s_values[i++] = expwxPENSTYLE_FDIAGONAL_HATCH();
         s_values[i++] = expwxPENSTYLE_FIRST_HATCH();
+        s_values[i++] = expwxPENSTYLE_HORIZONTAL_HATCH();
         s_values[i++] = expwxPENSTYLE_INVALID();
         s_values[i++] = expwxPENSTYLE_LAST_HATCH();
         s_values[i++] = expwxPENSTYLE_LONG_DASH();
@@ -3066,6 +3098,7 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxPENSTYLE_STIPPLE_MASK_OPAQUE();
         s_values[i++] = expwxPENSTYLE_TRANSPARENT();
         s_values[i++] = expwxPENSTYLE_USER_DASH();
+        s_values[i++] = expwxPENSTYLE_VERTICAL_HATCH();
         s_values[i++] = expwxPLATFORM_CURRENT();
         s_values[i++] = expwxPLATFORM_MAC();
         s_values[i++] = expwxPLATFORM_UNIX();
@@ -3199,6 +3232,18 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxSET();
         s_values[i++] = expwxSETUP();
         s_values[i++] = expwxSHAPED();
+        s_values[i++] = expwxSHOW_EFFECT_BLEND();
+        s_values[i++] = expwxSHOW_EFFECT_EXPAND();
+        s_values[i++] = expwxSHOW_EFFECT_MAX();
+        s_values[i++] = expwxSHOW_EFFECT_NONE();
+        s_values[i++] = expwxSHOW_EFFECT_ROLL_TO_BOTTOM();
+        s_values[i++] = expwxSHOW_EFFECT_ROLL_TO_LEFT();
+        s_values[i++] = expwxSHOW_EFFECT_ROLL_TO_RIGHT();
+        s_values[i++] = expwxSHOW_EFFECT_ROLL_TO_TOP();
+        s_values[i++] = expwxSHOW_EFFECT_SLIDE_TO_BOTTOM();
+        s_values[i++] = expwxSHOW_EFFECT_SLIDE_TO_LEFT();
+        s_values[i++] = expwxSHOW_EFFECT_SLIDE_TO_RIGHT();
+        s_values[i++] = expwxSHOW_EFFECT_SLIDE_TO_TOP();
         s_values[i++] = expwxSHRINK();
         s_values[i++] = expwxSHUTDOWN_FORCE();
         s_values[i++] = expwxSHUTDOWN_LOGOFF();
@@ -3406,6 +3451,7 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
         s_values[i++] = expwxTREE_HITTEST_ONITEMUPPERPART();
         s_values[i++] = expwxTREE_HITTEST_TOLEFT();
         s_values[i++] = expwxTREE_HITTEST_TORIGHT();
+        s_values[i++] = expwxTR_DEFAULT_STYLE();
         s_values[i++] = expwxTR_EDIT_LABELS();
         s_values[i++] = expwxTR_FULL_ROW_HIGHLIGHT();
         s_values[i++] = expwxTR_HAS_BUTTONS();
@@ -3439,7 +3485,7 @@ WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
 
 WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
 {
-    static const char* const s_names[1708] = {
+    static const char* const s_names[1731] = {
         "EVT_ACTIVATE",
         "EVT_ACTIVATE_APP",
         "EVT_AUINOTEBOOK_ALLOW_DND",
@@ -4032,6 +4078,8 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "CB_READONLY",
         "CB_SIMPLE",
         "CB_SORT",
+        "CC_SPECIAL_DCLICK",
+        "CC_STD_BUTTON",
         "CENTER",
         "CENTER_FRAME",
         "CENTRE",
@@ -4688,6 +4736,8 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "OBJID_TITLEBAR",
         "OBJID_VSCROLL",
         "OBJID_WINDOW",
+        "ODCB_PAINTING_CONTROL",
+        "ODCB_PAINTING_SELECTED",
         "ODDEVEN_RULE",
         "OK",
         "OR",
@@ -4768,9 +4818,14 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "PATH_RMDIR_PARENTS",
         "PATH_RMDIR_RECURSIVE",
         "PDP_ENDIAN",
+        "PENSTYLE_BDIAGONAL_HATCH",
+        "PENSTYLE_CROSSDIAG_HATCH",
+        "PENSTYLE_CROSS_HATCH",
         "PENSTYLE_DOT",
         "PENSTYLE_DOT_DASH",
+        "PENSTYLE_FDIAGONAL_HATCH",
         "PENSTYLE_FIRST_HATCH",
+        "PENSTYLE_HORIZONTAL_HATCH",
         "PENSTYLE_INVALID",
         "PENSTYLE_LAST_HATCH",
         "PENSTYLE_LONG_DASH",
@@ -4781,6 +4836,7 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "PENSTYLE_STIPPLE_MASK_OPAQUE",
         "PENSTYLE_TRANSPARENT",
         "PENSTYLE_USER_DASH",
+        "PENSTYLE_VERTICAL_HATCH",
         "PLATFORM_CURRENT",
         "PLATFORM_MAC",
         "PLATFORM_UNIX",
@@ -4914,6 +4970,18 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "SET",
         "SETUP",
         "SHAPED",
+        "SHOW_EFFECT_BLEND",
+        "SHOW_EFFECT_EXPAND",
+        "SHOW_EFFECT_MAX",
+        "SHOW_EFFECT_NONE",
+        "SHOW_EFFECT_ROLL_TO_BOTTOM",
+        "SHOW_EFFECT_ROLL_TO_LEFT",
+        "SHOW_EFFECT_ROLL_TO_RIGHT",
+        "SHOW_EFFECT_ROLL_TO_TOP",
+        "SHOW_EFFECT_SLIDE_TO_BOTTOM",
+        "SHOW_EFFECT_SLIDE_TO_LEFT",
+        "SHOW_EFFECT_SLIDE_TO_RIGHT",
+        "SHOW_EFFECT_SLIDE_TO_TOP",
         "SHRINK",
         "SHUTDOWN_FORCE",
         "SHUTDOWN_LOGOFF",
@@ -5121,6 +5189,7 @@ WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
         "TREE_HITTEST_ONITEMUPPERPART",
         "TREE_HITTEST_TOLEFT",
         "TREE_HITTEST_TORIGHT",
+        "TR_DEFAULT_STYLE",
         "TR_EDIT_LABELS",
         "TR_FULL_ROW_HIGHLIGHT",
         "TR_HAS_BUTTONS",

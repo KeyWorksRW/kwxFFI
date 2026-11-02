@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+wxIMPLEMENT_DYNAMIC_CLASS(kwxTreeControl, wxTreeCtrl);
+
 // wxTreeCtrl inherits from wxControl and wxWithImages.
 // Additional methods available via:
 //   wxWindow_*  — base window methods (see wx_window.cpp)
@@ -99,8 +101,8 @@ extern "C"
     EXPORT wxTreeCtrl* wxTreeCtrl_Create(void* pObject, void* compareFunc, wxWindow* parent, int id,
                                          int x, int y, int width, int height, int style)
     {
-        return new wxTreeCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style,
-                              wxDefaultValidator);
+        return new kwxTreeControl(pObject, compareFunc, parent, id, wxPoint(x, y),
+                                  wxSize(width, height), style);
     }
 
     EXPORT wxTreeCtrl* wxTreeCtrl_Create2(wxWindow* parent, int id, int x, int y, int width,
@@ -185,12 +187,14 @@ extern "C"
 
     EXPORT void* wxTreeCtrl_GetItemData(wxTreeCtrl* self, wxTreeItemId* item)
     {
-        return ((kwxTreeItemData*) self->GetItemData(*item))->GetClientClosure();
+        kwxTreeItemData* data = (kwxTreeItemData*) self->GetItemData(*item);
+        return data ? data->GetClientClosure() : nullptr;
     }
 
     EXPORT void* wxTreeCtrl_GetItemClientClosure(wxTreeCtrl* self, wxTreeItemId* item)
     {
-        return ((kwxTreeItemData*) self->GetItemData(*item))->GetClientClosure();
+        kwxTreeItemData* data = (kwxTreeItemData*) self->GetItemData(*item);
+        return data ? data->GetClientClosure() : nullptr;
     }
 
     EXPORT void wxTreeCtrl_SetItemText(wxTreeCtrl* self, wxTreeItemId* item, wxString* text)
@@ -315,16 +319,22 @@ extern "C"
         *result = self->GetItemParent(*inputItem);
     }
 
-    EXPORT void wxTreeCtrl_GetFirstChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void* cookie,
+    EXPORT void wxTreeCtrl_GetFirstChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void** cookie,
                                          wxTreeItemId* result)
     {
-        *result = self->GetFirstChild(*inputItem, cookie);
+        wxTreeItemIdValue value = cookie ? (wxTreeItemIdValue) *cookie : nullptr;
+        *result = self->GetFirstChild(*inputItem, value);
+        if (cookie)
+            *cookie = value;
     }
 
-    EXPORT void wxTreeCtrl_GetNextChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void* cookie,
+    EXPORT void wxTreeCtrl_GetNextChild(wxTreeCtrl* self, wxTreeItemId* inputItem, void** cookie,
                                         wxTreeItemId* result)
     {
-        *result = self->GetNextChild(*inputItem, cookie);
+        wxTreeItemIdValue value = cookie ? (wxTreeItemIdValue) *cookie : nullptr;
+        *result = self->GetNextChild(*inputItem, value);
+        if (cookie)
+            *cookie = value;
     }
 
     EXPORT void wxTreeCtrl_GetLastChild(wxTreeCtrl* self, wxTreeItemId* inputItem,
@@ -462,6 +472,11 @@ extern "C"
     EXPORT void wxTreeCtrl_SelectItem(wxTreeCtrl* self, wxTreeItemId* item)
     {
         self->SelectItem(*item);
+    }
+
+    EXPORT void wxTreeCtrl_SelectItem2(wxTreeCtrl* self, wxTreeItemId* item, bool select)
+    {
+        self->SelectItem(*item, select);
     }
 
     EXPORT void wxTreeCtrl_EnsureVisible(wxTreeCtrl* self, wxTreeItemId* item)

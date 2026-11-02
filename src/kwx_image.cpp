@@ -167,6 +167,14 @@ extern "C"
         return bundle.IsOk() ? new wxBitmapBundle(std::move(bundle)) : nullptr;
     }
 
+    EXPORT wxBitmapBundle* wxBitmapBundle_FromSVGFile(wxString* file, int width, int height)
+    {
+        if (!file)
+            return nullptr;
+        wxBitmapBundle bundle = wxBitmapBundle::FromSVGFile(*file, wxSize(width, height));
+        return bundle.IsOk() ? new wxBitmapBundle(std::move(bundle)) : nullptr;
+    }
+
     EXPORT void wxBitmapBundle_Delete(wxBitmapBundle* self)
     {
         delete self;

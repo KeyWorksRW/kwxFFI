@@ -150,6 +150,10 @@ Several classes derive from wxWidgets classes to support callbacks:
 | `kwxConnection` | TCP/IPC connection with foreign callbacks |
 | `kwxTreeControl` | Tree control with custom compare callback |
 | `kwxGridTable` | Grid data source with foreign callbacks |
+| `kwxComboCtrl` | wxComboCtrl with callback overrides for the popup virtuals |
+| `kwxOwnerDrawnComboBox` | wxOwnerDrawnComboBox with owner-draw callbacks |
+| `kwxListViewComboPopup` | Concrete wxComboPopup backed by a wxListView |
+| `kwxTreeCtrlComboPopup` | Concrete wxComboPopup backed by a wxTreeCtrl |
 
 ## Adding New Wrappers
 

@@ -96,25 +96,38 @@ TClass(wxColour) wxColour_CreateFromUnsignedInt(unsigned int rgba);
 int wxColour_GetInt(TSelf(wxColour) pObject);
 unsigned int wxColour_GetUnsignedInt(TSelf(wxColour) pObject);
 
-TClassDef(wxComboCtrl) void wxComboCtrl_Copy(TSelf(wxComboCtrl) pObject);
+TClassDefExtend(wxComboCtrl, wxControl) void wxComboCtrl_Copy(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) value, int x, int y,
                          int width, int height, long style);
 void wxComboCtrl_Cut(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_Dismiss(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_EnablePopupAnimation(TSelf(wxComboCtrl) pObject, TBool enable);
+TClass(wxBitmap) wxComboCtrl_GetBitmapDisabled(TSelf(wxComboCtrl) pObject);
+TClass(wxBitmap) wxComboCtrl_GetBitmapHover(TSelf(wxComboCtrl) pObject);
+TClass(wxBitmap) wxComboCtrl_GetBitmapNormal(TSelf(wxComboCtrl) pObject);
+TClass(wxBitmap) wxComboCtrl_GetBitmapPressed(TSelf(wxComboCtrl) pObject);
+TClass(wxSize) wxComboCtrl_GetButtonSize(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetCustomPaintWidth(TSelf(wxComboCtrl) pObject);
+int wxComboCtrl_GetFeatures();
+TClass(wxString) wxComboCtrl_GetHint(TSelf(wxComboCtrl) pObject);
 long wxComboCtrl_GetInsertionPoint(TSelf(wxComboCtrl) pObject);
 long wxComboCtrl_GetLastPosition(TSelf(wxComboCtrl) pObject);
+void wxComboCtrl_GetMargins(TSelf(wxComboCtrl) pObject, int* left, int* top);
+TClass(wxComboPopup) wxComboCtrl_GetPopupControl(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_GetPopupWindow(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetPopupWindowState(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_GetTextCtrl(TSelf(wxComboCtrl) pObject);
+TClass(wxRect) wxComboCtrl_GetTextRect(TSelf(wxComboCtrl) pObject);
 TClass(wxString) wxComboCtrl_GetValue(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_HidePopup(TSelf(wxComboCtrl) pObject, TBool generateEvent);
 TBool wxComboCtrl_IsEditable(TSelf(wxComboCtrl) pObject);
+TBool wxComboCtrl_IsKeyPopupToggle(TSelf(wxComboCtrl) pObject, TClass(wxKeyEvent) event);
 TBool wxComboCtrl_IsPopupShown(TSelf(wxComboCtrl) pObject);
 TBool wxComboCtrl_IsPopupWindowState(TSelf(wxComboCtrl) pObject, int state);
 void wxComboCtrl_Paste(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_Popup(TSelf(wxComboCtrl) pObject);
+void wxComboCtrl_PrepareBackground(TSelf(wxComboCtrl) pObject, TClass(wxDC) dc,
+                                   TRect(x, y, width, height), int flags);
 void wxComboCtrl_Remove(TSelf(wxComboCtrl) pObject, long from, long toPos);
 void wxComboCtrl_Replace(TSelf(wxComboCtrl) pObject, long from, long toPos, TClass(wxString) value);
 void wxComboCtrl_SelectAll(TSelf(wxComboCtrl) pObject);
@@ -125,10 +138,13 @@ void wxComboCtrl_SetButtonBitmaps(TSelf(wxComboCtrl) pObject, TClass(wxBitmapBun
 void wxComboCtrl_SetButtonPosition(TSelf(wxComboCtrl) pObject, int width, int height, int side,
                                    int spacingX);
 void wxComboCtrl_SetCustomPaintWidth(TSelf(wxComboCtrl) pObject, int width);
+TBool wxComboCtrl_SetHint(TSelf(wxComboCtrl) pObject, TClass(wxString) hint);
 void wxComboCtrl_SetInsertionPoint(TSelf(wxComboCtrl) pObject, long pos);
 void wxComboCtrl_SetInsertionPointEnd(TSelf(wxComboCtrl) pObject);
+void wxComboCtrl_SetMainControl(TSelf(wxComboCtrl) pObject, TClass(wxWindow) win);
 void wxComboCtrl_SetMargins(TSelf(wxComboCtrl) pObject, int left, int top);
 void wxComboCtrl_SetPopupAnchor(TSelf(wxComboCtrl) pObject, int anchorSide);
+void wxComboCtrl_SetPopupControl(TSelf(wxComboCtrl) pObject, TClass(wxComboPopup) popup);
 void wxComboCtrl_SetPopupExtents(TSelf(wxComboCtrl) pObject, int extLeft, int extRight);
 void wxComboCtrl_SetPopupMaxHeight(TSelf(wxComboCtrl) pObject, int height);
 void wxComboCtrl_SetPopupMinWidth(TSelf(wxComboCtrl) pObject, int width);
@@ -136,8 +152,11 @@ void wxComboCtrl_SetSelection(TSelf(wxComboCtrl) pObject, long from, long toPos)
 void wxComboCtrl_SetText(TSelf(wxComboCtrl) pObject, TClass(wxString) value);
 void wxComboCtrl_SetTextCtrlStyle(TSelf(wxComboCtrl) pObject, int style);
 void wxComboCtrl_SetValue(TSelf(wxComboCtrl) pObject, TClass(wxString) value);
+void wxComboCtrl_SetValueByUser(TSelf(wxComboCtrl) pObject, TClass(wxString) value);
+TBool wxComboCtrl_ShouldDrawFocus(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_ShowPopup(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_Undo(TSelf(wxComboCtrl) pObject);
+void wxComboCtrl_UseAltPopupWindow(TSelf(wxComboCtrl) pObject, TBool enable);
 
 TClassDef(wxConfigBase) TClass(wxConfigBase) wxConfigBase_Get();
 void wxConfigBase_Set(TSelf(wxConfigBase) pObject);
@@ -655,8 +674,9 @@ TBool wxObject_IsKindOf(TSelf(wxObject) pObject, TClass(wxClassInfo) classInfo);
 TBool wxObject_IsScrolledWindow(TSelf(wxObject) pObject);
 void wxObject_SetClientClosure(TSelf(wxObject) pObject, TClass(wxClosure) closure);
 
-TClassDef(wxOwnerDrawnComboBox) int wxOwnerDrawnComboBox_Append(TSelf(wxOwnerDrawnComboBox) pObject,
-                                                                TClass(wxString) item);
+TClassDefExtend(wxOwnerDrawnComboBox,
+                wxComboCtrl) int wxOwnerDrawnComboBox_Append(TSelf(wxOwnerDrawnComboBox) pObject,
+                                                             TClass(wxString) item);
 int wxOwnerDrawnComboBox_AppendWithClientData(TSelf(wxOwnerDrawnComboBox) pObject,
                                               TClass(wxString) item, void* clientData);
 void wxOwnerDrawnComboBox_Clear(TSelf(wxOwnerDrawnComboBox) pObject);

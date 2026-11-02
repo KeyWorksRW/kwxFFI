@@ -721,6 +721,7 @@ public:
 
 // Helper classes that depend on the wx headers and declarations above.
 #include "kwx_helper_accessible.h"
+#include "kwx_helper_combo.h"
 #include "kwx_helper_eventfilter.h"
 #include "kwx_helper_filedlgcustomize.h"
 #include "kwx_helper_thread.h"
