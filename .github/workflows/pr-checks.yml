@@ -145,12 +145,13 @@ jobs:
     name: shared library build
     # The `quick` job configures only tests/, so it never links kwxFFI or
     # kwxFFI_shared. This job builds both library types from one wxWidgets build
-    # and runs the `library`-labelled tests, which is what catches unresolved
+    # and runs the `library`-labeled tests, which is what catches unresolved
     # symbols in the shared library before they reach the daily build.
     # Self-hosted stays behind the maintainer-only gate: untrusted pull request
-    # code must never execute on that machine. Everyone else falls back to a
-    # GitHub-hosted box.
-    uses: ./.github/workflows/build-unix-reusable.yml
+    # code must never execute on that machine. 'self-hosted' resolves inside the
+    # reusable workflow to the macOS ARM64 runner; everyone else falls back to a
+    # GitHub-hosted macOS box (macos-15).
+    uses: ./.github/workflows/build-macos-reusable.yml
     with:
       build-type: Release
       build-both: 'ON'
