@@ -12,7 +12,13 @@ extern "C"
 
     EXPORT wxDataFormat* wxDataFormat_CreateFromType(int typ)
     {
-        return new wxDataFormat((wxDataFormat::NativeFormat) typ);
+#ifdef __WIN32__
+        return new wxDataFormat(static_cast<wxDataFormat::NativeFormat>(typ));
+#else
+        // NativeFormat is a GdkAtom (a pointer) on the Unix ports, so an int can
+        // only ever name a standard wxDataFormatId there.
+        return new wxDataFormat(static_cast<wxDataFormatId>(typ));
+#endif
     }
 
     EXPORT void wxDataFormat_Delete(wxDataFormat* self)
@@ -34,7 +40,7 @@ extern "C"
 
     EXPORT int wxDataFormat_GetType(wxDataFormat* self)
     {
-        return (int) self->GetType();
+        return static_cast<int>(self->GetType());
     }
 
     EXPORT void wxDataFormat_SetId(wxDataFormat* self, wxString* id)
@@ -45,9 +51,9 @@ extern "C"
     EXPORT void wxDataFormat_SetType(wxDataFormat* self, int typ)
     {
 #ifdef __WIN32__
-        self->SetType((wxDataFormat::NativeFormat) typ);
+        self->SetType(static_cast<wxDataFormat::NativeFormat>(typ));
 #else
-        self->SetType((wxDataFormatId) typ);
+        self->SetType(static_cast<wxDataFormatId>(typ));
 #endif
     }
 }

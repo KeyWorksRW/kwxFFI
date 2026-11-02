@@ -4,6 +4,7 @@
 
 #include "kwx_accessible.h"
 #include "kwx_classes_sync.h"
+#include "kwx_combo_extra.h"
 #include "kwx_core_extra.h"
 #include "kwx_date_locale_extra.h"
 #include "kwx_dialogs_extra.h"
@@ -1007,6 +1008,7 @@ TClass(wxBitmapBundle)
     wxBitmapBundle_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
 TClass(wxBitmapBundle) wxBitmapBundle_CreateFromSVGBase64(const unsigned char* base64, size_t len,
                                                           int default_w, int default_h);
+TClass(wxBitmapBundle) wxBitmapBundle_FromSVGFile(TClass(wxString) file, TSize(width, height));
 
 TClassDef(wxBitmapBundleBuilder) TClass(wxBitmapBundleBuilder) wxBitmapBundleBuilder_Create();
 void wxBitmapBundleBuilder_AddData(TSelf(wxBitmapBundleBuilder) builder, const unsigned char* data,
@@ -5149,6 +5151,8 @@ TClassDefExtend(wxSystemOptions, wxObject)
 void wxSystemSettings_GetFont(int index, TClassRef(wxFont) ref);
 int wxSystemSettings_GetMetric(int index);
 int wxSystemSettings_GetScreenType();
+TClass(wxColour)
+    wxSystemSettings_SelectLightDark(TClass(wxColour) colForLight, TClass(wxColour) colForDark);
 
 TClassDefExtend(wxTabCtrl, wxControl)
 
@@ -5463,7 +5467,7 @@ int wxTreeCtrl_GetChildrenCount(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) 
 int wxTreeCtrl_GetCount(TSelf(wxTreeCtrl) pObject);
 TClass(wxTextCtrl) wxTreeCtrl_GetEditControl(TSelf(wxTreeCtrl) pObject);
 void wxTreeCtrl_GetFirstChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
-                              int* cookie, TClassRef(wxTreeItemId) result);
+                              void** cookie, TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetFirstVisibleItem(TSelf(wxTreeCtrl) pObject, TClassRef(wxTreeItemId) result);
 TClass(wxImageList) wxTreeCtrl_GetImageList(TSelf(wxTreeCtrl) pObject);
 int wxTreeCtrl_GetIndent(TSelf(wxTreeCtrl) pObject);
@@ -5472,8 +5476,8 @@ int wxTreeCtrl_GetItemImage(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item
 TClass(wxString) wxTreeCtrl_GetItemText(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item);
 void wxTreeCtrl_GetLastChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
                              TClassRef(wxTreeItemId) result);
-void wxTreeCtrl_GetNextChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem, int* cookie,
-                             TClassRef(wxTreeItemId) result);
+void wxTreeCtrl_GetNextChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
+                             void** cookie, TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetNextSibling(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
                                TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetNextVisible(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
@@ -5509,6 +5513,7 @@ void wxTreeCtrl_PrependItem(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) pare
                             TClassRef(wxTreeItemId) item);
 void wxTreeCtrl_ScrollTo(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item);
 void wxTreeCtrl_SelectItem(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item);
+void wxTreeCtrl_SelectItem2(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item, TBool select);
 void wxTreeCtrl_SetImageList(TSelf(wxTreeCtrl) pObject, TClass(wxImageList) imageList);
 void wxTreeCtrl_SetIndent(TSelf(wxTreeCtrl) pObject, int indent);
 void wxTreeCtrl_SetItemBackgroundColour(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item,

@@ -5996,4 +5996,108 @@ extern "C"
     {
         return static_cast<int>(wxFILE_EXISTS_ANY);
     }
+
+    // ---- Combo control constants (issue #73) ----
+
+    EXPORT int expwxCC_SPECIAL_DCLICK()
+    {
+        return (int) wxCC_SPECIAL_DCLICK;
+    }
+    EXPORT int expwxCC_STD_BUTTON()
+    {
+        return (int) wxCC_STD_BUTTON;
+    }
+    EXPORT int expwxODCB_PAINTING_CONTROL()
+    {
+        return (int) wxODCB_PAINTING_CONTROL;
+    }
+    EXPORT int expwxODCB_PAINTING_SELECTED()
+    {
+        return (int) wxODCB_PAINTING_SELECTED;
+    }
+
+    // ---- Pen hatch styles ----
+
+    EXPORT int expwxPENSTYLE_BDIAGONAL_HATCH()
+    {
+        return (int) wxPENSTYLE_BDIAGONAL_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_CROSSDIAG_HATCH()
+    {
+        return (int) wxPENSTYLE_CROSSDIAG_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_FDIAGONAL_HATCH()
+    {
+        return (int) wxPENSTYLE_FDIAGONAL_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_CROSS_HATCH()
+    {
+        return (int) wxPENSTYLE_CROSS_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_HORIZONTAL_HATCH()
+    {
+        return (int) wxPENSTYLE_HORIZONTAL_HATCH;
+    }
+    EXPORT int expwxPENSTYLE_VERTICAL_HATCH()
+    {
+        return (int) wxPENSTYLE_VERTICAL_HATCH;
+    }
+
+    // ---- wxShowEffect (for wxWindow::ShowWithEffect) ----
+
+    EXPORT int expwxSHOW_EFFECT_NONE()
+    {
+        return (int) wxSHOW_EFFECT_NONE;
+    }
+    EXPORT int expwxSHOW_EFFECT_ROLL_TO_LEFT()
+    {
+        return (int) wxSHOW_EFFECT_ROLL_TO_LEFT;
+    }
+    EXPORT int expwxSHOW_EFFECT_ROLL_TO_RIGHT()
+    {
+        return (int) wxSHOW_EFFECT_ROLL_TO_RIGHT;
+    }
+    EXPORT int expwxSHOW_EFFECT_ROLL_TO_TOP()
+    {
+        return (int) wxSHOW_EFFECT_ROLL_TO_TOP;
+    }
+    EXPORT int expwxSHOW_EFFECT_ROLL_TO_BOTTOM()
+    {
+        return (int) wxSHOW_EFFECT_ROLL_TO_BOTTOM;
+    }
+    EXPORT int expwxSHOW_EFFECT_SLIDE_TO_LEFT()
+    {
+        return (int) wxSHOW_EFFECT_SLIDE_TO_LEFT;
+    }
+    EXPORT int expwxSHOW_EFFECT_SLIDE_TO_RIGHT()
+    {
+        return (int) wxSHOW_EFFECT_SLIDE_TO_RIGHT;
+    }
+    EXPORT int expwxSHOW_EFFECT_SLIDE_TO_TOP()
+    {
+        return (int) wxSHOW_EFFECT_SLIDE_TO_TOP;
+    }
+    EXPORT int expwxSHOW_EFFECT_SLIDE_TO_BOTTOM()
+    {
+        return (int) wxSHOW_EFFECT_SLIDE_TO_BOTTOM;
+    }
+    EXPORT int expwxSHOW_EFFECT_BLEND()
+    {
+        return (int) wxSHOW_EFFECT_BLEND;
+    }
+    EXPORT int expwxSHOW_EFFECT_EXPAND()
+    {
+        return (int) wxSHOW_EFFECT_EXPAND;
+    }
+    EXPORT int expwxSHOW_EFFECT_MAX()
+    {
+        return (int) wxSHOW_EFFECT_MAX;
+    }
+
+    // ---- Tree control default style ----
+
+    EXPORT int expwxTR_DEFAULT_STYLE()
+    {
+        return (int) wxTR_DEFAULT_STYLE;
+    }
 }

@@ -251,6 +251,7 @@ set( FFI_HDR_FILES
     include/kwx_net_extra.h
     include/kwx_log.h
     include/kwx_accessible.h
+    include/kwx_combo_extra.h
     include/kwx_helper_cmdline.h
     include/kwx_helper_thread.h
     include/kwx_spec_residual.h

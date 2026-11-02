@@ -19,14 +19,18 @@ on:
         type: string
         default: 'ON'
       runner-type:
-        description: 'Runner label (macos-15 for the universal build, or self-hosted labels)'
+        description: "Runner type (self-hosted for the macOS ARM64 runner, or github-hosted)"
         required: false
         type: string
         default: 'macos-15'
 
 jobs:
   buildMacOS:
-    runs-on: ${{ inputs.runner-type }}
+    # Self-hosted is behind the maintainer-only gate for the same reason as
+    # pr-checks.yml: untrusted pull request code must never reach that machine.
+    # The explicit macOS/ARM64 labels keep the job on the Mac runner instead of
+    # any other self-hosted runner registered to the repository.
+    runs-on: ${{ inputs.runner-type == 'self-hosted' && fromJSON('["self-hosted", "macOS", "ARM64"]') || 'macos-15' }}
     env:
       SCCACHE_DIR: ${{github.workspace}}/.sccache
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"

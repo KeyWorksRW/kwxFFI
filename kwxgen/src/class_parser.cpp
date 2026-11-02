@@ -685,12 +685,16 @@ static void BuildMixinMap(ClassParseResult& result)
         const char* mixin;
         std::vector<const char*> consumers;
     };
-    const std::array<MixinEntry, 2> mixin_table = { {
+    const std::array<MixinEntry, 3> mixin_table = { {
         { .mixin = "wxTextEntry",
-          .consumers = { "wxTextCtrl", "wxComboBox", "wxSearchCtrl", "wxBitmapComboBox" } },
+          .consumers = { "wxTextCtrl", "wxComboBox", "wxSearchCtrl", "wxBitmapComboBox",
+                         "wxComboCtrl" } },
         { .mixin = "wxItemContainer",
           .consumers = { "wxListBox", "wxChoice", "wxCheckListBox", "wxComboBox",
                          "wxBitmapComboBox" } },
+        { .mixin = "wxComboPopup",
+          .consumers = { "wxListView", "wxTreeCtrl", "kwxListViewComboPopup",
+                         "kwxTreeCtrlComboPopup" } },
     } };
 
     // Build a name set for fast lookup of parsed classes.

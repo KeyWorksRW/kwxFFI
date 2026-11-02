@@ -24,4 +24,9 @@ extern "C"
     {
         return (int) wxSystemSettings::GetScreenType();
     }
+
+    EXPORT wxColour* wxSystemSettings_SelectLightDark(wxColour* colForLight, wxColour* colForDark)
+    {
+        return new wxColour(wxSystemSettings::SelectLightDark(*colForLight, *colForDark));
+    }
 }
