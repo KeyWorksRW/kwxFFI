@@ -292,7 +292,25 @@ namespace kwx
 
         EXPORT bool wxShellWithOutput(const wxString* command, wxArrayString* output)
         {
+#if defined(__WINDOWS__)
+            // wxWidgets defines the output-capturing wxShell() overload only for the Unix
+            // ports (src/unix/utilsunx.cpp); the MSW port has the interactive overload only.
+            // Reproduce the Unix behaviour: run the command through the command processor
+            // and capture its output.
+            //
+            // Returns true on success, matching the MSW one-arg wxShell(), which returns
+            // wxExecute(...) == 0. The Unix two-arg overload instead returns the raw exit
+            // code cast to bool, so this is deliberately not bug-for-bug parity with it.
+            wxString shell;
+            if (!::wxGetEnv("COMSPEC", &shell))
+            {
+                shell = "\\COMMAND.COM";
+            }
+            const wxString full_command = shell + " /c " + *command;
+            return ::wxExecute(full_command, *output) == 0;
+#else
             return ::wxShell(*command, *output);
+#endif
         }
 
         EXPORT void wxSleep(int seconds)
@@ -377,7 +395,20 @@ namespace kwx
 
         EXPORT void wxFlushEvents()
         {
+#if defined(__WXX11__)
             ::wxFlushEvents();
+#else
+            // wxWidgets implements wxFlushEvents() only in the wxX11 port (src/x11/utils.cpp);
+            // the MSW, GTK and macOS ports declare it without providing a definition.
+            // Consume pending events through the active event loop instead.
+            while (wxTheApp && wxTheApp->Pending())
+            {
+                if (!wxTheApp->Dispatch())
+                {
+                    break;
+                }
+            }
+#endif
         }
 
         EXPORT bool wxYield()

@@ -35,7 +35,19 @@ extern "C"
 
     EXPORT int wxPlatformInfo_GetBitnessFromName(wxString* bitness)
     {
-        return static_cast<int>(wxPlatformInfo::GetBitness(*bitness));
+        // wxWidgets 3.3.x declares wxPlatformInfo::GetBitness(const wxString&) in
+        // wx/platinfo.h but never defines it, so calling it fails at link time on every
+        // platform. Reproduce the documented behaviour locally, matching the same
+        // substring test that wxPlatformInfo::GetArch() uses.
+        if (bitness->Contains("32"))
+        {
+            return static_cast<int>(wxBITNESS_32);
+        }
+        if (bitness->Contains("64"))
+        {
+            return static_cast<int>(wxBITNESS_64);
+        }
+        return static_cast<int>(wxBITNESS_INVALID);
     }
 
     EXPORT int wxPlatformInfo_GetEndiannessFromName(wxString* endianness)
