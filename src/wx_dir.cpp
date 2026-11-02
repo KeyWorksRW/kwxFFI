@@ -54,47 +54,47 @@ static wxString PathOrEmpty(wxString* text)
 
 extern "C"
 {
-    wxDir* wxDir_Create()
+    EXPORT wxDir* wxDir_Create()
     {
         return new wxDir();
     }
 
-    wxDir* wxDir_CreateFromPath(wxString* directory)
+    EXPORT wxDir* wxDir_CreateFromPath(wxString* directory)
     {
         return new wxDir(PathOrEmpty(directory));
     }
 
-    void wxDir_Delete(wxDir* self)
+    EXPORT void wxDir_Delete(wxDir* self)
     {
         delete self;
     }
 
-    bool wxDir_Open(wxDir* self, wxString* directory)
+    EXPORT bool wxDir_Open(wxDir* self, wxString* directory)
     {
         return self->Open(PathOrEmpty(directory));
     }
 
-    void wxDir_Close(wxDir* self)
+    EXPORT void wxDir_Close(wxDir* self)
     {
         self->Close();
     }
 
-    bool wxDir_IsOpened(wxDir* self)
+    EXPORT bool wxDir_IsOpened(wxDir* self)
     {
         return self->IsOpened();
     }
 
-    wxString* wxDir_GetName(wxDir* self)
+    EXPORT wxString* wxDir_GetName(wxDir* self)
     {
         return new wxString(self->GetName());
     }
 
-    wxString* wxDir_GetNameWithSep(wxDir* self)
+    EXPORT wxString* wxDir_GetNameWithSep(wxDir* self)
     {
         return new wxString(self->GetNameWithSep());
     }
 
-    bool wxDir_GetFirst(wxDir* self, wxString* filename, wxString* spec, int flags)
+    EXPORT bool wxDir_GetFirst(wxDir* self, wxString* filename, wxString* spec, int flags)
     {
         wxString found;
         const bool result = self->GetFirst(&found, PathOrEmpty(spec), flags);
@@ -106,7 +106,7 @@ extern "C"
         return result;
     }
 
-    bool wxDir_GetNext(wxDir* self, wxString* filename)
+    EXPORT bool wxDir_GetNext(wxDir* self, wxString* filename)
     {
         wxString found;
         const bool result = self->GetNext(&found);
@@ -118,17 +118,17 @@ extern "C"
         return result;
     }
 
-    bool wxDir_HasFiles(wxDir* self, wxString* spec)
+    EXPORT bool wxDir_HasFiles(wxDir* self, wxString* spec)
     {
         return self->HasFiles(PathOrEmpty(spec));
     }
 
-    bool wxDir_HasSubDirs(wxDir* self, wxString* spec)
+    EXPORT bool wxDir_HasSubDirs(wxDir* self, wxString* spec)
     {
         return self->HasSubDirs(PathOrEmpty(spec));
     }
 
-    size_t wxDir_Traverse(wxDir* self, wxDirTraverser* sink, wxString* spec, int flags)
+    EXPORT size_t wxDir_Traverse(wxDir* self, wxDirTraverser* sink, wxString* spec, int flags)
     {
         if (!sink)
         {
@@ -138,7 +138,7 @@ extern "C"
         return self->Traverse(*sink, PathOrEmpty(spec), flags);
     }
 
-    size_t wxDir_GetAllFiles(wxString* dir_name, void* files, wxString* spec, int flags)
+    EXPORT size_t wxDir_GetAllFiles(wxString* dir_name, void* files, wxString* spec, int flags)
     {
         wxArrayString found;
         wxDir::GetAllFiles(PathOrEmpty(dir_name), &found, PathOrEmpty(spec), flags);
@@ -155,12 +155,12 @@ extern "C"
         return found.GetCount();
     }
 
-    wxString* wxDir_FindFirst(wxString* dir_name, wxString* spec, int flags)
+    EXPORT wxString* wxDir_FindFirst(wxString* dir_name, wxString* spec, int flags)
     {
         return new wxString(wxDir::FindFirst(PathOrEmpty(dir_name), PathOrEmpty(spec), flags));
     }
 
-    double wxDir_GetTotalSize(wxString* dir_name)
+    EXPORT double wxDir_GetTotalSize(wxString* dir_name)
     {
         const wxULongLong size = wxDir::GetTotalSize(PathOrEmpty(dir_name));
         if (size == wxInvalidSize)
@@ -171,27 +171,27 @@ extern "C"
         return static_cast<double>(size.GetValue());
     }
 
-    bool wxDir_Exists(wxString* dir)
+    EXPORT bool wxDir_Exists(wxString* dir)
     {
         return wxDir::Exists(PathOrEmpty(dir));
     }
 
-    bool wxDir_Make(wxString* dir, int perm, int flags)
+    EXPORT bool wxDir_Make(wxString* dir, int perm, int flags)
     {
         return wxDir::Make(PathOrEmpty(dir), perm, flags);
     }
 
-    bool wxDir_Remove(wxString* dir, int flags)
+    EXPORT bool wxDir_Remove(wxString* dir, int flags)
     {
         return wxDir::Remove(PathOrEmpty(dir), flags);
     }
 
-    wxDirTraverser* wxDirTraverser_Create(void* pObject, void* pFunction)
+    EXPORT wxDirTraverser* wxDirTraverser_Create(void* pObject, void* pFunction)
     {
         return new kwxDirTraverser(pObject, pFunction);
     }
 
-    void wxDirTraverser_Delete(wxDirTraverser* self)
+    EXPORT void wxDirTraverser_Delete(wxDirTraverser* self)
     {
         delete self;
     }
