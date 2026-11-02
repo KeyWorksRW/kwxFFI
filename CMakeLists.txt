@@ -328,7 +328,12 @@ function(kwxfi_configure_target target library_type)
     if(MSVC)
         target_link_directories(${target} PRIVATE ${WX_LIB_DIR})
     elseif(UNIX)
-        target_compile_definitions(${target} PRIVATE __WXGTK__)
+        # APPLE also satisfies UNIX, and defining __WXGTK__ there makes wxWidgets pull in
+        # both its GTK and its OSX headers, producing conflicting WXWidget typedefs.
+        # Only the define is guarded; WX_LIB_DIR is still needed on Apple.
+        if(NOT APPLE)
+            target_compile_definitions(${target} PRIVATE __WXGTK__)
+        endif()
         target_link_directories(${target} PRIVATE ${WX_LIB_DIR})
     endif()
 

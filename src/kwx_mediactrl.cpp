@@ -3,12 +3,18 @@
 
 #include "kwx_wrapper.h"
 
+// The header is safe to include on every port: its body is empty when
+// wxUSE_MEDIACTRL is 0, so only the wrappers below need the guard.
 #include <wx/mediactrl.h>
 
 // wxMediaCtrl inherits from wxControl.
 // Additional methods available via:
 //   wxWindow_*  — base window methods (see wx_window.cpp)
 //   wxControl_* — label, alignment (see wx_control.cpp)
+
+// wxMediaCtrl is compiled out on ports with no media backend (e.g. GTK built
+// without GStreamer), which leaves wxUSE_MEDIACTRL at 0.
+#if wxUSE_MEDIACTRL
 
 extern "C"
 {
@@ -23,10 +29,10 @@ extern "C"
                                            int width, int height, long style, wxString* szBackend,
                                            wxString* name)
     {
-        return new wxMediaCtrl((wxWindow*) parent, (wxWindowID) id,
-                               (fileName ? *fileName : wxString("")), wxPoint(x, y), wxSize(width, height),
-                               style, (szBackend ? *szBackend : wxString("")), wxDefaultValidator,
-                               (name ? *name : wxString("MediaCtrl")));
+        return new wxMediaCtrl(
+            (wxWindow*) parent, (wxWindowID) id, (fileName ? *fileName : wxString("")),
+            wxPoint(x, y), wxSize(width, height), style, (szBackend ? *szBackend : wxString("")),
+            wxDefaultValidator, (name ? *name : wxString("MediaCtrl")));
     }
 
     EXPORT void wxMediaCtrl_Delete(wxMediaCtrl* self)
@@ -118,3 +124,4 @@ extern "C"
         return self->Tell();
     }
 }
+#endif  // wxUSE_MEDIACTRL

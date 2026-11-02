@@ -418,7 +418,6 @@ void wxGraphicsPath_UnGetNativePath(TSelf(wxGraphicsPath) pObject, void* nativeP
 TClassDef(wxGraphicsPen) TClass(wxGraphicsPen) wxGraphicsPen_Create();
 void wxGraphicsPen_Delete(TSelf(wxGraphicsPen) pObject);
 
-TClassDef(wxGraphicsRenderer) TClass(wxGraphicsRenderer) wxGraphicsRenderer_Create();
 TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContext(TSelf(wxGraphicsRenderer) pObject, TClass(wxWindowDC) dc);
 TClass(wxGraphicsContext)

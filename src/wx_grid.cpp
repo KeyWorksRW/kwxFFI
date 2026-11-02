@@ -156,6 +156,11 @@ extern "C"
         return (void*) new wxGridCellAutoWrapStringRenderer();
     }
 
+    EXPORT void* wxGridCellAutoWrapStringEditor_Ctor()
+    {
+        return (void*) new wxGridCellAutoWrapStringEditor();
+    }
+
     EXPORT void* wxGridCellAttr_Ctor()
     {
         return (void*) new wxGridCellAttr();

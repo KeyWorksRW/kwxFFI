@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -30,6 +31,32 @@ from _exports import DEF_FILE_NAME, generate, read_def_symbols
 DEFAULT_ROOT = SCRIPT_DIR.parent.parent
 
 MAX_REPORTED_MISSING = 50
+
+
+def add_windows_dll_directories(library_path: Path) -> list:
+    """Register Windows DLL search directories for the library's dependencies.
+
+    Returns the handles from `os.add_dll_directory`; the caller must keep them
+    referenced for as long as the library stays loaded.
+    """
+    if os.name != "nt":
+        return []
+    add_directory = getattr(os, "add_dll_directory", None)
+    if add_directory is None:
+        return []
+
+    candidates = [str(library_path.parent)]
+    candidates.extend(os.environ.get("PATH", "").split(os.pathsep))
+
+    handles = []
+    for candidate in candidates:
+        if not candidate or not os.path.isdir(candidate):
+            continue
+        try:
+            handles.append(add_directory(candidate))
+        except OSError:
+            continue
+    return handles
 
 
 def parse_arguments(argv: list[str] | None) -> argparse.Namespace:
@@ -127,6 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Library:  {library_path}")
     print(f"Manifest: {manifest_label} ({len(symbols)} symbols)")
 
+    # Keep the DLL directory handles referenced through the load: a directory is
+    # dropped once its handle is garbage collected.
+    dll_directory_handles = add_windows_dll_directories(library_path)
     try:
         library = ctypes.CDLL(str(library_path))
     except OSError as load_error:

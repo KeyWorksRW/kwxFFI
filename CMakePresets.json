@@ -14,7 +14,9 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++"
+                "CMAKE_CXX_COMPILER": "clang++",
+                "KWXFFI_BUILD_BOTH": "ON",
+                "KWXFFI_BUILD_TESTS": "ON"
             }
         },
         {
@@ -22,7 +24,11 @@
             "displayName": "Ninja Multi-Config",
             "description": "Default build using Ninja Multi-Config generator",
             "generator": "Ninja Multi-Config",
-            "binaryDir": "${sourceDir}/build"
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "KWXFFI_BUILD_BOTH": "ON",
+                "KWXFFI_BUILD_TESTS": "ON"
+            }
         }
     ]
 }

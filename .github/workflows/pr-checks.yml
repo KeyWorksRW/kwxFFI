@@ -140,3 +140,18 @@ jobs:
 
     - name: Run cheap tests
       run: ctest --test-dir build/tests -C Release -L cheap --output-on-failure
+
+  shared:
+    name: shared library build
+    # The `quick` job configures only tests/, so it never links kwxFFI or
+    # kwxFFI_shared. This job builds both library types from one wxWidgets build
+    # and runs the `library`-labelled tests, which is what catches unresolved
+    # symbols in the shared library before they reach the daily build.
+    # Self-hosted stays behind the maintainer-only gate: untrusted pull request
+    # code must never execute on that machine. Everyone else falls back to a
+    # GitHub-hosted box.
+    uses: ./.github/workflows/build-unix-reusable.yml
+    with:
+      build-type: Release
+      build-both: 'ON'
+      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted' || 'github-hosted' }}
