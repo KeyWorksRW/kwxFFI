@@ -122,10 +122,10 @@ Connects to the wxWidgets event system. When an event fires, the callback invoke
 Each wxWidgets event type is exposed through a function:
 
 ```cpp
-MAKE_EVENT_WRAPPER(EVT_BUTTON)  // Creates expEVT_BUTTON() returning event ID
+MAKE_EVENT_WRAPPER(EVT_BUTTON)  // Creates exp_wxEVT_BUTTON() returning event ID
 ```
 
-Foreign languages call `expEVT_BUTTON()` to get the event type ID, then register their callback using `wxEvtHandler_Connect()`.
+Foreign languages call `exp_wxEVT_BUTTON()` to get the event type ID, then register their callback using `wxEvtHandler_Connect()`.
 
 ## String Handling
 

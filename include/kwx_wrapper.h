@@ -160,8 +160,11 @@
     {                                  \
         return (int) wx##evt;          \
     }
+// Must export the same symbol name as MAKE_EVENT_WRAPPER: the generated constants
+// table calls exp_wxEVT_xxx unconditionally, so a build where the feature is
+// disabled would otherwise fail to link.
 #define MAKE_UNDEF_EVENT_WRAPPER(evt) \
-    WXFFI_EXPORT(int, exp##evt)()     \
+    WXFFI_EXPORT(int, exp_wx##evt)()  \
     {                                 \
         return (int) wxEVT_NULL;      \
     }
