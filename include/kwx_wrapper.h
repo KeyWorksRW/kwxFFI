@@ -31,7 +31,6 @@
 #include <wx/dataview.h>
 #include <wx/datectrl.h>
 #include <wx/dcgraph.h>
-#include <wx/dialup.h>
 #include <wx/dirctrl.h>
 #include <wx/display.h>
 #include <wx/dnd.h>

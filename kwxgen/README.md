@@ -2,7 +2,7 @@
 
 `kwxgen` parses the kwxFFI C header files and generates foreign-language bindings for wxWidgets.
 It reads the `include/` headers and `src/kwx_defs.cpp` to build a complete model of the FFI
-surface (~653 classes, ~7,925 methods, ~308 events, 99 key constants, ~1,388 defined constants),
+surface (~657 classes, ~7,966 methods, ~308 events, 99 key constants, ~1,411 defined constants),
 then emits idiomatic bindings for each target language.
 
 kwxgen lives in the `kwxgen/` subdirectory of kwxFFI. When a language port fetches kwxFFI (as a
@@ -242,11 +242,11 @@ extern/kwxFFI/bin/Debug/kwxgen verify \
 
 | Category | Count |
 |---|---|
-| Classes | 653 |
-| Class methods | 7,925 |
+| Classes | 657 |
+| Class methods | 7,966 |
 | Events | 308 |
 | Key constants | 99 |
-| Defined constants | 1,388 |
+| Defined constants | 1,411 |
 | Free functions | 214 |
 
 ## Building
@@ -398,6 +398,14 @@ MSW-only classes that survive through the alias pattern in
 `include/kwx_msw_aliases.h` (`wxTaskBarButton`, `wxRegConfig`, `wxRegKey`,
 `wxDDEClient`, `wxDDEServer`, `wxAuiMSWToolBarArt`, `wxWebViewIE`, `wxWebViewEdge`)
 stay in `gui`.
+
+### Explicitly not wrapped: `wxDialUpManager`
+
+`wxDialUpManager` is obsolete and is **not included** in kwxFFI. There is no declaration for
+it in `include/` and no wrapper in `src/`, so no binding is generated for any language and it
+is absent from every profile, including `full`. Its companion `wxDialUpEvent` was dropped
+with it. Both are declared in `wx/dialup.h` only when `wxUSE_DIALUP_MANAGER` is enabled (it is
+not on macOS), so wrapping them would break the macOS build.
 
 ### Rule: a new class must be classified
 

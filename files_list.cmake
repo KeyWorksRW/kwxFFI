@@ -74,7 +74,6 @@ set( FFI_SRC_FILES
     src/wx_dcsvg.cpp
     src/wx_dialog.cpp
 
-    src/wx_dialup.cpp
     src/wx_dir.cpp
     src/wx_dirdlg.cpp
     src/wx_dirpickerctrl.cpp
