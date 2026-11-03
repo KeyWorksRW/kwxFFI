@@ -28,7 +28,6 @@
 #include <wx/collheaderctrl.h>
 #include <wx/collpane.h>
 #include <wx/dataview.h>
-#include <wx/dialup.h>
 #include <wx/fdrepdlg.h>
 #include <wx/filectrl.h>
 #include <wx/filepicker.h>
@@ -1538,7 +1537,9 @@ extern "C"
     // Every one of these is a wxDECLARE_EXPORTED_EVENT constant, so the feature
     // guards that surround the other wrapper groups do not apply: a feature that
     // is compiling out its widget still keeps the event type. MT-safety and
-    // availability are therefore identical for every language.
+    // availability are therefore identical for every language. The wxEVT_WEBVIEW_*
+    // group below is the exception: those identifiers live in wx/webview.h, which
+    // declares nothing when wxUSE_WEBVIEW is disabled.
     ////////////////////////////////////////////////////////////////////////////////
 
     MAKE_EVENT_WRAPPER(EVT_MAGNIFY)
@@ -1562,8 +1563,6 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_DROP)
     MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_DROP_POSSIBLE)
     MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_START_EDITING)
-    MAKE_EVENT_WRAPPER(EVT_DIALUP_CONNECTED)
-    MAKE_EVENT_WRAPPER(EVT_DIALUP_DISCONNECTED)
     MAKE_EVENT_WRAPPER(EVT_FIND)
     MAKE_EVENT_WRAPPER(EVT_FIND_CLOSE)
     MAKE_EVENT_WRAPPER(EVT_FIND_NEXT)
@@ -1614,11 +1613,20 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_TWO_FINGER_TAP)
     MAKE_EVENT_WRAPPER(EVT_WEBREQUEST_DATA)
     MAKE_EVENT_WRAPPER(EVT_WEBREQUEST_STATE)
+
+#if wxUSE_WEBVIEW
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_BROWSING_DATA_CLEARED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_CREATED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NEWWINDOW_FEATURES)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_PDF_SAVED)
     MAKE_EVENT_WRAPPER(EVT_WEBVIEW_WINDOW_CLOSE_REQUESTED)
+#else
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_WEBVIEW_BROWSING_DATA_CLEARED)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_WEBVIEW_CREATED)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_WEBVIEW_NEWWINDOW_FEATURES)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_WEBVIEW_PDF_SAVED)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_WEBVIEW_WINDOW_CLOSE_REQUESTED)
+#endif  // wxUSE_WEBVIEW
 
     // Sample-defined event types: no wxWidgets header declares these, so each accessor
     // registers one stable kwxFFI-owned type on first call.
