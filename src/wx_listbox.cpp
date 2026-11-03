@@ -146,12 +146,18 @@ extern "C"
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void* wxListBox_GetItem(void* pObject, size_t n)
     {
-        return (void*) ((wxListBox*) pObject)->GetItem((size_t) n);
+#if defined(__WXMSW__) && wxUSE_OWNER_DRAWN
+        return (void*) ((wxListBox*) pObject)->GetItem(n);
+#else
+        // GetItem() is only implemented by the MSW owner-drawn wxListBox.
+        wxUnusedVar(pObject);
+        wxUnusedVar(n);
+        return nullptr;
+#endif
     }
 
     EXPORT bool wxListBox_SetFont(void* pObject, void* font)
     {
         return ((wxListBox*) pObject)->SetFont(*(wxFont*) font);
     }
-
 }

@@ -485,7 +485,13 @@ extern "C"
 
     EXPORT void wxMenuItem_SetDisabledBitmap(void* pObject, void* bmpDisabled)
     {
+#if defined(__WXMSW__) && wxUSE_OWNER_DRAWN
         ((wxMenuItem*) pObject)->SetDisabledBitmap(*(wxBitmapBundle*) bmpDisabled);
+#else
+        // SetDisabledBitmap() is only implemented by the MSW owner-drawn wxMenuItem.
+        wxUnusedVar(pObject);
+        wxUnusedVar(bmpDisabled);
+#endif
     }
 
     EXPORT bool wxMenu_Destroy(void* pObject, int itemid)
