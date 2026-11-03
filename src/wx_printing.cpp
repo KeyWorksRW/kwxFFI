@@ -418,7 +418,10 @@ extern "C"
 
     EXPORT void* wxPostScriptPrintNativeData_Create()
     {
-#if wxUSE_POSTSCRIPT
+        // wxPrintNativeDataBase declares TransferFrom/TransferTo(wxPageSetupDialogData*)
+        // as pure virtual on macOS, but wxPostScriptPrintNativeData does not implement
+        // them, so the class is abstract there and cannot be instantiated.
+#if wxUSE_POSTSCRIPT && !defined(__WXOSX__)
         return (void*) new wxPostScriptPrintNativeData();
 #else
         return nullptr;
@@ -929,5 +932,4 @@ extern "C"
     {
         return ((wxPrintDialogData*) pObject)->GetCurrentPage();
     }
-
 }
