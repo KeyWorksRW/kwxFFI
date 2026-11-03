@@ -2090,12 +2090,12 @@ TClassDef(wxFFile)
                                                                         TClass(wxString) files);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxFileDataObject_AddFile(TSelf(wxFileDataObject) pObject, TClass(wxString) filename);
-// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TBool wxFFile_IsOpened(TSelf(wxFFile) pObject);
-TBool wxFFile_ReadAll(TSelf(wxFFile) pObject, void* str, TClass(wxMBConv) conv);
 TClass(wxFileDataObject) FileDataObject_Create(TArrayString(count, list));
 void FileDataObject_Delete(TSelf(wxFileDataObject) pObject);
 TArrayLen FileDataObject_GetFilenames(TSelf(wxFileDataObject) pObject, TArrayStringOutVoid list);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxFFile_IsOpened(TSelf(wxFFile) pObject);
+TBool wxFFile_ReadAll(TSelf(wxFFile) pObject, void* str, TClass(wxMBConv) conv);
 
 TClassDefExtend(wxFileDialog, wxDialog) TClass(wxFileDialog)
     wxFileDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,

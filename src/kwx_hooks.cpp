@@ -1403,9 +1403,24 @@ extern "C"
 
     // kwxObject ---------------------------------------------------------------
 
+    EXPORT void* kwxObject_Create(void* pObject)
+    {
+        return (void*) new kwxObject(pObject);
+    }
+
+    EXPORT void kwxObject_Delete(kwxObject* self)
+    {
+        delete self;
+    }
+
     EXPORT void kwxObject_SetOnGetClassInfo(kwxObject* self, void* pFunction)
     {
         self->SetOnGetClassInfo(pFunction);
+    }
+
+    EXPORT void wxObject_SetOnGetClassInfo(wxObject* self, void* pFunction)
+    {
+        static_cast<kwxObject*>(self)->SetOnGetClassInfo(pFunction);
     }
 
     // kwxEvtHandler -----------------------------------------------------------
@@ -1447,6 +1462,17 @@ extern "C"
     EXPORT void kwxPanel_SetOnTransferDataToWindow(kwxPanel* self, void* pFunction)
     {
         self->SetOnTransferDataToWindow(pFunction);
+    }
+
+    // The <Base>_SetOn aliases the portability matrix also resolves ovh rows to.
+    EXPORT void wxPanel_SetOnTransferDataFromWindow(wxPanel* self, void* pFunction)
+    {
+        static_cast<kwxPanel*>(self)->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void wxPanel_SetOnTransferDataToWindow(wxPanel* self, void* pFunction)
+    {
+        static_cast<kwxPanel*>(self)->SetOnTransferDataToWindow(pFunction);
     }
 
     // kwxVarHScrollHelper -----------------------------------------------------
@@ -2085,6 +2111,17 @@ extern "C"
     EXPORT void kwxVariantData_SetOnGetType(kwxVariantData* self, void* pFunction)
     {
         self->SetOnGetType(pFunction);
+    }
+
+    // The <Base>_SetOn aliases the portability matrix also resolves ovh rows to.
+    EXPORT void wxVariantData_SetOnEq(wxVariantData* self, void* pFunction)
+    {
+        static_cast<kwxVariantData*>(self)->SetOnEq(pFunction);
+    }
+
+    EXPORT void wxVariantData_SetOnGetType(wxVariantData* self, void* pFunction)
+    {
+        static_cast<kwxVariantData*>(self)->SetOnGetType(pFunction);
     }
 
     // kwxWizardPage ----------------------------------------------------------

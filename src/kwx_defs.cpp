@@ -19,6 +19,15 @@
 #include <wx/xrc/xmlres.h>
 #include <wx/zipstrm.h>
 
+// The wxWEBVIEW_* enumerators only exist in builds with the webview library
+// (wxUSE_WEBVIEW). Report 0 otherwise so the exported FFI surface is identical
+// on every platform -- src/wx_webview.cpp follows the same convention.
+#if wxUSE_WEBVIEW
+    #define KWX_WEBVIEW_VALUE(name) static_cast<int>(name)
+#else
+    #define KWX_WEBVIEW_VALUE(name) 0
+#endif
+
 extern "C"
 {
     EXPORT int expwxACCEL_ALT()
@@ -8172,119 +8181,119 @@ extern "C"
     }
     EXPORT int expwxWEBVIEW_BROWSING_DATA_ALL()
     {
-        return static_cast<int>(wxWEBVIEW_BROWSING_DATA_ALL);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_ALL);
     }
     EXPORT int expwxWEBVIEW_BROWSING_DATA_CACHE()
     {
-        return static_cast<int>(wxWEBVIEW_BROWSING_DATA_CACHE);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_CACHE);
     }
     EXPORT int expwxWEBVIEW_BROWSING_DATA_COOKIES()
     {
-        return static_cast<int>(wxWEBVIEW_BROWSING_DATA_COOKIES);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_COOKIES);
     }
     EXPORT int expwxWEBVIEW_BROWSING_DATA_DOM_STORAGE()
     {
-        return static_cast<int>(wxWEBVIEW_BROWSING_DATA_DOM_STORAGE);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_DOM_STORAGE);
     }
     EXPORT int expwxWEBVIEW_BROWSING_DATA_OTHER()
     {
-        return static_cast<int>(wxWEBVIEW_BROWSING_DATA_OTHER);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_OTHER);
     }
     EXPORT int expwxWEBVIEW_FIND_BACKWARDS()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_BACKWARDS);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_BACKWARDS);
     }
     EXPORT int expwxWEBVIEW_FIND_DEFAULT()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_DEFAULT);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_DEFAULT);
     }
     EXPORT int expwxWEBVIEW_FIND_ENTIRE_WORD()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_ENTIRE_WORD);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_ENTIRE_WORD);
     }
     EXPORT int expwxWEBVIEW_FIND_HIGHLIGHT_RESULT()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_HIGHLIGHT_RESULT);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_HIGHLIGHT_RESULT);
     }
     EXPORT int expwxWEBVIEW_FIND_MATCH_CASE()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_MATCH_CASE);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_MATCH_CASE);
     }
     EXPORT int expwxWEBVIEW_FIND_WRAP()
     {
-        return static_cast<int>(wxWEBVIEW_FIND_WRAP);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_WRAP);
     }
     EXPORT int expwxWEBVIEW_NAV_ACTION_USER()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ACTION_USER);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ACTION_USER);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_AUTH()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_AUTH);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_AUTH);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_CERTIFICATE()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_CERTIFICATE);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_CERTIFICATE);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_CONNECTION()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_CONNECTION);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_CONNECTION);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_NOT_FOUND()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_NOT_FOUND);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_NOT_FOUND);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_OTHER()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_OTHER);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_OTHER);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_REQUEST()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_REQUEST);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_REQUEST);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_SECURITY()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_SECURITY);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_SECURITY);
     }
     EXPORT int expwxWEBVIEW_NAV_ERR_USER_CANCELLED()
     {
-        return static_cast<int>(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
     }
     EXPORT int expwxWEBVIEW_PRINT_DEFAULT()
     {
-        return static_cast<int>(wxWEBVIEW_PRINT_DEFAULT);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_PRINT_DEFAULT);
     }
     EXPORT int expwxWEBVIEW_PRINT_HIDE_HEADER_FOOTER()
     {
-        return static_cast<int>(wxWEBVIEW_PRINT_HIDE_HEADER_FOOTER);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_PRINT_HIDE_HEADER_FOOTER);
     }
     EXPORT int expwxWEBVIEW_ZOOM_LARGE()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_LARGE);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_LARGE);
     }
     EXPORT int expwxWEBVIEW_ZOOM_LARGEST()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_LARGEST);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_LARGEST);
     }
     EXPORT int expwxWEBVIEW_ZOOM_MEDIUM()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_MEDIUM);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_MEDIUM);
     }
     EXPORT int expwxWEBVIEW_ZOOM_SMALL()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_SMALL);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_SMALL);
     }
     EXPORT int expwxWEBVIEW_ZOOM_TINY()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_TINY);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TINY);
     }
     EXPORT int expwxWEBVIEW_ZOOM_TYPE_LAYOUT()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_TYPE_LAYOUT);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TYPE_LAYOUT);
     }
     EXPORT int expwxWEBVIEW_ZOOM_TYPE_TEXT()
     {
-        return static_cast<int>(wxWEBVIEW_ZOOM_TYPE_TEXT);
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TYPE_TEXT);
     }
     EXPORT int expwxWINDOW_VARIANT_LARGE()
     {
