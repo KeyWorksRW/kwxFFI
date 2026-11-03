@@ -599,4 +599,32 @@ extern "C"
     {
         self->RefreshProperty(property);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxPropertyGridManager_GetColumnCount(void* pObject, int page)
+    {
+        return ((wxPropertyGridManager*) pObject)->GetColumnCount(page);
+    }
+
+    EXPORT void wxPropertyGridManager_SetColumnCount(void* pObject, int colCount, int page)
+    {
+        ((wxPropertyGridManager*) pObject)->SetColumnCount(colCount, page);
+    }
+
+    EXPORT void wxPropertyGridManager_SetColumnTitle(void* pObject, int idx, void* title)
+    {
+        ((wxPropertyGridManager*) pObject)->SetColumnTitle(idx, *(wxString*) title);
+    }
+
+    EXPORT void* wxPropertyGrid_GetGoodEditorDialogPosition(void* pObject, void* p, void* sz)
+    {
+        wxPoint value = ((wxPropertyGrid*) pObject)->GetGoodEditorDialogPosition((wxPGProperty*) p, *(wxSize*) sz);
+        return new wxPoint(value);
+    }
+
+    EXPORT void* wxPropertyGrid_RegisterEditorClass(void* editor, bool noDefCheck)
+    {
+        return (void*) wxPropertyGrid::RegisterEditorClass((wxPGEditor*) editor, noDefCheck);
+    }
+
 }

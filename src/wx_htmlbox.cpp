@@ -346,4 +346,37 @@ extern "C"
         return nullptr;
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxHtmlContainerCell_InsertCell(void* pObject, void* cell)
+    {
+        ((wxHtmlContainerCell*) pObject)->InsertCell((wxHtmlCell*) cell);
+    }
+
+    EXPORT void wxHtmlParser_AddTagHandler(void* pObject, void* handler)
+    {
+        ((wxHtmlParser*) pObject)->AddTagHandler((wxHtmlTagHandler*) handler);
+    }
+
+    EXPORT void* wxHtmlTag_GetParam(void* pObject, void* par, bool with_quotes)
+    {
+        wxString value = ((wxHtmlTag*) pObject)->GetParam(*(wxString*) par, with_quotes);
+        return new wxString(value);
+    }
+
+    EXPORT bool wxHtmlTag_HasParam(void* pObject, void* par)
+    {
+        return ((wxHtmlTag*) pObject)->HasParam(*(wxString*) par);
+    }
+
+    EXPORT void* wxHtmlWinParser_GetContainer(void* pObject)
+    {
+        return (void*) ((wxHtmlWinParser*) pObject)->GetContainer();
+    }
+
+    EXPORT void* wxHtmlWinParser_GetWindowInterface(void* pObject)
+    {
+        return (void*) ((wxHtmlWinParser*) pObject)->GetWindowInterface();
+    }
+
 }

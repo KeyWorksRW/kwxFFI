@@ -175,4 +175,42 @@ extern "C"
     {
         return self->Realise();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxRibbonArtProvider_GetColor(void* pObject, int id)
+    {
+        wxColour value = ((wxRibbonArtProvider*) pObject)->GetColor(id);
+        return new wxColour(value);
+    }
+
+    EXPORT void wxRibbonArtProvider_GetColourScheme(void* pObject, void* primary, void* secondary, void* tertiary)
+    {
+        ((wxRibbonArtProvider*) pObject)->GetColourScheme((wxColour*) primary, (wxColour*) secondary, (wxColour*) tertiary);
+    }
+
+    EXPORT void wxRibbonArtProvider_SetColor(void* pObject, int id, void* color)
+    {
+        ((wxRibbonArtProvider*) pObject)->SetColor(id, *(wxColour*) color);
+    }
+
+    EXPORT void wxRibbonArtProvider_SetColourScheme(void* pObject, void* primary, void* secondary, void* tertiary)
+    {
+        ((wxRibbonArtProvider*) pObject)->SetColourScheme(*(wxColour*) primary, *(wxColour*) secondary, *(wxColour*) tertiary);
+    }
+
+    EXPORT void* wxRibbonPage_GetPanel(void* pObject, int n)
+    {
+        return (void*) ((wxRibbonPage*) pObject)->GetPanel(n);
+    }
+
+    EXPORT size_t wxRibbonPage_GetPanelCount(void* pObject)
+    {
+        return (size_t) ((wxRibbonPage*) pObject)->GetPanelCount();
+    }
+
+    EXPORT void wxRibbonPage_SetSizeWithScrollButtonAdjustment(void* pObject, int x, int y, int width, int height)
+    {
+        ((wxRibbonPage*) pObject)->SetSizeWithScrollButtonAdjustment(x, y, width, height);
+    }
+
 }

@@ -176,4 +176,10 @@ extern "C"
     {
         ::wxAboutBox(*info, parent);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxAboutDialogInfo_SetDocWriters(void* pObject, void* docwriters)
+    {
+        ((wxAboutDialogInfo*) pObject)->SetDocWriters(*(wxArrayString*) docwriters);
+    }
 }

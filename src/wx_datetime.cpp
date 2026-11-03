@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/datstrm.h>
 
 extern "C"
 {
@@ -565,4 +566,37 @@ extern "C"
     {
         self->Add(wxDateSpan((long) years, (long) month, (long) week, (long) day));
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT uint16_t wxDataInputStream_Read16(void* pObject)
+    {
+        return (uint16_t) ((wxDataInputStream*) pObject)->Read16();
+    }
+
+    EXPORT double wxDataInputStream_ReadDouble(void* pObject)
+    {
+        return ((wxDataInputStream*) pObject)->ReadDouble();
+    }
+
+    EXPORT void* wxDataInputStream_ReadString(void* pObject)
+    {
+        wxString value = ((wxDataInputStream*) pObject)->ReadString();
+        return new wxString(value);
+    }
+
+    EXPORT void wxDataOutputStream_Write16(void* pObject, uint16_t i)
+    {
+        ((wxDataOutputStream*) pObject)->Write16((wxUint16) i);
+    }
+
+    EXPORT void wxDataOutputStream_WriteDouble(void* pObject, double d)
+    {
+        ((wxDataOutputStream*) pObject)->WriteDouble(d);
+    }
+
+    EXPORT void wxDataOutputStream_WriteString(void* pObject, void* string)
+    {
+        ((wxDataOutputStream*) pObject)->WriteString(*(wxString*) string);
+    }
+
 }

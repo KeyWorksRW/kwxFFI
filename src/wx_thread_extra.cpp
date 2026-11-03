@@ -309,4 +309,31 @@ extern "C"
     {
         return static_cast<int>(self->WaitTimeout(static_cast<unsigned long>(milliseconds)));
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxThread_GetCPUCount()
+    {
+        return wxThread::GetCPUCount();
+    }
+
+    EXPORT int wxThread_GetCurrentId()
+    {
+        return (int) wxThread::GetCurrentId();
+    }
+
+    EXPORT int wxThread_GetMainId()
+    {
+        return (int) wxThread::GetMainId();
+    }
+
+    EXPORT bool wxThread_IsPaused(void* pObject)
+    {
+        return ((wxThread*) pObject)->IsPaused();
+    }
+
+    EXPORT void wxThread_Sleep(unsigned long milliseconds)
+    {
+        wxThread::Sleep(milliseconds);
+    }
+
 }

@@ -1,8 +1,8 @@
 #pragma once
 
 // Core infrastructure classes: platform information, secret storage, string
-// conversion, XML nodes, virtual file systems, persistence, dial-up management,
-// event filtering, and icon locations.
+// conversion, XML nodes, virtual file systems, persistence, event filtering,
+// and icon locations.
 
 // ---------------------------------------------------------------------------
 // wxPlatformInfo
@@ -67,6 +67,9 @@ void wxPlatformInfo_SetDesktopEnvironment(TSelf(wxPlatformInfo) pObject,
 // ---------------------------------------------------------------------------
 
 TClassDef(wxSecretValue) TClass(wxSecretValue) wxSecretValue_Create(TClass(wxString) secret);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+size_t wxSecretValue_GetSize(TSelf(wxSecretValue) pObject);
+void wxSecretValue_WipeString(TClass(wxString) str);
 TClass(wxSecretValue) wxSecretValue_CreateDefault();
 void wxSecretValue_Delete(TSelf(wxSecretValue) pObject);
 TBool wxSecretValue_IsOk(TSelf(wxSecretValue) pObject);
@@ -191,6 +194,8 @@ TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(
 // Optional string parameters accept null, which is treated as an empty string.
 
 TClassDef(wxFileName) TClass(wxFileName) wxFileName_Create();
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxFileName_SplitPath(TClass(wxString) fullpath, void* volume, void* path, void* name, void* ext, int* hasExt, int format);
 TClass(wxFileName) wxFileName_CreateFromPath(TClass(wxString) full_path, int format);
 TClass(wxFileName)
     wxFileName_CreateWithName(TClass(wxString) path, TClass(wxString) name, int format);
@@ -426,34 +431,6 @@ TBool wxPersistentObject_Restore(TSelf(wxPersistentObject) pObject);
 // wxPersistentWindow is a template class, so only its non-template base is
 // reachable from the FFI; the class is declared to keep the model complete.
 TClassDefExtend(wxPersistentWindow, wxPersistentObject)
-
-    // ---------------------------------------------------------------------------
-    // wxDialUpManager / wxDialUpEvent
-    // ---------------------------------------------------------------------------
-
-    TClassDef(wxDialUpManager) TClass(wxDialUpManager) wxDialUpManager_Create();
-void wxDialUpManager_Delete(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsOk(TSelf(wxDialUpManager) pObject);
-TArrayLen wxDialUpManager_GetISPNames(TSelf(wxDialUpManager) pObject, TArrayStringOutVoid names);
-TBool wxDialUpManager_Dial(TSelf(wxDialUpManager) pObject, TClass(wxString) isp_name,
-                           TClass(wxString) username, TClass(wxString) password, TBool async);
-TBool wxDialUpManager_IsDialing(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_CancelDialing(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_HangUp(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsAlwaysOnline(TSelf(wxDialUpManager) pObject);
-TBool wxDialUpManager_IsOnline(TSelf(wxDialUpManager) pObject);
-void wxDialUpManager_SetOnlineStatus(TSelf(wxDialUpManager) pObject, TBool is_online);
-TBool wxDialUpManager_EnableAutoCheckOnlineStatus(TSelf(wxDialUpManager) pObject, int seconds);
-void wxDialUpManager_DisableAutoCheckOnlineStatus(TSelf(wxDialUpManager) pObject);
-void wxDialUpManager_SetWellKnownHost(TSelf(wxDialUpManager) pObject, TClass(wxString) host_name,
-                                      int port_number);
-void wxDialUpManager_SetConnectCommand(TSelf(wxDialUpManager) pObject,
-                                       TClass(wxString) dial_command,
-                                       TClass(wxString) hangup_command);
-
-TClassDefExtend(wxDialUpEvent, wxEvent) TBool
-    wxDialUpEvent_IsConnectedEvent(TSelf(wxDialUpEvent) pObject);
-TBool wxDialUpEvent_IsOwnEvent(TSelf(wxDialUpEvent) pObject);
 
 // ---------------------------------------------------------------------------
 // wxEventFilter / wxEventBlocker / wxEvtHandler filters

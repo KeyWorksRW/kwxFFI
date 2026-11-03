@@ -128,4 +128,28 @@ extern "C"
         wxUnusedVar(self);
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxTaskBarButton_AppendThumbBarButton(void* pObject, void* button)
+    {
+#if defined(__WXMSW__) && wxUSE_TASKBARBUTTON
+        return ((wxTaskBarButton*) pObject)->AppendThumbBarButton((wxThumbBarButton*) button);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(button);
+        return false;
+#endif
+    }
+
+    EXPORT void* wxTaskBarButton_RemoveThumbBarButton(void* pObject, void* button)
+    {
+#if defined(__WXMSW__) && wxUSE_TASKBARBUTTON
+        return (void*) ((wxTaskBarButton*) pObject)
+            ->RemoveThumbBarButton((wxThumbBarButton*) button);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(button);
+        return nullptr;
+#endif
+    }
 }

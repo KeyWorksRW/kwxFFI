@@ -799,4 +799,26 @@ extern "C"
         *result = self->GetTempDir();
         return result;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxRichTextBuffer_AddHandler(void* handler)
+    {
+        wxRichTextBuffer::AddHandler((wxRichTextFileHandler*) handler);
+    }
+
+    EXPORT bool wxRichTextFileHandler_SaveFile(void* pObject, void* buffer, void* stream)
+    {
+        return ((wxRichTextFileHandler*) pObject)
+            ->SaveFile((wxRichTextBuffer*) buffer, *(wxOutputStream*) stream);
+    }
+
+    EXPORT void* wxRichTextObject_GetProperties(void* pObject)
+    {
+        return new wxRichTextProperties(((wxRichTextObject*) pObject)->GetProperties());
+    }
+
+    EXPORT void* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(void* pObject, long position)
+    {
+        return (void*) ((wxRichTextParagraphLayoutBox*) pObject)->GetLeafObjectAtPosition(position);
+    }
 }

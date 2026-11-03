@@ -116,4 +116,16 @@ extern "C"
         if (page)
             *bitmap = page->GetBitmap();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxWizard_SetBitmapPlacement(void* pObject, int placement)
+    {
+        ((wxWizard*) pObject)->SetBitmapPlacement(placement);
+    }
+
+    EXPORT bool wxWizard_ShowPage(void* pObject, void* page, bool goingForward)
+    {
+        return ((wxWizard*) pObject)->ShowPage((wxWizardPage*) page, goingForward);
+    }
+
 }

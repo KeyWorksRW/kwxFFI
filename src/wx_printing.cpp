@@ -300,9 +300,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
+    EXPORT bool wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
     {
-        self->SetCurrentPage(pageNum);
+        return self->SetCurrentPage(pageNum);
     }
 
     EXPORT int wxPrintPreview_GetCurrentPage(wxPrintPreview* self)
@@ -418,7 +418,10 @@ extern "C"
 
     EXPORT void* wxPostScriptPrintNativeData_Create()
     {
-#if wxUSE_POSTSCRIPT
+        // wxPrintNativeDataBase declares TransferFrom/TransferTo(wxPageSetupDialogData*)
+        // as pure virtual on macOS, but wxPostScriptPrintNativeData does not implement
+        // them, so the class is abstract there and cannot be instantiated.
+#if wxUSE_POSTSCRIPT && !defined(__WXOSX__)
         return (void*) new wxPostScriptPrintNativeData();
 #else
         return nullptr;
@@ -917,5 +920,16 @@ extern "C"
 #else
         return 0;
 #endif
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxPrintDialogData_EnableCurrentPage(void* pObject, bool flag)
+    {
+        ((wxPrintDialogData*) pObject)->EnableCurrentPage(flag);
+    }
+
+    EXPORT bool wxPrintDialogData_GetCurrentPage(void* pObject)
+    {
+        return ((wxPrintDialogData*) pObject)->GetCurrentPage();
     }
 }

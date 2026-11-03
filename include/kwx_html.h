@@ -150,6 +150,11 @@ void wxHtmlListBox_RefreshRows(TSelf(wxHtmlListBox) pObject, size_t from, size_t
 void wxHtmlListBox_RefreshAll(TSelf(wxHtmlListBox) pObject);
 void wxHtmlListBox_SetItemCount(TSelf(wxHtmlListBox) pObject, size_t count);
 void* wxHtmlListBox_GetFileSystem(TSelf(wxHtmlListBox) pObject);
+// Phase 5: the <Base>_SetOn spellings the portability matrix resolves an ovh row
+// to.  The kwxHtmlListBox_* helper functions are declared in the kwxHtmlListBox
+// block in include/kwx_helper_hooks.h; these take the same helper object.
+EXPORT void wxHtmlListBox_SetOnOnGetItem(TSelf(wxHtmlListBox) pObject, void* pFunction);
+EXPORT void wxHtmlListBox_SetOnGetSelectedTextColour(TSelf(wxHtmlListBox) pObject, void* pFunction);
 
 TClassDefExtend(wxHTMLDataObject, wxDataObjectSimple) TClass(wxHTMLDataObject)
     wxHTMLDataObject_Create(TClass(wxString) html);

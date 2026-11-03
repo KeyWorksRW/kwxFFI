@@ -2822,4 +2822,100 @@ extern "C"
     {
         return self->GetOwnerManager();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxAuiDockArt_GetColor(void* pObject, int id)
+    {
+        wxColour value = ((wxAuiDockArt*) pObject)->GetColor(id);
+        return new wxColour(value);
+    }
+
+    EXPORT int wxAuiDockArt_GetMetricForWindow(void* pObject, int id, void* window)
+    {
+        return ((wxAuiDockArt*) pObject)->GetMetricForWindow(id, (wxWindow*) window);
+    }
+
+    EXPORT void wxAuiDockArt_SetColor(void* pObject, int id, void* color)
+    {
+        ((wxAuiDockArt*) pObject)->SetColor(id, *(wxColour*) color);
+    }
+
+    EXPORT void wxAuiManager_AllowDocksForMinPanes(void* pObject, int directions)
+    {
+        ((wxAuiManager*) pObject)->AllowDocksForMinPanes(directions);
+    }
+
+    EXPORT bool wxAuiManager_AlwaysUsesLiveResize(void* window)
+    {
+        return wxAuiManager::AlwaysUsesLiveResize((wxWindow*) window);
+    }
+
+    EXPORT void* wxAuiManager_GetPane(void* pObject, void* window)
+    {
+        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
+        *pane = ((wxAuiManager*) pObject)->GetPane((wxWindow*) window);
+        return pane;
+    }
+
+    EXPORT void wxAuiManager_SetDocksForMinPanesStyle(void* pObject, unsigned int style)
+    {
+        ((wxAuiManager*) pObject)->SetDocksForMinPanesStyle(style);
+    }
+
+    EXPORT void* wxAuiNotebook_GetActiveTabCtrl(void* pObject)
+    {
+        return (void*) ((wxAuiNotebook*) pObject)->GetActiveTabCtrl();
+    }
+
+    EXPORT void* wxAuiNotebook_GetMainTabCtrl(void* pObject)
+    {
+        return (void*) ((wxAuiNotebook*) pObject)->GetMainTabCtrl();
+    }
+
+    EXPORT int wxAuiNotebook_GetPageKind(void* pObject, size_t pageIdx)
+    {
+        return (int) ((wxAuiNotebook*) pObject)->GetPageKind((size_t) pageIdx);
+    }
+
+    EXPORT int wxAuiNotebook_GetPagePosition(void* pObject, size_t page)
+    {
+        // wxAuiNotebookPosition also carries the tab control; this FFI shape
+        // only exposes the visual position within that control.
+        wxAuiNotebookPosition position = ((wxAuiNotebook*) pObject)->GetPagePosition(page);
+        return position.tabIdx;
+    }
+
+    EXPORT void wxAuiNotebook_SetManagerFlags(void* pObject, unsigned int flags)
+    {
+        ((wxAuiNotebook*) pObject)->SetManagerFlags(flags);
+    }
+
+    EXPORT bool wxAuiNotebook_SetPageKind(void* pObject, size_t pageIdx, int kind)
+    {
+        return ((wxAuiNotebook*) pObject)->SetPageKind((size_t) pageIdx, (wxAuiTabKind) kind);
+    }
+
+    EXPORT void wxAuiNotebook_SetWindowStyleFlag(void* pObject, long style)
+    {
+        ((wxAuiNotebook*) pObject)->SetWindowStyleFlag(style);
+    }
+
+    EXPORT void wxAuiNotebook_UnsplitAll(void* pObject)
+    {
+        ((wxAuiNotebook*) pObject)->UnsplitAll();
+    }
+
+    EXPORT void* wxAuiPaneInfo_FloatingClientSize(void* pObject, void* size)
+    {
+        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
+        *pane = ((wxAuiPaneInfo*) pObject)->FloatingClientSize(*(wxSize*) size);
+        return pane;
+    }
+
+    EXPORT void* wxAuiPaneInfo_IconMin(void* pObject, void* b)
+    {
+        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
+        *pane = ((wxAuiPaneInfo*) pObject)->IconMin(*(wxBitmapBundle*) b);
+        return pane;
+    }
 }

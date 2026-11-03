@@ -34,4 +34,10 @@ extern "C"
     {
         delete self;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxRichToolTip_SetTipKind(void* pObject, int tipKind)
+    {
+        ((wxRichToolTip*) pObject)->SetTipKind((wxTipKind) tipKind);
+    }
 }

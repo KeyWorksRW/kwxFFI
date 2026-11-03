@@ -63,4 +63,16 @@ extern "C"
     {
         return self->Delete(*service);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT size_t wxSecretValue_GetSize(void* pObject)
+    {
+        return (size_t) ((wxSecretValue*) pObject)->GetSize();
+    }
+
+    EXPORT void wxSecretValue_WipeString(void* str)
+    {
+        wxSecretValue::WipeString(*(wxString*) str);
+    }
+
 }

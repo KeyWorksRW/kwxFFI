@@ -132,4 +132,16 @@ extern "C"
     {
         return self->GetDefaultSashSize();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxSplitterWindow_SashHitTest(void* pObject, int x, int y)
+    {
+        return ((wxSplitterWindow*) pObject)->SashHitTest(x, y);
+    }
+
+    EXPORT void wxSplitterWindow_SizeWindows(void* pObject)
+    {
+        ((wxSplitterWindow*) pObject)->SizeWindows();
+    }
+
 }

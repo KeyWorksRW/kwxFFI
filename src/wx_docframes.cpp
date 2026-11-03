@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/docview.h>
 
 // wxDocParentFrame and wxDocChildFrame inherit from wxFrame (wxTopLevelWindow).
 // Additional methods available via:
@@ -107,4 +108,102 @@ extern "C"
     {
         self->SetView(view);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxDocManager_CloseDocuments(void* pObject, bool force)
+    {
+        return ((wxDocManager*) pObject)->CloseDocuments(force);
+    }
+
+    EXPORT void* wxDocManager_CreateDocument(void* pObject, void* path, long flags)
+    {
+        return (void*) ((wxDocManager*) pObject)->CreateDocument(*(wxString*) path, flags);
+    }
+
+    EXPORT void* wxDocManager_CreateNewDocument(void* pObject)
+    {
+        return (void*) ((wxDocManager*) pObject)->CreateNewDocument();
+    }
+
+    EXPORT void wxDocManager_FileHistoryLoad(void* pObject, void* config)
+    {
+        ((wxDocManager*) pObject)->FileHistoryLoad(*(wxConfigBase*) config);
+    }
+
+    EXPORT void wxDocManager_FileHistorySave(void* pObject, void* config)
+    {
+        ((wxDocManager*) pObject)->FileHistorySave(*(wxConfigBase*) config);
+    }
+
+    EXPORT void wxDocManager_FileHistoryUseMenu(void* pObject, void* menu)
+    {
+        ((wxDocManager*) pObject)->FileHistoryUseMenu((wxMenu*) menu);
+    }
+
+    EXPORT void* wxDocManager_GetDocumentManager()
+    {
+        return (void*) wxDocManager::GetDocumentManager();
+    }
+
+    EXPORT void wxDocManager_SetMaxDocsOpen(void* pObject, int n)
+    {
+        ((wxDocManager*) pObject)->SetMaxDocsOpen(n);
+    }
+
+    EXPORT bool wxDocument_DeleteContents(void* pObject)
+    {
+        return ((wxDocument*) pObject)->DeleteContents();
+    }
+
+    EXPORT void* wxDocument_GetCommandProcessor(void* pObject)
+    {
+        return (void*) ((wxDocument*) pObject)->GetCommandProcessor();
+    }
+
+    EXPORT void* wxDocument_GetFilename(void* pObject)
+    {
+        wxString value = ((wxDocument*) pObject)->GetFilename();
+        return new wxString(value);
+    }
+
+    EXPORT void* wxDocument_GetFirstView(void* pObject)
+    {
+        return (void*) ((wxDocument*) pObject)->GetFirstView();
+    }
+
+    EXPORT void wxDocument_SetFilename(void* pObject, void* filename, bool notifyViews)
+    {
+        ((wxDocument*) pObject)->SetFilename(*(wxString*) filename, notifyViews);
+    }
+
+    EXPORT void wxDocument_UpdateAllViews(void* pObject, void* sender, void* hint)
+    {
+        ((wxDocument*) pObject)->UpdateAllViews((wxView*) sender, (wxObject*) hint);
+    }
+
+    EXPORT void wxView_Activate(void* pObject, bool activate)
+    {
+        ((wxView*) pObject)->Activate(activate);
+    }
+
+    EXPORT void* wxView_GetDocument(void* pObject)
+    {
+        return (void*) ((wxView*) pObject)->GetDocument();
+    }
+
+    EXPORT void* wxView_GetFrame(void* pObject)
+    {
+        return (void*) ((wxView*) pObject)->GetFrame();
+    }
+
+    EXPORT void wxView_SetDocument(void* pObject, void* doc)
+    {
+        ((wxView*) pObject)->SetDocument((wxDocument*) doc);
+    }
+
+    EXPORT void wxView_SetFrame(void* pObject, void* frame)
+    {
+        ((wxView*) pObject)->SetFrame((wxWindow*) frame);
+    }
+
 }

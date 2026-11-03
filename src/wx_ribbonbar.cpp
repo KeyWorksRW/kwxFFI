@@ -191,4 +191,51 @@ extern "C"
     {
         self->SetPage(page);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxRibbonBar_AddPageHighlight(void* pObject, size_t page, bool highlight)
+    {
+        ((wxRibbonBar*) pObject)->AddPageHighlight((size_t) page, highlight);
+    }
+
+    EXPORT bool wxRibbonBar_ArePanelsShown(void* pObject)
+    {
+        return ((wxRibbonBar*) pObject)->ArePanelsShown();
+    }
+
+    EXPORT void wxRibbonBar_HidePage(void* pObject, size_t page)
+    {
+        ((wxRibbonBar*) pObject)->HidePage((size_t) page);
+    }
+
+    EXPORT void wxRibbonBar_SetHelpButtonKeyTip(void* pObject, void* keytip)
+    {
+        ((wxRibbonBar*) pObject)->SetHelpButtonKeyTip(*(wxString*) keytip);
+    }
+
+    EXPORT void wxRibbonBar_SetPageKeyTip(void* pObject, size_t page, void* keytip)
+    {
+        ((wxRibbonBar*) pObject)->SetPageKeyTip((size_t) page, *(wxString*) keytip);
+    }
+
+    EXPORT void wxRibbonBar_SetTabCtrlMargins(void* pObject, int left, int right)
+    {
+        ((wxRibbonBar*) pObject)->SetTabCtrlMargins(left, right);
+    }
+
+    EXPORT void wxRibbonBar_SetToggleButtonKeyTip(void* pObject, void* keytip)
+    {
+        ((wxRibbonBar*) pObject)->SetToggleButtonKeyTip(*(wxString*) keytip);
+    }
+
+    EXPORT void wxRibbonBar_ShowPage(void* pObject, size_t page, bool show)
+    {
+        ((wxRibbonBar*) pObject)->ShowPage((size_t) page, show);
+    }
+
+    EXPORT void wxRibbonBar_ShowPanels(void* pObject, int mode)
+    {
+        ((wxRibbonBar*) pObject)->ShowPanels((wxRibbonDisplayMode) mode);
+    }
+
 }

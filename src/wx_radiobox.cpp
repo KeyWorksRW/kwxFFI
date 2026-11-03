@@ -111,4 +111,16 @@ extern "C"
     {
         return self->GetCount();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxRadioBox_Enable(void* pObject, unsigned int n, bool enable)
+    {
+        return ((wxRadioBox*) pObject)->Enable(n, enable);
+    }
+
+    EXPORT bool wxRadioBox_Show(void* pObject, unsigned int n, bool show)
+    {
+        return ((wxRadioBox*) pObject)->Show(n, show);
+    }
+
 }

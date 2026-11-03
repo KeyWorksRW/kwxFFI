@@ -324,6 +324,12 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
     {
         return { ".lua" };
     }
+    // The LuaJIT emitter's Name() is "lua", so `verify --lang lua` reaches this function
+    // with "lua" and must not fall through to the Go suffix below.
+    if (lang == "lua")
+    {
+        return { ".lua" };
+    }
     if (lang == "rust")
     {
         return { ".rs" };
@@ -921,8 +927,8 @@ int main(int argc, char* argv[])
             std::println("  {}", profile_name);
         }
         std::println("\nDefault profile per language:");
-        static constexpr std::array<std::string_view, 5> LANGS { "fortran", "go", "julia", "luajit",
-                                                                 "typescript" };
+        static constexpr std::array<std::string_view, 6> LANGS { "fortran", "go",   "julia",
+                                                                 "luajit",  "rust", "typescript" };
         for (const std::string_view lang: LANGS)
         {
             std::println("  {:<11} {}", lang, DefaultProfileForLanguage(lang));

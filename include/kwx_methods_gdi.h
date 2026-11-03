@@ -121,6 +121,8 @@ void wxDC_SetGraphicsContext(TSelf(wxDC) pObject, TClass(wxGraphicsContext) ctx)
 
 TClassDefExtend(wxImage, wxObject) TBool
     wxImage_CreateFromXPMData(TSelf(wxImage) pObject, void* data);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+unsigned char wxImage_GetAlpha(TSelf(wxImage) pObject, int x, int y);
 void wxImage_Clear(TSelf(wxImage) pObject, int value);
 TClass(wxImage)
     wxImage_Size(TSelf(wxImage) pObject, TSize(width, height), TPoint(x, y), int r, int g, int b);

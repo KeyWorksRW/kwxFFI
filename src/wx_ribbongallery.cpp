@@ -200,4 +200,21 @@ extern "C"
         self->SetGalleryItem(item);
     }
 
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxRibbonGallery_GetItemClientObject(void* pObject, void* item)
+    {
+        return (void*) ((wxRibbonGallery*) pObject)->GetItemClientObject((wxRibbonGalleryItem*) item);
+    }
+
+    EXPORT void wxRibbonGallery_SetItemClientObject(void* pObject, void* item, void* data)
+    {
+        ((wxRibbonGallery*) pObject)->SetItemClientObject((wxRibbonGalleryItem*) item, (wxClientData*) data);
+    }
+
+    EXPORT void wxRibbonGallery_SetKeyTip(void* pObject, void* keytip)
+    {
+        ((wxRibbonGallery*) pObject)->SetKeyTip(*(wxString*) keytip);
+    }
+
 }  // extern "C"

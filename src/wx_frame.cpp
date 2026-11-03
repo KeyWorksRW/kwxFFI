@@ -37,9 +37,10 @@ extern "C"
         return result;
     }
 
-    EXPORT void wxTopLevelWindow_Iconize(wxTopLevelWindow* self, bool iconize)
+    EXPORT bool wxTopLevelWindow_Iconize(wxTopLevelWindow* self, bool iconize)
     {
         self->Iconize(iconize);
+        return true;  // wxTopLevelWindow::Iconize() returns void; a completed call is success
     }
 
     EXPORT bool wxTopLevelWindow_IsActive(wxTopLevelWindow* self)
@@ -349,5 +350,22 @@ extern "C"
     EXPORT wxSize* wxTopLevelWindow_GetDefaultSize()
     {
         return new wxSize(wxTopLevelWindow::GetDefaultSize());
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxFrame_MSWGetTaskBarButton(void* pObject)
+    {
+#ifdef __WXMSW__
+        return (void*) ((wxFrame*) pObject)->MSWGetTaskBarButton();
+#else
+        // wxTaskBarButton is MSW-only, so no frame exposes one.
+        wxUnusedVar(pObject);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxTopLevelWindow_CentreOnScreen(void* pObject, int dir)
+    {
+        ((wxTopLevelWindow*) pObject)->CentreOnScreen(dir);
     }
 }

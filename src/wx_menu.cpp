@@ -468,4 +468,34 @@ extern "C"
     {
         wxMenu::LockAccels(locked);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxMenuItem_SetBitmaps(void* pObject, void* bmpChecked, void* bmpUnchecked)
+    {
+#ifdef __WXMSW__
+        ((wxMenuItem*) pObject)
+            ->SetBitmaps(*(wxBitmapBundle*) bmpChecked, *(wxBitmapBundle*) bmpUnchecked);
+#else
+        // SetBitmaps() is only implemented by the MSW and universal wxMenuItem.
+        wxUnusedVar(pObject);
+        wxUnusedVar(bmpChecked);
+        wxUnusedVar(bmpUnchecked);
+#endif
+    }
+
+    EXPORT void wxMenuItem_SetDisabledBitmap(void* pObject, void* bmpDisabled)
+    {
+#if defined(__WXMSW__) && wxUSE_OWNER_DRAWN
+        ((wxMenuItem*) pObject)->SetDisabledBitmap(*(wxBitmapBundle*) bmpDisabled);
+#else
+        // SetDisabledBitmap() is only implemented by the MSW owner-drawn wxMenuItem.
+        wxUnusedVar(pObject);
+        wxUnusedVar(bmpDisabled);
+#endif
+    }
+
+    EXPORT bool wxMenu_Destroy(void* pObject, int itemid)
+    {
+        return ((wxMenu*) pObject)->Destroy(itemid);
+    }
 }

@@ -268,4 +268,16 @@ extern "C"
         self->SetBar(bar);
     }
 
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxRibbonToolBar_SetDropdownKeyTip(void* pObject, int tool_id, void* keytip)
+    {
+        ((wxRibbonToolBar*) pObject)->SetDropdownKeyTip((wxWindowID) tool_id, *(wxString*) keytip);
+    }
+
+    EXPORT void wxRibbonToolBar_SetKeyTip(void* pObject, int tool_id, void* keytip)
+    {
+        ((wxRibbonToolBar*) pObject)->SetKeyTip((wxWindowID) tool_id, *(wxString*) keytip);
+    }
+
 }  // extern "C"

@@ -3,6 +3,9 @@
 
 #include "kwx_wrapper.h"
 #include <wx/notifmsg.h>
+// wx/notifmsg.h only forward-declares wxTaskBarIcon for MSW; the other platforms
+// need the real declaration for the UseTaskBarIcon() wrapper signature.
+#include <wx/taskbar.h>
 
 extern "C"
 {
@@ -64,7 +67,13 @@ extern "C"
     // Static methods for platform capabilities
     EXPORT bool wxNotificationMessage_UseTaskBarIcon(wxTaskBarIcon* icon)
     {
+#ifdef __WXMSW__
         return wxNotificationMessage::UseTaskBarIcon(icon);
+#else
+        // Only the MSW notification implementation can route through a task bar icon.
+        wxUnusedVar(icon);
+        return false;
+#endif
     }
 
     EXPORT bool wxNotificationMessage_MSWUseToasts(wxString* shortcutPath, wxString* appId)

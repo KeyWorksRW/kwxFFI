@@ -33,9 +33,9 @@ extern "C"
         self->Fit();
     }
 
-    EXPORT void wxWindow_DestroyChildren(wxWindow* self)
+    EXPORT bool wxWindow_DestroyChildren(wxWindow* self)
     {
-        self->DestroyChildren();
+        return self->DestroyChildren();
     }
 
     EXPORT bool wxWindow_IsBeingDeleted(wxWindow* self)
@@ -1333,4 +1333,42 @@ extern "C"
     {
         return self->IsTopNavigationDomain(static_cast<wxWindowBase::NavigationKind>(kind));
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxWindow_CentreOnParent(void* pObject, int dir)
+    {
+        ((wxWindow*) pObject)->CentreOnParent(dir);
+    }
+
+    EXPORT void* wxWindow_FindWindowById(long winid, void* parent)
+    {
+        return (void*) wxWindow::FindWindowById(winid, (wxWindow*) parent);
+    }
+
+    EXPORT void* wxWindow_FindWindowByName(void* name, void* parent)
+    {
+        return (void*) wxWindow::FindWindowByName(*(wxString*) name, (wxWindow*) parent);
+    }
+
+    EXPORT void* wxWindow_GetContainingSizer(void* pObject)
+    {
+        return (void*) ((wxWindow*) pObject)->GetContainingSizer();
+    }
+
+    EXPORT void* wxWindow_GetMinSizeFromKnownDirection(void* pObject, int direction, int size, int availableOtherDir)
+    {
+        wxSize value = ((wxWindow*) pObject)->GetMinSizeFromKnownDirection(direction, size, availableOtherDir);
+        return new wxSize(value);
+    }
+
+    EXPORT bool wxWindow_IsTransparentBackgroundSupported(void* pObject, void* reason)
+    {
+        return ((wxWindow*) pObject)->IsTransparentBackgroundSupported((wxString*) reason);
+    }
+
+    EXPORT void wxWindow_PostSizeEvent(void* pObject)
+    {
+        ((wxWindow*) pObject)->PostSizeEvent();
+    }
+
 }

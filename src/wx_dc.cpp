@@ -970,4 +970,21 @@ extern "C"
     {
         delete self;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxDC_CanUseTransformMatrix(void* pObject)
+    {
+        return ((wxDC*) pObject)->CanUseTransformMatrix();
+    }
+
+    EXPORT bool wxDC_SetTransformMatrix(void* pObject, void* matrix)
+    {
+        return ((wxDC*) pObject)->SetTransformMatrix(*(wxAffineMatrix2D*) matrix);
+    }
+
+    EXPORT void wxMemoryDC_SelectObjectAsSource(void* pObject, void* bmp)
+    {
+        ((wxMemoryDC*) pObject)->SelectObjectAsSource(*(wxBitmap*) bmp);
+    }
+
 }

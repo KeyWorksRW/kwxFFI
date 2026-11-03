@@ -310,4 +310,121 @@ extern "C"
     {
         self->SetRows(nRows);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxToolBarBase_AddCheckTool(void* pObject, int toolid, void* label, void* bitmap, void* bmpDisabled, void* shortHelp, void* longHelp, void* clientData)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddCheckTool(toolid, *(wxString*) label, *(wxBitmapBundle*) bitmap, *(wxBitmapBundle*) bmpDisabled, *(wxString*) shortHelp, *(wxString*) longHelp, (wxObject*) clientData);
+    }
+
+    EXPORT void* wxToolBarBase_AddControl(void* pObject, void* control, void* label)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddControl((wxControl*) control, *(wxString*) label);
+    }
+
+    EXPORT void* wxToolBarBase_AddRadioTool(void* pObject, int toolid, void* label, void* bitmap, void* bmpDisabled, void* shortHelp, void* longHelp, void* clientData)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddRadioTool(toolid, *(wxString*) label, *(wxBitmapBundle*) bitmap, *(wxBitmapBundle*) bmpDisabled, *(wxString*) shortHelp, *(wxString*) longHelp, (wxObject*) clientData);
+    }
+
+    EXPORT void* wxToolBarBase_AddSeparator(void* pObject)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddSeparator();
+    }
+
+    EXPORT void* wxToolBarBase_AddStretchableSpace(void* pObject)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddStretchableSpace();
+    }
+
+    EXPORT void* wxToolBarBase_AddTool(void* pObject, int toolid, void* label, void* bitmap, void* bmpDisabled, int kind, void* shortHelp, void* longHelp, void* clientData)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->AddTool(toolid, *(wxString*) label, *(wxBitmapBundle*) bitmap, *(wxBitmapBundle*) bmpDisabled, (wxItemKind) kind, *(wxString*) shortHelp, *(wxString*) longHelp, (wxObject*) clientData);
+    }
+
+    EXPORT bool wxToolBarBase_DeleteTool(void* pObject, int toolid)
+    {
+        return ((wxToolBarBase*) pObject)->DeleteTool(toolid);
+    }
+
+    EXPORT void wxToolBarBase_EnableTool(void* pObject, int toolid, bool enable)
+    {
+        ((wxToolBarBase*) pObject)->EnableTool(toolid, enable);
+    }
+
+    EXPORT bool wxToolBarBase_GetToolEnabled(void* pObject, int toolid)
+    {
+        return ((wxToolBarBase*) pObject)->GetToolEnabled(toolid);
+    }
+
+    EXPORT int wxToolBarBase_GetToolPacking(void* pObject)
+    {
+        return ((wxToolBarBase*) pObject)->GetToolPacking();
+    }
+
+    EXPORT bool wxToolBarBase_GetToolState(void* pObject, int toolid)
+    {
+        return ((wxToolBarBase*) pObject)->GetToolState(toolid);
+    }
+
+    EXPORT size_t wxToolBarBase_GetToolsCount(void* pObject)
+    {
+        return (size_t) ((wxToolBarBase*) pObject)->GetToolsCount();
+    }
+
+    EXPORT void* wxToolBarBase_InsertTool(void* pObject, size_t pos, int toolid, void* label, void* bitmap, void* bmpDisabled, int kind, void* shortHelp, void* longHelp, void* clientData)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->InsertTool((size_t) pos, toolid, *(wxString*) label, *(wxBitmapBundle*) bitmap, *(wxBitmapBundle*) bmpDisabled, (wxItemKind) kind, *(wxString*) shortHelp, *(wxString*) longHelp, (wxObject*) clientData);
+    }
+
+    EXPORT bool wxToolBarBase_IsVertical(void* pObject)
+    {
+        return ((wxToolBarBase*) pObject)->IsVertical();
+    }
+
+    EXPORT bool wxToolBarBase_Realize(void* pObject)
+    {
+        return ((wxToolBarBase*) pObject)->Realize();
+    }
+
+    EXPORT void* wxToolBarBase_RemoveTool(void* pObject, int toolid)
+    {
+        return (void*) ((wxToolBarBase*) pObject)->RemoveTool(toolid);
+    }
+
+    EXPORT bool wxToolBarBase_SetDropdownMenu(void* pObject, int toolid, void* menu)
+    {
+        return ((wxToolBarBase*) pObject)->SetDropdownMenu(toolid, (wxMenu*) menu);
+    }
+
+    EXPORT void wxToolBarBase_SetMargins(void* pObject, int x, int y)
+    {
+        ((wxToolBarBase*) pObject)->SetMargins(x, y);
+    }
+
+    EXPORT void wxToolBarBase_SetRows(void* pObject, int nRows)
+    {
+        ((wxToolBarBase*) pObject)->SetRows(nRows);
+    }
+
+    EXPORT void wxToolBarBase_SetToolBitmapSize(void* pObject, void* size)
+    {
+        ((wxToolBarBase*) pObject)->SetToolBitmapSize(*(wxSize*) size);
+    }
+
+    EXPORT void wxToolBarBase_SetToolSeparation(void* pObject, int separation)
+    {
+        ((wxToolBarBase*) pObject)->SetToolSeparation(separation);
+    }
+
+    EXPORT void wxToolBarBase_SetToolShortHelp(void* pObject, int toolid, void* helpString)
+    {
+        ((wxToolBarBase*) pObject)->SetToolShortHelp(toolid, *(wxString*) helpString);
+    }
+
+    EXPORT void wxToolBarBase_ToggleTool(void* pObject, int toolid, bool toggle)
+    {
+        ((wxToolBarBase*) pObject)->ToggleTool(toolid, toggle);
+    }
+
 }

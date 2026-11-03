@@ -153,4 +153,11 @@ extern "C"
     {
         return self->GetContentWindow();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxDialog_Show(void* pObject, bool show)
+    {
+        return ((wxDialog*) pObject)->Show(show);
+    }
+
 }

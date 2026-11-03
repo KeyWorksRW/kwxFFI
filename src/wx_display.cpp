@@ -128,4 +128,27 @@ extern "C"
         *result = self->GetCurrentMode();
         return (void*) result;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxDisplay_ChangeMode(void* pObject, void* mode)
+    {
+        return ((wxDisplay*) pObject)->ChangeMode(*(wxVideoMode*) mode);
+    }
+
+    EXPORT int wxDisplay_GetDepth(void* pObject)
+    {
+        return ((wxDisplay*) pObject)->GetDepth();
+    }
+
+    EXPORT void* wxDisplay_GetRawPPI(void* pObject)
+    {
+        wxSize value = ((wxDisplay*) pObject)->GetRawPPI();
+        return new wxSize(value);
+    }
+
+    EXPORT void wxDisplay_ResetMode(void* pObject)
+    {
+        ((wxDisplay*) pObject)->ResetMode();
+    }
+
 }

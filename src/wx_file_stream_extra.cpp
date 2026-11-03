@@ -1105,4 +1105,21 @@ extern "C"
     {
         return self->GetBlockingFactor();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxFFile_IsOpened(void* pObject)
+    {
+        return ((wxFFile*) pObject)->IsOpened();
+    }
+
+    EXPORT bool wxFFile_ReadAll(void* pObject, void* str, void* conv)
+    {
+        return ((wxFFile*) pObject)->ReadAll((wxString*) str, *(wxMBConv*) conv);
+    }
+
+    EXPORT bool wxFilterOutputStream_Close(void* pObject)
+    {
+        return ((wxFilterOutputStream*) pObject)->Close();
+    }
+
 }

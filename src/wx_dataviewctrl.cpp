@@ -422,4 +422,31 @@ extern "C"
     {
         return self->SetHeaderAttr(*attr);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxDataViewCtrl_Enable(void* pObject, bool enable)
+    {
+        return ((wxDataViewCtrl*) pObject)->Enable(enable);
+    }
+
+    EXPORT bool wxDataViewCtrl_EnableDragSource(void* pObject, void* format)
+    {
+        return ((wxDataViewCtrl*) pObject)->EnableDragSource(*(wxDataFormat*) format);
+    }
+
+    EXPORT bool wxDataViewCtrl_SetBackgroundColour(void* pObject, void* colour)
+    {
+        return ((wxDataViewCtrl*) pObject)->SetBackgroundColour(*(wxColour*) colour);
+    }
+
+    EXPORT void wxDataViewCtrl_SetFocus(void* pObject)
+    {
+        ((wxDataViewCtrl*) pObject)->SetFocus();
+    }
+
+    EXPORT bool wxDataViewCtrl_SetForegroundColour(void* pObject, void* colour)
+    {
+        return ((wxDataViewCtrl*) pObject)->SetForegroundColour(*(wxColour*) colour);
+    }
+
 }

@@ -58,6 +58,12 @@ void wxTreeCtrl_EnableBellOnNoMatch(TSelf(wxTreeCtrl) pObject, TBool on);
 
 TClassDef(wxDataViewCtrl) TBool
     wxDataViewCtrl_SetHeaderAttr(TSelf(wxDataViewCtrl) pObject, TClass(wxItemAttr) attr);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxDataViewCtrl_Enable(TSelf(wxDataViewCtrl) pObject, TBool enable);
+TBool wxDataViewCtrl_EnableDragSource(TSelf(wxDataViewCtrl) pObject, TClass(wxDataFormat) format);
+TBool wxDataViewCtrl_SetBackgroundColour(TSelf(wxDataViewCtrl) pObject, TClass(wxColour) colour);
+void wxDataViewCtrl_SetFocus(TSelf(wxDataViewCtrl) pObject);
+TBool wxDataViewCtrl_SetForegroundColour(TSelf(wxDataViewCtrl) pObject, TClass(wxColour) colour);
 
 /* ------------------------------------------------------------------------- */
 /* wxDataViewListCtrl                                                        */

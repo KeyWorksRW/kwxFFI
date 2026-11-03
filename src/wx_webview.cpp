@@ -698,4 +698,229 @@ extern "C"
         wxUnusedVar(handler);
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxWebViewEvent_GetMessageHandler(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        wxString value = ((wxWebViewEvent*) pObject)->GetMessageHandler();
+        return new wxString(value);
+#else
+        wxUnusedVar(pObject);
+        return new wxString();
+#endif
+    }
+
+    EXPORT void* wxWebViewEvent_GetTargetWindowFeatures(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return (void*) ((wxWebViewEvent*) pObject)->GetTargetWindowFeatures();
+#else
+        wxUnusedVar(pObject);
+        return nullptr;
+#endif
+    }
+
+    EXPORT bool wxWebViewEvent_IsError(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebViewEvent*) pObject)->IsError();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebViewEvent_IsTargetMainFrame(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebViewEvent*) pObject)->IsTargetMainFrame();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_AddScriptMessageHandler(void* pObject, void* name)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->AddScriptMessageHandler(*(wxString*) name);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(name);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_AddUserScript(void* pObject, void* javascript, int injectionTime)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)
+            ->AddUserScript(*(wxString*) javascript,
+                            (wxWebViewUserScriptInjectionTime) injectionTime);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(javascript);
+        wxUnusedVar(injectionTime);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_AreBrowserAcceleratorKeysEnabled(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->AreBrowserAcceleratorKeysEnabled();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_CanRedo(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->CanRedo();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_CanSetZoomType(void* pObject, int type)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->CanSetZoomType((wxWebViewZoomType) type);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(type);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_CanUndo(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->CanUndo();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT void wxWebView_ClearBrowsingData(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->ClearBrowsingData();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
+
+    EXPORT void wxWebView_ClearHistory(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->ClearHistory();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
+
+    EXPORT void wxWebView_DeleteSelection(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->DeleteSelection();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
+
+    EXPORT void wxWebView_EnableHistory(void* pObject, bool enable)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->EnableHistory(enable);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(enable);
+#endif
+    }
+
+    EXPORT void* wxWebView_GetUserAgent(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        wxString value = ((wxWebView*) pObject)->GetUserAgent();
+        return new wxString(value);
+#else
+        wxUnusedVar(pObject);
+        return new wxString();
+#endif
+    }
+
+    EXPORT void* wxWebView_NewConfiguration(void* backend)
+    {
+#if wxUSE_WEBVIEW
+        return new wxWebViewConfiguration(wxWebView::NewConfiguration(*(wxString*) backend));
+#else
+        wxUnusedVar(backend);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxWebView_Redo(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->Redo();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
+
+    EXPORT void wxWebView_SelectAll(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->SelectAll();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
+
+    EXPORT bool wxWebView_SetProxy(void* pObject, void* proxy)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->SetProxy(*(wxString*) proxy);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(proxy);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_SetUserAgent(void* pObject, void* userAgent)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->SetUserAgent(*(wxString*) userAgent);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(userAgent);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxWebView_ShowDevTools(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        return ((wxWebView*) pObject)->ShowDevTools();
+#else
+        wxUnusedVar(pObject);
+        return false;
+#endif
+    }
+
+    EXPORT void wxWebView_Undo(void* pObject)
+    {
+#if wxUSE_WEBVIEW
+        ((wxWebView*) pObject)->Undo();
+#else
+        wxUnusedVar(pObject);
+#endif
+    }
 }

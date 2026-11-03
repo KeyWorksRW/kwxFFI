@@ -74,4 +74,11 @@ extern "C"
     {
         return self->Draw(index, *dc, x, y, flags, solidBackground);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxImageList_Add(void* pObject, void* bitmap, void* mask)
+    {
+        return ((wxImageList*) pObject)->Add(*(wxBitmap*) bitmap, *(wxBitmap*) mask);
+    }
+
 }

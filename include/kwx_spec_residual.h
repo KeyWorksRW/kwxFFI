@@ -82,6 +82,8 @@ void wxHyperlinkEvent_SetURL(TSelf(wxHyperlinkEvent) pObject, TClass(wxString) u
 
 TClassDefExtend(wxThreadEvent, wxEvent) TClass(wxThreadEvent)
     wxThreadEvent_Create(int event_type, int id);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxEvent) wxThreadEvent_Clone(TSelf(wxThreadEvent) pObject);
 void wxThreadEvent_Delete(TSelf(wxThreadEvent) pObject);
 TClass(wxString) wxThreadEvent_GetString(TSelf(wxThreadEvent) pObject);
 void wxThreadEvent_SetString(TSelf(wxThreadEvent) pObject, TClass(wxString) text);
@@ -227,6 +229,9 @@ void wxAffineMatrix2D_TransformDistance(TSelf(wxAffineMatrix2D) pObject, double*
 // PushProvider/PopProvider/RemoveProvider wrappers live in src/wx_artprov.cpp.
 TClassDefExtend(wxArtProvider, wxObject) TClass(wxBitmap)
     wxArtProvider_GetBitmap(TClass(wxString) id, TClass(wxString) client, TSize(width, height));
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxArtProvider_Pop();
+void wxArtProvider_Push(void* provider);
 TClass(wxBitmapBundle) wxArtProvider_GetBitmapBundle(TClass(wxString) id, TClass(wxString) client,
                                                      TSize(width, height));
 TClass(wxIcon)
@@ -313,6 +318,9 @@ TBool wxMDIClientWindow_CreateClient(TSelf(wxMDIClientWindow) pObject,
 // wrapped wxGridStringTable instances.
 TClassDefExtend(wxGridTableBase,
                 wxObject) int wxGridTableBase_GetNumberRows(TSelf(wxGridTableBase) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxGridCellAttrProvider) wxGridTableBase_GetAttrProvider(TSelf(wxGridTableBase) pObject);
+void wxGridTableBase_SetAttrProvider(TSelf(wxGridTableBase) pObject, void* attrProvider);
 int wxGridTableBase_GetNumberCols(TSelf(wxGridTableBase) pObject);
 int wxGridTableBase_GetRowsCount(TSelf(wxGridTableBase) pObject);
 int wxGridTableBase_GetColsCount(TSelf(wxGridTableBase) pObject);
@@ -441,6 +449,25 @@ TBool wxDataObject_SetData(TSelf(wxDataObject) pObject, TClass(wxDataFormat) for
 // SetHelpString are declared in include/kwx_classes.h.
 TClassDefExtend(wxPGProperty, wxObject) TClass(wxString)
     wxPGProperty_GetBaseName(TSelf(wxPGProperty) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+int wxPGProperty_AddChoice(TSelf(wxPGProperty) pObject, TClass(wxString) label, int value);
+void wxPGProperty_AddPrivateChild(TSelf(wxPGProperty) pObject, void* prop);
+void* wxPGProperty_AppendChild(TSelf(wxPGProperty) pObject, void* prop);
+void wxPGProperty_DeleteChoice(TSelf(wxPGProperty) pObject, int index);
+void wxPGProperty_EnableCommonValue(TSelf(wxPGProperty) pObject, TBool enable);
+TClass(wxPGCell) wxPGProperty_GetCell(TSelf(wxPGProperty) pObject, unsigned int column);
+TClass(wxString) wxPGProperty_GetDisplayedString(TSelf(wxPGProperty) pObject);
+unsigned int wxPGProperty_GetIndexInParent(TSelf(wxPGProperty) pObject);
+TBool wxPGProperty_HasAnyChild(TSelf(wxPGProperty) pObject);
+int wxPGProperty_InsertChoice(TSelf(wxPGProperty) pObject, TClass(wxString) label, int index, int value);
+TBool wxPGProperty_IsCategory(TSelf(wxPGProperty) pObject);
+TBool wxPGProperty_IsEnabled(TSelf(wxPGProperty) pObject);
+TBool wxPGProperty_IsExpanded(TSelf(wxPGProperty) pObject);
+TBool wxPGProperty_IsValueUnspecified(TSelf(wxPGProperty) pObject);
+void wxPGProperty_RefreshEditor(TSelf(wxPGProperty) pObject);
+void wxPGProperty_SetAttribute(TSelf(wxPGProperty) pObject, TClass(wxString) name, TClass(wxVariant) value);
+void wxPGProperty_SetAutoUnspecified(TSelf(wxPGProperty) pObject, TBool enable);
+void wxPGProperty_SetExpanded(TSelf(wxPGProperty) pObject, TBool expanded);
 int wxPGProperty_GetY(TSelf(wxPGProperty) pObject);
 TClass(wxVariant) wxPGProperty_GetValue(TSelf(wxPGProperty) pObject);
 TClass(wxString) wxPGProperty_GetHintText(TSelf(wxPGProperty) pObject);

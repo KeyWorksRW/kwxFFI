@@ -9,6 +9,40 @@
 extern "C"
 {
     typedef int (*TTextEnum)(void* self, void* text);
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxFontMapper_CharsetToEncoding(void* pObject, void* charset, bool interactive)
+    {
+        return (int) ((wxFontMapper*) pObject)->CharsetToEncoding(*(wxString*) charset, interactive);
+    }
+
+    EXPORT void* wxFontMapper_Get()
+    {
+        return (void*) wxFontMapper::Get();
+    }
+
+    EXPORT int wxFontMapper_GetEncoding(size_t n)
+    {
+        return (int) wxFontMapper::GetEncoding((size_t) n);
+    }
+
+    EXPORT void* wxFontMapper_GetEncodingDescription(int encoding)
+    {
+        wxString value = wxFontMapper::GetEncodingDescription((wxFontEncoding) encoding);
+        return new wxString(value);
+    }
+
+    EXPORT void* wxFontMapper_GetEncodingName(int encoding)
+    {
+        wxString value = wxFontMapper::GetEncodingName((wxFontEncoding) encoding);
+        return new wxString(value);
+    }
+
+    EXPORT size_t wxFontMapper_GetSupportedEncodingsCount()
+    {
+        return (size_t) wxFontMapper::GetSupportedEncodingsCount();
+    }
+
 }
 
 class kwxFontEnumerator : public wxFontEnumerator

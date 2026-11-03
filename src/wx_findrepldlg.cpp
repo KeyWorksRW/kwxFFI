@@ -108,4 +108,16 @@ extern "C"
     {
         ((wxFindReplaceDialog*) pObject)->SetData((wxFindReplaceData*) data);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxFindDialogEvent_GetDialog(void* pObject)
+    {
+        return (void*) ((wxFindDialogEvent*) pObject)->GetDialog();
+    }
+
+    EXPORT bool wxFindReplaceDialog_Show(void* pObject, bool show)
+    {
+        return ((wxFindReplaceDialog*) pObject)->Show(show);
+    }
+
 }

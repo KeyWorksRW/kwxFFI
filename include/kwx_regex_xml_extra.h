@@ -52,6 +52,8 @@ int wxRegEx_ReplaceFirst(TSelf(wxRegEx) pObject, TClass(wxString) text,
 // serialises the document into a UTF-8 string. AppendChild() appends to the root element and
 // returns false when the document has no root.
 TClassDefExtend(wxXmlDocument, wxObject) TClass(wxXmlDocument) wxXmlDocument_Create();
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxXmlNode) wxXmlDocument_GetDocumentNode(TSelf(wxXmlDocument) pObject);
 TClass(wxXmlDocument) wxXmlDocument_CreateFromFile(TClass(wxString) file_name, int flags);
 TClass(wxXmlDocument) wxXmlDocument_CreateFromString(TClass(wxString) text, int flags);
 void wxXmlDocument_Delete(TSelf(wxXmlDocument) pObject);

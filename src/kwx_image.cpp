@@ -459,4 +459,29 @@ extern "C"
             }
         }
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxBitmapBundle_FromResources(void* name)
+    {
+        wxBitmapBundle value = wxBitmapBundle::FromResources(*(wxString*) name);
+        return new wxBitmapBundle(value);
+    }
+
+    EXPORT void* wxBitmapBundle_GetBitmap(void* pObject, void* size)
+    {
+        wxBitmap value = ((wxBitmapBundle*) pObject)->GetBitmap(*(wxSize*) size);
+        return new wxBitmap(value);
+    }
+
+    EXPORT void* wxBitmapBundle_GetDefaultSize(void* pObject)
+    {
+        wxSize value = ((wxBitmapBundle*) pObject)->GetDefaultSize();
+        return new wxSize(value);
+    }
+
+    EXPORT bool wxBitmapBundle_IsOk(void* pObject)
+    {
+        return ((wxBitmapBundle*) pObject)->IsOk();
+    }
+
 }

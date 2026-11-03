@@ -10,6 +10,7 @@ set( FFI_SRC_FILES
 
     src/kwx_glcanvas.cpp
     src/kwx_graphicscontext.cpp
+    src/kwx_hooks.cpp
     src/kwx_hyperlinkctrl.cpp
     src/kwx_image.cpp
     src/kwx_mediactrl.cpp
@@ -74,7 +75,6 @@ set( FFI_SRC_FILES
     src/wx_dcsvg.cpp
     src/wx_dialog.cpp
 
-    src/wx_dialup.cpp
     src/wx_dir.cpp
     src/wx_dirdlg.cpp
     src/wx_dirpickerctrl.cpp
@@ -254,6 +254,7 @@ set( FFI_HDR_FILES
     include/kwx_combo_extra.h
     include/kwx_helper_cmdline.h
     include/kwx_helper_thread.h
+    include/kwx_hook_exports.h
     include/kwx_spec_residual.h
     include/kwx_thread_extra.h
     include/kwx_grid.h

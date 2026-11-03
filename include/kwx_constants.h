@@ -195,3 +195,80 @@ void LogStatus(TClass(wxString) message);
 void LogSysError(TClass(wxString) message);
 void LogDebug(TClass(wxString) message);
 void LogTrace(TClass(wxString) mask, TClass(wxString) message);
+
+// ---------------------------------------------------------------------------
+// Leaf free functions (Phase 2: .private/port/fix_worklist.json)
+//
+// Implementations live in src/wx_utils.cpp. Pointer arguments are opaque, so a
+// wxObject*/wxClassInfo* pair crosses the boundary as two TClass slots; strings
+// are handed over as TClass(wxString) and values returned by wx are copied into
+// a caller-owned TClass(wxString).
+// ---------------------------------------------------------------------------
+
+void* wxCheckDynamicCast(TClass(wxObject) obj, TClass(wxClassInfo) class_info);
+void* wxCheckCast(TClass(wxObject) obj, TClass(wxClassInfo) class_info);
+void* wxGetApp();
+void wxInitAllImageHandlers();
+void wxUnusedVar(void* value);
+int wxGetSingleChoiceIndex(TClass(wxString) message, TClass(wxString) caption,
+                           TClass(wxString) choices, int count, TClass(wxWindow) parent);
+void wxBeginBusyCursor();
+void wxEndBusyCursor();
+TClass(wxString) wxJoin(TClass(wxArrayString) array, int separator);
+int wxAtoi(TClass(wxString) str);
+TClass(wxSize) wxGetDisplaySize();
+TClass(wxWindow) wxGetTopLevelParent(TClass(wxWindow) window);
+TBool wxIsprint(int character);
+int wxRound(double value);
+void wxWakeUpIdle();
+void wxBell();
+double wxDegToRad(double degrees);
+TString wxFgets(TString buffer, int size, void* stream);
+TClass(wxString) wxGetCwd();
+TBool wxIsMainThread();
+int wxNewEventType();
+void wxQueueEvent(TClass(wxEvtHandler) dest, TClass(wxEvent) event);
+void wxSetCursor(TClass(wxCursor) cursors);
+TClass(wxArrayString) wxSplit(TClass(wxString) str, int separator);
+int wxStrcmp(TClass(wxString) first, TClass(wxString) second);
+void wxSwap(void* first, void* second, size_t size);
+void* wxUIntToPtr(size_t value);
+void* wxCreateFileTipProvider(TClass(wxString) filename, int current_tip);
+TClass(wxString) wxDirSelector(TClass(wxString) message, TClass(wxString) default_path, long style,
+                               int x, int y, TClass(wxWindow) parent);
+TBool wxFileExists(TClass(wxString) filename);
+TClass(wxWindow) wxFindFocusDescendant(TClass(wxWindow) ancestor);
+int wxGetBatteryState();
+TClass(wxRect) wxGetClientDisplayRect();
+long wxGetLocalTime();
+int wxGetPowerType();
+int wxGetSelectedChoices(void* selections, TClass(wxString) choices, int count,
+                         TClass(wxString) message, TClass(wxString) caption,
+                         TClass(wxWindow) parent);
+TClass(wxString) wxGetSingleChoice(TClass(wxString) message, TClass(wxString) caption,
+                                   TClass(wxString) choices, int count, TClass(wxWindow) parent);
+void* wxGetSingleChoiceData(TClass(wxString) message, TClass(wxString) caption,
+                            TClass(wxString) choices, int count, void* client_data,
+                            TClass(wxWindow) parent);
+TClass(wxString) wxGetTranslation(TClass(wxString) str);
+TClass(wxString) wxGetZlibVersionInfo();
+void* wxGet_wxConvLibc();
+void* wxGet_wxConvLocal();
+void* wxGet_wxConvUTF8();
+TBool wxIsalnum(int character);
+TBool wxIsdigit(int character);
+TBool wxIslower(int character);
+void* wxMakeFloatingPointValidator(double* value, int style);
+void wxMutexGuiEnter();
+void wxMutexGuiLeave();
+TBool wxPlatformIs(int platform);
+void* wxPointRefFromVariant(TClass(wxVariant) variant);
+void wxPostEvent(TClass(wxEvtHandler) dest, TClass(wxEvent) event);
+size_t wxPtrToUInt(void* pointer);
+int wxPuts(TClass(wxString) str);
+TBool wxRenameFile(TClass(wxString) old_path, TClass(wxString) new_path, TBool overwrite);
+TBool wxShowTip(TClass(wxWindow) parent, void* tip_provider);
+void* wxSizeRefFromVariant(TClass(wxVariant) variant);
+TString wxStrdup(TClass(wxString) str);
+double wxStrtod(TClass(wxString) nptr);
+long wxStrtol(TClass(wxString) nptr, int base);

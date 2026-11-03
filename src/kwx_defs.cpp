@@ -3,10 +3,40 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/cmdline.h>
 #include <wx/dir.h>
+#include <wx/fdrepdlg.h>
 #include <wx/filename.h>
+#include <wx/fswatcher.h>
+#include <wx/grid.h>
+#include <wx/hyperlink.h>
+#include <wx/mediactrl.h>
 #include <wx/numformatter.h>
+#include <wx/power.h>
 #include <wx/process.h>
+#include <wx/richtext/richtextbuffer.h>
+#include <wx/url.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/zipstrm.h>
+
+// The wxWEBVIEW_* enumerators only exist in builds with the webview library
+// (wxUSE_WEBVIEW). Report 0 otherwise so the exported FFI surface is identical
+// on every platform -- src/wx_webview.cpp follows the same convention.
+#if wxUSE_WEBVIEW
+    #define KWX_WEBVIEW_VALUE(name) static_cast<int>(name)
+#else
+    #define KWX_WEBVIEW_VALUE(name) 0
+#endif
+
+// The wxACC_*, wxNAVDIR_*, wxROLE_* and wxOBJID_* enumerators only exist in
+// builds with wxUSE_ACCESSIBILITY (MSW only). Report 0 otherwise so the
+// exported FFI surface is identical on every platform --
+// src/kwx_constants_table_gen.cpp references every accessor unconditionally.
+#if wxUSE_ACCESSIBILITY
+    #define KWX_ACCESS_VALUE(name) static_cast<int>(name)
+#else
+    #define KWX_ACCESS_VALUE(name) 0
+#endif
 
 extern "C"
 {
@@ -5225,671 +5255,667 @@ extern "C"
     }
 
     // ---- Accessibility constants (wx/access.h) ----
-    // None of these exist unless wxWidgets was built with accessibility support.
-
-#if wxUSE_ACCESSIBILITY
-
+    // None of these exist unless wxWidgets was built with accessibility support,
+    // so KWX_ACCESS_VALUE reports 0 for them there.
     EXPORT int expwxACC_FAIL()
     {
-        return (int) wxACC_FAIL;
+        return KWX_ACCESS_VALUE(wxACC_FAIL);
     }
     EXPORT int expwxACC_FALSE()
     {
-        return (int) wxACC_FALSE;
+        return KWX_ACCESS_VALUE(wxACC_FALSE);
     }
     EXPORT int expwxACC_OK()
     {
-        return (int) wxACC_OK;
+        return KWX_ACCESS_VALUE(wxACC_OK);
     }
     EXPORT int expwxACC_NOT_IMPLEMENTED()
     {
-        return (int) wxACC_NOT_IMPLEMENTED;
+        return KWX_ACCESS_VALUE(wxACC_NOT_IMPLEMENTED);
     }
     EXPORT int expwxACC_NOT_SUPPORTED()
     {
-        return (int) wxACC_NOT_SUPPORTED;
+        return KWX_ACCESS_VALUE(wxACC_NOT_SUPPORTED);
     }
     EXPORT int expwxACC_INVALID_ARG()
     {
-        return (int) wxACC_INVALID_ARG;
+        return KWX_ACCESS_VALUE(wxACC_INVALID_ARG);
     }
     EXPORT int expwxACC_SELF()
     {
-        return (int) wxACC_SELF;
+        return KWX_ACCESS_VALUE(wxACC_SELF);
     }
 
     EXPORT int expwxNAVDIR_DOWN()
     {
-        return (int) wxNAVDIR_DOWN;
+        return KWX_ACCESS_VALUE(wxNAVDIR_DOWN);
     }
     EXPORT int expwxNAVDIR_FIRSTCHILD()
     {
-        return (int) wxNAVDIR_FIRSTCHILD;
+        return KWX_ACCESS_VALUE(wxNAVDIR_FIRSTCHILD);
     }
     EXPORT int expwxNAVDIR_LASTCHILD()
     {
-        return (int) wxNAVDIR_LASTCHILD;
+        return KWX_ACCESS_VALUE(wxNAVDIR_LASTCHILD);
     }
     EXPORT int expwxNAVDIR_LEFT()
     {
-        return (int) wxNAVDIR_LEFT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_LEFT);
     }
     EXPORT int expwxNAVDIR_NEXT()
     {
-        return (int) wxNAVDIR_NEXT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_NEXT);
     }
     EXPORT int expwxNAVDIR_PREVIOUS()
     {
-        return (int) wxNAVDIR_PREVIOUS;
+        return KWX_ACCESS_VALUE(wxNAVDIR_PREVIOUS);
     }
     EXPORT int expwxNAVDIR_RIGHT()
     {
-        return (int) wxNAVDIR_RIGHT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_RIGHT);
     }
     EXPORT int expwxNAVDIR_UP()
     {
-        return (int) wxNAVDIR_UP;
+        return KWX_ACCESS_VALUE(wxNAVDIR_UP);
     }
 
     EXPORT int expwxROLE_NONE()
     {
-        return (int) wxROLE_NONE;
+        return KWX_ACCESS_VALUE(wxROLE_NONE);
     }
     EXPORT int expwxROLE_SYSTEM_ALERT()
     {
-        return (int) wxROLE_SYSTEM_ALERT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ALERT);
     }
     EXPORT int expwxROLE_SYSTEM_ANIMATION()
     {
-        return (int) wxROLE_SYSTEM_ANIMATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ANIMATION);
     }
     EXPORT int expwxROLE_SYSTEM_APPLICATION()
     {
-        return (int) wxROLE_SYSTEM_APPLICATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_APPLICATION);
     }
     EXPORT int expwxROLE_SYSTEM_BORDER()
     {
-        return (int) wxROLE_SYSTEM_BORDER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BORDER);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONDROPDOWN()
     {
-        return (int) wxROLE_SYSTEM_BUTTONDROPDOWN;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONDROPDOWN);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONDROPDOWNGRID()
     {
-        return (int) wxROLE_SYSTEM_BUTTONDROPDOWNGRID;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONDROPDOWNGRID);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONMENU()
     {
-        return (int) wxROLE_SYSTEM_BUTTONMENU;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONMENU);
     }
     EXPORT int expwxROLE_SYSTEM_CARET()
     {
-        return (int) wxROLE_SYSTEM_CARET;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CARET);
     }
     EXPORT int expwxROLE_SYSTEM_CELL()
     {
-        return (int) wxROLE_SYSTEM_CELL;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CELL);
     }
     EXPORT int expwxROLE_SYSTEM_CHARACTER()
     {
-        return (int) wxROLE_SYSTEM_CHARACTER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHARACTER);
     }
     EXPORT int expwxROLE_SYSTEM_CHART()
     {
-        return (int) wxROLE_SYSTEM_CHART;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHART);
     }
     EXPORT int expwxROLE_SYSTEM_CHECKBUTTON()
     {
-        return (int) wxROLE_SYSTEM_CHECKBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHECKBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_CLIENT()
     {
-        return (int) wxROLE_SYSTEM_CLIENT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CLIENT);
     }
     EXPORT int expwxROLE_SYSTEM_CLOCK()
     {
-        return (int) wxROLE_SYSTEM_CLOCK;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CLOCK);
     }
     EXPORT int expwxROLE_SYSTEM_COLUMN()
     {
-        return (int) wxROLE_SYSTEM_COLUMN;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COLUMN);
     }
     EXPORT int expwxROLE_SYSTEM_COLUMNHEADER()
     {
-        return (int) wxROLE_SYSTEM_COLUMNHEADER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COLUMNHEADER);
     }
     EXPORT int expwxROLE_SYSTEM_COMBOBOX()
     {
-        return (int) wxROLE_SYSTEM_COMBOBOX;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COMBOBOX);
     }
     EXPORT int expwxROLE_SYSTEM_CURSOR()
     {
-        return (int) wxROLE_SYSTEM_CURSOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CURSOR);
     }
     EXPORT int expwxROLE_SYSTEM_DIAGRAM()
     {
-        return (int) wxROLE_SYSTEM_DIAGRAM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIAGRAM);
     }
     EXPORT int expwxROLE_SYSTEM_DIAL()
     {
-        return (int) wxROLE_SYSTEM_DIAL;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIAL);
     }
     EXPORT int expwxROLE_SYSTEM_DIALOG()
     {
-        return (int) wxROLE_SYSTEM_DIALOG;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIALOG);
     }
     EXPORT int expwxROLE_SYSTEM_DOCUMENT()
     {
-        return (int) wxROLE_SYSTEM_DOCUMENT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DOCUMENT);
     }
     EXPORT int expwxROLE_SYSTEM_DROPLIST()
     {
-        return (int) wxROLE_SYSTEM_DROPLIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DROPLIST);
     }
     EXPORT int expwxROLE_SYSTEM_EQUATION()
     {
-        return (int) wxROLE_SYSTEM_EQUATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_EQUATION);
     }
     EXPORT int expwxROLE_SYSTEM_GRAPHIC()
     {
-        return (int) wxROLE_SYSTEM_GRAPHIC;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GRAPHIC);
     }
     EXPORT int expwxROLE_SYSTEM_GRIP()
     {
-        return (int) wxROLE_SYSTEM_GRIP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GRIP);
     }
     EXPORT int expwxROLE_SYSTEM_GROUPING()
     {
-        return (int) wxROLE_SYSTEM_GROUPING;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GROUPING);
     }
     EXPORT int expwxROLE_SYSTEM_HELPBALLOON()
     {
-        return (int) wxROLE_SYSTEM_HELPBALLOON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_HELPBALLOON);
     }
     EXPORT int expwxROLE_SYSTEM_HOTKEYFIELD()
     {
-        return (int) wxROLE_SYSTEM_HOTKEYFIELD;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_HOTKEYFIELD);
     }
     EXPORT int expwxROLE_SYSTEM_INDICATOR()
     {
-        return (int) wxROLE_SYSTEM_INDICATOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_INDICATOR);
     }
     EXPORT int expwxROLE_SYSTEM_LINK()
     {
-        return (int) wxROLE_SYSTEM_LINK;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LINK);
     }
     EXPORT int expwxROLE_SYSTEM_LIST()
     {
-        return (int) wxROLE_SYSTEM_LIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LIST);
     }
     EXPORT int expwxROLE_SYSTEM_LISTITEM()
     {
-        return (int) wxROLE_SYSTEM_LISTITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LISTITEM);
     }
     EXPORT int expwxROLE_SYSTEM_MENUBAR()
     {
-        return (int) wxROLE_SYSTEM_MENUBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUBAR);
     }
     EXPORT int expwxROLE_SYSTEM_MENUITEM()
     {
-        return (int) wxROLE_SYSTEM_MENUITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUITEM);
     }
     EXPORT int expwxROLE_SYSTEM_MENUPOPUP()
     {
-        return (int) wxROLE_SYSTEM_MENUPOPUP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUPOPUP);
     }
     EXPORT int expwxROLE_SYSTEM_OUTLINE()
     {
-        return (int) wxROLE_SYSTEM_OUTLINE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_OUTLINE);
     }
     EXPORT int expwxROLE_SYSTEM_OUTLINEITEM()
     {
-        return (int) wxROLE_SYSTEM_OUTLINEITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_OUTLINEITEM);
     }
     EXPORT int expwxROLE_SYSTEM_PAGETAB()
     {
-        return (int) wxROLE_SYSTEM_PAGETAB;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PAGETAB);
     }
     EXPORT int expwxROLE_SYSTEM_PAGETABLIST()
     {
-        return (int) wxROLE_SYSTEM_PAGETABLIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PAGETABLIST);
     }
     EXPORT int expwxROLE_SYSTEM_PANE()
     {
-        return (int) wxROLE_SYSTEM_PANE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PANE);
     }
     EXPORT int expwxROLE_SYSTEM_PROGRESSBAR()
     {
-        return (int) wxROLE_SYSTEM_PROGRESSBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PROGRESSBAR);
     }
     EXPORT int expwxROLE_SYSTEM_PROPERTYPAGE()
     {
-        return (int) wxROLE_SYSTEM_PROPERTYPAGE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PROPERTYPAGE);
     }
     EXPORT int expwxROLE_SYSTEM_PUSHBUTTON()
     {
-        return (int) wxROLE_SYSTEM_PUSHBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PUSHBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_RADIOBUTTON()
     {
-        return (int) wxROLE_SYSTEM_RADIOBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_RADIOBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_ROW()
     {
-        return (int) wxROLE_SYSTEM_ROW;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ROW);
     }
     EXPORT int expwxROLE_SYSTEM_ROWHEADER()
     {
-        return (int) wxROLE_SYSTEM_ROWHEADER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ROWHEADER);
     }
     EXPORT int expwxROLE_SYSTEM_SCROLLBAR()
     {
-        return (int) wxROLE_SYSTEM_SCROLLBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SCROLLBAR);
     }
     EXPORT int expwxROLE_SYSTEM_SEPARATOR()
     {
-        return (int) wxROLE_SYSTEM_SEPARATOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SEPARATOR);
     }
     EXPORT int expwxROLE_SYSTEM_SLIDER()
     {
-        return (int) wxROLE_SYSTEM_SLIDER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SLIDER);
     }
     EXPORT int expwxROLE_SYSTEM_SOUND()
     {
-        return (int) wxROLE_SYSTEM_SOUND;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SOUND);
     }
     EXPORT int expwxROLE_SYSTEM_SPINBUTTON()
     {
-        return (int) wxROLE_SYSTEM_SPINBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SPINBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_STATICTEXT()
     {
-        return (int) wxROLE_SYSTEM_STATICTEXT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_STATICTEXT);
     }
     EXPORT int expwxROLE_SYSTEM_STATUSBAR()
     {
-        return (int) wxROLE_SYSTEM_STATUSBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_STATUSBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TABLE()
     {
-        return (int) wxROLE_SYSTEM_TABLE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TABLE);
     }
     EXPORT int expwxROLE_SYSTEM_TEXT()
     {
-        return (int) wxROLE_SYSTEM_TEXT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TEXT);
     }
     EXPORT int expwxROLE_SYSTEM_TITLEBAR()
     {
-        return (int) wxROLE_SYSTEM_TITLEBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TITLEBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TOOLBAR()
     {
-        return (int) wxROLE_SYSTEM_TOOLBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TOOLBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TOOLTIP()
     {
-        return (int) wxROLE_SYSTEM_TOOLTIP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TOOLTIP);
     }
     EXPORT int expwxROLE_SYSTEM_WHITESPACE()
     {
-        return (int) wxROLE_SYSTEM_WHITESPACE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_WHITESPACE);
     }
     EXPORT int expwxROLE_SYSTEM_WINDOW()
     {
-        return (int) wxROLE_SYSTEM_WINDOW;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_WINDOW);
     }
 
     EXPORT int expwxOBJID_WINDOW()
     {
-        return (int) wxOBJID_WINDOW;
+        return KWX_ACCESS_VALUE(wxOBJID_WINDOW);
     }
     EXPORT int expwxOBJID_SYSMENU()
     {
-        return (int) wxOBJID_SYSMENU;
+        return KWX_ACCESS_VALUE(wxOBJID_SYSMENU);
     }
     EXPORT int expwxOBJID_TITLEBAR()
     {
-        return (int) wxOBJID_TITLEBAR;
+        return KWX_ACCESS_VALUE(wxOBJID_TITLEBAR);
     }
     EXPORT int expwxOBJID_MENU()
     {
-        return (int) wxOBJID_MENU;
+        return KWX_ACCESS_VALUE(wxOBJID_MENU);
     }
     EXPORT int expwxOBJID_CLIENT()
     {
-        return (int) wxOBJID_CLIENT;
+        return KWX_ACCESS_VALUE(wxOBJID_CLIENT);
     }
     EXPORT int expwxOBJID_VSCROLL()
     {
-        return (int) wxOBJID_VSCROLL;
+        return KWX_ACCESS_VALUE(wxOBJID_VSCROLL);
     }
     EXPORT int expwxOBJID_HSCROLL()
     {
-        return (int) wxOBJID_HSCROLL;
+        return KWX_ACCESS_VALUE(wxOBJID_HSCROLL);
     }
     EXPORT int expwxOBJID_SIZEGRIP()
     {
-        return (int) wxOBJID_SIZEGRIP;
+        return KWX_ACCESS_VALUE(wxOBJID_SIZEGRIP);
     }
     EXPORT int expwxOBJID_CARET()
     {
-        return (int) wxOBJID_CARET;
+        return KWX_ACCESS_VALUE(wxOBJID_CARET);
     }
     EXPORT int expwxOBJID_CURSOR()
     {
-        return (int) wxOBJID_CURSOR;
+        return KWX_ACCESS_VALUE(wxOBJID_CURSOR);
     }
     EXPORT int expwxOBJID_ALERT()
     {
-        return (int) wxOBJID_ALERT;
+        return KWX_ACCESS_VALUE(wxOBJID_ALERT);
     }
     EXPORT int expwxOBJID_SOUND()
     {
-        return (int) wxOBJID_SOUND;
+        return KWX_ACCESS_VALUE(wxOBJID_SOUND);
     }
 
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_HIGH()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_HIGH;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_HIGH);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_MEDIUM()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_MEDIUM;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_MEDIUM);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_LOW()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_LOW;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_LOW);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ANIMATED()
     {
-        return (int) wxACC_STATE_SYSTEM_ANIMATED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ANIMATED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_BUSY()
     {
-        return (int) wxACC_STATE_SYSTEM_BUSY;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_BUSY);
     }
     EXPORT int expwxACC_STATE_SYSTEM_CHECKED()
     {
-        return (int) wxACC_STATE_SYSTEM_CHECKED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_CHECKED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_COLLAPSED()
     {
-        return (int) wxACC_STATE_SYSTEM_COLLAPSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_COLLAPSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_DEFAULT()
     {
-        return (int) wxACC_STATE_SYSTEM_DEFAULT;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_DEFAULT);
     }
     EXPORT int expwxACC_STATE_SYSTEM_EXPANDED()
     {
-        return (int) wxACC_STATE_SYSTEM_EXPANDED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_EXPANDED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_EXTSELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_EXTSELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_EXTSELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FLOATING()
     {
-        return (int) wxACC_STATE_SYSTEM_FLOATING;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FLOATING);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FOCUSABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_FOCUSABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FOCUSABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FOCUSED()
     {
-        return (int) wxACC_STATE_SYSTEM_FOCUSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FOCUSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_HOTTRACKED()
     {
-        return (int) wxACC_STATE_SYSTEM_HOTTRACKED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_HOTTRACKED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_INVISIBLE()
     {
-        return (int) wxACC_STATE_SYSTEM_INVISIBLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_INVISIBLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MARQUEED()
     {
-        return (int) wxACC_STATE_SYSTEM_MARQUEED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MARQUEED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MIXED()
     {
-        return (int) wxACC_STATE_SYSTEM_MIXED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MIXED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MULTISELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_MULTISELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MULTISELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_OFFSCREEN()
     {
-        return (int) wxACC_STATE_SYSTEM_OFFSCREEN;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_OFFSCREEN);
     }
     EXPORT int expwxACC_STATE_SYSTEM_PRESSED()
     {
-        return (int) wxACC_STATE_SYSTEM_PRESSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_PRESSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_PROTECTED()
     {
-        return (int) wxACC_STATE_SYSTEM_PROTECTED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_PROTECTED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_READONLY()
     {
-        return (int) wxACC_STATE_SYSTEM_READONLY;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_READONLY);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_SELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELECTED()
     {
-        return (int) wxACC_STATE_SYSTEM_SELECTED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELECTED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELFVOICING()
     {
-        return (int) wxACC_STATE_SYSTEM_SELFVOICING;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELFVOICING);
     }
     EXPORT int expwxACC_STATE_SYSTEM_UNAVAILABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_UNAVAILABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_UNAVAILABLE);
     }
 
     EXPORT int expwxACC_SEL_NONE()
     {
-        return (int) wxACC_SEL_NONE;
+        return KWX_ACCESS_VALUE(wxACC_SEL_NONE);
     }
     EXPORT int expwxACC_SEL_TAKEFOCUS()
     {
-        return (int) wxACC_SEL_TAKEFOCUS;
+        return KWX_ACCESS_VALUE(wxACC_SEL_TAKEFOCUS);
     }
     EXPORT int expwxACC_SEL_TAKESELECTION()
     {
-        return (int) wxACC_SEL_TAKESELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_TAKESELECTION);
     }
     EXPORT int expwxACC_SEL_EXTENDSELECTION()
     {
-        return (int) wxACC_SEL_EXTENDSELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_EXTENDSELECTION);
     }
     EXPORT int expwxACC_SEL_ADDSELECTION()
     {
-        return (int) wxACC_SEL_ADDSELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_ADDSELECTION);
     }
     EXPORT int expwxACC_SEL_REMOVESELECTION()
     {
-        return (int) wxACC_SEL_REMOVESELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_REMOVESELECTION);
     }
 
     EXPORT int expwxACC_EVENT_SYSTEM_SOUND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SOUND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SOUND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_ALERT()
     {
-        return (int) wxACC_EVENT_SYSTEM_ALERT;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_ALERT);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_FOREGROUND()
     {
-        return (int) wxACC_EVENT_SYSTEM_FOREGROUND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_FOREGROUND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUPOPUPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUPOPUPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUPOPUPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUPOPUPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUPOPUPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUPOPUPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CAPTURESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_CAPTURESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CAPTURESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CAPTUREEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_CAPTUREEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CAPTUREEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MOVESIZESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MOVESIZESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MOVESIZESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MOVESIZEEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MOVESIZEEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MOVESIZEEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CONTEXTHELPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_CONTEXTHELPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CONTEXTHELPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CONTEXTHELPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_CONTEXTHELPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CONTEXTHELPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DRAGDROPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_DRAGDROPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DRAGDROPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DRAGDROPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_DRAGDROPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DRAGDROPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DIALOGSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_DIALOGSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DIALOGSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DIALOGEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_DIALOGEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DIALOGEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SCROLLINGSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_SCROLLINGSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SCROLLINGSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SCROLLINGEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SCROLLINGEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SCROLLINGEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SWITCHSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_SWITCHSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SWITCHSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SWITCHEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SWITCHEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SWITCHEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MINIMIZESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MINIMIZESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MINIMIZESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MINIMIZEEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MINIMIZEEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MINIMIZEEND);
     }
 
     EXPORT int expwxACC_EVENT_OBJECT_CREATE()
     {
-        return (int) wxACC_EVENT_OBJECT_CREATE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_CREATE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DESTROY()
     {
-        return (int) wxACC_EVENT_OBJECT_DESTROY;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DESTROY);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SHOW()
     {
-        return (int) wxACC_EVENT_OBJECT_SHOW;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SHOW);
     }
     EXPORT int expwxACC_EVENT_OBJECT_HIDE()
     {
-        return (int) wxACC_EVENT_OBJECT_HIDE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_HIDE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_REORDER()
     {
-        return (int) wxACC_EVENT_OBJECT_REORDER;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_REORDER);
     }
     EXPORT int expwxACC_EVENT_OBJECT_FOCUS()
     {
-        return (int) wxACC_EVENT_OBJECT_FOCUS;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_FOCUS);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTION()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTION;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTION);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONADD()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONADD;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONADD);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONREMOVE()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONREMOVE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONREMOVE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONWITHIN()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONWITHIN;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONWITHIN);
     }
     EXPORT int expwxACC_EVENT_OBJECT_STATECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_STATECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_STATECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_LOCATIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_LOCATIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_LOCATIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_NAMECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_NAMECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_NAMECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DESCRIPTIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_DESCRIPTIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DESCRIPTIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_VALUECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_VALUECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_VALUECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_PARENTCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_PARENTCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_PARENTCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_HELPCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_HELPCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_HELPCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DEFACTIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_DEFACTIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DEFACTIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_ACCELERATORCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_ACCELERATORCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_ACCELERATORCHANGE);
     }
-
-#endif  // wxUSE_ACCESSIBILITY
 
     // ---- wxDir enumeration and traversal flags (wx/dir.h) ----
 
@@ -6099,5 +6125,2228 @@ extern "C"
     EXPORT int expwxTR_DEFAULT_STYLE()
     {
         return (int) wxTR_DEFAULT_STYLE;
+    }
+
+    // ---- Leaf constants (Phase 2: .private/port/fix_worklist.json) ----
+
+    EXPORT int expwxAC_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxAC_DEFAULT_STYLE);
+    }
+    EXPORT int expwxAC_NO_AUTORESIZE()
+    {
+        return static_cast<int>(wxAC_NO_AUTORESIZE);
+    }
+    EXPORT int expwxAEDIALOG_STYLE()
+    {
+        return static_cast<int>(wxAEDIALOG_STYLE);
+    }
+    EXPORT int expwxALIGN_INVALID()
+    {
+        return static_cast<int>(wxALIGN_INVALID);
+    }
+    EXPORT int expwxALIGN_MASK()
+    {
+        return static_cast<int>(wxALIGN_MASK);
+    }
+    EXPORT int expwxANTIALIAS_DEFAULT()
+    {
+        return static_cast<int>(wxANTIALIAS_DEFAULT);
+    }
+    EXPORT int expwxANTIALIAS_NONE()
+    {
+        return static_cast<int>(wxANTIALIAS_NONE);
+    }
+    EXPORT int expwxAUI_DOCKART_ACTIVE_CAPTION_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_ACTIVE_CAPTION_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_ACTIVE_CAPTION_GRADIENT_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_ACTIVE_CAPTION_GRADIENT_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_ACTIVE_CAPTION_TEXT_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_ACTIVE_CAPTION_TEXT_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_BACKGROUND_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_BACKGROUND_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_BORDER_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_BORDER_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_CAPTION_SIZE()
+    {
+        return static_cast<int>(wxAUI_DOCKART_CAPTION_SIZE);
+    }
+    EXPORT int expwxAUI_DOCKART_GRADIENT_TYPE()
+    {
+        return static_cast<int>(wxAUI_DOCKART_GRADIENT_TYPE);
+    }
+    EXPORT int expwxAUI_DOCKART_GRIPPER_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_GRIPPER_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_INACTIVE_CAPTION_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_INACTIVE_CAPTION_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_INACTIVE_CAPTION_GRADIENT_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_INACTIVE_CAPTION_TEXT_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_PANE_BORDER_SIZE()
+    {
+        return static_cast<int>(wxAUI_DOCKART_PANE_BORDER_SIZE);
+    }
+    EXPORT int expwxAUI_DOCKART_SASH_COLOUR()
+    {
+        return static_cast<int>(wxAUI_DOCKART_SASH_COLOUR);
+    }
+    EXPORT int expwxAUI_DOCKART_SASH_SIZE()
+    {
+        return static_cast<int>(wxAUI_DOCKART_SASH_SIZE);
+    }
+    EXPORT int expwxAUI_GRADIENT_HORIZONTAL()
+    {
+        return static_cast<int>(wxAUI_GRADIENT_HORIZONTAL);
+    }
+    EXPORT int expwxAUI_GRADIENT_NONE()
+    {
+        return static_cast<int>(wxAUI_GRADIENT_NONE);
+    }
+    EXPORT int expwxAUI_GRADIENT_VERTICAL()
+    {
+        return static_cast<int>(wxAUI_GRADIENT_VERTICAL);
+    }
+    EXPORT int expwxAUI_MGR_ALLOW_ACTIVE_PANE()
+    {
+        return static_cast<int>(wxAUI_MGR_ALLOW_ACTIVE_PANE);
+    }
+    EXPORT int expwxAUI_MGR_ALLOW_FLOATING()
+    {
+        return static_cast<int>(wxAUI_MGR_ALLOW_FLOATING);
+    }
+    EXPORT int expwxAUI_MGR_HINT_FADE()
+    {
+        return static_cast<int>(wxAUI_MGR_HINT_FADE);
+    }
+    EXPORT int expwxAUI_MGR_LIVE_RESIZE()
+    {
+        return static_cast<int>(wxAUI_MGR_LIVE_RESIZE);
+    }
+    EXPORT int expwxAUI_MGR_RECTANGLE_HINT()
+    {
+        return static_cast<int>(wxAUI_MGR_RECTANGLE_HINT);
+    }
+    EXPORT int expwxAUI_MGR_TRANSPARENT_DRAG()
+    {
+        return static_cast<int>(wxAUI_MGR_TRANSPARENT_DRAG);
+    }
+    EXPORT int expwxAUI_MGR_TRANSPARENT_HINT()
+    {
+        return static_cast<int>(wxAUI_MGR_TRANSPARENT_HINT);
+    }
+    EXPORT int expwxAUI_MGR_VENETIAN_BLINDS_HINT()
+    {
+        return static_cast<int>(wxAUI_MGR_VENETIAN_BLINDS_HINT);
+    }
+    EXPORT int expwxAUI_MIN_DOCK_BOTH()
+    {
+        return static_cast<int>(wxAUI_MIN_DOCK_BOTH);
+    }
+    EXPORT int expwxAUI_MIN_DOCK_ICONS()
+    {
+        return static_cast<int>(wxAUI_MIN_DOCK_ICONS);
+    }
+    EXPORT int expwxAUI_MIN_DOCK_ROTATE_ICON_WITH_TEXT()
+    {
+        return static_cast<int>(wxAUI_MIN_DOCK_ROTATE_ICON_WITH_TEXT);
+    }
+    EXPORT int expwxAUI_MIN_DOCK_TEXT()
+    {
+        return static_cast<int>(wxAUI_MIN_DOCK_TEXT);
+    }
+    EXPORT int expwxAUI_NB_BOTTOM()
+    {
+        return static_cast<int>(wxAUI_NB_BOTTOM);
+    }
+    EXPORT int expwxAUI_NB_CLOSE_BUTTON()
+    {
+        return static_cast<int>(wxAUI_NB_CLOSE_BUTTON);
+    }
+    EXPORT int expwxAUI_NB_CLOSE_ON_ACTIVE_TAB()
+    {
+        return static_cast<int>(wxAUI_NB_CLOSE_ON_ACTIVE_TAB);
+    }
+    EXPORT int expwxAUI_NB_CLOSE_ON_ALL_TABS()
+    {
+        return static_cast<int>(wxAUI_NB_CLOSE_ON_ALL_TABS);
+    }
+    EXPORT int expwxAUI_NB_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxAUI_NB_DEFAULT_STYLE);
+    }
+    EXPORT int expwxAUI_NB_MULTILINE()
+    {
+        return static_cast<int>(wxAUI_NB_MULTILINE);
+    }
+    EXPORT int expwxAUI_NB_PIN_ON_ACTIVE_TAB()
+    {
+        return static_cast<int>(wxAUI_NB_PIN_ON_ACTIVE_TAB);
+    }
+    EXPORT int expwxAUI_NB_SCROLL_BUTTONS()
+    {
+        return static_cast<int>(wxAUI_NB_SCROLL_BUTTONS);
+    }
+    EXPORT int expwxAUI_NB_TAB_EXTERNAL_MOVE()
+    {
+        return static_cast<int>(wxAUI_NB_TAB_EXTERNAL_MOVE);
+    }
+    EXPORT int expwxAUI_NB_TAB_FIXED_WIDTH()
+    {
+        return static_cast<int>(wxAUI_NB_TAB_FIXED_WIDTH);
+    }
+    EXPORT int expwxAUI_NB_TAB_MOVE()
+    {
+        return static_cast<int>(wxAUI_NB_TAB_MOVE);
+    }
+    EXPORT int expwxAUI_NB_TAB_SPLIT()
+    {
+        return static_cast<int>(wxAUI_NB_TAB_SPLIT);
+    }
+    EXPORT int expwxAUI_NB_TOP()
+    {
+        return static_cast<int>(wxAUI_NB_TOP);
+    }
+    EXPORT int expwxAUI_NB_UNPIN_ON_ALL_PINNED()
+    {
+        return static_cast<int>(wxAUI_NB_UNPIN_ON_ALL_PINNED);
+    }
+    EXPORT int expwxAUI_NB_WINDOWLIST_BUTTON()
+    {
+        return static_cast<int>(wxAUI_NB_WINDOWLIST_BUTTON);
+    }
+    EXPORT int expwxAUI_TB_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxAUI_TB_DEFAULT_STYLE);
+    }
+    EXPORT int expwxAUI_TB_HORIZONTAL()
+    {
+        return static_cast<int>(wxAUI_TB_HORIZONTAL);
+    }
+    EXPORT int expwxAUI_TB_HORZ_TEXT()
+    {
+        return static_cast<int>(wxAUI_TB_HORZ_TEXT);
+    }
+    EXPORT int expwxAUI_TB_OVERFLOW()
+    {
+        return static_cast<int>(wxAUI_TB_OVERFLOW);
+    }
+    EXPORT int expwxAUI_TB_TEXT()
+    {
+        return static_cast<int>(wxAUI_TB_TEXT);
+    }
+    EXPORT int expwxAUI_TB_VERTICAL()
+    {
+        return static_cast<int>(wxAUI_TB_VERTICAL);
+    }
+    EXPORT int expwxBATTERY_CRITICAL_STATE()
+    {
+        return static_cast<int>(wxBATTERY_CRITICAL_STATE);
+    }
+    EXPORT int expwxBATTERY_LOW_STATE()
+    {
+        return static_cast<int>(wxBATTERY_LOW_STATE);
+    }
+    EXPORT int expwxBATTERY_NORMAL_STATE()
+    {
+        return static_cast<int>(wxBATTERY_NORMAL_STATE);
+    }
+    EXPORT int expwxBATTERY_SHUTDOWN_STATE()
+    {
+        return static_cast<int>(wxBATTERY_SHUTDOWN_STATE);
+    }
+    EXPORT int expwxBATTERY_UNKNOWN_STATE()
+    {
+        return static_cast<int>(wxBATTERY_UNKNOWN_STATE);
+    }
+    EXPORT int expwxBG_STYLE_ERASE()
+    {
+        return static_cast<int>(wxBG_STYLE_ERASE);
+    }
+    EXPORT int expwxBG_STYLE_PAINT()
+    {
+        return static_cast<int>(wxBG_STYLE_PAINT);
+    }
+    EXPORT int expwxBG_STYLE_TRANSPARENT()
+    {
+        return static_cast<int>(wxBG_STYLE_TRANSPARENT);
+    }
+    EXPORT int expwxBITMAP_SCREEN_DEPTH()
+    {
+        return static_cast<int>(wxBITMAP_SCREEN_DEPTH);
+    }
+    EXPORT int expwxBITMAP_TYPE_ANI()
+    {
+        return static_cast<int>(wxBITMAP_TYPE_ANI);
+    }
+    EXPORT int expwxBITMAP_TYPE_TGA()
+    {
+        return static_cast<int>(wxBITMAP_TYPE_TGA);
+    }
+    EXPORT int expwxBITMAP_TYPE_TIFF()
+    {
+        return static_cast<int>(wxBITMAP_TYPE_TIFF);
+    }
+    EXPORT int expwxBITMAP_TYPE_WEBP()
+    {
+        return static_cast<int>(wxBITMAP_TYPE_WEBP);
+    }
+    EXPORT int expwxBK_HITTEST_NOWHERE()
+    {
+        return static_cast<int>(wxBK_HITTEST_NOWHERE);
+    }
+    EXPORT int expwxBK_HITTEST_ONICON()
+    {
+        return static_cast<int>(wxBK_HITTEST_ONICON);
+    }
+    EXPORT int expwxBK_HITTEST_ONITEM()
+    {
+        return static_cast<int>(wxBK_HITTEST_ONITEM);
+    }
+    EXPORT int expwxBK_HITTEST_ONLABEL()
+    {
+        return static_cast<int>(wxBK_HITTEST_ONLABEL);
+    }
+    EXPORT int expwxBK_HITTEST_ONPAGE()
+    {
+        return static_cast<int>(wxBK_HITTEST_ONPAGE);
+    }
+    EXPORT const wxPen* expwxBLUE_PEN()
+    {
+        return wxBLUE_PEN;
+    }
+    EXPORT int expwxBMP_1BPP()
+    {
+        return static_cast<int>(wxBMP_1BPP);
+    }
+    EXPORT int expwxBMP_1BPP_BW()
+    {
+        return static_cast<int>(wxBMP_1BPP_BW);
+    }
+    EXPORT int expwxBMP_24BPP()
+    {
+        return static_cast<int>(wxBMP_24BPP);
+    }
+    EXPORT int expwxBMP_4BPP()
+    {
+        return static_cast<int>(wxBMP_4BPP);
+    }
+    EXPORT int expwxBMP_8BPP()
+    {
+        return static_cast<int>(wxBMP_8BPP);
+    }
+    EXPORT int expwxBMP_8BPP_GREY()
+    {
+        return static_cast<int>(wxBMP_8BPP_GREY);
+    }
+    EXPORT int expwxBMP_8BPP_PALETTE()
+    {
+        return static_cast<int>(wxBMP_8BPP_PALETTE);
+    }
+    EXPORT int expwxBMP_8BPP_RED()
+    {
+        return static_cast<int>(wxBMP_8BPP_RED);
+    }
+    EXPORT int expwxBORDER_DOUBLE()
+    {
+        return static_cast<int>(wxBORDER_DOUBLE);
+    }
+    EXPORT int expwxBORDER_MASK()
+    {
+        return static_cast<int>(wxBORDER_MASK);
+    }
+    EXPORT int expwxC2S_CSS_SYNTAX()
+    {
+        return static_cast<int>(wxC2S_CSS_SYNTAX);
+    }
+    EXPORT int expwxC2S_HTML_SYNTAX()
+    {
+        return static_cast<int>(wxC2S_HTML_SYNTAX);
+    }
+    EXPORT int expwxCAL_HITTEST_DECMONTH()
+    {
+        return static_cast<int>(wxCAL_HITTEST_DECMONTH);
+    }
+    EXPORT int expwxCAL_HITTEST_INCMONTH()
+    {
+        return static_cast<int>(wxCAL_HITTEST_INCMONTH);
+    }
+    EXPORT int expwxCAL_HITTEST_SURROUNDING_WEEK()
+    {
+        return static_cast<int>(wxCAL_HITTEST_SURROUNDING_WEEK);
+    }
+    EXPORT int expwxCAL_SEQUENTIAL_MONTH_SELECTION()
+    {
+        return static_cast<int>(wxCAL_SEQUENTIAL_MONTH_SELECTION);
+    }
+    EXPORT int expwxCAL_SHOW_SURROUNDING_WEEKS()
+    {
+        return static_cast<int>(wxCAL_SHOW_SURROUNDING_WEEKS);
+    }
+    EXPORT int expwxCAL_SHOW_WEEK_NUMBERS()
+    {
+        return static_cast<int>(wxCAL_SHOW_WEEK_NUMBERS);
+    }
+    EXPORT int expwxCLRP_USE_TEXTCTRL()
+    {
+        return static_cast<int>(wxCLRP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxCMD_LINE_HIDDEN()
+    {
+        return static_cast<int>(wxCMD_LINE_HIDDEN);
+    }
+    EXPORT int expwxCMD_LINE_NONE()
+    {
+        return static_cast<int>(wxCMD_LINE_NONE);
+    }
+    EXPORT int expwxCMD_LINE_OPTION_HELP()
+    {
+        return static_cast<int>(wxCMD_LINE_OPTION_HELP);
+    }
+    EXPORT int expwxCMD_LINE_PARAM_MULTIPLE()
+    {
+        return static_cast<int>(wxCMD_LINE_PARAM_MULTIPLE);
+    }
+    EXPORT int expwxCMD_LINE_PARAM_OPTIONAL()
+    {
+        return static_cast<int>(wxCMD_LINE_PARAM_OPTIONAL);
+    }
+    EXPORT int expwxCMD_LINE_SWITCH()
+    {
+        return static_cast<int>(wxCMD_LINE_SWITCH);
+    }
+    EXPORT int expwxCMD_LINE_VAL_NONE()
+    {
+        return static_cast<int>(wxCMD_LINE_VAL_NONE);
+    }
+    EXPORT int expwxCMD_LINE_VAL_NUMBER()
+    {
+        return static_cast<int>(wxCMD_LINE_VAL_NUMBER);
+    }
+    EXPORT int expwxCMD_LINE_VAL_STRING()
+    {
+        return static_cast<int>(wxCMD_LINE_VAL_STRING);
+    }
+    EXPORT int expwxCMD_SWITCH_ON()
+    {
+        return static_cast<int>(wxCMD_SWITCH_ON);
+    }
+    EXPORT int expwxCOL_DEFAULT_FLAGS()
+    {
+        return static_cast<int>(wxCOL_DEFAULT_FLAGS);
+    }
+    EXPORT int expwxCOL_HIDDEN()
+    {
+        return static_cast<int>(wxCOL_HIDDEN);
+    }
+    EXPORT int expwxCOL_REORDERABLE()
+    {
+        return static_cast<int>(wxCOL_REORDERABLE);
+    }
+    EXPORT int expwxCOL_RESIZABLE()
+    {
+        return static_cast<int>(wxCOL_RESIZABLE);
+    }
+    EXPORT int expwxCOL_SORTABLE()
+    {
+        return static_cast<int>(wxCOL_SORTABLE);
+    }
+    EXPORT int expwxCOL_WIDTH_AUTOSIZE()
+    {
+        return static_cast<int>(wxCOL_WIDTH_AUTOSIZE);
+    }
+    EXPORT int expwxCOL_WIDTH_DEFAULT()
+    {
+        return static_cast<int>(wxCOL_WIDTH_DEFAULT);
+    }
+    EXPORT int expwxCOMPOSITION_ADD()
+    {
+        return static_cast<int>(wxCOMPOSITION_ADD);
+    }
+    EXPORT int expwxCOMPOSITION_DIFF()
+    {
+        return static_cast<int>(wxCOMPOSITION_DIFF);
+    }
+    EXPORT int expwxCOMPOSITION_OVER()
+    {
+        return static_cast<int>(wxCOMPOSITION_OVER);
+    }
+    EXPORT int expwxCONTENT_PROTECTION_ENABLED()
+    {
+        return static_cast<int>(wxCONTENT_PROTECTION_ENABLED);
+    }
+    EXPORT int expwxCONTENT_PROTECTION_NONE()
+    {
+        return static_cast<int>(wxCONTENT_PROTECTION_NONE);
+    }
+    EXPORT int expwxCONTROL_CHECKED()
+    {
+        return static_cast<int>(wxCONTROL_CHECKED);
+    }
+    EXPORT int expwxCONTROL_CURRENT()
+    {
+        return static_cast<int>(wxCONTROL_CURRENT);
+    }
+    EXPORT int expwxCONTROL_DIRTY()
+    {
+        return static_cast<int>(wxCONTROL_DIRTY);
+    }
+    EXPORT int expwxCONTROL_DISABLED()
+    {
+        return static_cast<int>(wxCONTROL_DISABLED);
+    }
+    EXPORT int expwxCONTROL_FOCUSED()
+    {
+        return static_cast<int>(wxCONTROL_FOCUSED);
+    }
+    EXPORT int expwxCONTROL_PRESSED()
+    {
+        return static_cast<int>(wxCONTROL_PRESSED);
+    }
+    EXPORT int expwxCONTROL_SELECTED()
+    {
+        return static_cast<int>(wxCONTROL_SELECTED);
+    }
+    EXPORT int expwxCONTROL_SPECIAL()
+    {
+        return static_cast<int>(wxCONTROL_SPECIAL);
+    }
+    EXPORT int expwxCONTROL_UNDETERMINED()
+    {
+        return static_cast<int>(wxCONTROL_UNDETERMINED);
+    }
+    EXPORT int expwxCURSOR_ARROWWAIT()
+    {
+        return static_cast<int>(wxCURSOR_ARROWWAIT);
+    }
+    EXPORT int expwxDATAVIEW_CELL_ACTIVATABLE()
+    {
+        return static_cast<int>(wxDATAVIEW_CELL_ACTIVATABLE);
+    }
+    EXPORT int expwxDATAVIEW_CELL_EDITABLE()
+    {
+        return static_cast<int>(wxDATAVIEW_CELL_EDITABLE);
+    }
+    EXPORT int expwxDATAVIEW_CELL_INERT()
+    {
+        return static_cast<int>(wxDATAVIEW_CELL_INERT);
+    }
+    EXPORT int expwxDATAVIEW_COL_REORDERABLE()
+    {
+        return static_cast<int>(wxDATAVIEW_COL_REORDERABLE);
+    }
+    EXPORT int expwxDATAVIEW_COL_RESIZABLE()
+    {
+        return static_cast<int>(wxDATAVIEW_COL_RESIZABLE);
+    }
+    EXPORT int expwxDATAVIEW_COL_SORTABLE()
+    {
+        return static_cast<int>(wxDATAVIEW_COL_SORTABLE);
+    }
+    EXPORT int expwxDEFAULT_DIALOG_STYLE()
+    {
+        return static_cast<int>(wxDEFAULT_DIALOG_STYLE);
+    }
+    EXPORT int expwxDIALOG_ADAPTATION_MODE_ENABLED()
+    {
+        return static_cast<int>(wxDIALOG_ADAPTATION_MODE_ENABLED);
+    }
+    EXPORT int expwxDIRCTRL_3D_INTERNAL()
+    {
+        return static_cast<int>(wxDIRCTRL_3D_INTERNAL);
+    }
+    EXPORT int expwxDIRCTRL_DIR_ONLY()
+    {
+        return static_cast<int>(wxDIRCTRL_DIR_ONLY);
+    }
+    EXPORT int expwxDIRCTRL_EDIT_LABELS()
+    {
+        return static_cast<int>(wxDIRCTRL_EDIT_LABELS);
+    }
+    EXPORT int expwxDIRCTRL_MULTIPLE()
+    {
+        return static_cast<int>(wxDIRCTRL_MULTIPLE);
+    }
+    EXPORT int expwxDIRCTRL_SELECT_FIRST()
+    {
+        return static_cast<int>(wxDIRCTRL_SELECT_FIRST);
+    }
+    EXPORT int expwxDIRCTRL_SHOW_FILTERS()
+    {
+        return static_cast<int>(wxDIRCTRL_SHOW_FILTERS);
+    }
+    EXPORT int expwxDIRP_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxDIRP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxDIRP_SMALL()
+    {
+        return static_cast<int>(wxDIRP_SMALL);
+    }
+    EXPORT int expwxDIRP_USE_TEXTCTRL()
+    {
+        return static_cast<int>(wxDIRP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxDOC_SILENT()
+    {
+        return static_cast<int>(wxDOC_SILENT);
+    }
+    EXPORT int expwxDOUBLE_BORDER()
+    {
+        return static_cast<int>(wxDOUBLE_BORDER);
+    }
+    EXPORT int expwxDP_ALLOWNONE()
+    {
+        return static_cast<int>(wxDP_ALLOWNONE);
+    }
+    EXPORT int expwxDP_DEFAULT()
+    {
+        return static_cast<int>(wxDP_DEFAULT);
+    }
+    EXPORT int expwxDP_DROPDOWN()
+    {
+        return static_cast<int>(wxDP_DROPDOWN);
+    }
+    EXPORT int expwxDP_SHOWCENTURY()
+    {
+        return static_cast<int>(wxDP_SHOWCENTURY);
+    }
+    EXPORT int expwxDP_SPIN()
+    {
+        return static_cast<int>(wxDP_SPIN);
+    }
+    EXPORT int expwxDragCancel()
+    {
+        return static_cast<int>(wxDragCancel);
+    }
+    EXPORT int expwxDragCopy()
+    {
+        return static_cast<int>(wxDragCopy);
+    }
+    EXPORT int expwxDragError()
+    {
+        return static_cast<int>(wxDragError);
+    }
+    EXPORT int expwxDragLink()
+    {
+        return static_cast<int>(wxDragLink);
+    }
+    EXPORT int expwxDragMove()
+    {
+        return static_cast<int>(wxDragMove);
+    }
+    EXPORT int expwxDragNone()
+    {
+        return static_cast<int>(wxDragNone);
+    }
+    EXPORT int expwxDrag_AllowMove()
+    {
+        return static_cast<int>(wxDrag_AllowMove);
+    }
+    EXPORT int expwxDrag_DefaultMove()
+    {
+        return static_cast<int>(wxDrag_DefaultMove);
+    }
+    EXPORT int expwxELLIPSIZE_MIDDLE()
+    {
+        return static_cast<int>(wxELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxEXEC_SHOW_CONSOLE()
+    {
+        return static_cast<int>(wxEXEC_SHOW_CONSOLE);
+    }
+    EXPORT int expwxFC_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxFC_DEFAULT_STYLE);
+    }
+    EXPORT int expwxFC_MULTIPLE()
+    {
+        return static_cast<int>(wxFC_MULTIPLE);
+    }
+    EXPORT int expwxFC_NOSHOWHIDDEN()
+    {
+        return static_cast<int>(wxFC_NOSHOWHIDDEN);
+    }
+    EXPORT int expwxFC_OPEN()
+    {
+        return static_cast<int>(wxFC_OPEN);
+    }
+    EXPORT int expwxFC_SAVE()
+    {
+        return static_cast<int>(wxFC_SAVE);
+    }
+    EXPORT int expwxFD_SHORTCUT_TOP()
+    {
+        return static_cast<int>(wxFD_SHORTCUT_TOP);
+    }
+    EXPORT int expwxFH_PATH_SHOW_ALWAYS()
+    {
+        return static_cast<int>(wxFH_PATH_SHOW_ALWAYS);
+    }
+    EXPORT int expwxFH_PATH_SHOW_IF_DIFFERENT()
+    {
+        return static_cast<int>(wxFH_PATH_SHOW_IF_DIFFERENT);
+    }
+    EXPORT int expwxFH_PATH_SHOW_NEVER()
+    {
+        return static_cast<int>(wxFH_PATH_SHOW_NEVER);
+    }
+    EXPORT int expwxFILTER_DIGITS()
+    {
+        return static_cast<int>(wxFILTER_DIGITS);
+    }
+    EXPORT int expwxFILTER_EMPTY()
+    {
+        return static_cast<int>(wxFILTER_EMPTY);
+    }
+    EXPORT int expwxFILTER_EXCLUDE_CHAR_LIST()
+    {
+        return static_cast<int>(wxFILTER_EXCLUDE_CHAR_LIST);
+    }
+    EXPORT int expwxFILTER_INCLUDE_CHAR_LIST()
+    {
+        return static_cast<int>(wxFILTER_INCLUDE_CHAR_LIST);
+    }
+    EXPORT int expwxFILTER_SPACE()
+    {
+        return static_cast<int>(wxFILTER_SPACE);
+    }
+    EXPORT int expwxFILTER_XDIGITS()
+    {
+        return static_cast<int>(wxFILTER_XDIGITS);
+    }
+    EXPORT int expwxFLEX_GROWMODE_ALL()
+    {
+        return static_cast<int>(wxFLEX_GROWMODE_ALL);
+    }
+    EXPORT int expwxFLEX_GROWMODE_NONE()
+    {
+        return static_cast<int>(wxFLEX_GROWMODE_NONE);
+    }
+    EXPORT int expwxFLP_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxFLP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxFLP_SMALL()
+    {
+        return static_cast<int>(wxFLP_SMALL);
+    }
+    EXPORT int expwxFLP_USE_TEXTCTRL()
+    {
+        return static_cast<int>(wxFLP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxFNTP_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxFNTP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxFNTP_USE_TEXTCTRL()
+    {
+        return static_cast<int>(wxFNTP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxFONTENCODING_UTF8()
+    {
+        return static_cast<int>(wxFONTENCODING_UTF8);
+    }
+    EXPORT int expwxFONTFAMILY_UNKNOWN()
+    {
+        return static_cast<int>(wxFONTFAMILY_UNKNOWN);
+    }
+    EXPORT int expwxFONTSTYLE_MAX()
+    {
+        return static_cast<int>(wxFONTSTYLE_MAX);
+    }
+    EXPORT int expwxFR_DOWN()
+    {
+        return static_cast<int>(wxFR_DOWN);
+    }
+    EXPORT int expwxFR_MATCHCASE()
+    {
+        return static_cast<int>(wxFR_MATCHCASE);
+    }
+    EXPORT int expwxFR_NOWHOLEWORD()
+    {
+        return static_cast<int>(wxFR_NOWHOLEWORD);
+    }
+    EXPORT int expwxFR_REPLACEDIALOG()
+    {
+        return static_cast<int>(wxFR_REPLACEDIALOG);
+    }
+    EXPORT int expwxFR_WHOLEWORD()
+    {
+        return static_cast<int>(wxFR_WHOLEWORD);
+    }
+    EXPORT int expwxFSWPath_Dir()
+    {
+        return static_cast<int>(wxFSWPath_Dir);
+    }
+    EXPORT int expwxFSWPath_File()
+    {
+        return static_cast<int>(wxFSWPath_File);
+    }
+    EXPORT int expwxFSWPath_None()
+    {
+        return static_cast<int>(wxFSWPath_None);
+    }
+    EXPORT int expwxFSWPath_Tree()
+    {
+        return static_cast<int>(wxFSWPath_Tree);
+    }
+    EXPORT int expwxFSW_EVENT_ACCESS()
+    {
+        return static_cast<int>(wxFSW_EVENT_ACCESS);
+    }
+    EXPORT int expwxFSW_EVENT_ATTRIB()
+    {
+        return static_cast<int>(wxFSW_EVENT_ATTRIB);
+    }
+    EXPORT int expwxFSW_EVENT_CREATE()
+    {
+        return static_cast<int>(wxFSW_EVENT_CREATE);
+    }
+    EXPORT int expwxFSW_EVENT_DELETE()
+    {
+        return static_cast<int>(wxFSW_EVENT_DELETE);
+    }
+    EXPORT int expwxFSW_EVENT_ERROR()
+    {
+        return static_cast<int>(wxFSW_EVENT_ERROR);
+    }
+    EXPORT int expwxFSW_EVENT_MODIFY()
+    {
+        return static_cast<int>(wxFSW_EVENT_MODIFY);
+    }
+    EXPORT int expwxFSW_EVENT_RENAME()
+    {
+        return static_cast<int>(wxFSW_EVENT_RENAME);
+    }
+    EXPORT int expwxFSW_EVENT_WARNING()
+    {
+        return static_cast<int>(wxFSW_EVENT_WARNING);
+    }
+    EXPORT int expwxFromEnd()
+    {
+        return static_cast<int>(wxFromEnd);
+    }
+    EXPORT int expwxGRID_AUTOSIZE()
+    {
+        return static_cast<int>(wxGRID_AUTOSIZE);
+    }
+    EXPORT int expwxGRID_COLUMN()
+    {
+        return static_cast<int>(wxGRID_COLUMN);
+    }
+    EXPORT int expwxGRID_DRAW_BOX_RECT()
+    {
+        return static_cast<int>(wxGRID_DRAW_BOX_RECT);
+    }
+    EXPORT int expwxGRID_DRAW_CELL_LINES()
+    {
+        return static_cast<int>(wxGRID_DRAW_CELL_LINES);
+    }
+    EXPORT int expwxGRID_DRAW_COLS_HEADER()
+    {
+        return static_cast<int>(wxGRID_DRAW_COLS_HEADER);
+    }
+    EXPORT int expwxGRID_DRAW_ROWS_HEADER()
+    {
+        return static_cast<int>(wxGRID_DRAW_ROWS_HEADER);
+    }
+    EXPORT int expwxGRID_DRAW_SELECTION()
+    {
+        return static_cast<int>(wxGRID_DRAW_SELECTION);
+    }
+    EXPORT int expwxGRID_ROW()
+    {
+        return static_cast<int>(wxGRID_ROW);
+    }
+    EXPORT int expwxGridSelectCells()
+    {
+        return static_cast<int>(wxGrid::wxGridSelectCells);
+    }
+    EXPORT int expwxGridSelectColumns()
+    {
+        return static_cast<int>(wxGrid::wxGridSelectColumns);
+    }
+    EXPORT int expwxGridSelectNone()
+    {
+        return static_cast<int>(wxGrid::wxGridSelectNone);
+    }
+    EXPORT int expwxGridSelectRows()
+    {
+        return static_cast<int>(wxGrid::wxGridSelectRows);
+    }
+    EXPORT int expwxGridSelectRowsOrColumns()
+    {
+        return static_cast<int>(wxGrid::wxGridSelectRowsOrColumns);
+    }
+    EXPORT int expwxHDR_SORT_ICON_NONE()
+    {
+        return static_cast<int>(wxHDR_SORT_ICON_NONE);
+    }
+    EXPORT int expwxHDR_SORT_ICON_UP()
+    {
+        return static_cast<int>(wxHDR_SORT_ICON_UP);
+    }
+    EXPORT int expwxHD_ALLOW_HIDE()
+    {
+        return static_cast<int>(wxHD_ALLOW_HIDE);
+    }
+    EXPORT int expwxHD_ALLOW_REORDER()
+    {
+        return static_cast<int>(wxHD_ALLOW_REORDER);
+    }
+    EXPORT int expwxHD_BITMAP_ON_RIGHT()
+    {
+        return static_cast<int>(wxHD_BITMAP_ON_RIGHT);
+    }
+    EXPORT int expwxHD_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxHD_DEFAULT_STYLE);
+    }
+    EXPORT int expwxHF_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxHF_DEFAULT_STYLE);
+    }
+    EXPORT int expwxHL_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxHL_DEFAULT_STYLE);
+    }
+    EXPORT const wxCursor* expwxHOURGLASS_CURSOR()
+    {
+        return wxHOURGLASS_CURSOR;
+    }
+    EXPORT int expwxHTML_OPEN()
+    {
+        return static_cast<int>(wxHTML_OPEN);
+    }
+    EXPORT int expwxID_ABORT()
+    {
+        return static_cast<int>(wxID_ABORT);
+    }
+    EXPORT int expwxID_ADD()
+    {
+        return static_cast<int>(wxID_ADD);
+    }
+    EXPORT int expwxID_BOLD()
+    {
+        return static_cast<int>(wxID_BOLD);
+    }
+    EXPORT int expwxID_BOTTOM()
+    {
+        return static_cast<int>(wxID_BOTTOM);
+    }
+    EXPORT int expwxID_CDROM()
+    {
+        return static_cast<int>(wxID_CDROM);
+    }
+    EXPORT int expwxID_CLOSE_ALL()
+    {
+        return static_cast<int>(wxID_CLOSE_ALL);
+    }
+    EXPORT int expwxID_CONVERT()
+    {
+        return static_cast<int>(wxID_CONVERT);
+    }
+    EXPORT int expwxID_DELETE()
+    {
+        return static_cast<int>(wxID_DELETE);
+    }
+    EXPORT int expwxID_DOWN()
+    {
+        return static_cast<int>(wxID_DOWN);
+    }
+    EXPORT int expwxID_EDIT()
+    {
+        return static_cast<int>(wxID_EDIT);
+    }
+    EXPORT int expwxID_EXECUTE()
+    {
+        return static_cast<int>(wxID_EXECUTE);
+    }
+    EXPORT int expwxID_FILE()
+    {
+        return static_cast<int>(wxID_FILE);
+    }
+    EXPORT int expwxID_FIRST()
+    {
+        return static_cast<int>(wxID_FIRST);
+    }
+    EXPORT int expwxID_FLOPPY()
+    {
+        return static_cast<int>(wxID_FLOPPY);
+    }
+    EXPORT int expwxID_HARDDISK()
+    {
+        return static_cast<int>(wxID_HARDDISK);
+    }
+    EXPORT int expwxID_HOME()
+    {
+        return static_cast<int>(wxID_HOME);
+    }
+    EXPORT int expwxID_INDENT()
+    {
+        return static_cast<int>(wxID_INDENT);
+    }
+    EXPORT int expwxID_INDEX()
+    {
+        return static_cast<int>(wxID_INDEX);
+    }
+    EXPORT int expwxID_INFO()
+    {
+        return static_cast<int>(wxID_INFO);
+    }
+    EXPORT int expwxID_ITALIC()
+    {
+        return static_cast<int>(wxID_ITALIC);
+    }
+    EXPORT int expwxID_JUMP_TO()
+    {
+        return static_cast<int>(wxID_JUMP_TO);
+    }
+    EXPORT int expwxID_JUSTIFY_CENTER()
+    {
+        return static_cast<int>(wxID_JUSTIFY_CENTER);
+    }
+    EXPORT int expwxID_JUSTIFY_FILL()
+    {
+        return static_cast<int>(wxID_JUSTIFY_FILL);
+    }
+    EXPORT int expwxID_JUSTIFY_LEFT()
+    {
+        return static_cast<int>(wxID_JUSTIFY_LEFT);
+    }
+    EXPORT int expwxID_JUSTIFY_RIGHT()
+    {
+        return static_cast<int>(wxID_JUSTIFY_RIGHT);
+    }
+    EXPORT int expwxID_LAST()
+    {
+        return static_cast<int>(wxID_LAST);
+    }
+    EXPORT int expwxID_MDI_WINDOW_ARRANGE_ICONS()
+    {
+        return static_cast<int>(wxID_MDI_WINDOW_ARRANGE_ICONS);
+    }
+    EXPORT int expwxID_MDI_WINDOW_CASCADE()
+    {
+        return static_cast<int>(wxID_MDI_WINDOW_CASCADE);
+    }
+    EXPORT int expwxID_MDI_WINDOW_TILE_HORZ()
+    {
+        return static_cast<int>(wxID_MDI_WINDOW_TILE_HORZ);
+    }
+    EXPORT int expwxID_MDI_WINDOW_TILE_VERT()
+    {
+        return static_cast<int>(wxID_MDI_WINDOW_TILE_VERT);
+    }
+    EXPORT int expwxID_NETWORK()
+    {
+        return static_cast<int>(wxID_NETWORK);
+    }
+    EXPORT int expwxID_NONE()
+    {
+        return static_cast<int>(wxID_NONE);
+    }
+    EXPORT int expwxID_PREFERENCES()
+    {
+        return static_cast<int>(wxID_PREFERENCES);
+    }
+    EXPORT int expwxID_PROPERTIES()
+    {
+        return static_cast<int>(wxID_PROPERTIES);
+    }
+    EXPORT int expwxID_REFRESH()
+    {
+        return static_cast<int>(wxID_REFRESH);
+    }
+    EXPORT int expwxID_REMOVE()
+    {
+        return static_cast<int>(wxID_REMOVE);
+    }
+    EXPORT int expwxID_REPLACE()
+    {
+        return static_cast<int>(wxID_REPLACE);
+    }
+    EXPORT int expwxID_RESIZE_FRAME()
+    {
+        return static_cast<int>(wxID_RESIZE_FRAME);
+    }
+    EXPORT int expwxID_REVERT_TO_SAVED()
+    {
+        return static_cast<int>(wxID_REVERT_TO_SAVED);
+    }
+    EXPORT int expwxID_SELECT_COLOR()
+    {
+        return static_cast<int>(wxID_SELECT_COLOR);
+    }
+    EXPORT int expwxID_SELECT_FONT()
+    {
+        return static_cast<int>(wxID_SELECT_FONT);
+    }
+    EXPORT int expwxID_SEPARATOR()
+    {
+        return static_cast<int>(wxID_SEPARATOR);
+    }
+    EXPORT int expwxID_SORT_ASCENDING()
+    {
+        return static_cast<int>(wxID_SORT_ASCENDING);
+    }
+    EXPORT int expwxID_SORT_DESCENDING()
+    {
+        return static_cast<int>(wxID_SORT_DESCENDING);
+    }
+    EXPORT int expwxID_SPELL_CHECK()
+    {
+        return static_cast<int>(wxID_SPELL_CHECK);
+    }
+    EXPORT int expwxID_STOP()
+    {
+        return static_cast<int>(wxID_STOP);
+    }
+    EXPORT int expwxID_STRIKETHROUGH()
+    {
+        return static_cast<int>(wxID_STRIKETHROUGH);
+    }
+    EXPORT int expwxID_TOP()
+    {
+        return static_cast<int>(wxID_TOP);
+    }
+    EXPORT int expwxID_UNDELETE()
+    {
+        return static_cast<int>(wxID_UNDELETE);
+    }
+    EXPORT int expwxID_UNDERLINE()
+    {
+        return static_cast<int>(wxID_UNDERLINE);
+    }
+    EXPORT int expwxID_UNINDENT()
+    {
+        return static_cast<int>(wxID_UNINDENT);
+    }
+    EXPORT int expwxID_UP()
+    {
+        return static_cast<int>(wxID_UP);
+    }
+    EXPORT int expwxID_ZOOM_100()
+    {
+        return static_cast<int>(wxID_ZOOM_100);
+    }
+    EXPORT int expwxID_ZOOM_FIT()
+    {
+        return static_cast<int>(wxID_ZOOM_FIT);
+    }
+    EXPORT int expwxID_ZOOM_IN()
+    {
+        return static_cast<int>(wxID_ZOOM_IN);
+    }
+    EXPORT int expwxID_ZOOM_OUT()
+    {
+        return static_cast<int>(wxID_ZOOM_OUT);
+    }
+    EXPORT int expwxIMAGE_QUALITY_BICUBIC()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_BICUBIC);
+    }
+    EXPORT int expwxIMAGE_QUALITY_BILINEAR()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_BILINEAR);
+    }
+    EXPORT int expwxIMAGE_QUALITY_BOX_AVERAGE()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_BOX_AVERAGE);
+    }
+    EXPORT int expwxIMAGE_QUALITY_HIGH()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_HIGH);
+    }
+    EXPORT int expwxIMAGE_QUALITY_NEAREST()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_NEAREST);
+    }
+    EXPORT int expwxIMAGE_QUALITY_NORMAL()
+    {
+        return static_cast<int>(wxIMAGE_QUALITY_NORMAL);
+    }
+    EXPORT int expwxIMAGE_RESOLUTION_CM()
+    {
+        return static_cast<int>(wxIMAGE_RESOLUTION_CM);
+    }
+    EXPORT int expwxIMAGE_RESOLUTION_INCHES()
+    {
+        return static_cast<int>(wxIMAGE_RESOLUTION_INCHES);
+    }
+    EXPORT int expwxIMAGE_RESOLUTION_NONE()
+    {
+        return static_cast<int>(wxIMAGE_RESOLUTION_NONE);
+    }
+    EXPORT int expwxINFOBAR_CHECKBOX()
+    {
+        return static_cast<int>(wxINFOBAR_CHECKBOX);
+    }
+    EXPORT int expwxIPC_INVALID()
+    {
+        return static_cast<int>(wxIPC_INVALID);
+    }
+    EXPORT int expwxIPC_PRIVATE()
+    {
+        return static_cast<int>(wxIPC_PRIVATE);
+    }
+    EXPORT int expwxIPC_TEXT()
+    {
+        return static_cast<int>(wxIPC_TEXT);
+    }
+    EXPORT int expwxIPC_UNICODETEXT()
+    {
+        return static_cast<int>(wxIPC_UNICODETEXT);
+    }
+    EXPORT int expwxIPC_UTF8TEXT()
+    {
+        return static_cast<int>(wxIPC_UTF8TEXT);
+    }
+    EXPORT int expwxITEM_DROPDOWN()
+    {
+        return static_cast<int>(wxITEM_DROPDOWN);
+    }
+    EXPORT int expwxLC_MASK_TYPE()
+    {
+        return static_cast<int>(wxLC_MASK_TYPE);
+    }
+    EXPORT int expwxLIST_AUTOSIZE()
+    {
+        return static_cast<int>(wxLIST_AUTOSIZE);
+    }
+    EXPORT int expwxLIST_AUTOSIZE_USEHEADER()
+    {
+        return static_cast<int>(wxLIST_AUTOSIZE_USEHEADER);
+    }
+    EXPORT int expwxLIST_RECT_BOUNDS()
+    {
+        return static_cast<int>(wxLIST_RECT_BOUNDS);
+    }
+    EXPORT int expwxLIST_RECT_ICON()
+    {
+        return static_cast<int>(wxLIST_RECT_ICON);
+    }
+    EXPORT int expwxLIST_RECT_LABEL()
+    {
+        return static_cast<int>(wxLIST_RECT_LABEL);
+    }
+    EXPORT int expwxLOCALE_FORM_ENGLISH()
+    {
+        return static_cast<int>(wxLOCALE_FORM_ENGLISH);
+    }
+    EXPORT int expwxLOCALE_FORM_NATIVE()
+    {
+        return static_cast<int>(wxLOCALE_FORM_NATIVE);
+    }
+    EXPORT int expwxLOCALE_NAME_LOCALE()
+    {
+        return static_cast<int>(wxLOCALE_NAME_LOCALE);
+    }
+    EXPORT int expwxLayout_Default()
+    {
+        return static_cast<int>(wxLayout_Default);
+    }
+    EXPORT int expwxLayout_LeftToRight()
+    {
+        return static_cast<int>(wxLayout_LeftToRight);
+    }
+    EXPORT int expwxLayout_RightToLeft()
+    {
+        return static_cast<int>(wxLayout_RightToLeft);
+    }
+    EXPORT int expwxMEDIACTRLPLAYERCONTROLS_DEFAULT()
+    {
+        return static_cast<int>(wxMEDIACTRLPLAYERCONTROLS_DEFAULT);
+    }
+    EXPORT int expwxMEDIACTRLPLAYERCONTROLS_NONE()
+    {
+        return static_cast<int>(wxMEDIACTRLPLAYERCONTROLS_NONE);
+    }
+    EXPORT int expwxMEDIASTATE_PLAYING()
+    {
+        return static_cast<int>(wxMEDIASTATE_PLAYING);
+    }
+    EXPORT int expwxMEDIASTATE_STOPPED()
+    {
+        return static_cast<int>(wxMEDIASTATE_STOPPED);
+    }
+    EXPORT int expwxMOUSE_BTN_LEFT()
+    {
+        return static_cast<int>(wxMOUSE_BTN_LEFT);
+    }
+    EXPORT int expwxMOUSE_WHEEL_VERTICAL()
+    {
+        return static_cast<int>(wxMOUSE_WHEEL_VERTICAL);
+    }
+    EXPORT int expwxNUM_VAL_NO_TRAILING_ZEROES()
+    {
+        return static_cast<int>(wxNUM_VAL_NO_TRAILING_ZEROES);
+    }
+    EXPORT int expwxNUM_VAL_SIGN_PLUS()
+    {
+        return static_cast<int>(wxNUM_VAL_SIGN_PLUS);
+    }
+    EXPORT int expwxNUM_VAL_THOUSANDS_SEPARATOR()
+    {
+        return static_cast<int>(wxNUM_VAL_THOUSANDS_SEPARATOR);
+    }
+    EXPORT int expwxNUM_VAL_ZERO_AS_BLANK()
+    {
+        return static_cast<int>(wxNUM_VAL_ZERO_AS_BLANK);
+    }
+    EXPORT int expwxODCB_DCLICK_CYCLES()
+    {
+        return static_cast<int>(wxODCB_DCLICK_CYCLES);
+    }
+    EXPORT int expwxOS_WINDOWS()
+    {
+        return static_cast<int>(wxOS_WINDOWS);
+    }
+    EXPORT int expwxPAGE_ALL()
+    {
+        return static_cast<int>(wxPAGE_ALL);
+    }
+    EXPORT int expwxPATH_UNIX()
+    {
+        return static_cast<int>(wxPATH_UNIX);
+    }
+    EXPORT int expwxPG_AUTO_SORT()
+    {
+        return static_cast<int>(wxPG_AUTO_SORT);
+    }
+    EXPORT int expwxPG_BOLD_MODIFIED()
+    {
+        return static_cast<int>(wxPG_BOLD_MODIFIED);
+    }
+    EXPORT int expwxPG_DESCRIPTION()
+    {
+        return static_cast<int>(wxPG_DESCRIPTION);
+    }
+    EXPORT int expwxPG_EX_ALWAYS_ALLOW_FOCUS()
+    {
+        return static_cast<int>(wxPG_EX_ALWAYS_ALLOW_FOCUS);
+    }
+    EXPORT int expwxPG_EX_AUTO_UNSPECIFIED_VALUES()
+    {
+        return static_cast<int>(wxPG_EX_AUTO_UNSPECIFIED_VALUES);
+    }
+    EXPORT int expwxPG_EX_ENABLE_TLP_TRACKING()
+    {
+        return static_cast<int>(wxPG_EX_ENABLE_TLP_TRACKING);
+    }
+    EXPORT int expwxPG_EX_HELP_AS_TOOLTIPS()
+    {
+        return static_cast<int>(wxPG_EX_HELP_AS_TOOLTIPS);
+    }
+    EXPORT int expwxPG_EX_HIDE_PAGE_BUTTONS()
+    {
+        return static_cast<int>(wxPG_EX_HIDE_PAGE_BUTTONS);
+    }
+    EXPORT int expwxPG_EX_INIT_NOCAT()
+    {
+        return static_cast<int>(wxPG_EX_INIT_NOCAT);
+    }
+    EXPORT int expwxPG_EX_MODE_BUTTONS()
+    {
+        return static_cast<int>(wxPG_EX_MODE_BUTTONS);
+    }
+    EXPORT int expwxPG_EX_MULTIPLE_SELECTION()
+    {
+        return static_cast<int>(wxPG_EX_MULTIPLE_SELECTION);
+    }
+    EXPORT int expwxPG_EX_NATIVE_DOUBLE_BUFFERING()
+    {
+        return static_cast<int>(wxPG_EX_NATIVE_DOUBLE_BUFFERING);
+    }
+    EXPORT int expwxPG_EX_NO_FLAT_TOOLBAR()
+    {
+        return static_cast<int>(wxPG_EX_NO_FLAT_TOOLBAR);
+    }
+    EXPORT int expwxPG_EX_NO_TOOLBAR_DIVIDER()
+    {
+        return static_cast<int>(wxPG_EX_NO_TOOLBAR_DIVIDER);
+    }
+    EXPORT int expwxPG_EX_TOOLBAR_SEPARATOR()
+    {
+        return static_cast<int>(wxPG_EX_TOOLBAR_SEPARATOR);
+    }
+    EXPORT int expwxPG_EX_WRITEONLY_BUILTIN_ATTRIBUTES()
+    {
+        return static_cast<int>(wxPG_EX_WRITEONLY_BUILTIN_ATTRIBUTES);
+    }
+    EXPORT int expwxPG_HIDE_CATEGORIES()
+    {
+        return static_cast<int>(wxPG_HIDE_CATEGORIES);
+    }
+    EXPORT int expwxPG_HIDE_MARGIN()
+    {
+        return static_cast<int>(wxPG_HIDE_MARGIN);
+    }
+    EXPORT int expwxPG_ITERATE_ALL()
+    {
+        return static_cast<int>(wxPG_ITERATE_ALL);
+    }
+    EXPORT int expwxPG_ITERATE_CATEGORIES()
+    {
+        return static_cast<int>(wxPG_ITERATE_CATEGORIES);
+    }
+    EXPORT int expwxPG_ITERATE_DEFAULT()
+    {
+        return static_cast<int>(wxPG_ITERATE_DEFAULT);
+    }
+    EXPORT int expwxPG_ITERATE_VISIBLE()
+    {
+        return static_cast<int>(wxPG_ITERATE_VISIBLE);
+    }
+    EXPORT wxString* expwxPG_LABEL()
+    {
+        return new wxString(wxPG_LABEL);
+    }
+    EXPORT int expwxPG_LIMITED_EDITING()
+    {
+        return static_cast<int>(wxPG_LIMITED_EDITING);
+    }
+    EXPORT int expwxPG_NO_INTERNAL_BORDER()
+    {
+        return static_cast<int>(wxPG_NO_INTERNAL_BORDER);
+    }
+    EXPORT int expwxPG_SPLITTER_AUTO_CENTER()
+    {
+        return static_cast<int>(wxPG_SPLITTER_AUTO_CENTER);
+    }
+    EXPORT int expwxPG_STATIC_LAYOUT()
+    {
+        return static_cast<int>(wxPG_STATIC_LAYOUT);
+    }
+    EXPORT int expwxPG_STATIC_SPLITTER()
+    {
+        return static_cast<int>(wxPG_STATIC_SPLITTER);
+    }
+    EXPORT int expwxPG_TOOLBAR()
+    {
+        return static_cast<int>(wxPG_TOOLBAR);
+    }
+    EXPORT int expwxPG_TOOLTIPS()
+    {
+        return static_cast<int>(wxPG_TOOLTIPS);
+    }
+    EXPORT int expwxPNG_TYPE_COLOUR()
+    {
+        return static_cast<int>(wxPNG_TYPE_COLOUR);
+    }
+    EXPORT int expwxPNG_TYPE_GREY()
+    {
+        return static_cast<int>(wxPNG_TYPE_GREY);
+    }
+    EXPORT int expwxPNG_TYPE_GREY_RED()
+    {
+        return static_cast<int>(wxPNG_TYPE_GREY_RED);
+    }
+    EXPORT int expwxPORT_MAC()
+    {
+        return static_cast<int>(wxPORT_MAC);
+    }
+    EXPORT int expwxPOWER_BATTERY()
+    {
+        return static_cast<int>(wxPOWER_BATTERY);
+    }
+    EXPORT int expwxPOWER_DELAY()
+    {
+        return static_cast<int>(wxPOWER_DELAY);
+    }
+    EXPORT int expwxPOWER_RESOURCE_SYSTEM()
+    {
+        return static_cast<int>(wxPOWER_RESOURCE_SYSTEM);
+    }
+    EXPORT int expwxPOWER_SOCKET()
+    {
+        return static_cast<int>(wxPOWER_SOCKET);
+    }
+    EXPORT int expwxPOWER_UNKNOWN()
+    {
+        return static_cast<int>(wxPOWER_UNKNOWN);
+    }
+    EXPORT int expwxPRIORITY_DEFAULT()
+    {
+        return static_cast<int>(wxPRIORITY_DEFAULT);
+    }
+    EXPORT int expwxPRIORITY_MAX()
+    {
+        return static_cast<int>(wxPRIORITY_MAX);
+    }
+    EXPORT int expwxPRIORITY_MIN()
+    {
+        return static_cast<int>(wxPRIORITY_MIN);
+    }
+    EXPORT int expwxPROPSHEET_BUTTONTOOLBOOK()
+    {
+        return static_cast<int>(wxPROPSHEET_BUTTONTOOLBOOK);
+    }
+    EXPORT int expwxPROPSHEET_SHRINKTOFIT()
+    {
+        return static_cast<int>(wxPROPSHEET_SHRINKTOFIT);
+    }
+    EXPORT int expwxPROPSHEET_TOOLBOOK()
+    {
+        return static_cast<int>(wxPROPSHEET_TOOLBOOK);
+    }
+    EXPORT int expwxREMOVE_LEADING_SPACES()
+    {
+        return static_cast<int>(wxREMOVE_LEADING_SPACES);
+    }
+    EXPORT int expwxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR()
+    {
+        return static_cast<int>(wxRIBBON_ART_BUTTON_BAR_LABEL_COLOUR);
+    }
+    EXPORT int expwxRIBBON_ART_BUTTON_BAR_LABEL_DISABLED_COLOUR()
+    {
+        return static_cast<int>(wxRIBBON_ART_BUTTON_BAR_LABEL_DISABLED_COLOUR);
+    }
+    EXPORT int expwxRIBBON_ART_GALLERY_HOVER_BACKGROUND_COLOUR()
+    {
+        return static_cast<int>(wxRIBBON_ART_GALLERY_HOVER_BACKGROUND_COLOUR);
+    }
+    EXPORT int expwxRIBBON_BAR_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxRIBBON_BAR_DEFAULT_STYLE);
+    }
+    EXPORT int expwxRIBBON_BAR_FLOW_HORIZONTAL()
+    {
+        return static_cast<int>(wxRIBBON_BAR_FLOW_HORIZONTAL);
+    }
+    EXPORT int expwxRIBBON_BAR_FLOW_VERTICAL()
+    {
+        return static_cast<int>(wxRIBBON_BAR_FLOW_VERTICAL);
+    }
+    EXPORT int expwxRIBBON_BAR_SHOW_HELP_BUTTON()
+    {
+        return static_cast<int>(wxRIBBON_BAR_SHOW_HELP_BUTTON);
+    }
+    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_ICONS()
+    {
+        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_ICONS);
+    }
+    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_LABELS()
+    {
+        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_LABELS);
+    }
+    EXPORT int expwxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS()
+    {
+        return static_cast<int>(wxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS);
+    }
+    EXPORT int expwxRIBBON_BAR_SHOW_TOGGLE_BUTTON()
+    {
+        return static_cast<int>(wxRIBBON_BAR_SHOW_TOGGLE_BUTTON);
+    }
+    EXPORT int expwxRIBBON_PANEL_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxRIBBON_PANEL_DEFAULT_STYLE);
+    }
+    EXPORT int expwxRIBBON_PANEL_EXT_BUTTON()
+    {
+        return static_cast<int>(wxRIBBON_PANEL_EXT_BUTTON);
+    }
+    EXPORT int expwxRIBBON_PANEL_NO_AUTO_MINIMISE()
+    {
+        return static_cast<int>(wxRIBBON_PANEL_NO_AUTO_MINIMISE);
+    }
+    EXPORT int expwxRICHTEXT_FIELD_STYLE_COMPOSITE()
+    {
+        return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_COMPOSITE);
+    }
+    EXPORT int expwxRICHTEXT_FIELD_STYLE_END_TAG()
+    {
+        return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_END_TAG);
+    }
+    EXPORT int expwxRICHTEXT_FIELD_STYLE_NO_BORDER()
+    {
+        return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_NO_BORDER);
+    }
+    EXPORT int expwxRICHTEXT_FIELD_STYLE_RECTANGLE()
+    {
+        return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_RECTANGLE);
+    }
+    EXPORT int expwxRICHTEXT_FIELD_STYLE_START_TAG()
+    {
+        return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_START_TAG);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_BROWSE_NUMBERING()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_BROWSE_NUMBERING);
+    }
+    EXPORT int expwxRICHTEXT_PAGE_ALL()
+    {
+        return static_cast<int>(wxRICHTEXT_PAGE_ALL);
+    }
+    EXPORT int expwxRICHTEXT_PAGE_CENTRE()
+    {
+        return static_cast<int>(wxRICHTEXT_PAGE_CENTRE);
+    }
+    EXPORT int expwxRICHTEXT_PAGE_RIGHT()
+    {
+        return static_cast<int>(wxRICHTEXT_PAGE_RIGHT);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_TEXT()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_TEXT);
+    }
+    EXPORT int expwxSHOW_SB_DEFAULT()
+    {
+        return static_cast<int>(wxSHOW_SB_DEFAULT);
+    }
+    EXPORT int expwxSHOW_SB_NEVER()
+    {
+        return static_cast<int>(wxSHOW_SB_NEVER);
+    }
+    EXPORT int expwxSOCKET_BLOCK()
+    {
+        return static_cast<int>(wxSOCKET_BLOCK);
+    }
+    EXPORT int expwxSOCKET_CONNECTION()
+    {
+        return static_cast<int>(wxSOCKET_CONNECTION);
+    }
+    EXPORT int expwxSOCKET_CONNECTION_FLAG()
+    {
+        return static_cast<int>(wxSOCKET_CONNECTION_FLAG);
+    }
+    EXPORT int expwxSOCKET_INPUT()
+    {
+        return static_cast<int>(wxSOCKET_INPUT);
+    }
+    EXPORT int expwxSOCKET_INPUT_FLAG()
+    {
+        return static_cast<int>(wxSOCKET_INPUT_FLAG);
+    }
+    EXPORT int expwxSOCKET_INVADDR()
+    {
+        return static_cast<int>(wxSOCKET_INVADDR);
+    }
+    EXPORT int expwxSOCKET_INVOP()
+    {
+        return static_cast<int>(wxSOCKET_INVOP);
+    }
+    EXPORT int expwxSOCKET_INVPORT()
+    {
+        return static_cast<int>(wxSOCKET_INVPORT);
+    }
+    EXPORT int expwxSOCKET_IOERR()
+    {
+        return static_cast<int>(wxSOCKET_IOERR);
+    }
+    EXPORT int expwxSOCKET_LOST()
+    {
+        return static_cast<int>(wxSOCKET_LOST);
+    }
+    EXPORT int expwxSOCKET_LOST_FLAG()
+    {
+        return static_cast<int>(wxSOCKET_LOST_FLAG);
+    }
+    EXPORT int expwxSOCKET_MEMERR()
+    {
+        return static_cast<int>(wxSOCKET_MEMERR);
+    }
+    EXPORT int expwxSOCKET_NOERROR()
+    {
+        return static_cast<int>(wxSOCKET_NOERROR);
+    }
+    EXPORT int expwxSOCKET_NOHOST()
+    {
+        return static_cast<int>(wxSOCKET_NOHOST);
+    }
+    EXPORT int expwxSOCKET_NOWAIT()
+    {
+        return static_cast<int>(wxSOCKET_NOWAIT);
+    }
+    EXPORT int expwxSOCKET_OUTPUT()
+    {
+        return static_cast<int>(wxSOCKET_OUTPUT);
+    }
+    EXPORT int expwxSOCKET_OUTPUT_FLAG()
+    {
+        return static_cast<int>(wxSOCKET_OUTPUT_FLAG);
+    }
+    EXPORT int expwxSOCKET_REUSEADDR()
+    {
+        return static_cast<int>(wxSOCKET_REUSEADDR);
+    }
+    EXPORT int expwxSOCKET_TIMEDOUT()
+    {
+        return static_cast<int>(wxSOCKET_TIMEDOUT);
+    }
+    EXPORT int expwxSOCKET_WAITALL()
+    {
+        return static_cast<int>(wxSOCKET_WAITALL);
+    }
+    EXPORT int expwxSOCKET_WOULDBLOCK()
+    {
+        return static_cast<int>(wxSOCKET_WOULDBLOCK);
+    }
+    EXPORT const wxCursor* expwxSTANDARD_CURSOR()
+    {
+        return wxSTANDARD_CURSOR;
+    }
+    EXPORT int expwxSTB_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxSTB_DEFAULT_STYLE);
+    }
+    EXPORT int expwxSTREAM_FILEEXT()
+    {
+        return static_cast<int>(wxSTREAM_FILEEXT);
+    }
+    EXPORT int expwxSTREAM_PROTOCOL()
+    {
+        return static_cast<int>(wxSTREAM_PROTOCOL);
+    }
+    EXPORT int expwxSYS_COLOUR_GRADIENTACTIVECAPTION()
+    {
+        return static_cast<int>(wxSYS_COLOUR_GRADIENTACTIVECAPTION);
+    }
+    EXPORT int expwxSYS_COLOUR_GRADIENTINACTIVECAPTION()
+    {
+        return static_cast<int>(wxSYS_COLOUR_GRADIENTINACTIVECAPTION);
+    }
+    EXPORT int expwxSYS_COLOUR_GRIDLINES()
+    {
+        return static_cast<int>(wxSYS_COLOUR_GRIDLINES);
+    }
+    EXPORT int expwxSYS_COLOUR_HOTLIGHT()
+    {
+        return static_cast<int>(wxSYS_COLOUR_HOTLIGHT);
+    }
+    EXPORT int expwxSYS_COLOUR_LISTBOXHIGHLIGHT()
+    {
+        return static_cast<int>(wxSYS_COLOUR_LISTBOXHIGHLIGHT);
+    }
+    EXPORT int expwxSYS_COLOUR_LISTBOXHIGHLIGHTTEXT()
+    {
+        return static_cast<int>(wxSYS_COLOUR_LISTBOXHIGHLIGHTTEXT);
+    }
+    EXPORT int expwxSYS_COLOUR_LISTBOXTEXT()
+    {
+        return static_cast<int>(wxSYS_COLOUR_LISTBOXTEXT);
+    }
+    EXPORT int expwxSYS_COLOUR_MAX()
+    {
+        return static_cast<int>(wxSYS_COLOUR_MAX);
+    }
+    EXPORT int expwxSYS_COLOUR_MENUBAR()
+    {
+        return static_cast<int>(wxSYS_COLOUR_MENUBAR);
+    }
+    EXPORT int expwxSYS_COLOUR_MENUHILIGHT()
+    {
+        return static_cast<int>(wxSYS_COLOUR_MENUHILIGHT);
+    }
+    EXPORT int expwxS_DIR_DEFAULT()
+    {
+        return static_cast<int>(wxS_DIR_DEFAULT);
+    }
+    EXPORT int expwxTASKBAR_BUTTON_ERROR()
+    {
+        return static_cast<int>(wxTASKBAR_BUTTON_ERROR);
+    }
+    EXPORT int expwxTASKBAR_BUTTON_INDETERMINATE()
+    {
+        return static_cast<int>(wxTASKBAR_BUTTON_INDETERMINATE);
+    }
+    EXPORT int expwxTASKBAR_BUTTON_NORMAL()
+    {
+        return static_cast<int>(wxTASKBAR_BUTTON_NORMAL);
+    }
+    EXPORT int expwxTASKBAR_BUTTON_NO_PROGRESS()
+    {
+        return static_cast<int>(wxTASKBAR_BUTTON_NO_PROGRESS);
+    }
+    EXPORT int expwxTASKBAR_BUTTON_PAUSED()
+    {
+        return static_cast<int>(wxTASKBAR_BUTTON_PAUSED);
+    }
+    EXPORT int expwxTASKBAR_JUMP_LIST_DESTINATION()
+    {
+        return static_cast<int>(wxTASKBAR_JUMP_LIST_DESTINATION);
+    }
+    EXPORT int expwxTASKBAR_JUMP_LIST_SEPARATOR()
+    {
+        return static_cast<int>(wxTASKBAR_JUMP_LIST_SEPARATOR);
+    }
+    EXPORT int expwxTASKBAR_JUMP_LIST_TASK()
+    {
+        return static_cast<int>(wxTASKBAR_JUMP_LIST_TASK);
+    }
+    EXPORT int expwxTB_BOTTOM()
+    {
+        return static_cast<int>(wxTB_BOTTOM);
+    }
+    EXPORT int expwxTB_HORZ_LAYOUT()
+    {
+        return static_cast<int>(wxTB_HORZ_LAYOUT);
+    }
+    EXPORT int expwxTB_HORZ_TEXT()
+    {
+        return static_cast<int>(wxTB_HORZ_TEXT);
+    }
+    EXPORT int expwxTB_LEFT()
+    {
+        return static_cast<int>(wxTB_LEFT);
+    }
+    EXPORT int expwxTB_NO_TOOLTIPS()
+    {
+        return static_cast<int>(wxTB_NO_TOOLTIPS);
+    }
+    EXPORT int expwxTB_RIGHT()
+    {
+        return static_cast<int>(wxTB_RIGHT);
+    }
+    EXPORT int expwxTB_TOP()
+    {
+        return static_cast<int>(wxTB_TOP);
+    }
+    EXPORT int expwxTEXT_ALIGNMENT_CENTRE()
+    {
+        return static_cast<int>(wxTEXT_ALIGNMENT_CENTRE);
+    }
+    EXPORT int expwxTEXT_ALIGNMENT_JUSTIFIED()
+    {
+        return static_cast<int>(wxTEXT_ALIGNMENT_JUSTIFIED);
+    }
+    EXPORT int expwxTEXT_ALIGNMENT_LEFT()
+    {
+        return static_cast<int>(wxTEXT_ALIGNMENT_LEFT);
+    }
+    EXPORT int expwxTEXT_ALIGNMENT_RIGHT()
+    {
+        return static_cast<int>(wxTEXT_ALIGNMENT_RIGHT);
+    }
+    EXPORT int expwxTEXT_ATTR_ALIGNMENT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_ALIGNMENT);
+    }
+    EXPORT int expwxTEXT_ATTR_BACKGROUND_COLOUR()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BACKGROUND_COLOUR);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_NUMBER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_NUMBER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ALIGN_RIGHT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ALIGN_RIGHT);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ARABIC()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ARABIC);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_LETTERS_LOWER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_LETTERS_LOWER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_OUTLINE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_OUTLINE);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_PARENTHESES()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_PARENTHESES);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_PERIOD()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_PERIOD);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ROMAN_LOWER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ROMAN_LOWER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ROMAN_UPPER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ROMAN_UPPER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_STANDARD()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_STANDARD);
+    }
+    EXPORT int expwxTEXT_ATTR_EFFECT_STRIKETHROUGH()
+    {
+        return static_cast<int>(wxTEXT_ATTR_EFFECT_STRIKETHROUGH);
+    }
+    EXPORT int expwxTEXT_ATTR_EFFECT_SUBSCRIPT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_EFFECT_SUBSCRIPT);
+    }
+    EXPORT int expwxTEXT_ATTR_EFFECT_SUPERSCRIPT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_EFFECT_SUPERSCRIPT);
+    }
+    EXPORT int expwxTEXT_ATTR_FONT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_FONT);
+    }
+    EXPORT int expwxTEXT_ATTR_FONT_FACE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_FONT_FACE);
+    }
+    EXPORT int expwxTEXT_ATTR_FONT_ITALIC()
+    {
+        return static_cast<int>(wxTEXT_ATTR_FONT_ITALIC);
+    }
+    EXPORT int expwxTEXT_ATTR_FONT_WEIGHT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_FONT_WEIGHT);
+    }
+    EXPORT int expwxTEXT_ATTR_LEFT_INDENT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_LEFT_INDENT);
+    }
+    EXPORT int expwxTEXT_ATTR_LINE_SPACING()
+    {
+        return static_cast<int>(wxTEXT_ATTR_LINE_SPACING);
+    }
+    EXPORT int expwxTEXT_ATTR_LINE_SPACING_HALF()
+    {
+        return static_cast<int>(wxTEXT_ATTR_LINE_SPACING_HALF);
+    }
+    EXPORT int expwxTEXT_ATTR_PARA_SPACING_AFTER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_PARA_SPACING_AFTER);
+    }
+    EXPORT int expwxTEXT_ATTR_PARA_SPACING_BEFORE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_PARA_SPACING_BEFORE);
+    }
+    EXPORT int expwxTEXT_ATTR_RIGHT_INDENT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_RIGHT_INDENT);
+    }
+    EXPORT int expwxTEXT_ATTR_TABS()
+    {
+        return static_cast<int>(wxTEXT_ATTR_TABS);
+    }
+    EXPORT int expwxTEXT_ATTR_TEXT_COLOUR()
+    {
+        return static_cast<int>(wxTEXT_ATTR_TEXT_COLOUR);
+    }
+    EXPORT int expwxTEXT_ATTR_UNDERLINE_DOUBLE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNDERLINE_DOUBLE);
+    }
+    EXPORT int expwxTEXT_ATTR_UNDERLINE_SPECIAL()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNDERLINE_SPECIAL);
+    }
+    EXPORT int expwxTEXT_ATTR_UNITS_PIXELS()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_PIXELS);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_SOLID()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_SOLID);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_FLOAT_LEFT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT_LEFT);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_FLOAT_RIGHT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT_RIGHT);
+    }
+    EXPORT int expwxTEXT_TYPE_RTF()
+    {
+        return static_cast<int>(wxTEXT_TYPE_RTF);
+    }
+    EXPORT int expwxTE_HT_BEFORE()
+    {
+        return static_cast<int>(wxTE_HT_BEFORE);
+    }
+    EXPORT int expwxTE_HT_BELOW()
+    {
+        return static_cast<int>(wxTE_HT_BELOW);
+    }
+    EXPORT int expwxTE_HT_BEYOND()
+    {
+        return static_cast<int>(wxTE_HT_BEYOND);
+    }
+    EXPORT int expwxTE_HT_ON_TEXT()
+    {
+        return static_cast<int>(wxTE_HT_ON_TEXT);
+    }
+    EXPORT int expwxTE_HT_UNKNOWN()
+    {
+        return static_cast<int>(wxTE_HT_UNKNOWN);
+    }
+    EXPORT int expwxTHREAD_DETACHED()
+    {
+        return static_cast<int>(wxTHREAD_DETACHED);
+    }
+    EXPORT int expwxTHREAD_JOINABLE()
+    {
+        return static_cast<int>(wxTHREAD_JOINABLE);
+    }
+    EXPORT int expwxTHREAD_NO_ERROR()
+    {
+        return static_cast<int>(wxTHREAD_NO_ERROR);
+    }
+    EXPORT int expwxTITLEBAR_BUTTON_CLOSE()
+    {
+        return static_cast<int>(wxTITLEBAR_BUTTON_CLOSE);
+    }
+    EXPORT int expwxTITLEBAR_BUTTON_HELP()
+    {
+        return static_cast<int>(wxTITLEBAR_BUTTON_HELP);
+    }
+    EXPORT int expwxTITLEBAR_BUTTON_ICONIZE()
+    {
+        return static_cast<int>(wxTITLEBAR_BUTTON_ICONIZE);
+    }
+    EXPORT int expwxTITLEBAR_BUTTON_MAXIMIZE()
+    {
+        return static_cast<int>(wxTITLEBAR_BUTTON_MAXIMIZE);
+    }
+    EXPORT int expwxTITLEBAR_BUTTON_RESTORE()
+    {
+        return static_cast<int>(wxTITLEBAR_BUTTON_RESTORE);
+    }
+    EXPORT int expwxTL_3STATE()
+    {
+        return static_cast<int>(wxTL_3STATE);
+    }
+    EXPORT int expwxTL_CHECKBOX()
+    {
+        return static_cast<int>(wxTL_CHECKBOX);
+    }
+    EXPORT int expwxTL_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxTL_DEFAULT_STYLE);
+    }
+    EXPORT int expwxTL_MULTIPLE()
+    {
+        return static_cast<int>(wxTL_MULTIPLE);
+    }
+    EXPORT int expwxTL_USER_3STATE()
+    {
+        return static_cast<int>(wxTL_USER_3STATE);
+    }
+    EXPORT int expwxTOKEN_RET_EMPTY()
+    {
+        return static_cast<int>(wxTOKEN_RET_EMPTY);
+    }
+    EXPORT int expwxTOUCH_ALL_GESTURES()
+    {
+        return static_cast<int>(wxTOUCH_ALL_GESTURES);
+    }
+    EXPORT int expwxTOUCH_RAW_EVENTS()
+    {
+        return static_cast<int>(wxTOUCH_RAW_EVENTS);
+    }
+    EXPORT int expwxTRANSPARENT()
+    {
+        return static_cast<int>(wxTRANSPARENT);
+    }
+    EXPORT void* expwxTheApp()
+    {
+        return wxTheApp;
+    }
+    EXPORT void* expwxTheClipboard()
+    {
+        return wxTheClipboard;
+    }
+    EXPORT int expwxTipKind_Auto()
+    {
+        return static_cast<int>(wxTipKind_Auto);
+    }
+    EXPORT int expwxURL_NOERR()
+    {
+        return static_cast<int>(wxURL_NOERR);
+    }
+    EXPORT int expwxUSER_ATTENTION_ERROR()
+    {
+        return static_cast<int>(wxUSER_ATTENTION_ERROR);
+    }
+    EXPORT int expwxWEBVIEW_BROWSING_DATA_ALL()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_ALL);
+    }
+    EXPORT int expwxWEBVIEW_BROWSING_DATA_CACHE()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_CACHE);
+    }
+    EXPORT int expwxWEBVIEW_BROWSING_DATA_COOKIES()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_COOKIES);
+    }
+    EXPORT int expwxWEBVIEW_BROWSING_DATA_DOM_STORAGE()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_DOM_STORAGE);
+    }
+    EXPORT int expwxWEBVIEW_BROWSING_DATA_OTHER()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_BROWSING_DATA_OTHER);
+    }
+    EXPORT int expwxWEBVIEW_FIND_BACKWARDS()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_BACKWARDS);
+    }
+    EXPORT int expwxWEBVIEW_FIND_DEFAULT()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_DEFAULT);
+    }
+    EXPORT int expwxWEBVIEW_FIND_ENTIRE_WORD()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_ENTIRE_WORD);
+    }
+    EXPORT int expwxWEBVIEW_FIND_HIGHLIGHT_RESULT()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_HIGHLIGHT_RESULT);
+    }
+    EXPORT int expwxWEBVIEW_FIND_MATCH_CASE()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_MATCH_CASE);
+    }
+    EXPORT int expwxWEBVIEW_FIND_WRAP()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_FIND_WRAP);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ACTION_USER()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ACTION_USER);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_AUTH()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_AUTH);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_CERTIFICATE()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_CERTIFICATE);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_CONNECTION()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_CONNECTION);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_NOT_FOUND()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_NOT_FOUND);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_OTHER()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_OTHER);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_REQUEST()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_REQUEST);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_SECURITY()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_SECURITY);
+    }
+    EXPORT int expwxWEBVIEW_NAV_ERR_USER_CANCELLED()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_NAV_ERR_USER_CANCELLED);
+    }
+    EXPORT int expwxWEBVIEW_PRINT_DEFAULT()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_PRINT_DEFAULT);
+    }
+    EXPORT int expwxWEBVIEW_PRINT_HIDE_HEADER_FOOTER()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_PRINT_HIDE_HEADER_FOOTER);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_LARGE()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_LARGE);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_LARGEST()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_LARGEST);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_MEDIUM()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_MEDIUM);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_SMALL()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_SMALL);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_TINY()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TINY);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_TYPE_LAYOUT()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TYPE_LAYOUT);
+    }
+    EXPORT int expwxWEBVIEW_ZOOM_TYPE_TEXT()
+    {
+        return KWX_WEBVIEW_VALUE(wxWEBVIEW_ZOOM_TYPE_TEXT);
+    }
+    EXPORT int expwxWINDOW_VARIANT_LARGE()
+    {
+        return static_cast<int>(wxWINDOW_VARIANT_LARGE);
+    }
+    EXPORT int expwxWINDOW_VARIANT_MINI()
+    {
+        return static_cast<int>(wxWINDOW_VARIANT_MINI);
+    }
+    EXPORT int expwxWINDOW_VARIANT_NORMAL()
+    {
+        return static_cast<int>(wxWINDOW_VARIANT_NORMAL);
+    }
+    EXPORT int expwxWINDOW_VARIANT_SMALL()
+    {
+        return static_cast<int>(wxWINDOW_VARIANT_SMALL);
+    }
+    EXPORT int expwxXML_ELEMENT_NODE()
+    {
+        return static_cast<int>(wxXML_ELEMENT_NODE);
+    }
+    EXPORT int expwxXML_TEXT_NODE()
+    {
+        return static_cast<int>(wxXML_TEXT_NODE);
+    }
+    EXPORT int expwxXRC_USE_ENVVARS()
+    {
+        return static_cast<int>(wxXRC_USE_ENVVARS);
+    }
+    EXPORT int expwxXRC_USE_LOCALE()
+    {
+        return static_cast<int>(wxXRC_USE_LOCALE);
+    }
+    EXPORT const wxColour* expwxYELLOW()
+    {
+        return wxYELLOW;
+    }
+    EXPORT const wxBrush* expwxYELLOW_BRUSH()
+    {
+        return wxYELLOW_BRUSH;
+    }
+    EXPORT const wxPen* expwxYELLOW_PEN()
+    {
+        return wxYELLOW_PEN;
+    }
+    EXPORT int expwxZIP_FORMAT_ZIP64()
+    {
+        return static_cast<int>(wxZIP_FORMAT_ZIP64);
     }
 }

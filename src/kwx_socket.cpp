@@ -8,101 +8,16 @@
 
 extern "C"
 {
-# // wxSocket errors
-    EXPORT int expwxSOCKET_NOERROR()
-    {
-        return (int) wxSOCKET_NOERROR;
-    }
-    EXPORT int expwxSOCKET_INVOP()
-    {
-        return (int) wxSOCKET_INVOP;
-    }
-    EXPORT int expwxSOCKET_IOERR()
-    {
-        return (int) wxSOCKET_IOERR;
-    }
-    EXPORT int expwxSOCKET_INVADDR()
-    {
-        return (int) wxSOCKET_INVADDR;
-    }
+    // The wxSOCKET_* constant accessors now live in src/kwx_defs.cpp: kwxgen only reads
+    // that file for constant definitions, so a definition anywhere else never reaches the
+    // generated bindings. These two are not part of that set and stay here.
     EXPORT int expwxSOCKET_INVSOCK()
     {
         return (int) wxSOCKET_INVSOCK;
     }
-    EXPORT int expwxSOCKET_NOHOST()
-    {
-        return (int) wxSOCKET_NOHOST;
-    }
-    EXPORT int expwxSOCKET_INVPORT()
-    {
-        return (int) wxSOCKET_INVPORT;
-    }
-    EXPORT int expwxSOCKET_WOULDBLOCK()
-    {
-        return (int) wxSOCKET_WOULDBLOCK;
-    }
-    EXPORT int expwxSOCKET_TIMEDOUT()
-    {
-        return (int) wxSOCKET_TIMEDOUT;
-    }
-    EXPORT int expwxSOCKET_MEMERR()
-    {
-        return (int) wxSOCKET_MEMERR;
-    }
-    // wxSocket events
-    EXPORT int expwxSOCKET_INPUT()
-    {
-        return (int) wxSOCKET_INPUT;
-    }
-    EXPORT int expwxSOCKET_OUTPUT()
-    {
-        return (int) wxSOCKET_OUTPUT;
-    }
-    EXPORT int expwxSOCKET_CONNECTION()
-    {
-        return (int) wxSOCKET_CONNECTION;
-    }
-    EXPORT int expwxSOCKET_LOST()
-    {
-        return (int) wxSOCKET_LOST;
-    }
-    // wxSocketFlags
     EXPORT int expwxSOCKET_NONE()
     {
         return (int) wxSOCKET_NONE;
-    }
-    EXPORT int expwxSOCKET_NOWAIT()
-    {
-        return (int) wxSOCKET_NOWAIT;
-    }
-    EXPORT int expwxSOCKET_WAITALL()
-    {
-        return (int) wxSOCKET_WAITALL;
-    }
-    EXPORT int expwxSOCKET_BLOCK()
-    {
-        return (int) wxSOCKET_BLOCK;
-    }
-    EXPORT int expwxSOCKET_REUSEADDR()
-    {
-        return (int) wxSOCKET_REUSEADDR;
-    }
-    // wxSocketEventFlags
-    EXPORT int expwxSOCKET_INPUT_FLAG()
-    {
-        return (int) wxSOCKET_INPUT_FLAG;
-    }
-    EXPORT int expwxSOCKET_OUTPUT_FLAG()
-    {
-        return (int) wxSOCKET_OUTPUT_FLAG;
-    }
-    EXPORT int expwxSOCKET_CONNECTION_FLAG()
-    {
-        return (int) wxSOCKET_CONNECTION_FLAG;
-    }
-    EXPORT int expwxSOCKET_LOST_FLAG()
-    {
-        return (int) wxSOCKET_LOST_FLAG;
     }
 
     // wxSocketBase

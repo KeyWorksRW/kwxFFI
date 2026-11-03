@@ -134,4 +134,11 @@ extern "C"
     {
         self->SetPanel(panel);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxRibbonPanel_SetExtButtonKeyTip(void* pObject, void* keytip)
+    {
+        ((wxRibbonPanel*) pObject)->SetExtButtonKeyTip(*(wxString*) keytip);
+    }
+
 }

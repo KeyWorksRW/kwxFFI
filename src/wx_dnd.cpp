@@ -468,4 +468,27 @@ extern "C"
     {
         return self->SetData(size, buffer);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxDropSource_DoDragDrop(void* pObject, int flags)
+    {
+        return (int) ((wxDropSource*) pObject)->DoDragDrop(flags);
+    }
+
+    EXPORT void wxFileDataObject_AddFile(void* pObject, void* filename)
+    {
+        ((wxFileDataObject*) pObject)->AddFile(*(wxString*) filename);
+    }
+
+    EXPORT void* wxTextDataObject_GetText(void* pObject)
+    {
+        wxString value = ((wxTextDataObject*) pObject)->GetText();
+        return new wxString(value);
+    }
+
+    EXPORT void wxTextDataObject_SetText(void* pObject, void* text)
+    {
+        ((wxTextDataObject*) pObject)->SetText(*(wxString*) text);
+    }
+
 }

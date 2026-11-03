@@ -1177,4 +1177,36 @@ extern "C"
     {
         self->SetOldContainer(container);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxRichTextCtrl_BeginSuppressUndo(void* pObject)
+    {
+        return ((wxRichTextCtrl*) pObject)->BeginSuppressUndo();
+    }
+
+    EXPORT bool wxRichTextCtrl_EndSuppressUndo(void* pObject)
+    {
+        return ((wxRichTextCtrl*) pObject)->EndSuppressUndo();
+    }
+
+    EXPORT void* wxRichTextCtrl_GetCommandProcessor(void* pObject)
+    {
+        return (void*) ((wxRichTextCtrl*) pObject)->GetCommandProcessor();
+    }
+
+    EXPORT void* wxRichTextCtrl_WriteField(void* pObject, void* fieldType, void* properties, void* textAttr)
+    {
+        return (void*) ((wxRichTextCtrl*) pObject)->WriteField(*(wxString*) fieldType, *(wxRichTextProperties*) properties, *(wxRichTextAttr*) textAttr);
+    }
+
+    EXPORT void* wxRichTextCtrl_WriteTable(void* pObject, int rows, int cols, void* tableAttr, void* cellAttr)
+    {
+        return (void*) ((wxRichTextCtrl*) pObject)->WriteTable(rows, cols, *(wxRichTextAttr*) tableAttr, *(wxRichTextAttr*) cellAttr);
+    }
+
+    EXPORT void* wxRichTextCtrl_WriteTextBox(void* pObject, void* textAttr)
+    {
+        return (void*) ((wxRichTextCtrl*) pObject)->WriteTextBox(*(wxRichTextAttr*) textAttr);
+    }
+
 }

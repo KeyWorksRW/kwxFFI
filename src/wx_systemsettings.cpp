@@ -29,4 +29,12 @@ extern "C"
     {
         return new wxColour(wxSystemSettings::SelectLightDark(*colForLight, *colForDark));
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxSystemSettings_GetAppearance()
+    {
+        // wxSystemAppearance is only obtainable by value and has a private constructor.
+        wxSystemAppearance const value = wxSystemSettings::GetAppearance();
+        return new wxSystemAppearance(value);
+    }
 }

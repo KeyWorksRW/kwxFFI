@@ -101,4 +101,17 @@ extern "C"
     {
         return wxTheColourDatabase->Find(*name).IsOk();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxColour_GetAsString(void* pObject, long flags)
+    {
+        wxString value = ((wxColour*) pObject)->GetAsString(flags);
+        return new wxString(value);
+    }
+
+    EXPORT void wxColour_MakeDisabled(unsigned char* r, unsigned char* g, unsigned char* b, unsigned char brightness)
+    {
+        wxColour::MakeDisabled(r, g, b, brightness);
+    }
+
 }
