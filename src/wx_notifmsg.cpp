@@ -3,6 +3,9 @@
 
 #include "kwx_wrapper.h"
 #include <wx/notifmsg.h>
+// wx/notifmsg.h only forward-declares wxTaskBarIcon for MSW; the other platforms
+// need the real declaration for the UseTaskBarIcon() wrapper signature.
+#include <wx/taskbar.h>
 
 extern "C"
 {
