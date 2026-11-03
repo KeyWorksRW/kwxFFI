@@ -472,7 +472,15 @@ extern "C"
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void wxMenuItem_SetBitmaps(void* pObject, void* bmpChecked, void* bmpUnchecked)
     {
-        ((wxMenuItem*) pObject)->SetBitmaps(*(wxBitmapBundle*) bmpChecked, *(wxBitmapBundle*) bmpUnchecked);
+#ifdef __WXMSW__
+        ((wxMenuItem*) pObject)
+            ->SetBitmaps(*(wxBitmapBundle*) bmpChecked, *(wxBitmapBundle*) bmpUnchecked);
+#else
+        // SetBitmaps() is only implemented by the MSW and universal wxMenuItem.
+        wxUnusedVar(pObject);
+        wxUnusedVar(bmpChecked);
+        wxUnusedVar(bmpUnchecked);
+#endif
     }
 
     EXPORT void wxMenuItem_SetDisabledBitmap(void* pObject, void* bmpDisabled)
@@ -484,5 +492,4 @@ extern "C"
     {
         return ((wxMenu*) pObject)->Destroy(itemid);
     }
-
 }

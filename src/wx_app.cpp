@@ -151,7 +151,12 @@ extern "C"
 
     EXPORT int wxApp_GetComCtl32Version()
     {
+#ifdef __WXMSW__
         return wxApp::GetComCtl32Version();
+#else
+        // COMCTL32 is a Windows component; report "no version" elsewhere.
+        return 0;
+#endif
     }
 
     EXPORT void* wxApp_GetVendorName(void* pObject)

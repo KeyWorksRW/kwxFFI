@@ -355,12 +355,17 @@ extern "C"
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void* wxFrame_MSWGetTaskBarButton(void* pObject)
     {
+#ifdef __WXMSW__
         return (void*) ((wxFrame*) pObject)->MSWGetTaskBarButton();
+#else
+        // wxTaskBarButton is MSW-only, so no frame exposes one.
+        wxUnusedVar(pObject);
+        return nullptr;
+#endif
     }
 
     EXPORT void wxTopLevelWindow_CentreOnScreen(void* pObject, int dir)
     {
         ((wxTopLevelWindow*) pObject)->CentreOnScreen(dir);
     }
-
 }
