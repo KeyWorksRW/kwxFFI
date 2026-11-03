@@ -26,4 +26,11 @@ extern "C"
     {
         return self->GetTimeout();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxSplashScreen_GetSplashWindow(void* pObject)
+    {
+        return (void*) ((wxSplashScreen*) pObject)->GetSplashWindow();
+    }
+
 }

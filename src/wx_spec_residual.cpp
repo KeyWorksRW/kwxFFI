@@ -1481,4 +1481,121 @@ extern "C"
         self->SetProgress(current_page, total_pages, current_copy, total_copies);
     }
 #endif  // wxUSE_PRINTING_ARCHITECTURE
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxArtProvider_Pop()
+    {
+        return wxArtProvider::Pop();
+    }
+
+    EXPORT void wxArtProvider_Push(void* provider)
+    {
+        wxArtProvider::Push((wxArtProvider*) provider);
+    }
+
+    EXPORT void* wxGridTableBase_GetAttrProvider(void* pObject)
+    {
+        return (void*) ((wxGridTableBase*) pObject)->GetAttrProvider();
+    }
+
+    EXPORT void wxGridTableBase_SetAttrProvider(void* pObject, void* attrProvider)
+    {
+        ((wxGridTableBase*) pObject)->SetAttrProvider((wxGridCellAttrProvider*) attrProvider);
+    }
+
+    EXPORT int wxPGProperty_AddChoice(void* pObject, void* label, int value)
+    {
+        return ((wxPGProperty*) pObject)->AddChoice(*(wxString*) label, value);
+    }
+
+    EXPORT void wxPGProperty_AddPrivateChild(void* pObject, void* prop)
+    {
+        ((wxPGProperty*) pObject)->AddPrivateChild((wxPGProperty*) prop);
+    }
+
+    EXPORT void* wxPGProperty_AppendChild(void* pObject, void* prop)
+    {
+        return (void*) ((wxPGProperty*) pObject)->AppendChild((wxPGProperty*) prop);
+    }
+
+    EXPORT void wxPGProperty_DeleteChoice(void* pObject, int index)
+    {
+        ((wxPGProperty*) pObject)->DeleteChoice(index);
+    }
+
+    EXPORT void wxPGProperty_EnableCommonValue(void* pObject, bool enable)
+    {
+        ((wxPGProperty*) pObject)->EnableCommonValue(enable);
+    }
+
+    EXPORT void* wxPGProperty_GetCell(void* pObject, unsigned int column)
+    {
+        return new wxPGCell(((wxPGProperty*) pObject)->GetCell(column));
+    }
+
+    EXPORT void* wxPGProperty_GetDisplayedString(void* pObject)
+    {
+        wxString value = ((wxPGProperty*) pObject)->GetDisplayedString();
+        return new wxString(value);
+    }
+
+    EXPORT unsigned int wxPGProperty_GetIndexInParent(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->GetIndexInParent();
+    }
+
+    EXPORT bool wxPGProperty_HasAnyChild(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->HasAnyChild();
+    }
+
+    EXPORT int wxPGProperty_InsertChoice(void* pObject, void* label, int index, int value)
+    {
+        return ((wxPGProperty*) pObject)->InsertChoice(*(wxString*) label, index, value);
+    }
+
+    EXPORT bool wxPGProperty_IsCategory(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->IsCategory();
+    }
+
+    EXPORT bool wxPGProperty_IsEnabled(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->IsEnabled();
+    }
+
+    EXPORT bool wxPGProperty_IsExpanded(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->IsExpanded();
+    }
+
+    EXPORT bool wxPGProperty_IsValueUnspecified(void* pObject)
+    {
+        return ((wxPGProperty*) pObject)->IsValueUnspecified();
+    }
+
+    EXPORT void wxPGProperty_RefreshEditor(void* pObject)
+    {
+        ((wxPGProperty*) pObject)->RefreshEditor();
+    }
+
+    EXPORT void wxPGProperty_SetAttribute(void* pObject, void* name, void* value)
+    {
+        ((wxPGProperty*) pObject)->SetAttribute(*(wxString*) name, *(wxVariant*) value);
+    }
+
+    EXPORT void wxPGProperty_SetAutoUnspecified(void* pObject, bool enable)
+    {
+        ((wxPGProperty*) pObject)->SetAutoUnspecified(enable);
+    }
+
+    EXPORT void wxPGProperty_SetExpanded(void* pObject, bool expanded)
+    {
+        ((wxPGProperty*) pObject)->SetExpanded(expanded);
+    }
+
+    EXPORT void* wxThreadEvent_Clone(void* pObject)
+    {
+        return (void*) ((wxThreadEvent*) pObject)->Clone();
+    }
 }

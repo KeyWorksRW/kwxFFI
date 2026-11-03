@@ -43,6 +43,9 @@ void kwxTreeItemData_SetClientClosure(TSelf(kwxTreeItemData) pObject, TClass(wxC
 
 TClassDef(wxAboutDialogInfo) void wxAboutDialogInfo_AddArtist(TSelf(wxAboutDialogInfo) pObject,
                                                               TClass(wxString) artist);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxAboutDialogInfo_SetDocWriters(TSelf(wxAboutDialogInfo) pObject,
+                                     TClass(wxArrayString) docwriters);
 void wxAboutDialogInfo_AddDeveloper(TSelf(wxAboutDialogInfo) pObject, TClass(wxString) developer);
 void wxAboutDialogInfo_AddDocWriter(TSelf(wxAboutDialogInfo) pObject, TClass(wxString) docwriter);
 void wxAboutDialogInfo_AddTranslator(TSelf(wxAboutDialogInfo) pObject, TClass(wxString) translator);
@@ -184,6 +187,11 @@ double wxDC_GetUserScaleX(TSelf(wxDC) pObject);
 double wxDC_GetUserScaleY(TSelf(wxDC) pObject);
 
 TClassDef(wxDisplay) void* wxDisplay_Create(unsigned int index);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxDisplay_ChangeMode(TSelf(wxDisplay) pObject, TClass(wxVideoMode) mode);
+int wxDisplay_GetDepth(TSelf(wxDisplay) pObject);
+TClass(wxSize) wxDisplay_GetRawPPI(TSelf(wxDisplay) pObject);
+void wxDisplay_ResetMode(TSelf(wxDisplay) pObject);
 void* wxDisplay_CreateFromWindow(TClass(wxWindow) win);
 void wxDisplay_Delete(TSelf(wxDisplay) pObject);
 void wxDisplay_GetClientArea(TSelf(wxDisplay) pObject, int* x, int* y, int* width, int* height);
@@ -217,10 +225,17 @@ void wxEvent_SetCallbackUserData(TSelf(wxEvent) pObject, TClass(wxObject) obj);
 TClassDef(wxEvtHandler) void* wxEvtHandler_GetClientClosure(TSelf(wxEvtHandler) pObject);
 void wxEvtHandler_SetClientClosure(TSelf(wxEvtHandler) pObject, TClass(wxClosure) closure);
 
+// Phase 5: the <Base>_SetOn spellings the portability matrix resolves an ovh
+// row to.  The kwxEvtHandler_* helper functions are declared in the kwxEvtHandler
+// block in include/kwx_helper_hooks.h; this one takes the same helper object.
+EXPORT void wxEvtHandler_SetOnProcessEvent(TSelf(wxEvtHandler) pObject, void* pFunction);
+
 TClassDef(wxFileConfig) TClass(wxFileConfig) wxFileConfig_Create(TClass(wxInputStream) inp);
 
 TClassDef(wxFileInputStream) TClass(wxFileInputStream)
     wxFileInputStream_Create(TClass(wxString) ofileName);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+int wxFileInputStream_GetLength(TSelf(wxFileInputStream) pObject);
 void wxFileInputStream_Delete(TSelf(wxFileInputStream) pObject);
 TBool wxFileInputStream_IsOk(TSelf(wxFileInputStream) pObject);
 
@@ -307,6 +322,35 @@ void wxGraphicsBrush_Delete(TSelf(wxGraphicsBrush) pObject);
 
 TClassDef(wxGraphicsContext) void wxGraphicsContext_Clip(TSelf(wxGraphicsContext) pObject,
                                                          TClass(wxRegion) region);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxGraphicsContext_BeginLayer(TSelf(wxGraphicsContext) pObject, double opacity);
+TClass(wxGraphicsBitmap)
+    wxGraphicsContext_CreateBitmap(TSelf(wxGraphicsContext) pObject, TClass(wxBitmap) bitmap);
+TClass(wxGraphicsBitmap) wxGraphicsContext_CreateBitmapFromImage(TSelf(wxGraphicsContext) pObject,
+                                                                 TClass(wxImage) image);
+TClass(wxGraphicsFont) wxGraphicsContext_CreateFont(TSelf(wxGraphicsContext) pObject,
+                                                    TClass(wxFont) font, TClass(wxColour) col);
+void* wxGraphicsContext_CreateFromUnknownDC(TClass(wxDC) dc);
+TClass(wxGraphicsBrush)
+    wxGraphicsContext_CreateLinearGradientBrush(TSelf(wxGraphicsContext) pObject, double x1,
+                                                double y1, double x2, double y2,
+                                                TClass(wxColour) c1, TClass(wxColour) c2,
+                                                TClass(wxGraphicsMatrix) matrix);
+TClass(wxGraphicsPen)
+    wxGraphicsContext_CreatePen(TSelf(wxGraphicsContext) pObject, TClass(wxPen) pen);
+TClass(wxGraphicsBrush)
+    wxGraphicsContext_CreateRadialGradientBrush(TSelf(wxGraphicsContext) pObject, double startX,
+                                                double startY, double endX, double endY,
+                                                double radius, TClass(wxColour) oColor,
+                                                TClass(wxColour) cColor,
+                                                TClass(wxGraphicsMatrix) matrix);
+TClass(wxGraphicsBitmap) wxGraphicsContext_CreateSubBitmap(TSelf(wxGraphicsContext) pObject,
+                                                           TClass(wxGraphicsBitmap) bitmap,
+                                                           double x, double y, double w, double h);
+void wxGraphicsContext_EndLayer(TSelf(wxGraphicsContext) pObject);
+TClass(wxSize) wxGraphicsContext_FromDIP(TSelf(wxGraphicsContext) pObject, TClass(wxSize) sz);
+TBool wxGraphicsContext_SetAntialiasMode(TSelf(wxGraphicsContext) pObject, int antialias);
+TBool wxGraphicsContext_SetCompositionMode(TSelf(wxGraphicsContext) pObject, int op);
 void wxGraphicsContext_ClipByRectangle(TSelf(wxGraphicsContext) pObject, double x, double y,
                                        double width, double height);
 void wxGraphicsContext_ConcatTransform(TSelf(wxGraphicsContext) pObject,
@@ -437,7 +481,7 @@ void wxGraphicsPath_UnGetNativePath(TSelf(wxGraphicsPath) pObject, void* nativeP
 TClassDef(wxGraphicsPen) TClass(wxGraphicsPen) wxGraphicsPen_Create();
 void wxGraphicsPen_Delete(TSelf(wxGraphicsPen) pObject);
 
-TClass(wxGraphicsContext)
+TClassDefExtend(wxGraphicsRenderer, wxObject) TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContext(TSelf(wxGraphicsRenderer) pObject, TClass(wxWindowDC) dc);
 TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContextFromWindow(TSelf(wxGraphicsRenderer) pObject,
@@ -451,6 +495,12 @@ TClass(wxGraphicsContext)
 TClass(wxGraphicsPath) wxGraphicsRenderer_CreatePath(TSelf(wxGraphicsRenderer) pObject);
 void wxGraphicsRenderer_Delete(TSelf(wxGraphicsRenderer) pObject);
 TClass(wxGraphicsRenderer) wxGraphicsRenderer_GetDefaultRenderer(TSelf(wxGraphicsRenderer) pObject);
+TClass(wxGraphicsRenderer)
+    wxGraphicsRenderer_GetDirect2DRenderer(TSelf(wxGraphicsRenderer) pObject);
+TClass(wxGraphicsRenderer) wxGraphicsRenderer_GetGDIPlusRenderer(TSelf(wxGraphicsRenderer) pObject);
+TClass(wxString) wxGraphicsRenderer_GetName(TSelf(wxGraphicsRenderer) pObject);
+void wxGraphicsRenderer_GetVersion(TSelf(wxGraphicsRenderer) pObject, int* major, int* minor,
+                                   int* micro);
 
 TClassDef(wxGridCellTextEnterEditor) TClass(wxGridCellTextEnterEditor)
     wxGridCellTextEnterEditor_Ctor();
@@ -611,6 +661,9 @@ int wxListEvent_GetCacheTo(TSelf(wxListEvent) pObject);
 TClassDef(wxMediaCtrl) TClass(wxMediaCtrl)
     wxMediaCtrl_Create(void* parent, int id, TClass(wxString) fileName, int x, int y, int width,
                        int height, long style, TClass(wxString) szBackend, TClass(wxString) name);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+int wxMediaCtrl_GetDownloadProgress(TSelf(wxMediaCtrl) pObject);
+int wxMediaCtrl_GetDownloadTotal(TSelf(wxMediaCtrl) pObject);
 void wxMediaCtrl_Delete(TSelf(wxMediaCtrl) pObject);
 TClass(wxSize) wxMediaCtrl_GetBestSize(TSelf(wxMediaCtrl) pObject);
 double wxMediaCtrl_GetPlaybackRate(TSelf(wxMediaCtrl) pObject);
@@ -668,11 +721,17 @@ TBool wxNotificationMessage_Show(TSelf(wxNotificationMessage) pObject, int timeo
 TBool wxNotificationMessage_UseTaskBarIcon(TClass(wxTaskBarIcon) icon);
 
 TClassDef(wxObject) void wxObject_Delete(TSelf(wxObject) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxObject_IsSameAs(TSelf(wxObject) pObject, TClass(wxObject) o);
 TClass(wxClassInfo) wxObject_GetClassInfo(TSelf(wxObject) pObject);
 TClass(wxClosure) wxObject_GetClientClosure(TSelf(wxObject) pObject);
 TBool wxObject_IsKindOf(TSelf(wxObject) pObject, TClass(wxClassInfo) classInfo);
 TBool wxObject_IsScrolledWindow(TSelf(wxObject) pObject);
 void wxObject_SetClientClosure(TSelf(wxObject) pObject, TClass(wxClosure) closure);
+// Phase 5: alias for kwxObject_SetOnGetClassInfo
+// (include/kwx_helper_hooks.h).  Declared here because wxObject already owns
+// this block; a second block header would rewrite its hierarchy.
+EXPORT void wxObject_SetOnGetClassInfo(TSelf(wxObject) pObject, void* pFunction);
 
 TClassDefExtend(wxOwnerDrawnComboBox,
                 wxComboCtrl) int wxOwnerDrawnComboBox_Append(TSelf(wxOwnerDrawnComboBox) pObject,
@@ -727,10 +786,19 @@ TClassDef(wxPreviewFrame) TClass(wxPreviewFrame)
     wxPreviewFrame_Create(TClass(wxPrintPreview) preview, TClass(wxFrame) parent,
                           TClass(wxString) title, int x, int y, int width, int height, int style,
                           TClass(wxString) name);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxPreviewFrame_InitializeWithModality(TSelf(wxPreviewFrame) pObject, int kind);
 void wxPreviewFrame_Delete(TSelf(wxPreviewFrame) pObject);
 void wxPreviewFrame_Initialize(TSelf(wxPreviewFrame) pObject);
 
 TClassDef(wxPrintout) void* wxPrintout_GetDC(void* pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxPrintout_FitThisSizeToPageMargins(TSelf(wxPrintout) pObject, TClass(wxSize) imageSize,
+                                         TClass(wxPageSetupDialogData) pageSetupData);
+TClass(wxRect) wxPrintout_GetLogicalPageMarginsRect(TSelf(wxPrintout) pObject,
+                                                    TClass(wxPageSetupDialogData) pageSetupData);
+void wxPrintout_MapScreenSizeToPage(TSelf(wxPrintout) pObject);
+void wxPrintout_OffsetLogicalOrigin(TSelf(wxPrintout) pObject, int xoff, int yoff);
 void wxPrintout_GetPageSizeMM(void* pObject, int* width, int* height);
 void wxPrintout_GetPageSizePixels(void* pObject, int* width, int* height);
 void wxPrintout_GetPPIPrinter(void* pObject, int* x, int* y);
@@ -746,12 +814,32 @@ void wxPrintout_SetPPIScreen(void* pObject, int x, int y);
 TClassDef(wxProgressDialog) TClass(wxProgressDialog)
     wxProgressDialog_Create(TClass(wxString) title, TClass(wxString) message, int max,
                             TClass(wxWindow) parent, int style);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxProgressDialog_Fit(TSelf(wxProgressDialog) pObject);
 void wxProgressDialog_Resume(TSelf(wxProgressDialog) pObject);
 TBool wxProgressDialog_Update(TSelf(wxProgressDialog) pObject, int value);
 TBool wxProgressDialog_UpdateWithMessage(TSelf(wxProgressDialog) pObject, int value,
                                          TClass(wxString) message);
 
 TClassDef(wxRect) void* wxRect_Create(int x, int y, int width, int height);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxRect) wxRect_CentreIn(TSelf(wxRect) pObject, TClass(wxRect) r, int dir);
+TBool wxRect_Contains(TSelf(wxRect) pObject, int x, int y);
+TClass(wxRect) wxRect_Deflate(TSelf(wxRect) pObject, int dx, int dy);
+int wxRect_GetBottom(TSelf(wxRect) pObject);
+TClass(wxPoint) wxRect_GetBottomLeft(TSelf(wxRect) pObject);
+int wxRect_GetLeft(TSelf(wxRect) pObject);
+TClass(wxPoint) wxRect_GetLeftTop(TSelf(wxRect) pObject);
+TClass(wxPoint) wxRect_GetPosition(TSelf(wxRect) pObject);
+int wxRect_GetRight(TSelf(wxRect) pObject);
+TClass(wxSize) wxRect_GetSize(TSelf(wxRect) pObject);
+int wxRect_GetTop(TSelf(wxRect) pObject);
+TClass(wxPoint) wxRect_GetTopLeft(TSelf(wxRect) pObject);
+TClass(wxPoint) wxRect_GetTopRight(TSelf(wxRect) pObject);
+TClass(wxRect) wxRect_Inflate(TSelf(wxRect) pObject, int dx, int dy);
+void wxRect_Offset(TSelf(wxRect) pObject, int dx, int dy);
+void wxRect_SetLeft(TSelf(wxRect) pObject, int left);
+void wxRect_SetPosition(TSelf(wxRect) pObject, TClass(wxPoint) p);
 void wxRect_Delete(void* pObject);
 int wxRect_GetHeight(TSelf(wxRect) pObject);
 int wxRect_GetWidth(TSelf(wxRect) pObject);
@@ -838,6 +926,33 @@ void wxSound_Stop(TSelf(wxSound) pObject);
 TClassDef(wxStreamBase) void wxStreamBase_Delete(TSelf(wxStreamBase) pObject);
 
 TClassDef(wxStyledTextCtrl) void wxStyledTextCtrl_AddRefDocument(void* pObject, void* docPointer);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxStyledTextCtrl_AnnotationClearAll(TSelf(wxStyledTextCtrl) pObject);
+TClass(wxString) wxStyledTextCtrl_AnnotationGetText(TSelf(wxStyledTextCtrl) pObject, int line);
+void wxStyledTextCtrl_AnnotationSetStyle(TSelf(wxStyledTextCtrl) pObject, int line, int style);
+void wxStyledTextCtrl_AnnotationSetText(TSelf(wxStyledTextCtrl) pObject, int line,
+                                        TClass(wxString) text);
+void wxStyledTextCtrl_AnnotationSetVisible(TSelf(wxStyledTextCtrl) pObject, int visible);
+TBool wxStyledTextCtrl_GetAdditionalSelectionTyping(TSelf(wxStyledTextCtrl) pObject);
+int wxStyledTextCtrl_GetIndicatorCurrent(TSelf(wxStyledTextCtrl) pObject);
+int wxStyledTextCtrl_GetMultiPaste(TSelf(wxStyledTextCtrl) pObject);
+TBool wxStyledTextCtrl_GetMultipleSelection(TSelf(wxStyledTextCtrl) pObject);
+void wxStyledTextCtrl_IndicatorClearRange(TSelf(wxStyledTextCtrl) pObject, int start,
+                                          int lengthClear);
+void wxStyledTextCtrl_IndicatorFillRange(TSelf(wxStyledTextCtrl) pObject, int start,
+                                         int lengthFill);
+void wxStyledTextCtrl_SetAdditionalSelectionTyping(TSelf(wxStyledTextCtrl) pObject,
+                                                   TBool additionalSelectionTyping);
+void wxStyledTextCtrl_SetMultiPaste(TSelf(wxStyledTextCtrl) pObject, int multiPaste);
+void wxStyledTextCtrl_SetMultipleSelection(TSelf(wxStyledTextCtrl) pObject,
+                                           TBool multipleSelection);
+void wxStyledTextCtrl_SetTechnology(TSelf(wxStyledTextCtrl) pObject, int technology);
+void wxStyledTextCtrl_SetWrapVisualFlags(TSelf(wxStyledTextCtrl) pObject, int wrapVisualFlags);
+TClass(wxColour) wxStyledTextCtrl_StyleGetBackground(TSelf(wxStyledTextCtrl) pObject, int style);
+TClass(wxColour) wxStyledTextCtrl_StyleGetForeground(TSelf(wxStyledTextCtrl) pObject, int style);
+int wxStyledTextCtrl_StyleGetSizeFractional(TSelf(wxStyledTextCtrl) pObject, int style);
+void wxStyledTextCtrl_StyleSetSizeFractional(TSelf(wxStyledTextCtrl) pObject, int style,
+                                             int sizeHundredthPoints);
 void wxStyledTextCtrl_AddStyledText(void* pObject, void* data);
 void wxStyledTextCtrl_AddText(void* pObject, TClass(wxString) text);
 void wxStyledTextCtrl_AppendText(void* pObject, TClass(wxString) text);
@@ -1236,6 +1351,24 @@ void wxStyledTextEvent_SetY(void* pObject, int val);
 
 TClassDef(wxTextAttr) TClass(wxTextAttr)
     wxTextAttr_Create(TClass(wxColour) colText, TClass(wxColour) colBack, TClass(wxFont) font);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+int wxTextAttr_GetAlignment(TSelf(wxTextAttr) pObject);
+long wxTextAttr_GetLeftIndent(TSelf(wxTextAttr) pObject);
+int wxTextAttr_GetParagraphSpacingAfter(TSelf(wxTextAttr) pObject);
+TBool wxTextAttr_HasAlignment(TSelf(wxTextAttr) pObject);
+TBool wxTextAttr_HasFontPixelSize(TSelf(wxTextAttr) pObject);
+TBool wxTextAttr_HasLeftIndent(TSelf(wxTextAttr) pObject);
+void wxTextAttr_SetAlignment(TSelf(wxTextAttr) pObject, int alignment);
+void wxTextAttr_SetFlags(TSelf(wxTextAttr) pObject, long flags);
+void wxTextAttr_SetFontFaceName(TSelf(wxTextAttr) pObject, TClass(wxString) faceName);
+void wxTextAttr_SetFontSize(TSelf(wxTextAttr) pObject, int pointSize);
+void wxTextAttr_SetFontStyle(TSelf(wxTextAttr) pObject, int fontStyle);
+void wxTextAttr_SetFontUnderlined(TSelf(wxTextAttr) pObject, TBool underlined);
+void wxTextAttr_SetFontWeight(TSelf(wxTextAttr) pObject, int fontWeight);
+void wxTextAttr_SetLeftIndent(TSelf(wxTextAttr) pObject, int indent, int subIndent);
+void wxTextAttr_SetLineSpacing(TSelf(wxTextAttr) pObject, int spacing);
+void wxTextAttr_SetParagraphSpacingAfter(TSelf(wxTextAttr) pObject, int spacing);
+void wxTextAttr_SetRightIndent(TSelf(wxTextAttr) pObject, int indent);
 TClass(wxTextAttr) wxTextAttr_CreateDefault();
 void wxTextAttr_Delete(TSelf(wxTextAttr) pObject);
 void wxTextAttr_GetBackgroundColour(TSelf(wxTextAttr) pObject, TClass(wxColour) colour);
@@ -1356,6 +1489,12 @@ void wxVListBox_SetMargins(TSelf(wxVListBox) pObject, int x, int y);
 void wxVListBox_SetSelection(TSelf(wxVListBox) pObject, int selection);
 void wxVListBox_SetSelectionBackground(TSelf(wxVListBox) pObject, TClass(wxColour) col);
 void wxVListBox_Toggle(TSelf(wxVListBox) pObject, size_t item);
+// Phase 5: the <Base>_SetOn spellings the portability matrix resolves an ovh row
+// to.  The kwxVListBox_* helper functions are declared in the kwxVListBox block
+// in include/kwx_helper_hooks.h; these take the same helper object.
+EXPORT void wxVListBox_SetOnOnDrawItem(TSelf(wxVListBox) pObject, void* pFunction);
+EXPORT void wxVListBox_SetOnOnDrawSeparator(TSelf(wxVListBox) pObject, void* pFunction);
+EXPORT void wxVListBox_SetOnOnMeasureItem(TSelf(wxVListBox) pObject, void* pFunction);
 
 TClassDefExtend(wxVScrolledWindow, wxPanel) TBool
     wxVScrolledWindow_Create(TSelf(wxVScrolledWindow) pObject, TClass(wxWindow) parent, int id,

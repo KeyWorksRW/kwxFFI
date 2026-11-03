@@ -28,4 +28,11 @@ extern "C"
     {
         self->SetValue(*value);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxTextEntryDialog_SetHint(void* pObject, void* hint)
+    {
+        ((wxTextEntryDialog*) pObject)->SetHint(*(wxString*) hint);
+    }
+
 }

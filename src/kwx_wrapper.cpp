@@ -326,4 +326,11 @@ extern "C"
     {
         return (int) wxNewEventType();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxEvtHandler_GetClientData(void* pObject)
+    {
+        ((wxEvtHandler*) pObject)->GetClientData();
+    }
+
 }

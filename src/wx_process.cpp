@@ -354,4 +354,16 @@ extern "C"
     {
         return self->GetClosure();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxInputStream_TellI(void* pObject)
+    {
+        return (int) ((wxInputStream*) pObject)->TellI();
+    }
+
+    EXPORT int wxOutputStream_SeekO(void* pObject, int pos, int mode)
+    {
+        return (int) ((wxOutputStream*) pObject)->SeekO((wxFileOffset) pos, (wxSeekMode) mode);
+    }
+
 }

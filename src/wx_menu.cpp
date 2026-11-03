@@ -468,4 +468,21 @@ extern "C"
     {
         wxMenu::LockAccels(locked);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxMenuItem_SetBitmaps(void* pObject, void* bmpChecked, void* bmpUnchecked)
+    {
+        ((wxMenuItem*) pObject)->SetBitmaps(*(wxBitmapBundle*) bmpChecked, *(wxBitmapBundle*) bmpUnchecked);
+    }
+
+    EXPORT void wxMenuItem_SetDisabledBitmap(void* pObject, void* bmpDisabled)
+    {
+        ((wxMenuItem*) pObject)->SetDisabledBitmap(*(wxBitmapBundle*) bmpDisabled);
+    }
+
+    EXPORT bool wxMenu_Destroy(void* pObject, int itemid)
+    {
+        return ((wxMenu*) pObject)->Destroy(itemid);
+    }
+
 }

@@ -157,4 +157,26 @@ extern "C"
     {
         return self->Quit();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxHelpControllerBase_DisplayContents(void* pObject)
+    {
+        return ((wxHelpControllerBase*) pObject)->DisplayContents();
+    }
+
+    EXPORT bool wxHelpControllerBase_DisplaySection(void* pObject, int sectionNo)
+    {
+        return ((wxHelpControllerBase*) pObject)->DisplaySection(sectionNo);
+    }
+
+    EXPORT bool wxHelpControllerBase_KeywordSearch(void* pObject, void* k, int mode)
+    {
+        return ((wxHelpControllerBase*) pObject)->KeywordSearch(*(wxString*) k, (wxHelpSearchMode) mode);
+    }
+
+    EXPORT void wxHtmlHelpController_SetShouldPreventAppExit(void* pObject, bool enable)
+    {
+        ((wxHtmlHelpController*) pObject)->SetShouldPreventAppExit(enable);
+    }
+
 }

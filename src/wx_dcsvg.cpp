@@ -30,4 +30,16 @@ extern "C"
     {
         delete (wxSVGFileDC*) pObject;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxSVGFileDC_EndAccessibleGroup(void* pObject)
+    {
+        ((wxSVGFileDC*) pObject)->EndAccessibleGroup();
+    }
+
+    EXPORT void wxSVGFileDC_SetBitmapHandler(void* pObject, void* handler)
+    {
+        ((wxSVGFileDC*) pObject)->SetBitmapHandler((wxSVGBitmapHandler*) handler);
+    }
+
 }

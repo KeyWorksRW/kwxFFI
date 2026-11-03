@@ -11,6 +11,14 @@
 //   src/wx_log.cpp    - everything else declared in this header.
 
 TClassDefExtend(wxLog, wxObject) TClass(wxLog) wxLog_Create();
+// ---- Phase 6: override hooks for the pair's own base ----
+// The homonymous spellings the portability matrix resolves an ovh row to.  The
+// receiver is the kwxLog helper object of src/wx_log.cpp.
+EXPORT void wxLog_SetOnDoLogRecord(TSelf(wxLog) pObject, void* pFunction);
+EXPORT void wxLog_SetOnDoLogTextAtLevel(TSelf(wxLog) pObject, void* pFunction);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxLog_LogTextAtLevel(TSelf(wxLog) pObject, int level, TClass(wxString) msg);
+TClass(wxLog) wxLog_SetThreadActiveTarget(void* logger);
 void wxLog_Delete(TSelf(wxLog) pObject);
 void wxLog_OnLog(TSelf(wxLog) pObject, int level, void* szString, int timestamp);
 void wxLog_Flush(TSelf(wxLog) pObject);
@@ -66,6 +74,8 @@ void wxLogTextCtrl_Delete(TSelf(wxLogTextCtrl) pObject);
 TClassDefExtend(wxLogWindow, wxLogInterposer) TClass(wxLogWindow)
     wxLogWindow_Create(TClass(wxFrame) parent, TClass(wxString) title, TBool showit,
                        TBool passthrough);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxLogWindow_Show(TSelf(wxLogWindow) pObject, TBool bShow);
 TClass(wxFrame) wxLogWindow_GetFrame(TSelf(wxLogWindow) pObject);
 void wxLogWindow_Delete(TSelf(wxLogWindow) pObject);
 

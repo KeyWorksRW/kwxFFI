@@ -300,9 +300,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
+    EXPORT bool wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
     {
-        self->SetCurrentPage(pageNum);
+        return self->SetCurrentPage(pageNum);
     }
 
     EXPORT int wxPrintPreview_GetCurrentPage(wxPrintPreview* self)
@@ -918,4 +918,16 @@ extern "C"
         return 0;
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxPrintDialogData_EnableCurrentPage(void* pObject, bool flag)
+    {
+        ((wxPrintDialogData*) pObject)->EnableCurrentPage(flag);
+    }
+
+    EXPORT bool wxPrintDialogData_GetCurrentPage(void* pObject)
+    {
+        return ((wxPrintDialogData*) pObject)->GetCurrentPage();
+    }
+
 }

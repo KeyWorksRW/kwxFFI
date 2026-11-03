@@ -17,6 +17,14 @@
 /* ------------------------------------------------------------------------- */
 
 TClassDefExtend(wxWindow, wxEvtHandler) int wxWindow_NewControlId(int count);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxWindow_CentreOnParent(TSelf(wxWindow) pObject, int dir);
+TClass(wxWindow) wxWindow_FindWindowById(long winid, void* parent);
+TClass(wxWindow) wxWindow_FindWindowByName(TClass(wxString) name, void* parent);
+TClass(wxSizer) wxWindow_GetContainingSizer(TSelf(wxWindow) pObject);
+TClass(wxSize) wxWindow_GetMinSizeFromKnownDirection(TSelf(wxWindow) pObject, int direction, int size, int availableOtherDir);
+TBool wxWindow_IsTransparentBackgroundSupported(TSelf(wxWindow) pObject, void* reason);
+void wxWindow_PostSizeEvent(TSelf(wxWindow) pObject);
 void wxWindow_UnreserveControlId(int id, int count);
 int wxWindow_GetWindowVariant(TSelf(wxWindow) pObject);
 void wxWindow_SetWindowVariant(TSelf(wxWindow) pObject, int variant);
@@ -198,6 +206,8 @@ TBool wxItemContainer_HasClientUntypedData(TClass(wxItemContainer) self);
 /* ------------------------------------------------------------------------- */
 
 TClassDefExtend(wxDialog, wxTopLevelWindow) void wxDialog_ShowWindowModal(TSelf(wxDialog) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxDialog_Show(TSelf(wxDialog) pObject, TBool show);
 int wxDialog_GetModality(TSelf(wxDialog) pObject);
 void wxDialog_AddMainButtonId(TSelf(wxDialog) pObject, int id);
 TBool wxDialog_IsMainButtonId(TSelf(wxDialog) pObject, int id);

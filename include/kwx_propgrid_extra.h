@@ -73,6 +73,8 @@ TClassDefExtend(wxPGArrayEditorDialog, wxDialog)
     // exposed by the wrapped API, so it has no Create/Delete wrapper.
     void wxPGArrayEditorDialog_SetDialogValue(TSelf(wxPGArrayEditorDialog) pObject,
                                               TClass(wxVariant) value);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxPGArrayEditorDialog_Init(TSelf(wxPGArrayEditorDialog) pObject);
 TClass(wxVariant) wxPGArrayEditorDialog_GetDialogValue(TSelf(wxPGArrayEditorDialog) pObject);
 void wxPGArrayEditorDialog_EnableCustomNewAction(TSelf(wxPGArrayEditorDialog) pObject);
 void wxPGArrayEditorDialog_SetNewButtonText(TSelf(wxPGArrayEditorDialog) pObject,
@@ -125,6 +127,10 @@ void wxPropertyGridPageState_VirtualHeightChanged(TSelf(wxPropertyGridPageState)
 TClassDef(wxPropertyGridInterface) TClass(wxPGProperty)
     wxPropertyGridInterface_GetPropertyByName(TSelf(wxPropertyGridInterface) pObject,
                                               TClass(wxString) name);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void* wxPropertyGridInterface_GetProperty(TSelf(wxPropertyGridInterface) pObject, TClass(wxString) name);
+void wxPropertyGridInterface_RegisterAdditionalEditors();
+void wxPropertyGridInterface_SetPropertyAttributeAll(TSelf(wxPropertyGridInterface) pObject, TClass(wxString) attrName, TClass(wxVariant) value);
 TClass(wxPGProperty)
     wxPropertyGridInterface_GetPropertyByName2(TSelf(wxPropertyGridInterface) pObject,
                                                TClass(wxString) name, TClass(wxString) subname);
@@ -277,6 +283,9 @@ void wxPropertyGridInterface_SortChildren(TSelf(wxPropertyGridInterface) pObject
 
 TClassDefExtend(wxPropertyGrid,
                 wxControl) int wxPropertyGrid_GetColumnCount(TSelf(wxPropertyGrid) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxPoint) wxPropertyGrid_GetGoodEditorDialogPosition(TSelf(wxPropertyGrid) pObject, void* p, TClass(wxSize) sz);
+void* wxPropertyGrid_RegisterEditorClass(void* editor, TBool noDefCheck);
 int wxPropertyGrid_GetRowHeight(TSelf(wxPropertyGrid) pObject);
 int wxPropertyGrid_GetFontHeight(TSelf(wxPropertyGrid) pObject);
 int wxPropertyGrid_GetMarginWidth(TSelf(wxPropertyGrid) pObject);

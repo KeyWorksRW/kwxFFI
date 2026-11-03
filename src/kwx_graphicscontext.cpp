@@ -591,4 +591,132 @@ extern "C"
         *path = self->CreatePath();
         return path;
     }
+
+    // GetGDIPlusRenderer and GetDirect2DRenderer exist only on MSW, and only when the
+    // matching backend is compiled in. Every wrapper is exported on all platforms so the
+    // FFI surface is identical; the unsupported branches are inert and return nullptr.
+    EXPORT wxGraphicsRenderer* wxGraphicsRenderer_GetGDIPlusRenderer(wxGraphicsRenderer* self)
+    {
+#if defined(__WXMSW__) && wxUSE_GRAPHICS_GDIPLUS
+        wxUnusedVar(self);
+        return wxGraphicsRenderer::GetGDIPlusRenderer();
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
+    EXPORT wxGraphicsRenderer* wxGraphicsRenderer_GetDirect2DRenderer(wxGraphicsRenderer* self)
+    {
+#if defined(__WXMSW__) && wxUSE_GRAPHICS_DIRECT2D
+        wxUnusedVar(self);
+        return wxGraphicsRenderer::GetDirect2DRenderer();
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
+    EXPORT wxString* wxGraphicsRenderer_GetName(wxGraphicsRenderer* self)
+    {
+        return new wxString(self->GetName());
+    }
+
+    EXPORT void wxGraphicsRenderer_GetVersion(wxGraphicsRenderer* self, int* major, int* minor,
+                                              int* micro)
+    {
+        self->GetVersion(major, minor, micro);
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxGraphicsContext_BeginLayer(void* pObject, double opacity)
+    {
+        ((wxGraphicsContext*) pObject)->BeginLayer(opacity);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateBitmap(void* pObject, void* bitmap)
+    {
+        wxGraphicsBitmap const value =
+            ((wxGraphicsContext*) pObject)->CreateBitmap(*(wxBitmap*) bitmap);
+        return new wxGraphicsBitmap(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateBitmapFromImage(void* pObject, void* image)
+    {
+        wxGraphicsBitmap const value =
+            ((wxGraphicsContext*) pObject)->CreateBitmapFromImage(*(wxImage*) image);
+        return new wxGraphicsBitmap(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateFont(void* pObject, void* font, void* col)
+    {
+        wxGraphicsFont value =
+            ((wxGraphicsContext*) pObject)->CreateFont(*(wxFont*) font, *(wxColour*) col);
+        return new wxGraphicsFont(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateFromUnknownDC(void* dc)
+    {
+        return (void*) wxGraphicsContext::CreateFromUnknownDC(*(wxDC*) dc);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateLinearGradientBrush(void* pObject, double x1, double y1,
+                                                             double x2, double y2, void* c1,
+                                                             void* c2, void* matrix)
+    {
+        wxGraphicsBrush value =
+            ((wxGraphicsContext*) pObject)
+                ->CreateLinearGradientBrush(x1, y1, x2, y2, *(wxColour*) c1, *(wxColour*) c2,
+                                            *(wxGraphicsMatrix*) matrix);
+        return new wxGraphicsBrush(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreatePen(void* pObject, void* pen)
+    {
+        wxGraphicsPen value = ((wxGraphicsContext*) pObject)->CreatePen(*(wxPen*) pen);
+        return new wxGraphicsPen(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateRadialGradientBrush(void* pObject, double startX,
+                                                             double startY, double endX,
+                                                             double endY, double radius,
+                                                             void* oColor, void* cColor,
+                                                             void* matrix)
+    {
+        wxGraphicsBrush value =
+            ((wxGraphicsContext*) pObject)
+                ->CreateRadialGradientBrush(startX, startY, endX, endY, radius, *(wxColour*) oColor,
+                                            *(wxColour*) cColor, *(wxGraphicsMatrix*) matrix);
+        return new wxGraphicsBrush(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateSubBitmap(void* pObject, void* bitmap, double x, double y,
+                                                   double w, double h)
+    {
+        wxGraphicsBitmap const value =
+            ((wxGraphicsContext*) pObject)
+                ->CreateSubBitmap(*(wxGraphicsBitmap*) bitmap, x, y, w, h);
+        return new wxGraphicsBitmap(value);
+    }
+
+    EXPORT void wxGraphicsContext_EndLayer(void* pObject)
+    {
+        ((wxGraphicsContext*) pObject)->EndLayer();
+    }
+
+    EXPORT void* wxGraphicsContext_FromDIP(void* pObject, void* sz)
+    {
+        wxSize value = ((wxGraphicsContext*) pObject)->FromDIP(*(wxSize*) sz);
+        return new wxSize(value);
+    }
+
+    EXPORT bool wxGraphicsContext_SetAntialiasMode(void* pObject, int antialias)
+    {
+        return ((wxGraphicsContext*) pObject)->SetAntialiasMode((wxAntialiasMode) antialias);
+    }
+
+    EXPORT bool wxGraphicsContext_SetCompositionMode(void* pObject, int op)
+    {
+        return ((wxGraphicsContext*) pObject)->SetCompositionMode((wxCompositionMode) op);
+    }
 }

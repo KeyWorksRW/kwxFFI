@@ -54,6 +54,29 @@ extern "C"
     {
         return (int) wxEVT_PRINT_PAGE;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxPrintout_FitThisSizeToPageMargins(void* pObject, void* imageSize, void* pageSetupData)
+    {
+        ((wxPrintout*) pObject)->FitThisSizeToPageMargins(*(wxSize*) imageSize, *(wxPageSetupDialogData*) pageSetupData);
+    }
+
+    EXPORT void* wxPrintout_GetLogicalPageMarginsRect(void* pObject, void* pageSetupData)
+    {
+        wxRect value = ((wxPrintout*) pObject)->GetLogicalPageMarginsRect(*(wxPageSetupDialogData*) pageSetupData);
+        return new wxRect(value);
+    }
+
+    EXPORT void wxPrintout_MapScreenSizeToPage(void* pObject)
+    {
+        ((wxPrintout*) pObject)->MapScreenSizeToPage();
+    }
+
+    EXPORT void wxPrintout_OffsetLogicalOrigin(void* pObject, int xoff, int yoff)
+    {
+        ((wxPrintout*) pObject)->OffsetLogicalOrigin((wxCoord) xoff, (wxCoord) yoff);
+    }
+
 }
 
 class wxcPrintout : public wxPrintout

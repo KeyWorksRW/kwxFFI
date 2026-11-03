@@ -342,6 +342,28 @@ extern "C"
     {
         return new wxVariant(self->GetValue());
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxPGArrayEditorDialog_Init(void* pObject)
+    {
+        ((wxPGArrayEditorDialog*) pObject)->Init();
+    }
+
+    EXPORT void* wxPropertyGridInterface_GetProperty(void* pObject, void* name)
+    {
+        return (void*) ((wxPropertyGridInterface*) pObject)->GetProperty(*(wxString*) name);
+    }
+
+    EXPORT void wxPropertyGridInterface_RegisterAdditionalEditors()
+    {
+        wxPropertyGridInterface::RegisterAdditionalEditors();
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyAttributeAll(void* pObject, void* attrName, void* value)
+    {
+        ((wxPropertyGridInterface*) pObject)->SetPropertyAttributeAll(*(wxString*) attrName, *(wxVariant*) value);
+    }
+
 }
 
 // ===========================================================================

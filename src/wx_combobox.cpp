@@ -172,4 +172,21 @@ extern "C"
     {
         return ((wxItemContainer*) self)->GetClientData(index);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxComboBox_Dismiss(void* pObject)
+    {
+        ((wxComboBox*) pObject)->Dismiss();
+    }
+
+    EXPORT bool wxComboBox_IsListEmpty(void* pObject)
+    {
+        return ((wxComboBox*) pObject)->IsListEmpty();
+    }
+
+    EXPORT void wxComboBox_Popup(void* pObject)
+    {
+        ((wxComboBox*) pObject)->Popup();
+    }
+
 }

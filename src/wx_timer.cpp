@@ -69,4 +69,16 @@ extern "C"
     {
         return self->Time();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxTimer_SetOwner(void* pObject, void* owner, int timerid)
+    {
+        ((wxTimer*) pObject)->SetOwner((wxEvtHandler*) owner, timerid);
+    }
+
+    EXPORT bool wxTimer_StartOnce(void* pObject, int milliseconds)
+    {
+        return ((wxTimer*) pObject)->StartOnce(milliseconds);
+    }
+
 }

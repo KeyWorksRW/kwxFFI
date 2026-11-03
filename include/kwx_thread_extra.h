@@ -28,6 +28,12 @@
 // thread. The TestDestroy and OnExit callbacks are set with the SetOn* functions; see
 // include/kwx_helper_thread.h.
 TClassDef(wxThread) TClass(wxThread) wxThread_Create(void* pObject, void* entryFunc, int flags);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+int wxThread_GetCPUCount();
+int wxThread_GetCurrentId();
+int wxThread_GetMainId();
+TBool wxThread_IsPaused(TSelf(wxThread) pObject);
+void wxThread_Sleep(unsigned long milliseconds);
 void wxThread_Delete(TSelf(wxThread) pObject);
 int wxThread_Start(TSelf(wxThread) pObject);
 int wxThread_Run(TSelf(wxThread) pObject);

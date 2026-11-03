@@ -129,7 +129,8 @@ extern "C"
         return (int) self->GetEnableHelp();
     }
 
-    EXPORT void wxPageSetupDialogData_SetPaperSize(wxPageSetupDialogData* self, int width, int height)
+    EXPORT void wxPageSetupDialogData_SetPaperSize(wxPageSetupDialogData* self, int width,
+                                                   int height)
     {
         self->SetPaperSize(wxSize(width, height));
     }
@@ -231,5 +232,11 @@ extern "C"
                                                    wxPrintData* printData)
     {
         self->SetPrintData(*printData);
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxPageSetupDialog_GetPageSetupDialogData(void* pObject)
+    {
+        return new wxPageSetupDialogData(((wxPageSetupDialog*) pObject)->GetPageSetupDialogData());
     }
 }

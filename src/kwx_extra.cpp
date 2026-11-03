@@ -47,6 +47,243 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_HTML_SET_TITLE)
     MAKE_EVENT_WRAPPER(EVT_INPUT_SINK)
     MAKE_EVENT_WRAPPER(EVT_SORT)
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxFileProperty_GetClassValidator()
+    {
+        return (void*) wxFileProperty::GetClassValidator();
+    }
+
+    EXPORT void wxLogWindow_Show(void* pObject, bool bShow)
+    {
+        ((wxLogWindow*) pObject)->Show(bShow);
+    }
+
+    EXPORT void wxLog_LogTextAtLevel(void* pObject, int level, void* msg)
+    {
+        ((wxLog*) pObject)->LogTextAtLevel((wxLogLevel) level, *(wxString*) msg);
+    }
+
+    EXPORT void* wxLog_SetThreadActiveTarget(void* logger)
+    {
+        return (void*) wxLog::SetThreadActiveTarget((wxLog*) logger);
+    }
+
+    EXPORT bool wxObject_IsSameAs(void* pObject, void* o)
+    {
+        return ((wxObject*) pObject)->IsSameAs(*(wxObject*) o);
+    }
+
+    EXPORT bool wxPoint_IsFullySpecified(void* pObject)
+    {
+        return ((wxPoint*) pObject)->IsFullySpecified();
+    }
+
+    EXPORT void wxProgressDialog_Fit(void* pObject)
+    {
+        ((wxProgressDialog*) pObject)->Fit();
+    }
+
+    EXPORT void* wxRect_CentreIn(void* pObject, void* r, int dir)
+    {
+        wxRect value = ((wxRect*) pObject)->CentreIn(*(wxRect*) r, dir);
+        return new wxRect(value);
+    }
+
+    EXPORT bool wxRect_Contains(void* pObject, int x, int y)
+    {
+        return ((wxRect*) pObject)->Contains(x, y);
+    }
+
+    EXPORT void* wxRect_Deflate(void* pObject, int dx, int dy)
+    {
+        wxRect value = ((wxRect*) pObject)->Deflate((wxCoord) dx, (wxCoord) dy);
+        return new wxRect(value);
+    }
+
+    EXPORT int wxRect_GetBottom(void* pObject)
+    {
+        return ((wxRect*) pObject)->GetBottom();
+    }
+
+    EXPORT void* wxRect_GetBottomLeft(void* pObject)
+    {
+        wxPoint value = ((wxRect*) pObject)->GetBottomLeft();
+        return new wxPoint(value);
+    }
+
+    EXPORT int wxRect_GetLeft(void* pObject)
+    {
+        return ((wxRect*) pObject)->GetLeft();
+    }
+
+    EXPORT void* wxRect_GetLeftTop(void* pObject)
+    {
+        wxPoint value = ((wxRect*) pObject)->GetLeftTop();
+        return new wxPoint(value);
+    }
+
+    EXPORT void* wxRect_GetPosition(void* pObject)
+    {
+        wxPoint value = ((wxRect*) pObject)->GetPosition();
+        return new wxPoint(value);
+    }
+
+    EXPORT int wxRect_GetRight(void* pObject)
+    {
+        return ((wxRect*) pObject)->GetRight();
+    }
+
+    EXPORT void* wxRect_GetSize(void* pObject)
+    {
+        wxSize value = ((wxRect*) pObject)->GetSize();
+        return new wxSize(value);
+    }
+
+    EXPORT int wxRect_GetTop(void* pObject)
+    {
+        return ((wxRect*) pObject)->GetTop();
+    }
+
+    EXPORT void* wxRect_GetTopLeft(void* pObject)
+    {
+        wxPoint value = ((wxRect*) pObject)->GetTopLeft();
+        return new wxPoint(value);
+    }
+
+    EXPORT void* wxRect_GetTopRight(void* pObject)
+    {
+        wxPoint value = ((wxRect*) pObject)->GetTopRight();
+        return new wxPoint(value);
+    }
+
+    EXPORT void* wxRect_Inflate(void* pObject, int dx, int dy)
+    {
+        wxRect value = ((wxRect*) pObject)->Inflate((wxCoord) dx, (wxCoord) dy);
+        return new wxRect(value);
+    }
+
+    EXPORT void wxRect_Offset(void* pObject, int dx, int dy)
+    {
+        ((wxRect*) pObject)->Offset((wxCoord) dx, (wxCoord) dy);
+    }
+
+    EXPORT void wxRect_SetLeft(void* pObject, int left)
+    {
+        ((wxRect*) pObject)->SetLeft(left);
+    }
+
+    EXPORT void wxRect_SetPosition(void* pObject, void* p)
+    {
+        ((wxRect*) pObject)->SetPosition(*(wxPoint*) p);
+    }
+
+    EXPORT void wxSize_IncBy(void* pObject, int dx, int dy)
+    {
+        ((wxSize*) pObject)->IncBy(dx, dy);
+    }
+
+    EXPORT void wxSize_IncTo(void* pObject, void* sz)
+    {
+        ((wxSize*) pObject)->IncTo(*(wxSize*) sz);
+    }
+
+    EXPORT bool wxSize_IsFullySpecified(void* pObject)
+    {
+        return ((wxSize*) pObject)->IsFullySpecified();
+    }
+
+    EXPORT void* wxSize_Scale(void* pObject, double xscale, double yscale)
+    {
+        wxSize value = ((wxSize*) pObject)->Scale(xscale, yscale);
+        return new wxSize(value);
+    }
+
+    EXPORT int wxTextAttr_GetAlignment(void* pObject)
+    {
+        return (int) ((wxTextAttr*) pObject)->GetAlignment();
+    }
+
+    EXPORT long wxTextAttr_GetLeftIndent(void* pObject)
+    {
+        return ((wxTextAttr*) pObject)->GetLeftIndent();
+    }
+
+    EXPORT int wxTextAttr_GetParagraphSpacingAfter(void* pObject)
+    {
+        return ((wxTextAttr*) pObject)->GetParagraphSpacingAfter();
+    }
+
+    EXPORT bool wxTextAttr_HasAlignment(void* pObject)
+    {
+        return ((wxTextAttr*) pObject)->HasAlignment();
+    }
+
+    EXPORT bool wxTextAttr_HasFontPixelSize(void* pObject)
+    {
+        return ((wxTextAttr*) pObject)->HasFontPixelSize();
+    }
+
+    EXPORT bool wxTextAttr_HasLeftIndent(void* pObject)
+    {
+        return ((wxTextAttr*) pObject)->HasLeftIndent();
+    }
+
+    EXPORT void wxTextAttr_SetAlignment(void* pObject, int alignment)
+    {
+        ((wxTextAttr*) pObject)->SetAlignment((wxTextAttrAlignment) alignment);
+    }
+
+    EXPORT void wxTextAttr_SetFlags(void* pObject, long flags)
+    {
+        ((wxTextAttr*) pObject)->SetFlags(flags);
+    }
+
+    EXPORT void wxTextAttr_SetFontFaceName(void* pObject, void* faceName)
+    {
+        ((wxTextAttr*) pObject)->SetFontFaceName(*(wxString*) faceName);
+    }
+
+    EXPORT void wxTextAttr_SetFontSize(void* pObject, int pointSize)
+    {
+        ((wxTextAttr*) pObject)->SetFontSize(pointSize);
+    }
+
+    EXPORT void wxTextAttr_SetFontStyle(void* pObject, int fontStyle)
+    {
+        ((wxTextAttr*) pObject)->SetFontStyle((wxFontStyle) fontStyle);
+    }
+
+    EXPORT void wxTextAttr_SetFontUnderlined(void* pObject, bool underlined)
+    {
+        ((wxTextAttr*) pObject)->SetFontUnderlined(underlined);
+    }
+
+    EXPORT void wxTextAttr_SetFontWeight(void* pObject, int fontWeight)
+    {
+        ((wxTextAttr*) pObject)->SetFontWeight((wxFontWeight) fontWeight);
+    }
+
+    EXPORT void wxTextAttr_SetLeftIndent(void* pObject, int indent, int subIndent)
+    {
+        ((wxTextAttr*) pObject)->SetLeftIndent(indent, subIndent);
+    }
+
+    EXPORT void wxTextAttr_SetLineSpacing(void* pObject, int spacing)
+    {
+        ((wxTextAttr*) pObject)->SetLineSpacing(spacing);
+    }
+
+    EXPORT void wxTextAttr_SetParagraphSpacingAfter(void* pObject, int spacing)
+    {
+        ((wxTextAttr*) pObject)->SetParagraphSpacingAfter(spacing);
+    }
+
+    EXPORT void wxTextAttr_SetRightIndent(void* pObject, int indent)
+    {
+        ((wxTextAttr*) pObject)->SetRightIndent(indent);
+    }
+
 }
 
 class wxTimerEx : public wxTimer

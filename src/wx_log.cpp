@@ -11,11 +11,21 @@ extern "C"
     typedef void (*TLogFunc)(void*, int, void*, int);
 }
 
+// Phase 6: DoLogRecord() and DoLogTextAtLevel() callbacks.  These were added to
+// this class rather than to a second wxLog helper, because kwxLog already
+// derives from wxLog and one base may never have two helper classes.
+// msg is a const wxString* and info a const wxLogRecordInfo*; both are valid
+// only for the duration of the call.
+typedef void (*TLogRecordFunc)(void*, int, void*, void*);
+typedef void (*TLogTextAtLevelFunc)(void*, int, void*);
+
 class kwxLog : public wxLog
 {
 private:
     TLogFunc func;
     void* kwxObject;
+    TLogRecordFunc m_do_log_record_func;
+    TLogTextAtLevelFunc m_do_log_text_at_level_func;
 
 protected:
     virtual void DoLog(wxLogLevel level, const char* szString, time_t t)
@@ -24,11 +34,40 @@ protected:
         func(kwxObject, (int) level, (void*) &s, (int) t);
     }
 
+    void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info) override
+    {
+        if (!m_do_log_record_func)
+        {
+            wxLog::DoLogRecord(level, msg, info);
+            return;
+        }
+        m_do_log_record_func(kwxObject, (int) level, (void*) &msg, (void*) &info);
+    }
+
+    void DoLogTextAtLevel(wxLogLevel level, const wxString& msg) override
+    {
+        if (!m_do_log_text_at_level_func)
+        {
+            wxLog::DoLogTextAtLevel(level, msg);
+            return;
+        }
+        m_do_log_text_at_level_func(kwxObject, (int) level, (void*) &msg);
+    }
+
 public:
     kwxLog(void* pObject, void* pFunction) : wxLog()
     {
         func = (TLogFunc) pFunction;
         kwxObject = pObject;
+        m_do_log_record_func = nullptr;
+        m_do_log_text_at_level_func = nullptr;
+    }
+
+    void SetOnDoLogRecord(void* pFunction) { m_do_log_record_func = (TLogRecordFunc) pFunction; }
+
+    void SetOnDoLogTextAtLevel(void* pFunction)
+    {
+        m_do_log_text_at_level_func = (TLogTextAtLevelFunc) pFunction;
     }
 };
 
@@ -42,6 +81,31 @@ extern "C"
     EXPORT void kwxLog_Delete(kwxLog* self)
     {
         delete self;
+    }
+
+    // Phase 6: the two override hooks added to this existing class.
+
+    EXPORT void kwxLog_SetOnDoLogRecord(kwxLog* self, void* pFunction)
+    {
+        self->SetOnDoLogRecord(pFunction);
+    }
+
+    EXPORT void kwxLog_SetOnDoLogTextAtLevel(kwxLog* self, void* pFunction)
+    {
+        self->SetOnDoLogTextAtLevel(pFunction);
+    }
+
+    // The <Base>_SetOn spellings the portability matrix also resolves.  The
+    // receiver is the same kwxLog helper object.
+
+    EXPORT void wxLog_SetOnDoLogRecord(wxLog* self, void* pFunction)
+    {
+        static_cast<kwxLog*>(self)->SetOnDoLogRecord(pFunction);
+    }
+
+    EXPORT void wxLog_SetOnDoLogTextAtLevel(wxLog* self, void* pFunction)
+    {
+        static_cast<kwxLog*>(self)->SetOnDoLogTextAtLevel(pFunction);
     }
 
     EXPORT bool kwxLog_IsEnabled(kwxLog* self)

@@ -138,4 +138,21 @@ extern "C"
     {
         return (void*) self->GetExtraControl();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxFileDialog_AddShortcut(void* pObject, void* directory, int flags)
+    {
+        return ((wxFileDialog*) pObject)->AddShortcut(*(wxString*) directory, flags);
+    }
+
+    EXPORT int wxFileDialog_GetCurrentlySelectedFilterIndex(void* pObject)
+    {
+        return ((wxFileDialog*) pObject)->GetCurrentlySelectedFilterIndex();
+    }
+
+    EXPORT bool wxFileDialog_SetCustomizeHook(void* pObject, void* customizeHook)
+    {
+        return ((wxFileDialog*) pObject)->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
+    }
+
 }

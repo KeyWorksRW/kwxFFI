@@ -142,4 +142,16 @@ extern "C"
     {
         return self->GetCountPerPage();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxListBox_GetItem(void* pObject, size_t n)
+    {
+        return (void*) ((wxListBox*) pObject)->GetItem((size_t) n);
+    }
+
+    EXPORT bool wxListBox_SetFont(void* pObject, void* font)
+    {
+        return ((wxListBox*) pObject)->SetFont(*(wxFont*) font);
+    }
+
 }

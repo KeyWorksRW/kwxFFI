@@ -279,4 +279,11 @@ extern "C"
     {
         return new wxBitmap(wxBitmap::NewFromPNGData(data, size));
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxBitmap_CreateWithDIPSize(void* pObject, void* sz, double scale, int depth)
+    {
+        return ((wxBitmap*) pObject)->CreateWithDIPSize(*(wxSize*) sz, scale, depth);
+    }
+
 }

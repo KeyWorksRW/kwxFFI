@@ -44,4 +44,11 @@ extern "C"
     {
         *ref = self->GetCustomColour(index);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxColourData_SetChooseAlpha(void* pObject, bool flag)
+    {
+        ((wxColourData*) pObject)->SetChooseAlpha(flag);
+    }
+
 }

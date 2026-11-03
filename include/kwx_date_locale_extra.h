@@ -179,6 +179,9 @@ TClass(wxString) wxLocale_GetLanguageCanonicalName(int language);
 // Enumeration-valued results are returned as `int` using the wxWidgets enum values
 // (wxLayoutDirection, wxMeasurementSystem, wxCurrencySymbolPosition).
 TClassDef(wxUILocale) TClass(wxUILocale) wxUILocale_CreateFromTag(TClass(wxString) tag);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxUILocale) wxUILocale_FromTag(TClass(wxString) tag);
+void* wxUILocale_GetLanguageInfo(int lang);
 TClass(wxUILocale) wxUILocale_GetCurrent();
 void wxUILocale_Delete(TSelf(wxUILocale) pObject);
 TBool wxUILocale_UseLocaleName(TClass(wxString) locale_name);
@@ -249,6 +252,8 @@ TClass(wxString) wxTranslations_GetUntranslatedString(TClass(wxString) text);
 // FromStringDouble() accept the separators produced by ToString. RemoveTrailingZeroes()
 // rewrites the caller's `wxString` in place.
 TClassDef(wxNumberFormatter) TClass(wxString) wxNumberFormatter_ToStringLong(long value, int style);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxString) wxNumberFormatter_ToString(long val, int style);
 TClass(wxString) wxNumberFormatter_Format(TClass(wxString) format, double value);
 TBool wxNumberFormatter_FromStringLong(TClass(wxString) text, long* value);
 TBool wxNumberFormatter_FromStringDouble(TClass(wxString) text, double* value);
@@ -303,6 +308,10 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // wxCmdLineEntryFlags values, and GetOptionLong() returns `default_value` when the option was
 // not found or did not hold a number.
 TClassDef(wxCmdLineParser) TClass(wxCmdLineParser) wxCmdLineParser_Create();
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxCmdLineParser_AddLongOption(TSelf(wxCmdLineParser) pObject, TClass(wxString) lng, TClass(wxString) desc, int type, int flags);
+void wxCmdLineParser_AddUsageText(TSelf(wxCmdLineParser) pObject, TClass(wxString) text);
+int wxCmdLineParser_FoundSwitch(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 void wxCmdLineParser_Delete(TSelf(wxCmdLineParser) pObject);
 void wxCmdLineParser_SetDesc(TSelf(wxCmdLineParser) pObject, TClass(kwxCmdLineDesc) desc);
 void wxCmdLineParser_AddSwitch(TSelf(wxCmdLineParser) pObject, TClass(wxString) name,
@@ -345,6 +354,8 @@ void kwxCmdLineDesc_AddParam(TSelf(kwxCmdLineDesc) pObject, TClass(wxString) des
 // are not wrapped; see `.private/deferred_i64.md`.
 TClassDefExtend(wxVariant, wxObject) TClass(wxVariant)
     wxVariant_CreateFromBool(TBool value, TClass(wxString) name);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+double wxVariant_GetReal(TSelf(wxVariant) pObject);
 TClass(wxVariant) wxVariant_CreateFromLong(long value, TClass(wxString) name);
 TClass(wxVariant) wxVariant_CreateFromDouble(double value, TClass(wxString) name);
 TClass(wxVariant) wxVariant_CreateFromString(TClass(wxString) value, TClass(wxString) name);

@@ -8,11 +8,11 @@
 extern "C"
 {
     EXPORT wxPreviewFrame* wxPreviewFrame_Create(wxPrintPreview* preview, wxFrame* parent,
-                                                 wxString* title, int x, int y, int width, int height,
-                                                 int style, wxString* name)
+                                                 wxString* title, int x, int y, int width,
+                                                 int height, int style, wxString* name)
     {
-        return new wxPreviewFrame(preview, parent, *title, wxPoint(x, y), wxSize(width, height), style,
-                                  *name);
+        return new wxPreviewFrame(preview, parent, *title, wxPoint(x, y), wxSize(width, height),
+                                  style, *name);
     }
 
     EXPORT void wxPreviewFrame_Delete(wxPreviewFrame* self)
@@ -24,5 +24,11 @@ extern "C"
     EXPORT void wxPreviewFrame_Initialize(wxPreviewFrame* self)
     {
         self->Initialize();
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxPreviewFrame_InitializeWithModality(void* pObject, int kind)
+    {
+        ((wxPreviewFrame*) pObject)->InitializeWithModality((wxPreviewFrameModalityKind) kind);
     }
 }

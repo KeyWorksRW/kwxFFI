@@ -59,4 +59,12 @@ extern "C"
     {
         return self->GetHeight();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxRegionIterator_GetRect(void* pObject)
+    {
+        wxRect value = ((wxRegionIterator*) pObject)->GetRect();
+        return new wxRect(value);
+    }
+
 }

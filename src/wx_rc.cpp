@@ -7,6 +7,12 @@
 #include <wx/html/htmlwin.h>
 #include <wx/xrc/xmlres.h>
 
+// The DDE wrappers below need the real MSW classes: kwx_wrapper.h brings in
+// wx/sckipc.h, whose TCP classes are only aliased onto wxDDE* off MSW.
+#if defined(__WXMSW__) && wxUSE_IPC
+    #include <wx/dde.h>
+#endif
+
 static void InitZipFileSystem()
 {
     static bool done = false;
@@ -241,5 +247,57 @@ extern "C"
     EXPORT void wxXmlResource_SetFlags(wxXmlResource* self, int flags)
     {
         self->SetFlags(flags);
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxConnectionBase_IsTextFormat(int format)
+    {
+        return wxConnectionBase::IsTextFormat((wxIPCFormat) format);
+    }
+
+    EXPORT void* wxDDEClient_MakeConnection(void* pObject, void* host, void* server, void* topic)
+    {
+        return (void*) ((wxDDEClient*) pObject)
+            ->MakeConnection(*(wxString*) host, *(wxString*) server, *(wxString*) topic);
+    }
+
+    EXPORT bool wxDDEConnection_StartAdvise(void* pObject, void* item)
+    {
+#if defined(__WXMSW__) && wxUSE_IPC
+        return ((wxDDEConnection*) pObject)->StartAdvise(*(wxString*) item);
+#else
+        // wxDDEConnection only exists in a wxMSW build (see kwx_msw_aliases.h).
+        wxUnusedVar(pObject);
+        wxUnusedVar(item);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxDDEConnection_StopAdvise(void* pObject, void* item)
+    {
+#if defined(__WXMSW__) && wxUSE_IPC
+        return ((wxDDEConnection*) pObject)->StopAdvise(*(wxString*) item);
+#else
+        wxUnusedVar(pObject);
+        wxUnusedVar(item);
+        return false;
+#endif
+    }
+
+    EXPORT bool wxDDEServer_Create(void* pObject, void* server_name)
+    {
+        return ((wxDDEServer*) pObject)->Create(*(wxString*) server_name);
+    }
+
+    EXPORT bool wxXmlResource_LoadAllFiles(void* pObject, void* dirname)
+    {
+        return ((wxXmlResource*) pObject)->LoadAllFiles(*(wxString*) dirname);
+    }
+
+    EXPORT void* wxXmlResource_LoadObjectRecursively(void* pObject, void* parent, void* name,
+                                                     void* classname)
+    {
+        return (void*) ((wxXmlResource*) pObject)
+            ->LoadObjectRecursively((wxWindow*) parent, *(wxString*) name, *(wxString*) classname);
     }
 }

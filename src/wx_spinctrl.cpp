@@ -82,4 +82,11 @@ extern "C"
     {
         return self->SetBase(base);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxSpinButton_SetIncrement(void* pObject, int value)
+    {
+        ((wxSpinButton*) pObject)->SetIncrement(value);
+    }
+
 }

@@ -1,4 +1,5 @@
 #include "kwx_wrapper.h"
+#include <wx/filename.h>
 
 // wxFileName is exported as an opaque handle: the C caller never sees the class
 // layout, only pointers returned by the Create* functions.
@@ -481,5 +482,31 @@ extern "C"
     EXPORT bool wxFileName_IsCaseSensitive(int format)
     {
         return wxFileName::IsCaseSensitive(static_cast<wxPathFormat>(format));
+    }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxFileName_SplitPath(void* fullpath, void* volume, void* path, void* name,
+                                     void* ext, int* hasExt, int format)
+    {
+        // The FFI passes the out-param as int*; wxFileName wants bool*.
+        bool has_ext = false;
+        wxFileName::SplitPath(*(wxString*) fullpath, (wxString*) volume, (wxString*) path,
+                              (wxString*) name, (wxString*) ext, hasExt ? &has_ext : nullptr,
+                              static_cast<wxPathFormat>(format));
+        if (hasExt)
+        {
+            *hasExt = has_ext ? 1 : 0;
+        }
+    }
+
+    EXPORT bool wxPathList_Add(void* pObject, void* path)
+    {
+        return ((wxPathList*) pObject)->Add(*(wxString*) path);
+    }
+
+    EXPORT void* wxPathList_FindValidPath(void* pObject, void* filename)
+    {
+        wxString value = ((wxPathList*) pObject)->FindValidPath(*(wxString*) filename);
+        return new wxString(value);
     }
 }

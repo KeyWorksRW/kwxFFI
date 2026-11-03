@@ -67,6 +67,9 @@ void wxPlatformInfo_SetDesktopEnvironment(TSelf(wxPlatformInfo) pObject,
 // ---------------------------------------------------------------------------
 
 TClassDef(wxSecretValue) TClass(wxSecretValue) wxSecretValue_Create(TClass(wxString) secret);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+size_t wxSecretValue_GetSize(TSelf(wxSecretValue) pObject);
+void wxSecretValue_WipeString(TClass(wxString) str);
 TClass(wxSecretValue) wxSecretValue_CreateDefault();
 void wxSecretValue_Delete(TSelf(wxSecretValue) pObject);
 TBool wxSecretValue_IsOk(TSelf(wxSecretValue) pObject);
@@ -191,6 +194,8 @@ TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(
 // Optional string parameters accept null, which is treated as an empty string.
 
 TClassDef(wxFileName) TClass(wxFileName) wxFileName_Create();
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxFileName_SplitPath(TClass(wxString) fullpath, void* volume, void* path, void* name, void* ext, int* hasExt, int format);
 TClass(wxFileName) wxFileName_CreateFromPath(TClass(wxString) full_path, int format);
 TClass(wxFileName)
     wxFileName_CreateWithName(TClass(wxString) path, TClass(wxString) name, int format);

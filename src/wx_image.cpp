@@ -821,4 +821,11 @@ extern "C"
         return nullptr;
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT unsigned char wxImage_GetAlpha(void* pObject, int x, int y)
+    {
+        return ((wxImage*) pObject)->GetAlpha(x, y);
+    }
+
 }

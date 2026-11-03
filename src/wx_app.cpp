@@ -41,4 +41,143 @@ extern "C"
     {
         self->ExitMainLoop();
     }
+
+    // ---- Phase 5: wxApp override hooks (include/kwx_helper_hooks.h) ----
+
+    // The portability matrix resolves an ovh row to both kwxApp_SetOn<Method>
+    // and wxApp_SetOn<Method>, so the same setter is exported under the base
+    // name.  Both take the same kwxApp object; the cast is safe because only
+    // kwxApp_SetOn* can install the callbacks this forwards to.
+
+#if KWX_HAVE_APP_HOOK
+
+    EXPORT void wxApp_SetOnOnCmdLineParsed(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnCmdLineParsed(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnInitCmdLine(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnInitCmdLine(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnExit(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnExit(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnFilterEvent(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnFilterEvent(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnGetClassInfo(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnGetClassInfo(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnAssertFailure(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnAssertFailure(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnCreateTraits(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnCreateTraits(pFunction);
+    }
+
+#else  // !KWX_HAVE_APP_HOOK
+
+    // wxApp only exists in a GUI build.  The declarations stay visible to kwxgen
+    // because it skips preprocessor lines, so the symbols must exist in every
+    // build; without a kwxApp they have nothing to forward to.
+
+    EXPORT void wxApp_SetOnOnCmdLineParsed(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnInitCmdLine(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnExit(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnFilterEvent(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnGetClassInfo(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnAssertFailure(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnCreateTraits(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+#endif  // KWX_HAVE_APP_HOOK
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxApp_GetAppDisplayName(void* pObject)
+    {
+        wxString value = ((wxApp*) pObject)->GetAppDisplayName();
+        return new wxString(value);
+    }
+
+    EXPORT void* wxApp_GetAppName(void* pObject)
+    {
+        wxString value = ((wxApp*) pObject)->GetAppName();
+        return new wxString(value);
+    }
+
+    EXPORT int wxApp_GetComCtl32Version()
+    {
+        return wxApp::GetComCtl32Version();
+    }
+
+    EXPORT void* wxApp_GetVendorName(void* pObject)
+    {
+        wxString value = ((wxApp*) pObject)->GetVendorName();
+        return new wxString(value);
+    }
+
+    EXPORT void wxApp_SetAppDisplayName(void* pObject, void* name)
+    {
+        ((wxApp*) pObject)->SetAppDisplayName(*(wxString*) name);
+    }
+
+    EXPORT void wxApp_SetAppName(void* pObject, void* name)
+    {
+        ((wxApp*) pObject)->SetAppName(*(wxString*) name);
+    }
+
+    EXPORT int wxApp_SetAppearance(void* pObject, int appearance)
+    {
+        wxApp::Appearance const app_appearance = static_cast<wxApp::Appearance>(appearance);
+        return std::to_underlying(((wxApp*) pObject)->SetAppearance(app_appearance));
+    }
+
+    EXPORT void wxApp_SetVendorName(void* pObject, void* name)
+    {
+        ((wxApp*) pObject)->SetVendorName(*(wxString*) name);
+    }
 }

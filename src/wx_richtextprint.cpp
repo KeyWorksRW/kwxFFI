@@ -293,4 +293,16 @@ extern "C"
         *width = rect.GetWidth();
         *height = rect.GetHeight();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxRichTextPrinting_PreviewBuffer(void* pObject, void* buffer)
+    {
+        return ((wxRichTextPrinting*) pObject)->PreviewBuffer(*(wxRichTextBuffer*) buffer);
+    }
+
+    EXPORT bool wxRichTextPrinting_PrintBuffer(void* pObject, void* buffer, bool showPrintDialog)
+    {
+        return ((wxRichTextPrinting*) pObject)->PrintBuffer(*(wxRichTextBuffer*) buffer, showPrintDialog);
+    }
+
 }

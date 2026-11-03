@@ -34,6 +34,9 @@ std::vector<ConstantDecl> ParseDefs(const std::filesystem::path& filePath)
     constexpr int CONST_SUFFIX_GROUP = 4;
     const std::regex re_const(R"(^\s*EXPORT\s+(const\s+(\w+)\*)\s+(expwx(\w+))\s*\(\s*\))");
 
+    // Pattern 4: EXPORT void* expwxNAME()
+    const std::regex re_void(R"(^\s*EXPORT\s+void\*\s+(expwx(\w+))\s*\(\s*\))");
+
     std::string line;
     while (std::getline(file, line))
     {
@@ -61,6 +64,14 @@ std::vector<ConstantDecl> ParseDefs(const std::filesystem::path& filePath)
             decl.constant_name = match[CONST_SUFFIX_GROUP].str();
             // Normalize: "const wxColour*" with no space before *
             decl.return_type = "const " + match[2].str() + "*";
+            results.push_back(std::move(decl));
+        }
+        else if (std::regex_search(line, match, re_void))
+        {
+            ConstantDecl decl;
+            decl.export_name = match[1].str();
+            decl.constant_name = match[2].str();
+            decl.return_type = "void*";
             results.push_back(std::move(decl));
         }
     }

@@ -499,4 +499,10 @@ extern "C"
     {
         return wxBase64DecodedSize(encoded_length);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxXmlDocument_GetDocumentNode(void* pObject)
+    {
+        return ((wxXmlDocument*) pObject)->GetDocumentNode();
+    }
 }

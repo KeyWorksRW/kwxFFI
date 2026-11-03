@@ -1,10 +1,21 @@
 #include "kwx_wrapper.h"
 
+#include <wx/busyinfo.h>
+#include <wx/cursor.h>
+#include <wx/dirdlg.h>
 #include <wx/filedlg.h>
+#include <wx/generic/choicdgg.h>
+#include <wx/math.h>
+#include <wx/power.h>
 #include <wx/process.h>
 #include <wx/stockitem.h>
+#include <wx/tipdlg.h>
 #include <wx/utils.h>
+#include <wx/valnum.h>
+#include <wx/versioninfo.h>
+#include <wx/wxcrt.h>
 
+#include <cstdio>
 #include <vector>
 
 // The wrapper definitions live inside a namespace so that the exported C symbols are allowed to
@@ -490,6 +501,400 @@ namespace kwx
         {
             return new wxString(::wxGetStockHelpString(
                 static_cast<wxWindowID>(id), static_cast<wxStockHelpStringClient>(client)));
+        }
+
+        // -------------------------------------------------------------------
+        // Leaf free functions (Phase 2: .private/port/fix_worklist.json)
+        // -------------------------------------------------------------------
+
+        EXPORT void* wxCheckDynamicCast(wxObject* obj, wxClassInfo* class_info)
+        {
+            return ::wxCheckDynamicCast(obj, class_info);
+        }
+
+        // wxCheckCast() is a template, so no instance can be named here. The ABI contract of
+        // the sample-facing function is the identity cast wxStaticCast() performs after its
+        // debug-only assertion.
+        EXPORT void* wxCheckCast(wxObject* obj, [[maybe_unused]] wxClassInfo* class_info)
+        {
+            return obj;
+        }
+
+        EXPORT void* wxGetApp()
+        {
+            // wxGetApp() is a macro over wxApp::GetInstance() and is therefore not a
+            // symbol; the instance getter is the ABI-stable spelling of the same value.
+            return wxApp::GetInstance();
+        }
+
+        EXPORT void wxInitAllImageHandlers()
+        {
+            ::wxInitAllImageHandlers();
+        }
+
+        EXPORT void wxUnusedVar([[maybe_unused]] void* value)
+        {
+            // Intentionally empty: wxUnusedVar() exists only to silence unused-variable
+            // warnings, so there is no value for the binding to observe.
+        }
+
+        EXPORT int wxGetSingleChoiceIndex(const wxString* message, const wxString* caption,
+                                          const wxString* choices, int count, wxWindow* parent)
+        {
+            return ::wxGetSingleChoiceIndex(*message, *caption, count, choices, parent);
+        }
+
+        EXPORT void wxBeginBusyCursor()
+        {
+            ::wxBeginBusyCursor();
+        }
+
+        EXPORT void wxEndBusyCursor()
+        {
+            ::wxEndBusyCursor();
+        }
+
+        EXPORT wxString* wxJoin(const wxArrayString* array, int separator)
+        {
+            return new wxString(::wxJoin(*array, static_cast<wxChar>(separator)));
+        }
+
+        EXPORT int wxAtoi(const wxString* str)
+        {
+            return ::wxAtoi(*str);
+        }
+
+        EXPORT wxSize* wxGetDisplaySize()
+        {
+            return new wxSize(::wxGetDisplaySize());
+        }
+
+        EXPORT wxWindow* wxGetTopLevelParent(wxWindow* window)
+        {
+            return ::wxGetTopLevelParent(window);
+        }
+
+        EXPORT bool wxIsprint(int character)
+        {
+            return ::wxIsprint(wxUniChar(static_cast<wxUint32>(character)));
+        }
+
+        EXPORT int wxRound(double value)
+        {
+            return ::wxRound(value);
+        }
+
+        EXPORT void wxWakeUpIdle()
+        {
+            ::wxWakeUpIdle();
+        }
+
+        EXPORT void wxBell()
+        {
+            ::wxBell();
+        }
+
+        EXPORT double wxDegToRad(double degrees)
+        {
+            return ::wxDegToRad(degrees);
+        }
+
+        EXPORT char* wxFgets(char* buffer, int size, void* stream)
+        {
+            return ::wxFgets(buffer, size, static_cast<FILE*>(stream));
+        }
+
+        EXPORT wxString* wxGetCwd()
+        {
+            return new wxString(::wxGetCwd());
+        }
+
+        EXPORT bool wxIsMainThread()
+        {
+            return ::wxIsMainThread();
+        }
+
+        EXPORT int wxNewEventType()
+        {
+            return static_cast<int>(::wxNewEventType());
+        }
+
+        EXPORT void wxQueueEvent(wxEvtHandler* dest, wxEvent* event)
+        {
+            ::wxQueueEvent(dest, event);
+        }
+
+        EXPORT void wxSetCursor(const wxCursor* cursors)
+        {
+            // wxSetCursor() takes a wxCursorBundle, which has no single-cursor constructor,
+            // so the phone call is made through the owner that stores the bundle.
+            ::wxSetCursor(wxCursorBundle(*cursors));
+        }
+
+        EXPORT wxArrayString* wxSplit(const wxString* str, int separator)
+        {
+            return new wxArrayString(::wxSplit(*str, static_cast<wxChar>(separator)));
+        }
+
+        EXPORT int wxStrcmp(const wxString* first, const wxString* second)
+        {
+            return ::wxStrcmp(*first, *second);
+        }
+
+        EXPORT void wxSwap(void* first, void* second, size_t size)
+        {
+            // Byte-wise swap: the binding has no type information, only the element size.
+            unsigned char* first_bytes = static_cast<unsigned char*>(first);
+            unsigned char* second_bytes = static_cast<unsigned char*>(second);
+            for (size_t i = 0; i < size; ++i)
+            {
+                const unsigned char temporary = first_bytes[i];
+                first_bytes[i] = second_bytes[i];
+                second_bytes[i] = temporary;
+            }
+        }
+
+        EXPORT void* wxUIntToPtr(size_t value)
+        {
+            return ::wxUIntToPtr(static_cast<wxUIntPtr>(value));
+        }
+
+        EXPORT void* wxCreateFileTipProvider(const wxString* filename, int current_tip)
+        {
+            return ::wxCreateFileTipProvider(*filename, static_cast<size_t>(current_tip));
+        }
+
+        EXPORT wxString* wxDirSelector(const wxString* message, const wxString* default_path,
+                                       long style, int x, int y, wxWindow* parent)
+        {
+            return new wxString(
+                ::wxDirSelector(*message, *default_path, style, wxPoint(x, y), parent));
+        }
+
+        EXPORT bool wxFileExists(const wxString* filename)
+        {
+            return ::wxFileExists(*filename);
+        }
+
+        EXPORT wxWindow* wxFindFocusDescendant(wxWindow* ancestor)
+        {
+            return ::wxFindFocusDescendant(ancestor);
+        }
+
+        EXPORT int wxGetBatteryState()
+        {
+            return static_cast<int>(::wxGetBatteryState());
+        }
+
+        EXPORT wxRect* wxGetClientDisplayRect()
+        {
+            return new wxRect(::wxGetClientDisplayRect());
+        }
+
+        EXPORT long wxGetLocalTime()
+        {
+            return ::wxGetLocalTime();
+        }
+
+        EXPORT int wxGetPowerType()
+        {
+            return static_cast<int>(::wxGetPowerType());
+        }
+
+        EXPORT int wxGetSelectedChoices(void* selections, const wxString* choices, int count,
+                                        const wxString* message, const wxString* caption,
+                                        wxWindow* parent)
+        {
+            return ::wxGetSelectedChoices(*static_cast<wxArrayInt*>(selections), *message, *caption,
+                                          count, choices, parent);
+        }
+
+        EXPORT wxString* wxGetSingleChoice(const wxString* message, const wxString* caption,
+                                           const wxString* choices, int count, wxWindow* parent)
+        {
+            return new wxString(::wxGetSingleChoice(*message, *caption, count, choices, parent));
+        }
+
+        EXPORT void* wxGetSingleChoiceData(const wxString* message, const wxString* caption,
+                                           const wxString* choices, int count, void* client_data,
+                                           wxWindow* parent)
+        {
+            return ::wxGetSingleChoiceData(*message, *caption, count, choices, &client_data,
+                                           parent);
+        }
+
+        EXPORT wxString* wxGetTranslation(const wxString* str)
+        {
+            return new wxString(::wxGetTranslation(*str));
+        }
+
+        EXPORT wxString* wxGetZlibVersionInfo()
+        {
+            return new wxString(::wxGetZlibVersionInfo().ToString());
+        }
+
+        EXPORT void* wxGet_wxConvLibc()
+        {
+            return &::wxGet_wxConvLibc();
+        }
+
+        EXPORT void* wxGet_wxConvLocal()
+        {
+            return &::wxGet_wxConvLocal();
+        }
+
+        EXPORT void* wxGet_wxConvUTF8()
+        {
+            return &::wxGet_wxConvUTF8();
+        }
+
+        EXPORT bool wxIsalnum(int character)
+        {
+            return ::wxIsalnum(wxUniChar(static_cast<wxUint32>(character)));
+        }
+
+        EXPORT bool wxIsdigit(int character)
+        {
+            return ::wxIsdigit(wxUniChar(static_cast<wxUint32>(character)));
+        }
+
+        EXPORT bool wxIslower(int character)
+        {
+            return ::wxIslower(wxUniChar(static_cast<wxUint32>(character)));
+        }
+
+        EXPORT void* wxMakeFloatingPointValidator(double* value, int style)
+        {
+            return new wxFloatingPointValidator<double>(value, style);
+        }
+
+        EXPORT void wxMutexGuiEnter()
+        {
+            ::wxMutexGuiEnter();
+        }
+
+        EXPORT void wxMutexGuiLeave()
+        {
+            ::wxMutexGuiLeave();
+        }
+
+        EXPORT bool wxPlatformIs(int platform)
+        {
+            return ::wxPlatformIs(platform);
+        }
+
+        EXPORT void* wxPointRefFromVariant(wxVariant* variant)
+        {
+            return &::wxPointRefFromVariant(*variant);
+        }
+
+        EXPORT void wxPostEvent(wxEvtHandler* dest, wxEvent* event)
+        {
+            ::wxPostEvent(dest, *event);
+        }
+
+        EXPORT size_t wxPtrToUInt(void* pointer)
+        {
+            return static_cast<size_t>(::wxPtrToUInt(pointer));
+        }
+
+        EXPORT int wxPuts(const wxString* str)
+        {
+            return ::wxPuts(*str);
+        }
+
+        EXPORT bool wxRenameFile(const wxString* old_path, const wxString* new_path, int overwrite)
+        {
+            return ::wxRenameFile(*old_path, *new_path, overwrite != 0);
+        }
+
+        EXPORT bool wxShowTip(wxWindow* parent, void* tip_provider)
+        {
+            return ::wxShowTip(parent, static_cast<wxTipProvider*>(tip_provider));
+        }
+
+        EXPORT void* wxSizeRefFromVariant(wxVariant* variant)
+        {
+            return &::wxSizeRefFromVariant(*variant);
+        }
+
+        EXPORT char* wxStrdup(const wxString* str)
+        {
+            return ::wxStrdup(str->utf8_str());
+        }
+
+        EXPORT double wxStrtod(const wxString* nptr)
+        {
+            return ::wxStrtod(nptr->c_str(), nullptr);
+        }
+
+        EXPORT long wxStrtol(const wxString* nptr, int base)
+        {
+            return ::wxStrtol(nptr->c_str(), nullptr, base);
+        }
+
+        // -------------------------------------------------------------------
+        // wxArrayString
+        //
+        // The block is declared in include/kwx_classes.h against the existing
+        // TClassDefExtend(wxArrayString, wxArray). Elements are handed over as wxString*
+        // because that is what the wxArrayString storage already holds.
+        // -------------------------------------------------------------------
+
+        EXPORT wxArrayString* wxArrayString_Create()
+        {
+            return new wxArrayString();
+        }
+
+        EXPORT void wxArrayString_Add(wxArrayString* self, const wxString* str)
+        {
+            self->Add(*str);
+        }
+
+        EXPORT int wxArrayString_GetCount(wxArrayString* self)
+        {
+            return static_cast<int>(self->GetCount());
+        }
+
+        EXPORT int wxArrayString_Count(wxArrayString* self)
+        {
+            return static_cast<int>(self->Count());
+        }
+
+        EXPORT void wxArrayString_Insert(wxArrayString* self, const wxString* str, int index)
+        {
+            self->Insert(*str, static_cast<size_t>(index));
+        }
+
+        EXPORT void wxArrayString_RemoveAt(wxArrayString* self, int index, int count)
+        {
+            self->RemoveAt(static_cast<size_t>(index), static_cast<size_t>(count));
+        }
+
+        EXPORT bool wxArrayString_IsEmpty(wxArrayString* self)
+        {
+            return self->IsEmpty();
+        }
+
+        EXPORT wxString* wxArrayString_Item(wxArrayString* self, int index)
+        {
+            // The binding owns the returned copy; the element itself stays in the array.
+            return new wxString(self->Item(static_cast<size_t>(index)));
+        }
+
+        EXPORT void wxArrayString_Sort(wxArrayString* self, int reverse)
+        {
+            self->Sort(reverse != 0);
+        }
+
+        EXPORT void wxArrayString_Alloc(wxArrayString* self, int count)
+        {
+            self->Alloc(static_cast<size_t>(count));
+        }
+
+        EXPORT void wxArrayString_Clear(wxArrayString* self)
+        {
+            self->Clear();
         }
     }
 }  // namespace kwx

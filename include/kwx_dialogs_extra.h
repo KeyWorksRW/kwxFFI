@@ -124,6 +124,8 @@ void wxNumValidator_Delete(TSelf(wxNumValidator) pObject);
 
 TClassDef(wxRichToolTip) TClass(wxRichToolTip)
     wxRichToolTip_Create(TClass(wxString) title, TClass(wxString) message);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxRichToolTip_SetTipKind(TSelf(wxRichToolTip) pObject, int tipKind);
 void wxRichToolTip_SetBackgroundColour(TSelf(wxRichToolTip) pObject, TClass(wxColour) colour,
                                        TClass(wxColour) colour_end);
 void wxRichToolTip_SetIcon(TSelf(wxRichToolTip) pObject, int icon);
@@ -133,6 +135,9 @@ void wxRichToolTip_ShowFor(TSelf(wxRichToolTip) pObject, TClass(wxWindow) win, T
 void wxRichToolTip_Delete(TSelf(wxRichToolTip) pObject);
 
 TClassDef(wxTaskBarButton) TClass(wxTaskBarButton) wxTaskBarButton_New(TClass(wxWindow) parent);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxTaskBarButton_AppendThumbBarButton(TSelf(wxTaskBarButton) pObject, void* button);
+void* wxTaskBarButton_RemoveThumbBarButton(TSelf(wxTaskBarButton) pObject, void* button);
 void wxTaskBarButton_Hide(TSelf(wxTaskBarButton) pObject);
 void wxTaskBarButton_PulseProgress(TSelf(wxTaskBarButton) pObject);
 void wxTaskBarButton_Realize(TSelf(wxTaskBarButton) pObject);

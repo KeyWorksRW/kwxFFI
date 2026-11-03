@@ -768,4 +768,20 @@ extern "C"
         }
         return count;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxBoxSizer_AddSpacer(void* pObject, int size)
+    {
+        return ((wxBoxSizer*) pObject)->AddSpacer(size);
+    }
+
+    EXPORT void wxSizerItem_SetMinSize(void* pObject, void* size)
+    {
+        ((wxSizerItem*) pObject)->SetMinSize(*(wxSize*) size);
+    }
+
+    EXPORT bool wxStaticBoxSizer_Detach(void* pObject, void* window)
+    {
+        return ((wxStaticBoxSizer*) pObject)->Detach((wxWindowBase*) window);
+    }
 }

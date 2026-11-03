@@ -123,5 +123,17 @@ extern "C"
     {
         return self->Tell();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxMediaCtrl_GetDownloadProgress(void* pObject)
+    {
+        return (int) ((wxMediaCtrl*) pObject)->GetDownloadProgress();
+    }
+
+    EXPORT int wxMediaCtrl_GetDownloadTotal(void* pObject)
+    {
+        return (int) ((wxMediaCtrl*) pObject)->GetDownloadTotal();
+    }
+
 }
 #endif  // wxUSE_MEDIACTRL

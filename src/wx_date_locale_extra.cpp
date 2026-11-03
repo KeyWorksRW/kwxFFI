@@ -1264,6 +1264,45 @@ extern "C"
         *value = converted ? 1 : 0;
         return true;
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxCmdLineParser_AddLongOption(void* pObject, void* lng, void* desc, int type, int flags)
+    {
+        ((wxCmdLineParser*) pObject)->AddLongOption(*(wxString*) lng, *(wxString*) desc, (wxCmdLineParamType) type, flags);
+    }
+
+    EXPORT void wxCmdLineParser_AddUsageText(void* pObject, void* text)
+    {
+        ((wxCmdLineParser*) pObject)->AddUsageText(*(wxString*) text);
+    }
+
+    EXPORT int wxCmdLineParser_FoundSwitch(void* pObject, void* name)
+    {
+        return (int) ((wxCmdLineParser*) pObject)->FoundSwitch(*(wxString*) name);
+    }
+
+    EXPORT void* wxNumberFormatter_ToString(long val, int style)
+    {
+        wxString value = wxNumberFormatter::ToString(val, style);
+        return new wxString(value);
+    }
+
+    EXPORT void* wxUILocale_FromTag(void* tag)
+    {
+        wxUILocale value = wxUILocale::FromTag(*(wxString*) tag);
+        return new wxUILocale(value);
+    }
+
+    EXPORT void* wxUILocale_GetLanguageInfo(int lang)
+    {
+        return (void*) wxUILocale::GetLanguageInfo(lang);
+    }
+
+    EXPORT double wxVariant_GetReal(void* pObject)
+    {
+        return ((wxVariant*) pObject)->GetReal();
+    }
+
 }
 
 // NOLINTEND(bugprone-identical-type-multi-param)

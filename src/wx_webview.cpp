@@ -698,4 +698,119 @@ extern "C"
         wxUnusedVar(handler);
 #endif
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void* wxWebViewEvent_GetMessageHandler(void* pObject)
+    {
+        wxString value = ((wxWebViewEvent*) pObject)->GetMessageHandler();
+        return new wxString(value);
+    }
+
+    EXPORT void* wxWebViewEvent_GetTargetWindowFeatures(void* pObject)
+    {
+        return (void*) ((wxWebViewEvent*) pObject)->GetTargetWindowFeatures();
+    }
+
+    EXPORT bool wxWebViewEvent_IsError(void* pObject)
+    {
+        return ((wxWebViewEvent*) pObject)->IsError();
+    }
+
+    EXPORT bool wxWebViewEvent_IsTargetMainFrame(void* pObject)
+    {
+        return ((wxWebViewEvent*) pObject)->IsTargetMainFrame();
+    }
+
+    EXPORT bool wxWebView_AddScriptMessageHandler(void* pObject, void* name)
+    {
+        return ((wxWebView*) pObject)->AddScriptMessageHandler(*(wxString*) name);
+    }
+
+    EXPORT bool wxWebView_AddUserScript(void* pObject, void* javascript, int injectionTime)
+    {
+        return ((wxWebView*) pObject)
+            ->AddUserScript(*(wxString*) javascript,
+                            (wxWebViewUserScriptInjectionTime) injectionTime);
+    }
+
+    EXPORT bool wxWebView_AreBrowserAcceleratorKeysEnabled(void* pObject)
+    {
+        return ((wxWebView*) pObject)->AreBrowserAcceleratorKeysEnabled();
+    }
+
+    EXPORT bool wxWebView_CanRedo(void* pObject)
+    {
+        return ((wxWebView*) pObject)->CanRedo();
+    }
+
+    EXPORT bool wxWebView_CanSetZoomType(void* pObject, int type)
+    {
+        return ((wxWebView*) pObject)->CanSetZoomType((wxWebViewZoomType) type);
+    }
+
+    EXPORT bool wxWebView_CanUndo(void* pObject)
+    {
+        return ((wxWebView*) pObject)->CanUndo();
+    }
+
+    EXPORT void wxWebView_ClearBrowsingData(void* pObject)
+    {
+        ((wxWebView*) pObject)->ClearBrowsingData();
+    }
+
+    EXPORT void wxWebView_ClearHistory(void* pObject)
+    {
+        ((wxWebView*) pObject)->ClearHistory();
+    }
+
+    EXPORT void wxWebView_DeleteSelection(void* pObject)
+    {
+        ((wxWebView*) pObject)->DeleteSelection();
+    }
+
+    EXPORT void wxWebView_EnableHistory(void* pObject, bool enable)
+    {
+        ((wxWebView*) pObject)->EnableHistory(enable);
+    }
+
+    EXPORT void* wxWebView_GetUserAgent(void* pObject)
+    {
+        wxString value = ((wxWebView*) pObject)->GetUserAgent();
+        return new wxString(value);
+    }
+
+    EXPORT void* wxWebView_NewConfiguration(void* backend)
+    {
+        return new wxWebViewConfiguration(wxWebView::NewConfiguration(*(wxString*) backend));
+    }
+
+    EXPORT void wxWebView_Redo(void* pObject)
+    {
+        ((wxWebView*) pObject)->Redo();
+    }
+
+    EXPORT void wxWebView_SelectAll(void* pObject)
+    {
+        ((wxWebView*) pObject)->SelectAll();
+    }
+
+    EXPORT bool wxWebView_SetProxy(void* pObject, void* proxy)
+    {
+        return ((wxWebView*) pObject)->SetProxy(*(wxString*) proxy);
+    }
+
+    EXPORT bool wxWebView_SetUserAgent(void* pObject, void* userAgent)
+    {
+        return ((wxWebView*) pObject)->SetUserAgent(*(wxString*) userAgent);
+    }
+
+    EXPORT bool wxWebView_ShowDevTools(void* pObject)
+    {
+        return ((wxWebView*) pObject)->ShowDevTools();
+    }
+
+    EXPORT void wxWebView_Undo(void* pObject)
+    {
+        ((wxWebView*) pObject)->Undo();
+    }
 }

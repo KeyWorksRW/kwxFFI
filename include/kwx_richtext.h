@@ -12,6 +12,8 @@
 TClassDefExtend(wxRichTextObject, wxObject)
 
     TClass(wxRichTextObject) wxRichTextObject_GetParent(TSelf(wxRichTextObject) self);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxRichTextProperties) wxRichTextObject_GetProperties(TSelf(wxRichTextObject) pObject);
 TClass(wxRichTextObject) wxRichTextObject_GetFirstChild(TSelf(wxRichTextObject) self);
 TClass(wxRichTextObject) wxRichTextObject_GetNextSibling(TSelf(wxRichTextObject) self);
 void wxRichTextObject_GetPosition(TSelf(wxRichTextObject) self, TPointOut(x, y));
@@ -55,6 +57,8 @@ void wxRichTextCompositeObject_Delete(TSelf(wxRichTextCompositeObject) self);
 TClassDefExtend(wxRichTextParagraphLayoutBox, wxRichTextCompositeObject)
 
     wxRichTextParagraphLayoutBox_Create(TClass(wxRichTextObject) parent);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(TSelf(wxRichTextParagraphLayoutBox) pObject, long position);
 void wxRichTextParagraphLayoutBox_Delete(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_Clear(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_Reset(TSelf(wxRichTextParagraphLayoutBox) self);
@@ -141,6 +145,8 @@ size_t wxRichTextImageBlock_GetDataSize(TSelf(wxRichTextImageBlock) self);
 TClassDefExtend(wxRichTextBuffer, wxRichTextParagraphLayoutBox)
 
     wxRichTextBuffer_Create();
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxRichTextBuffer_AddHandler(void* handler);
 void wxRichTextBuffer_Delete(TSelf(wxRichTextBuffer) self);
 void wxRichTextBuffer_AddParagraph(TSelf(wxRichTextBuffer) self, TClass(wxString) text,
                                    TClass(wxRichTextAttr) paraStyle, long* start, long* end);
@@ -175,6 +181,8 @@ TBool wxRichTextBuffer_SuppressingUndo(TSelf(wxRichTextBuffer) self);
 TClassDefExtend(wxRichTextFileHandler, wxObject)
 
     TClass(wxString) wxRichTextFileHandler_GetName(TSelf(wxRichTextFileHandler) self);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxRichTextFileHandler_SaveFile(TSelf(wxRichTextFileHandler) pObject, void* buffer, TClass(wxOutputStream) stream);
 void wxRichTextFileHandler_SetName(TSelf(wxRichTextFileHandler) self, TClass(wxString) name);
 TClass(wxString) wxRichTextFileHandler_GetExtension(TSelf(wxRichTextFileHandler) self);
 void wxRichTextFileHandler_SetExtension(TSelf(wxRichTextFileHandler) self, TClass(wxString) ext);
@@ -233,6 +241,13 @@ void wxRichTextEvent_SetOldContainer(TSelf(wxRichTextEvent) self,
 TClassDefExtend(wxRichTextCtrl, wxControl)
 
     TClass(wxRichTextBuffer) wxRichTextCtrl_GetBuffer(TSelf(wxRichTextCtrl) self);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxRichTextCtrl_BeginSuppressUndo(TSelf(wxRichTextCtrl) pObject);
+TBool wxRichTextCtrl_EndSuppressUndo(TSelf(wxRichTextCtrl) pObject);
+void* wxRichTextCtrl_GetCommandProcessor(TSelf(wxRichTextCtrl) pObject);
+void* wxRichTextCtrl_WriteField(TSelf(wxRichTextCtrl) pObject, TClass(wxString) fieldType, TClass(wxRichTextProperties) properties, TClass(wxRichTextAttr) textAttr);
+void* wxRichTextCtrl_WriteTable(TSelf(wxRichTextCtrl) pObject, int rows, int cols, TClass(wxRichTextAttr) tableAttr, TClass(wxRichTextAttr) cellAttr);
+void* wxRichTextCtrl_WriteTextBox(TSelf(wxRichTextCtrl) pObject, TClass(wxRichTextAttr) textAttr);
 TClass(wxRichTextParagraphLayoutBox) wxRichTextCtrl_GetFocusObject(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_SetFocusObject(TSelf(wxRichTextCtrl) self,
                                     TClass(wxRichTextParagraphLayoutBox) obj,
@@ -397,6 +412,9 @@ void wxRichTextHeaderFooterData_GetTextColour(TSelf(wxRichTextHeaderFooterData) 
 TClassDefExtend(wxRichTextPrinting, wxObject)
 
     wxRichTextPrinting_Create(TClass(wxString) name, TClass(wxWindow) parentWindow);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TBool wxRichTextPrinting_PreviewBuffer(TSelf(wxRichTextPrinting) pObject, TClass(wxRichTextBuffer) buffer);
+TBool wxRichTextPrinting_PrintBuffer(TSelf(wxRichTextPrinting) pObject, TClass(wxRichTextBuffer) buffer, TBool showPrintDialog);
 void wxRichTextPrinting_Delete(TSelf(wxRichTextPrinting) self);
 TBool wxRichTextPrinting_PreviewFile(TSelf(wxRichTextPrinting) self, TClass(wxString) richTextFile);
 TBool wxRichTextPrinting_PrintFile(TSelf(wxRichTextPrinting) self, TClass(wxString) richTextFile,

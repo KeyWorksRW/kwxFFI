@@ -647,4 +647,32 @@ extern "C"
     {
         self->EnableBellOnNoMatch(on);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxTreeCtrl_AssignButtonsImageList(void* pObject, void* imageList)
+    {
+#if wxHAS_GENERIC_TREECTRL
+        ((wxTreeCtrl*) pObject)->AssignButtonsImageList((wxImageList*) imageList);
+#else
+        // Only the generic wxTreeCtrl implements the buttons image list.
+        wxUnusedVar(pObject);
+        wxUnusedVar(imageList);
+#endif
+    }
+
+    EXPORT void wxTreeCtrl_SetButtonsImageList(void* pObject, void* imageList)
+    {
+#if wxHAS_GENERIC_TREECTRL
+        ((wxTreeCtrl*) pObject)->SetButtonsImageList((wxImageList*) imageList);
+#else
+        // Only the generic wxTreeCtrl implements the buttons image list.
+        wxUnusedVar(pObject);
+        wxUnusedVar(imageList);
+#endif
+    }
+
+    EXPORT void wxTreeItemId_Unset(void* pObject)
+    {
+        ((wxTreeItemId*) pObject)->Unset();
+    }
 }

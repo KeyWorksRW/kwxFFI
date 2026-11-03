@@ -52,6 +52,11 @@ void wxRibbonToolBarEvent_SetBar(TSelf(wxRibbonToolBarEvent) pObject, TClass(wxR
 
 TClassDef(wxRibbonArtProvider) TClass(wxRibbonArtProvider)
     wxRibbonArtProvider_Clone(TSelf(wxRibbonArtProvider) pObject);
+// ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+TClass(wxColour) wxRibbonArtProvider_GetColor(TSelf(wxRibbonArtProvider) pObject, int id);
+void wxRibbonArtProvider_GetColourScheme(TSelf(wxRibbonArtProvider) pObject, void* primary, void* secondary, void* tertiary);
+void wxRibbonArtProvider_SetColor(TSelf(wxRibbonArtProvider) pObject, int id, TClass(wxColour) color);
+void wxRibbonArtProvider_SetColourScheme(TSelf(wxRibbonArtProvider) pObject, TClass(wxColour) primary, TClass(wxColour) secondary, TClass(wxColour) tertiary);
 void wxRibbonArtProvider_Delete(TSelf(wxRibbonArtProvider) pObject);
 TClass(wxColour) wxRibbonArtProvider_GetColour(TSelf(wxRibbonArtProvider) pObject, int id);
 TClass(wxFont) wxRibbonArtProvider_GetFont(TSelf(wxRibbonArtProvider) pObject, int id);

@@ -25,8 +25,10 @@
 #include <wx/aui/aui.h>
 #include <wx/choicebk.h>
 #include <wx/clrpicker.h>
+#include <wx/collheaderctrl.h>
 #include <wx/collpane.h>
 #include <wx/dataview.h>
+#include <wx/dialup.h>
 #include <wx/fdrepdlg.h>
 #include <wx/filectrl.h>
 #include <wx/filepicker.h>
@@ -37,6 +39,8 @@
 #include <wx/listbook.h>
 #include <wx/mediactrl.h>
 #include <wx/propgrid/propgrid.h>
+#include <wx/ribbon/backstage.h>
+#include <wx/ribbon/backstagecontrols.h>
 #include <wx/ribbon/bar.h>
 #include <wx/ribbon/buttonbar.h>
 #include <wx/ribbon/gallery.h>
@@ -1529,6 +1533,108 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_USER_FIRST)
 
     ////////////////////////////////////////////////////////////////////////////////
+    // Leaf event wrappers (Phase 2: .private/port/fix_worklist.json)
+    //
+    // Every one of these is a wxDECLARE_EXPORTED_EVENT constant, so the feature
+    // guards that surround the other wrapper groups do not apply: a feature that
+    // is compiling out its widget still keeps the event type. MT-safety and
+    // availability are therefore identical for every language.
+    ////////////////////////////////////////////////////////////////////////////////
+
+    MAKE_EVENT_WRAPPER(EVT_MAGNIFY)
+    MAKE_EVENT_WRAPPER(EVT_SPLITTER_SASH_POS_RESIZE)
+    MAKE_EVENT_WRAPPER(EVT_DPI_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_HTML_CELL_HOVER)
+    MAKE_EVENT_WRAPPER(EVT_TIME_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_ACCELERATOR_KEY)
+    MAKE_EVENT_WRAPPER(EVT_BACKSTAGE_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_BACKSTAGE_ITEM_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_COLLAPSIBLEHEADER_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_COLOURPICKER_CURRENT_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_COLOURPICKER_DIALOG_CANCELLED)
+    MAKE_EVENT_WRAPPER(EVT_COLOUR_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_COLUMN_HEADER_CLICK)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_COLUMN_REORDERED)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_COLUMN_SORTED)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_BEGIN_DRAG)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_CONTEXT_MENU)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_DROP)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_DROP_POSSIBLE)
+    MAKE_EVENT_WRAPPER(EVT_DATAVIEW_ITEM_START_EDITING)
+    MAKE_EVENT_WRAPPER(EVT_DIALUP_CONNECTED)
+    MAKE_EVENT_WRAPPER(EVT_DIALUP_DISCONNECTED)
+    MAKE_EVENT_WRAPPER(EVT_FIND)
+    MAKE_EVENT_WRAPPER(EVT_FIND_CLOSE)
+    MAKE_EVENT_WRAPPER(EVT_FIND_NEXT)
+    MAKE_EVENT_WRAPPER(EVT_FIND_REPLACE)
+    MAKE_EVENT_WRAPPER(EVT_FIND_REPLACE_ALL)
+    MAKE_EVENT_WRAPPER(EVT_GESTURE_PAN)
+    MAKE_EVENT_WRAPPER(EVT_GESTURE_ROTATE)
+    MAKE_EVENT_WRAPPER(EVT_GESTURE_ZOOM)
+    MAKE_EVENT_WRAPPER(EVT_GRID_COL_AUTO_SIZE)
+    MAKE_EVENT_WRAPPER(EVT_GRID_COL_LABEL_SIZE)
+    MAKE_EVENT_WRAPPER(EVT_GRID_RANGE_SELECTED)
+    MAKE_EVENT_WRAPPER(EVT_GRID_RANGE_SELECTING)
+    MAKE_EVENT_WRAPPER(EVT_GRID_ROW_LABEL_SIZE)
+    MAKE_EVENT_WRAPPER(EVT_GRID_ROW_MOVE)
+    MAKE_EVENT_WRAPPER(EVT_GRID_TABBING)
+    MAKE_EVENT_WRAPPER(EVT_LIST_CACHE_HINT)
+    MAKE_EVENT_WRAPPER(EVT_LIST_COL_BEGIN_DRAG)
+    MAKE_EVENT_WRAPPER(EVT_LIST_COL_DRAGGING)
+    MAKE_EVENT_WRAPPER(EVT_LIST_COL_END_DRAG)
+    MAKE_EVENT_WRAPPER(EVT_LIST_COL_RIGHT_CLICK)
+    MAKE_EVENT_WRAPPER(EVT_LIST_ITEM_CHECKED)
+    MAKE_EVENT_WRAPPER(EVT_LIST_ITEM_UNCHECKED)
+    MAKE_EVENT_WRAPPER(EVT_LONG_PRESS)
+    MAKE_EVENT_WRAPPER(EVT_PG_COL_BEGIN_DRAG)
+    MAKE_EVENT_WRAPPER(EVT_PG_COL_DRAGGING)
+    MAKE_EVENT_WRAPPER(EVT_PG_COL_END_DRAG)
+    MAKE_EVENT_WRAPPER(EVT_PG_LABEL_EDIT_BEGIN)
+    MAKE_EVENT_WRAPPER(EVT_PG_LABEL_EDIT_ENDING)
+    MAKE_EVENT_WRAPPER(EVT_PRESS_AND_TAP)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONBAR_HELP_CLICK)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONBAR_TOGGLED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONBUTTONBAR_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONBUTTONBAR_DROPDOWN_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONGALLERY_HOVER_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONGALLERY_SELECTED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONTOOLBAR_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_RIBBONTOOLBAR_DROPDOWN_CLICKED)
+    MAKE_EVENT_WRAPPER(EVT_RICHTEXT_STYLESHEET_REPLACING)
+    MAKE_EVENT_WRAPPER(EVT_SEARCH)
+    MAKE_EVENT_WRAPPER(EVT_SEARCH_CANCEL)
+    MAKE_EVENT_WRAPPER(EVT_SYS_METRIC_CHANGED)
+    MAKE_EVENT_WRAPPER(EVT_TOUCH_BEGIN)
+    MAKE_EVENT_WRAPPER(EVT_TOUCH_CANCEL)
+    MAKE_EVENT_WRAPPER(EVT_TOUCH_END)
+    MAKE_EVENT_WRAPPER(EVT_TOUCH_MOVE)
+    MAKE_EVENT_WRAPPER(EVT_TREE_ITEM_MENU)
+    MAKE_EVENT_WRAPPER(EVT_TREE_STATE_IMAGE_CLICK)
+    MAKE_EVENT_WRAPPER(EVT_TWO_FINGER_TAP)
+    MAKE_EVENT_WRAPPER(EVT_WEBREQUEST_DATA)
+    MAKE_EVENT_WRAPPER(EVT_WEBREQUEST_STATE)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_BROWSING_DATA_CLEARED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_CREATED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_NEWWINDOW_FEATURES)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_PDF_SAVED)
+    MAKE_EVENT_WRAPPER(EVT_WEBVIEW_WINDOW_CLOSE_REQUESTED)
+
+    // Sample-defined event types: no wxWidgets header declares these, so each accessor
+    // registers one stable kwxFFI-owned type on first call.
+    EXPORT int exp_wxEVT_MY_CUSTOM_COMMAND()
+    {
+        static const wxEventType event_type = wxNewEventType();
+        return static_cast<int>(event_type);
+    }
+
+    EXPORT int exp_wxEVT_WORKER()
+    {
+        static const wxEventType event_type = wxNewEventType();
+        return static_cast<int>(event_type);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Keypress wrappers
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -1661,4 +1767,132 @@ extern "C"
     MAKE_KEYPRESS_WRAPPER(K_SPECIAL18)
     MAKE_KEYPRESS_WRAPPER(K_SPECIAL19)
     MAKE_KEYPRESS_WRAPPER(K_SPECIAL20)
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT uint32_t wxKeyEvent_GetRawKeyCode(void* pObject)
+    {
+        return (uint32_t) ((wxKeyEvent*) pObject)->GetRawKeyCode();
+    }
+
+    EXPORT uint32_t wxKeyEvent_GetRawKeyFlags(void* pObject)
+    {
+        return (uint32_t) ((wxKeyEvent*) pObject)->GetRawKeyFlags();
+    }
+
+    EXPORT int wxKeyEvent_GetUnicodeChar(void* pObject)
+    {
+        return (int) ((wxKeyEvent*) pObject)->GetUnicodeChar();
+    }
+
+    EXPORT bool wxKeyEvent_IsAutoRepeat(void* pObject)
+    {
+        return ((wxKeyEvent*) pObject)->IsAutoRepeat();
+    }
+
+    EXPORT bool wxKeyEvent_IsKeyInCategory(void* pObject, int category)
+    {
+        return ((wxKeyEvent*) pObject)->IsKeyInCategory(category);
+    }
+
+    EXPORT int wxListEvent_GetKeyCode(void* pObject)
+    {
+        return ((wxListEvent*) pObject)->GetKeyCode();
+    }
+
+    EXPORT bool wxListEvent_IsEditCancelled(void* pObject)
+    {
+        return ((wxListEvent*) pObject)->IsEditCancelled();
+    }
+
+    EXPORT void* wxMenuEvent_GetMenu(void* pObject)
+    {
+        return (void*) ((wxMenuEvent*) pObject)->GetMenu();
+    }
+
+    EXPORT bool wxMenuEvent_IsPopup(void* pObject)
+    {
+        return ((wxMenuEvent*) pObject)->IsPopup();
+    }
+
+    EXPORT bool wxMouseEvent_Aux1DClick(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux1DClick();
+    }
+
+    EXPORT bool wxMouseEvent_Aux1Down(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux1Down();
+    }
+
+    EXPORT bool wxMouseEvent_Aux1IsDown(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux1IsDown();
+    }
+
+    EXPORT bool wxMouseEvent_Aux1Up(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux1Up();
+    }
+
+    EXPORT bool wxMouseEvent_Aux2DClick(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux2DClick();
+    }
+
+    EXPORT bool wxMouseEvent_Aux2Down(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux2Down();
+    }
+
+    EXPORT bool wxMouseEvent_Aux2IsDown(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux2IsDown();
+    }
+
+    EXPORT bool wxMouseEvent_Aux2Up(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->Aux2Up();
+    }
+
+    EXPORT int wxMouseEvent_GetModifiers(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->GetModifiers();
+    }
+
+    EXPORT int wxMouseEvent_GetWheelAxis(void* pObject)
+    {
+        return (int) ((wxMouseEvent*) pObject)->GetWheelAxis();
+    }
+
+    EXPORT bool wxMouseEvent_IsWheelInverted(void* pObject)
+    {
+        return ((wxMouseEvent*) pObject)->IsWheelInverted();
+    }
+
+    EXPORT bool wxPropertyGridEvent_CanVeto(void* pObject)
+    {
+        return ((wxPropertyGridEvent*) pObject)->CanVeto();
+    }
+
+    EXPORT unsigned int wxPropertyGridEvent_GetColumn(void* pObject)
+    {
+        return ((wxPropertyGridEvent*) pObject)->GetColumn();
+    }
+
+    EXPORT void* wxPropertyGridEvent_GetValue(void* pObject)
+    {
+        wxVariant value = ((wxPropertyGridEvent*) pObject)->GetValue();
+        return new wxVariant(value);
+    }
+
+    EXPORT void wxPropertyGridEvent_Veto(void* pObject, bool veto)
+    {
+        ((wxPropertyGridEvent*) pObject)->Veto(veto);
+    }
+
+    EXPORT void* wxSetCursorEvent_GetPosition(void* pObject)
+    {
+        wxPoint value = ((wxSetCursorEvent*) pObject)->GetPosition();
+        return new wxPoint(value);
+    }
 }

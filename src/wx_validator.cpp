@@ -154,6 +154,40 @@ extern "C"
     {
         return new kwxTextValidator(self, func, text, style);
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT void wxTextValidator_AddCharIncludes(void* pObject, void* chars)
+    {
+        ((wxTextValidator*) pObject)->AddCharIncludes(*(wxString*) chars);
+    }
+
+    EXPORT void* wxTextValidator_GetCharExcludes(void* pObject)
+    {
+        wxString value = ((wxTextValidator*) pObject)->GetCharExcludes();
+        return new wxString(value);
+    }
+
+    EXPORT void* wxTextValidator_GetCharIncludes(void* pObject)
+    {
+        wxString value = ((wxTextValidator*) pObject)->GetCharIncludes();
+        return new wxString(value);
+    }
+
+    EXPORT void wxTextValidator_SetCharExcludes(void* pObject, void* chars)
+    {
+        ((wxTextValidator*) pObject)->SetCharExcludes(*(wxString*) chars);
+    }
+
+    EXPORT void wxTextValidator_SetCharIncludes(void* pObject, void* chars)
+    {
+        ((wxTextValidator*) pObject)->SetCharIncludes(*(wxString*) chars);
+    }
+
+    EXPORT bool wxValidator_IsSilent()
+    {
+        return wxValidator::IsSilent();
+    }
+
 }
 
 bool kwxTextValidator::Validate(wxWindow* parent)

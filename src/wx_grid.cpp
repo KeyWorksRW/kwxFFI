@@ -1219,6 +1219,188 @@ extern "C"
         self->GetView()->ProcessTableMessage(msg);
     }
 
+    // Phase 6: the seven typed-value override hooks added to kwxGridTable.
+
+    EXPORT void kwxGridTable_SetOnGetTypeName(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetTypeName(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnCanGetValueAs(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnCanGetValueAs(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnCanSetValueAs(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnCanSetValueAs(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnGetValueAsLong(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetValueAsLong(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnGetValueAsBool(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetValueAsBool(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnSetValueAsLong(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnSetValueAsLong(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnSetValueAsBool(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnSetValueAsBool(pFunction);
+    }
+
+    // The <Base>_SetOn spellings the portability matrix also resolves.  The
+    // receiver is the same kwxGridTable helper object.
+
+    EXPORT void wxGridTableBase_SetOnGetTypeName(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetTypeName(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnCanGetValueAs(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnCanGetValueAs(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnCanSetValueAs(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnCanSetValueAs(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnGetValueAsLong(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetValueAsLong(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnGetValueAsBool(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetValueAsBool(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnSetValueAsLong(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetValueAsLong(pFunction);
+    }
+
+    EXPORT void wxGridTableBase_SetOnSetValueAsBool(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetValueAsBool(pFunction);
+    }
+
+    // The seven virtuals the constructor takes as callbacks: setter spellings.
+
+    EXPORT void kwxGridTable_SetOnGetNumberRows(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetNumberRows(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnGetNumberCols(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetNumberCols(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnGetValue(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetValue(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnSetValue(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnSetValue(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnIsEmptyCell(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnIsEmptyCell(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnGetColLabelValue(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnGetColLabelValue(pFunction);
+    }
+
+    EXPORT void kwxGridTable_SetOnSetColLabelValue(kwxGridTable* self, void* pFunction)
+    {
+        self->SetOnSetColLabelValue(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetNumberRows(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetNumberRows(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetNumberCols(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetNumberCols(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetValue(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetValue(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnSetValue(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetValue(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnIsEmptyCell(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnIsEmptyCell(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetColLabelValue(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetColLabelValue(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnSetColLabelValue(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetColLabelValue(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetTypeName(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetTypeName(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnCanGetValueAs(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnCanGetValueAs(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnCanSetValueAs(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnCanSetValueAs(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetValueAsLong(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetValueAsLong(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnGetValueAsBool(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnGetValueAsBool(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnSetValueAsLong(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetValueAsLong(pFunction);
+    }
+
+    EXPORT void kwxGridTableBase_SetOnSetValueAsBool(wxGridTableBase* self, void* pFunction)
+    {
+        static_cast<kwxGridTable*>(self)->SetOnSetValueAsBool(pFunction);
+    }
+
     EXPORT int wxGridEvent_GetRow(wxGridEvent* self)
     {
         return self->GetRow();
@@ -1630,4 +1812,25 @@ extern "C"
     }
 
     MAKE_EVENT_WRAPPER(EVT_GRID_CELL_CHANGE)
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT int wxGridEvent_GetNewCol(void* pObject)
+    {
+        return ((wxGridEvent*) pObject)->GetNewCol();
+    }
+
+    EXPORT int wxGridEvent_GetNewRow(void* pObject)
+    {
+        return ((wxGridEvent*) pObject)->GetNewRow();
+    }
+
+    EXPORT void wxGrid_HideRowLabels(void* pObject)
+    {
+        ((wxGrid*) pObject)->HideRowLabels();
+    }
+
+    EXPORT void wxGrid_SetColFormatDate(void* pObject, int col, void* format)
+    {
+        ((wxGrid*) pObject)->SetColFormatDate(col, *(wxString*) format);
+    }
 }

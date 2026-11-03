@@ -245,4 +245,16 @@ extern "C"
     {
         return self->GetStyle();
     }
+
+    // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+    EXPORT bool wxConfigBase_Read(void* pObject, void* key, void* pStr)
+    {
+        return ((wxConfigBase*) pObject)->Read(*(wxString*) key, (wxString*) pStr);
+    }
+
+    EXPORT bool wxConfigBase_Write(void* pObject, void* key, void* value)
+    {
+        return ((wxConfigBase*) pObject)->Write(*(wxString*) key, *(wxString*) value);
+    }
+
 }
