@@ -382,4 +382,147 @@ extern "C"
     }
 }
 
+#else
+
+// wxUSE_ACCESSIBILITY is off (it is an MSW-only feature), so there is no
+// accessibility implementation. The generated bindings and the
+// platform-agnostic export manifest still call these entry points, so the
+// stubs below keep the shared library exporting the same surface on every
+// platform -- src/kwx_defs.cpp reports 0 for the wxACC_*/wxROLE_* constants for
+// the same reason. Accessibility types do not exist under this guard, hence the
+// void* parameters.
+
+extern "C"
+{
+    EXPORT void* wxAccessible_Create([[maybe_unused]] wxWindow* win, [[maybe_unused]] void* pObject)
+    {
+        return nullptr;
+    }
+
+    EXPORT void wxAccessible_Delete([[maybe_unused]] void* self) {}
+
+    EXPORT void* wxAccessible_GetWindow([[maybe_unused]] void* self)
+    {
+        return nullptr;
+    }
+
+    EXPORT void wxAccessible_SetWindow([[maybe_unused]] void* self, [[maybe_unused]] wxWindow* win)
+    {
+    }
+
+    // 0 is wxACC_FAIL, the only status this build can report.
+    EXPORT int wxAccessible_NotifyEvent([[maybe_unused]] int eventType,
+                                        [[maybe_unused]] wxWindow* win,
+                                        [[maybe_unused]] int objectType,
+                                        [[maybe_unused]] int objectId)
+    {
+        return 0;
+    }
+
+    EXPORT void wxAccessible_SetOnHitTest([[maybe_unused]] void* self,
+                                          [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetLocation([[maybe_unused]] void* self,
+                                              [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnNavigate([[maybe_unused]] void* self,
+                                           [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetName([[maybe_unused]] void* self,
+                                          [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetChildCount([[maybe_unused]] void* self,
+                                                [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetChild([[maybe_unused]] void* self,
+                                           [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetParent([[maybe_unused]] void* self,
+                                            [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnDoDefaultAction([[maybe_unused]] void* self,
+                                                  [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetDefaultAction([[maybe_unused]] void* self,
+                                                   [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetDescription([[maybe_unused]] void* self,
+                                                 [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetHelpText([[maybe_unused]] void* self,
+                                              [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetKeyboardShortcut([[maybe_unused]] void* self,
+                                                      [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetRole([[maybe_unused]] void* self,
+                                          [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetState([[maybe_unused]] void* self,
+                                           [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetValue([[maybe_unused]] void* self,
+                                           [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnSelect([[maybe_unused]] void* self,
+                                         [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxAccessible_SetOnGetFocus([[maybe_unused]] void* self,
+                                           [[maybe_unused]] void* pFunction)
+    {
+    }
+
+    EXPORT void wxWindow_SetAccessible([[maybe_unused]] wxWindow* self,
+                                       [[maybe_unused]] void* accessible)
+    {
+    }
+
+    EXPORT void* wxWindow_GetAccessible([[maybe_unused]] wxWindow* self)
+    {
+        return nullptr;
+    }
+
+    EXPORT void* wxWindow_GetOrCreateAccessible([[maybe_unused]] wxWindow* self)
+    {
+        return nullptr;
+    }
+
+    EXPORT void wxWindow_SetAccessibleName([[maybe_unused]] wxWindow* self,
+                                           [[maybe_unused]] wxString* name)
+    {
+    }
+}
+
 #endif  // wxUSE_ACCESSIBILITY

@@ -28,6 +28,16 @@
     #define KWX_WEBVIEW_VALUE(name) 0
 #endif
 
+// The wxACC_*, wxNAVDIR_*, wxROLE_* and wxOBJID_* enumerators only exist in
+// builds with wxUSE_ACCESSIBILITY (MSW only). Report 0 otherwise so the
+// exported FFI surface is identical on every platform --
+// src/kwx_constants_table_gen.cpp references every accessor unconditionally.
+#if wxUSE_ACCESSIBILITY
+    #define KWX_ACCESS_VALUE(name) static_cast<int>(name)
+#else
+    #define KWX_ACCESS_VALUE(name) 0
+#endif
+
 extern "C"
 {
     EXPORT int expwxACCEL_ALT()
@@ -5245,671 +5255,667 @@ extern "C"
     }
 
     // ---- Accessibility constants (wx/access.h) ----
-    // None of these exist unless wxWidgets was built with accessibility support.
-
-#if wxUSE_ACCESSIBILITY
-
+    // None of these exist unless wxWidgets was built with accessibility support,
+    // so KWX_ACCESS_VALUE reports 0 for them there.
     EXPORT int expwxACC_FAIL()
     {
-        return (int) wxACC_FAIL;
+        return KWX_ACCESS_VALUE(wxACC_FAIL);
     }
     EXPORT int expwxACC_FALSE()
     {
-        return (int) wxACC_FALSE;
+        return KWX_ACCESS_VALUE(wxACC_FALSE);
     }
     EXPORT int expwxACC_OK()
     {
-        return (int) wxACC_OK;
+        return KWX_ACCESS_VALUE(wxACC_OK);
     }
     EXPORT int expwxACC_NOT_IMPLEMENTED()
     {
-        return (int) wxACC_NOT_IMPLEMENTED;
+        return KWX_ACCESS_VALUE(wxACC_NOT_IMPLEMENTED);
     }
     EXPORT int expwxACC_NOT_SUPPORTED()
     {
-        return (int) wxACC_NOT_SUPPORTED;
+        return KWX_ACCESS_VALUE(wxACC_NOT_SUPPORTED);
     }
     EXPORT int expwxACC_INVALID_ARG()
     {
-        return (int) wxACC_INVALID_ARG;
+        return KWX_ACCESS_VALUE(wxACC_INVALID_ARG);
     }
     EXPORT int expwxACC_SELF()
     {
-        return (int) wxACC_SELF;
+        return KWX_ACCESS_VALUE(wxACC_SELF);
     }
 
     EXPORT int expwxNAVDIR_DOWN()
     {
-        return (int) wxNAVDIR_DOWN;
+        return KWX_ACCESS_VALUE(wxNAVDIR_DOWN);
     }
     EXPORT int expwxNAVDIR_FIRSTCHILD()
     {
-        return (int) wxNAVDIR_FIRSTCHILD;
+        return KWX_ACCESS_VALUE(wxNAVDIR_FIRSTCHILD);
     }
     EXPORT int expwxNAVDIR_LASTCHILD()
     {
-        return (int) wxNAVDIR_LASTCHILD;
+        return KWX_ACCESS_VALUE(wxNAVDIR_LASTCHILD);
     }
     EXPORT int expwxNAVDIR_LEFT()
     {
-        return (int) wxNAVDIR_LEFT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_LEFT);
     }
     EXPORT int expwxNAVDIR_NEXT()
     {
-        return (int) wxNAVDIR_NEXT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_NEXT);
     }
     EXPORT int expwxNAVDIR_PREVIOUS()
     {
-        return (int) wxNAVDIR_PREVIOUS;
+        return KWX_ACCESS_VALUE(wxNAVDIR_PREVIOUS);
     }
     EXPORT int expwxNAVDIR_RIGHT()
     {
-        return (int) wxNAVDIR_RIGHT;
+        return KWX_ACCESS_VALUE(wxNAVDIR_RIGHT);
     }
     EXPORT int expwxNAVDIR_UP()
     {
-        return (int) wxNAVDIR_UP;
+        return KWX_ACCESS_VALUE(wxNAVDIR_UP);
     }
 
     EXPORT int expwxROLE_NONE()
     {
-        return (int) wxROLE_NONE;
+        return KWX_ACCESS_VALUE(wxROLE_NONE);
     }
     EXPORT int expwxROLE_SYSTEM_ALERT()
     {
-        return (int) wxROLE_SYSTEM_ALERT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ALERT);
     }
     EXPORT int expwxROLE_SYSTEM_ANIMATION()
     {
-        return (int) wxROLE_SYSTEM_ANIMATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ANIMATION);
     }
     EXPORT int expwxROLE_SYSTEM_APPLICATION()
     {
-        return (int) wxROLE_SYSTEM_APPLICATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_APPLICATION);
     }
     EXPORT int expwxROLE_SYSTEM_BORDER()
     {
-        return (int) wxROLE_SYSTEM_BORDER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BORDER);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONDROPDOWN()
     {
-        return (int) wxROLE_SYSTEM_BUTTONDROPDOWN;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONDROPDOWN);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONDROPDOWNGRID()
     {
-        return (int) wxROLE_SYSTEM_BUTTONDROPDOWNGRID;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONDROPDOWNGRID);
     }
     EXPORT int expwxROLE_SYSTEM_BUTTONMENU()
     {
-        return (int) wxROLE_SYSTEM_BUTTONMENU;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_BUTTONMENU);
     }
     EXPORT int expwxROLE_SYSTEM_CARET()
     {
-        return (int) wxROLE_SYSTEM_CARET;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CARET);
     }
     EXPORT int expwxROLE_SYSTEM_CELL()
     {
-        return (int) wxROLE_SYSTEM_CELL;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CELL);
     }
     EXPORT int expwxROLE_SYSTEM_CHARACTER()
     {
-        return (int) wxROLE_SYSTEM_CHARACTER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHARACTER);
     }
     EXPORT int expwxROLE_SYSTEM_CHART()
     {
-        return (int) wxROLE_SYSTEM_CHART;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHART);
     }
     EXPORT int expwxROLE_SYSTEM_CHECKBUTTON()
     {
-        return (int) wxROLE_SYSTEM_CHECKBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CHECKBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_CLIENT()
     {
-        return (int) wxROLE_SYSTEM_CLIENT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CLIENT);
     }
     EXPORT int expwxROLE_SYSTEM_CLOCK()
     {
-        return (int) wxROLE_SYSTEM_CLOCK;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CLOCK);
     }
     EXPORT int expwxROLE_SYSTEM_COLUMN()
     {
-        return (int) wxROLE_SYSTEM_COLUMN;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COLUMN);
     }
     EXPORT int expwxROLE_SYSTEM_COLUMNHEADER()
     {
-        return (int) wxROLE_SYSTEM_COLUMNHEADER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COLUMNHEADER);
     }
     EXPORT int expwxROLE_SYSTEM_COMBOBOX()
     {
-        return (int) wxROLE_SYSTEM_COMBOBOX;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_COMBOBOX);
     }
     EXPORT int expwxROLE_SYSTEM_CURSOR()
     {
-        return (int) wxROLE_SYSTEM_CURSOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_CURSOR);
     }
     EXPORT int expwxROLE_SYSTEM_DIAGRAM()
     {
-        return (int) wxROLE_SYSTEM_DIAGRAM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIAGRAM);
     }
     EXPORT int expwxROLE_SYSTEM_DIAL()
     {
-        return (int) wxROLE_SYSTEM_DIAL;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIAL);
     }
     EXPORT int expwxROLE_SYSTEM_DIALOG()
     {
-        return (int) wxROLE_SYSTEM_DIALOG;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DIALOG);
     }
     EXPORT int expwxROLE_SYSTEM_DOCUMENT()
     {
-        return (int) wxROLE_SYSTEM_DOCUMENT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DOCUMENT);
     }
     EXPORT int expwxROLE_SYSTEM_DROPLIST()
     {
-        return (int) wxROLE_SYSTEM_DROPLIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_DROPLIST);
     }
     EXPORT int expwxROLE_SYSTEM_EQUATION()
     {
-        return (int) wxROLE_SYSTEM_EQUATION;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_EQUATION);
     }
     EXPORT int expwxROLE_SYSTEM_GRAPHIC()
     {
-        return (int) wxROLE_SYSTEM_GRAPHIC;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GRAPHIC);
     }
     EXPORT int expwxROLE_SYSTEM_GRIP()
     {
-        return (int) wxROLE_SYSTEM_GRIP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GRIP);
     }
     EXPORT int expwxROLE_SYSTEM_GROUPING()
     {
-        return (int) wxROLE_SYSTEM_GROUPING;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_GROUPING);
     }
     EXPORT int expwxROLE_SYSTEM_HELPBALLOON()
     {
-        return (int) wxROLE_SYSTEM_HELPBALLOON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_HELPBALLOON);
     }
     EXPORT int expwxROLE_SYSTEM_HOTKEYFIELD()
     {
-        return (int) wxROLE_SYSTEM_HOTKEYFIELD;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_HOTKEYFIELD);
     }
     EXPORT int expwxROLE_SYSTEM_INDICATOR()
     {
-        return (int) wxROLE_SYSTEM_INDICATOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_INDICATOR);
     }
     EXPORT int expwxROLE_SYSTEM_LINK()
     {
-        return (int) wxROLE_SYSTEM_LINK;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LINK);
     }
     EXPORT int expwxROLE_SYSTEM_LIST()
     {
-        return (int) wxROLE_SYSTEM_LIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LIST);
     }
     EXPORT int expwxROLE_SYSTEM_LISTITEM()
     {
-        return (int) wxROLE_SYSTEM_LISTITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_LISTITEM);
     }
     EXPORT int expwxROLE_SYSTEM_MENUBAR()
     {
-        return (int) wxROLE_SYSTEM_MENUBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUBAR);
     }
     EXPORT int expwxROLE_SYSTEM_MENUITEM()
     {
-        return (int) wxROLE_SYSTEM_MENUITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUITEM);
     }
     EXPORT int expwxROLE_SYSTEM_MENUPOPUP()
     {
-        return (int) wxROLE_SYSTEM_MENUPOPUP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_MENUPOPUP);
     }
     EXPORT int expwxROLE_SYSTEM_OUTLINE()
     {
-        return (int) wxROLE_SYSTEM_OUTLINE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_OUTLINE);
     }
     EXPORT int expwxROLE_SYSTEM_OUTLINEITEM()
     {
-        return (int) wxROLE_SYSTEM_OUTLINEITEM;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_OUTLINEITEM);
     }
     EXPORT int expwxROLE_SYSTEM_PAGETAB()
     {
-        return (int) wxROLE_SYSTEM_PAGETAB;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PAGETAB);
     }
     EXPORT int expwxROLE_SYSTEM_PAGETABLIST()
     {
-        return (int) wxROLE_SYSTEM_PAGETABLIST;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PAGETABLIST);
     }
     EXPORT int expwxROLE_SYSTEM_PANE()
     {
-        return (int) wxROLE_SYSTEM_PANE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PANE);
     }
     EXPORT int expwxROLE_SYSTEM_PROGRESSBAR()
     {
-        return (int) wxROLE_SYSTEM_PROGRESSBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PROGRESSBAR);
     }
     EXPORT int expwxROLE_SYSTEM_PROPERTYPAGE()
     {
-        return (int) wxROLE_SYSTEM_PROPERTYPAGE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PROPERTYPAGE);
     }
     EXPORT int expwxROLE_SYSTEM_PUSHBUTTON()
     {
-        return (int) wxROLE_SYSTEM_PUSHBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_PUSHBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_RADIOBUTTON()
     {
-        return (int) wxROLE_SYSTEM_RADIOBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_RADIOBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_ROW()
     {
-        return (int) wxROLE_SYSTEM_ROW;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ROW);
     }
     EXPORT int expwxROLE_SYSTEM_ROWHEADER()
     {
-        return (int) wxROLE_SYSTEM_ROWHEADER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_ROWHEADER);
     }
     EXPORT int expwxROLE_SYSTEM_SCROLLBAR()
     {
-        return (int) wxROLE_SYSTEM_SCROLLBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SCROLLBAR);
     }
     EXPORT int expwxROLE_SYSTEM_SEPARATOR()
     {
-        return (int) wxROLE_SYSTEM_SEPARATOR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SEPARATOR);
     }
     EXPORT int expwxROLE_SYSTEM_SLIDER()
     {
-        return (int) wxROLE_SYSTEM_SLIDER;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SLIDER);
     }
     EXPORT int expwxROLE_SYSTEM_SOUND()
     {
-        return (int) wxROLE_SYSTEM_SOUND;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SOUND);
     }
     EXPORT int expwxROLE_SYSTEM_SPINBUTTON()
     {
-        return (int) wxROLE_SYSTEM_SPINBUTTON;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_SPINBUTTON);
     }
     EXPORT int expwxROLE_SYSTEM_STATICTEXT()
     {
-        return (int) wxROLE_SYSTEM_STATICTEXT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_STATICTEXT);
     }
     EXPORT int expwxROLE_SYSTEM_STATUSBAR()
     {
-        return (int) wxROLE_SYSTEM_STATUSBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_STATUSBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TABLE()
     {
-        return (int) wxROLE_SYSTEM_TABLE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TABLE);
     }
     EXPORT int expwxROLE_SYSTEM_TEXT()
     {
-        return (int) wxROLE_SYSTEM_TEXT;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TEXT);
     }
     EXPORT int expwxROLE_SYSTEM_TITLEBAR()
     {
-        return (int) wxROLE_SYSTEM_TITLEBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TITLEBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TOOLBAR()
     {
-        return (int) wxROLE_SYSTEM_TOOLBAR;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TOOLBAR);
     }
     EXPORT int expwxROLE_SYSTEM_TOOLTIP()
     {
-        return (int) wxROLE_SYSTEM_TOOLTIP;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_TOOLTIP);
     }
     EXPORT int expwxROLE_SYSTEM_WHITESPACE()
     {
-        return (int) wxROLE_SYSTEM_WHITESPACE;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_WHITESPACE);
     }
     EXPORT int expwxROLE_SYSTEM_WINDOW()
     {
-        return (int) wxROLE_SYSTEM_WINDOW;
+        return KWX_ACCESS_VALUE(wxROLE_SYSTEM_WINDOW);
     }
 
     EXPORT int expwxOBJID_WINDOW()
     {
-        return (int) wxOBJID_WINDOW;
+        return KWX_ACCESS_VALUE(wxOBJID_WINDOW);
     }
     EXPORT int expwxOBJID_SYSMENU()
     {
-        return (int) wxOBJID_SYSMENU;
+        return KWX_ACCESS_VALUE(wxOBJID_SYSMENU);
     }
     EXPORT int expwxOBJID_TITLEBAR()
     {
-        return (int) wxOBJID_TITLEBAR;
+        return KWX_ACCESS_VALUE(wxOBJID_TITLEBAR);
     }
     EXPORT int expwxOBJID_MENU()
     {
-        return (int) wxOBJID_MENU;
+        return KWX_ACCESS_VALUE(wxOBJID_MENU);
     }
     EXPORT int expwxOBJID_CLIENT()
     {
-        return (int) wxOBJID_CLIENT;
+        return KWX_ACCESS_VALUE(wxOBJID_CLIENT);
     }
     EXPORT int expwxOBJID_VSCROLL()
     {
-        return (int) wxOBJID_VSCROLL;
+        return KWX_ACCESS_VALUE(wxOBJID_VSCROLL);
     }
     EXPORT int expwxOBJID_HSCROLL()
     {
-        return (int) wxOBJID_HSCROLL;
+        return KWX_ACCESS_VALUE(wxOBJID_HSCROLL);
     }
     EXPORT int expwxOBJID_SIZEGRIP()
     {
-        return (int) wxOBJID_SIZEGRIP;
+        return KWX_ACCESS_VALUE(wxOBJID_SIZEGRIP);
     }
     EXPORT int expwxOBJID_CARET()
     {
-        return (int) wxOBJID_CARET;
+        return KWX_ACCESS_VALUE(wxOBJID_CARET);
     }
     EXPORT int expwxOBJID_CURSOR()
     {
-        return (int) wxOBJID_CURSOR;
+        return KWX_ACCESS_VALUE(wxOBJID_CURSOR);
     }
     EXPORT int expwxOBJID_ALERT()
     {
-        return (int) wxOBJID_ALERT;
+        return KWX_ACCESS_VALUE(wxOBJID_ALERT);
     }
     EXPORT int expwxOBJID_SOUND()
     {
-        return (int) wxOBJID_SOUND;
+        return KWX_ACCESS_VALUE(wxOBJID_SOUND);
     }
 
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_HIGH()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_HIGH;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_HIGH);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_MEDIUM()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_MEDIUM;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_MEDIUM);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ALERT_LOW()
     {
-        return (int) wxACC_STATE_SYSTEM_ALERT_LOW;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ALERT_LOW);
     }
     EXPORT int expwxACC_STATE_SYSTEM_ANIMATED()
     {
-        return (int) wxACC_STATE_SYSTEM_ANIMATED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_ANIMATED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_BUSY()
     {
-        return (int) wxACC_STATE_SYSTEM_BUSY;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_BUSY);
     }
     EXPORT int expwxACC_STATE_SYSTEM_CHECKED()
     {
-        return (int) wxACC_STATE_SYSTEM_CHECKED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_CHECKED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_COLLAPSED()
     {
-        return (int) wxACC_STATE_SYSTEM_COLLAPSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_COLLAPSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_DEFAULT()
     {
-        return (int) wxACC_STATE_SYSTEM_DEFAULT;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_DEFAULT);
     }
     EXPORT int expwxACC_STATE_SYSTEM_EXPANDED()
     {
-        return (int) wxACC_STATE_SYSTEM_EXPANDED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_EXPANDED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_EXTSELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_EXTSELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_EXTSELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FLOATING()
     {
-        return (int) wxACC_STATE_SYSTEM_FLOATING;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FLOATING);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FOCUSABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_FOCUSABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FOCUSABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_FOCUSED()
     {
-        return (int) wxACC_STATE_SYSTEM_FOCUSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_FOCUSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_HOTTRACKED()
     {
-        return (int) wxACC_STATE_SYSTEM_HOTTRACKED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_HOTTRACKED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_INVISIBLE()
     {
-        return (int) wxACC_STATE_SYSTEM_INVISIBLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_INVISIBLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MARQUEED()
     {
-        return (int) wxACC_STATE_SYSTEM_MARQUEED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MARQUEED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MIXED()
     {
-        return (int) wxACC_STATE_SYSTEM_MIXED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MIXED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_MULTISELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_MULTISELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_MULTISELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_OFFSCREEN()
     {
-        return (int) wxACC_STATE_SYSTEM_OFFSCREEN;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_OFFSCREEN);
     }
     EXPORT int expwxACC_STATE_SYSTEM_PRESSED()
     {
-        return (int) wxACC_STATE_SYSTEM_PRESSED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_PRESSED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_PROTECTED()
     {
-        return (int) wxACC_STATE_SYSTEM_PROTECTED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_PROTECTED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_READONLY()
     {
-        return (int) wxACC_STATE_SYSTEM_READONLY;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_READONLY);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELECTABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_SELECTABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELECTABLE);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELECTED()
     {
-        return (int) wxACC_STATE_SYSTEM_SELECTED;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELECTED);
     }
     EXPORT int expwxACC_STATE_SYSTEM_SELFVOICING()
     {
-        return (int) wxACC_STATE_SYSTEM_SELFVOICING;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_SELFVOICING);
     }
     EXPORT int expwxACC_STATE_SYSTEM_UNAVAILABLE()
     {
-        return (int) wxACC_STATE_SYSTEM_UNAVAILABLE;
+        return KWX_ACCESS_VALUE(wxACC_STATE_SYSTEM_UNAVAILABLE);
     }
 
     EXPORT int expwxACC_SEL_NONE()
     {
-        return (int) wxACC_SEL_NONE;
+        return KWX_ACCESS_VALUE(wxACC_SEL_NONE);
     }
     EXPORT int expwxACC_SEL_TAKEFOCUS()
     {
-        return (int) wxACC_SEL_TAKEFOCUS;
+        return KWX_ACCESS_VALUE(wxACC_SEL_TAKEFOCUS);
     }
     EXPORT int expwxACC_SEL_TAKESELECTION()
     {
-        return (int) wxACC_SEL_TAKESELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_TAKESELECTION);
     }
     EXPORT int expwxACC_SEL_EXTENDSELECTION()
     {
-        return (int) wxACC_SEL_EXTENDSELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_EXTENDSELECTION);
     }
     EXPORT int expwxACC_SEL_ADDSELECTION()
     {
-        return (int) wxACC_SEL_ADDSELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_ADDSELECTION);
     }
     EXPORT int expwxACC_SEL_REMOVESELECTION()
     {
-        return (int) wxACC_SEL_REMOVESELECTION;
+        return KWX_ACCESS_VALUE(wxACC_SEL_REMOVESELECTION);
     }
 
     EXPORT int expwxACC_EVENT_SYSTEM_SOUND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SOUND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SOUND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_ALERT()
     {
-        return (int) wxACC_EVENT_SYSTEM_ALERT;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_ALERT);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_FOREGROUND()
     {
-        return (int) wxACC_EVENT_SYSTEM_FOREGROUND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_FOREGROUND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUPOPUPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUPOPUPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUPOPUPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MENUPOPUPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MENUPOPUPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MENUPOPUPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CAPTURESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_CAPTURESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CAPTURESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CAPTUREEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_CAPTUREEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CAPTUREEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MOVESIZESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MOVESIZESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MOVESIZESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MOVESIZEEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MOVESIZEEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MOVESIZEEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CONTEXTHELPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_CONTEXTHELPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CONTEXTHELPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_CONTEXTHELPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_CONTEXTHELPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_CONTEXTHELPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DRAGDROPSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_DRAGDROPSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DRAGDROPSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DRAGDROPEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_DRAGDROPEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DRAGDROPEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DIALOGSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_DIALOGSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DIALOGSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_DIALOGEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_DIALOGEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_DIALOGEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SCROLLINGSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_SCROLLINGSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SCROLLINGSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SCROLLINGEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SCROLLINGEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SCROLLINGEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SWITCHSTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_SWITCHSTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SWITCHSTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_SWITCHEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_SWITCHEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_SWITCHEND);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MINIMIZESTART()
     {
-        return (int) wxACC_EVENT_SYSTEM_MINIMIZESTART;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MINIMIZESTART);
     }
     EXPORT int expwxACC_EVENT_SYSTEM_MINIMIZEEND()
     {
-        return (int) wxACC_EVENT_SYSTEM_MINIMIZEEND;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_SYSTEM_MINIMIZEEND);
     }
 
     EXPORT int expwxACC_EVENT_OBJECT_CREATE()
     {
-        return (int) wxACC_EVENT_OBJECT_CREATE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_CREATE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DESTROY()
     {
-        return (int) wxACC_EVENT_OBJECT_DESTROY;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DESTROY);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SHOW()
     {
-        return (int) wxACC_EVENT_OBJECT_SHOW;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SHOW);
     }
     EXPORT int expwxACC_EVENT_OBJECT_HIDE()
     {
-        return (int) wxACC_EVENT_OBJECT_HIDE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_HIDE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_REORDER()
     {
-        return (int) wxACC_EVENT_OBJECT_REORDER;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_REORDER);
     }
     EXPORT int expwxACC_EVENT_OBJECT_FOCUS()
     {
-        return (int) wxACC_EVENT_OBJECT_FOCUS;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_FOCUS);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTION()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTION;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTION);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONADD()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONADD;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONADD);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONREMOVE()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONREMOVE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONREMOVE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_SELECTIONWITHIN()
     {
-        return (int) wxACC_EVENT_OBJECT_SELECTIONWITHIN;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_SELECTIONWITHIN);
     }
     EXPORT int expwxACC_EVENT_OBJECT_STATECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_STATECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_STATECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_LOCATIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_LOCATIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_LOCATIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_NAMECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_NAMECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_NAMECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DESCRIPTIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_DESCRIPTIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DESCRIPTIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_VALUECHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_VALUECHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_VALUECHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_PARENTCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_PARENTCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_PARENTCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_HELPCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_HELPCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_HELPCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_DEFACTIONCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_DEFACTIONCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_DEFACTIONCHANGE);
     }
     EXPORT int expwxACC_EVENT_OBJECT_ACCELERATORCHANGE()
     {
-        return (int) wxACC_EVENT_OBJECT_ACCELERATORCHANGE;
+        return KWX_ACCESS_VALUE(wxACC_EVENT_OBJECT_ACCELERATORCHANGE);
     }
-
-#endif  // wxUSE_ACCESSIBILITY
 
     // ---- wxDir enumeration and traversal flags (wx/dir.h) ----
 
