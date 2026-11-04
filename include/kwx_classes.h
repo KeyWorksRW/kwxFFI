@@ -1,6 +1,9 @@
 #pragma once
 
 #include "kwx_types.h"
+// EXPORT is used by the module headers included below. kwx_def.h must precede them so
+// a plain C translation unit (e.g. the cgo preamble) sees the macro definition.
+#include "kwx_def.h"
 
 #include "kwx_accessible.h"
 #include "kwx_classes_sync.h"

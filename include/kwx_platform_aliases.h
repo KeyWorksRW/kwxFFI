@@ -9,9 +9,13 @@
  * kwxgen skips preprocessor lines, so the guarded declarations below are
  * always parsed.  The implementations in src/wx_platform_aliases.cpp compile
  * on every supported platform.
+ *
+ * A C translation unit (the cgo preamble) never defines wxUSE_* and cannot see
+ * the wxWidgets headers, so it takes the block unconditionally -- the
+ * declarations only use void* and scalar types.
  */
 
-#if wxUSE_GUI
+#if !defined(__cplusplus) || wxUSE_GUI
 
 /* ------------------------------------------------------------------------- */
 /* wxAnyButton                                                               */
@@ -47,7 +51,7 @@ TBool wxAnyButton_ShowsLabel(TSelf(wxAnyButton) pObject);
 
 TClassDefExtend(wxNonOwnedWindow, wxWindow) TBool
     wxNonOwnedWindow_SetShape(TSelf(wxNonOwnedWindow) pObject, TClass(wxRegion) region);
-    #if wxUSE_GRAPHICS_CONTEXT
+    #if !defined(__cplusplus) || wxUSE_GRAPHICS_CONTEXT
 TBool wxNonOwnedWindow_SetPathShape(TSelf(wxNonOwnedWindow) pObject, TClass(wxGraphicsPath) path);
     #endif
 

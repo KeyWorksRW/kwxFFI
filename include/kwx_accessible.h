@@ -10,11 +10,12 @@
 // Every declaration is guarded by wxUSE_ACCESSIBILITY because neither the
 // accessibility classes nor the wxACC_* constants exist without it. kwxgen
 // skips preprocessor lines, so the guarded block is still parsed for the
-// bindings.
+// bindings. A C translation unit (the cgo preamble) never defines wxUSE_* and
+// cannot see the wxWidgets headers, so it takes the block unconditionally.
 
-#if wxUSE_ACCESSIBILITY
+#if !defined(__cplusplus) || wxUSE_ACCESSIBILITY
 
-    #if !defined(__WXMSW__)
+    #if defined(__cplusplus) && !defined(__WXMSW__)
 using wxAccessible = wxAccessibleBase;
     #endif
 
@@ -61,4 +62,4 @@ TClass(wxAccessible) wxWindow_GetAccessible(TSelf(wxWindow) pObject);
 TClass(wxAccessible) wxWindow_GetOrCreateAccessible(TSelf(wxWindow) pObject);
 void wxWindow_SetAccessibleName(TSelf(wxWindow) pObject, TClass(wxString) name);
 
-#endif  // wxUSE_ACCESSIBILITY
+#endif  // !defined(__cplusplus) || wxUSE_ACCESSIBILITY

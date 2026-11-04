@@ -100,7 +100,7 @@ def main(argv: list[str] | None = None) -> int:
 
     results: list[tuple[str, str]] = []
 
-    for name in ("guard_lint", "guard_parity", "checker_self_test"):
+    for name in ("guard_lint", "guard_parity", "checker_self_test", "c_includability"):
         status = run_check(name, checks_dir / f"{name}.py", ["--root", str(root)], root)
         results.append((name, status))
 
