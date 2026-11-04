@@ -57,9 +57,9 @@ extern "C"
         self->Display(id);
     }
 
-    EXPORT void wxHtmlHelpController_DisplayContents(wxHtmlHelpController* self)
+    EXPORT bool wxHtmlHelpController_DisplayContents(wxHtmlHelpController* self)
     {
-        self->DisplayContents();
+        return self->DisplayContents();
     }
 
     EXPORT void wxHtmlHelpController_DisplayIndex(wxHtmlHelpController* self)
@@ -171,12 +171,12 @@ extern "C"
 
     EXPORT bool wxHelpControllerBase_KeywordSearch(void* pObject, void* k, int mode)
     {
-        return ((wxHelpControllerBase*) pObject)->KeywordSearch(*(wxString*) k, (wxHelpSearchMode) mode);
+        return ((wxHelpControllerBase*) pObject)
+            ->KeywordSearch(*(wxString*) k, (wxHelpSearchMode) mode);
     }
 
     EXPORT void wxHtmlHelpController_SetShouldPreventAppExit(void* pObject, bool enable)
     {
         ((wxHtmlHelpController*) pObject)->SetShouldPreventAppExit(enable);
     }
-
 }

@@ -1468,7 +1468,7 @@ void wxCommandEvent_Delete(TSelf(wxCommandEvent) pObject);
 TClass(wxClientData) wxCommandEvent_GetClientData(TSelf(wxCommandEvent) pObject);
 TClass(wxClientData) wxCommandEvent_GetClientObject(TSelf(wxCommandEvent) pObject);
 long wxCommandEvent_GetExtraLong(TSelf(wxCommandEvent) pObject);
-long wxCommandEvent_GetInt(TSelf(wxCommandEvent) pObject);
+int wxCommandEvent_GetInt(TSelf(wxCommandEvent) pObject);
 int wxCommandEvent_GetSelection(TSelf(wxCommandEvent) pObject);
 TClass(wxString) wxCommandEvent_GetString(TSelf(wxCommandEvent) pObject);
 TBool wxCommandEvent_IsChecked(TSelf(wxCommandEvent) pObject);
@@ -2811,7 +2811,7 @@ TClass(wxHtmlHelpController) wxHtmlHelpController_Create(int style, TClass(wxWin
 void wxHtmlHelpController_Delete(TSelf(wxHtmlHelpController) pObject);
 int wxHtmlHelpController_Display(TSelf(wxHtmlHelpController) pObject, void* x);
 TBool wxHtmlHelpController_DisplayBlock(TSelf(wxHtmlHelpController) pObject, int blockNo);
-int wxHtmlHelpController_DisplayContents(TSelf(wxHtmlHelpController) pObject);
+TBool wxHtmlHelpController_DisplayContents(TSelf(wxHtmlHelpController) pObject);
 int wxHtmlHelpController_DisplayIndex(TSelf(wxHtmlHelpController) pObject);
 int wxHtmlHelpController_DisplayNumber(TSelf(wxHtmlHelpController) pObject, int id);
 TBool wxHtmlHelpController_DisplaySection(TSelf(wxHtmlHelpController) pObject,
@@ -5246,7 +5246,7 @@ void wxSizer_SetItemMinSizeWindow(TSelf(wxSizer) pObject, TClass(wxWindow) windo
                                   TSize(width, height));
 void wxSizer_SetMinSize(TSelf(wxSizer) pObject, TSize(width, height));
 void wxSizer_SetSizeHints(TSelf(wxSizer) pObject, TClass(wxWindow) window);
-void wxSizer_AddSpacer(TSelf(wxSizer) pObject, int size);
+TClass(wxSizerItem) wxSizer_AddSpacer(TSelf(wxSizer) pObject, int size);
 void wxSizer_AddStretchSpacer(TSelf(wxSizer) pObject, int size);
 void wxSizer_Clear(TSelf(wxSizer) pObject, TBool delete_windows);
 TBool wxSizer_DetachWindow(TSelf(wxSizer) pObject, TClass(wxWindow) window);
@@ -5776,10 +5776,10 @@ TClassDefExtend(wxToolBar, wxToolBarBase) TBool
 TClass(wxToolBarToolBase) wxToolBar_AddSeparator(TSelf(wxToolBar) pObject);
 // void       wxToolBar_AddTool( TSelf(wxToolBar) pObject, int id, TClass(wxBitmap)
 // bmp, TClass(wxString) shelp, TClass(wxString) lhelp );
-void wxToolBar_AddTool(TSelf(wxToolBar) pObject, int toolid, TClass(wxString) label,
-                       TClass(wxBitmap) bitmap, TClass(wxBitmap) bmpDisabled, int kind,
-                       TClass(wxString) shortHelp, TClass(wxString) longHelp,
-                       TClass(wxObject) data);
+TClass(wxToolBarToolBase)
+    wxToolBar_AddTool(TSelf(wxToolBar) pObject, int toolid, TClass(wxString) label,
+                      TClass(wxBitmap) bitmap, TClass(wxBitmap) bmpDisabled, int kind,
+                      TClass(wxString) shortHelp, TClass(wxString) longHelp, TClass(wxObject) data);
 TClass(wxToolBar)
     wxToolBar_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height), int style);
 void wxToolBar_Delete(TSelf(wxToolBar) pObject);
@@ -5798,7 +5798,7 @@ TBool wxToolBar_GetToolState(TSelf(wxToolBar) pObject, int id);
 void wxToolBar_InsertControl(TSelf(wxToolBar) pObject, int pos, TClass(wxControl) ctrl);
 void wxToolBar_InsertSeparator(TSelf(wxToolBar) pObject, int pos);
 TBool wxToolBar_Realize(TSelf(wxToolBar) pObject);
-void wxToolBar_RemoveTool(TSelf(wxToolBar) pObject, int id);
+TClass(wxToolBarToolBase) wxToolBar_RemoveTool(TSelf(wxToolBar) pObject, int id);
 void wxToolBar_SetMargins(TSelf(wxToolBar) pObject, TPoint(x, y));
 void wxToolBar_SetToolBitmapSize(TSelf(wxToolBar) pObject, TSize(x, y));
 void wxToolBar_SetToolClientData(TSelf(wxToolBar) pObject, int id, TClass(wxObject) data);
@@ -5828,7 +5828,7 @@ size_t wxToolBar_GetToolsCount(TSelf(wxToolBar) pObject);
 TBool wxToolBar_IsVertical(TSelf(wxToolBar) pObject);
 void wxToolBar_SetToolNormalBitmap(TSelf(wxToolBar) pObject, int id, TClass(wxBitmap) bitmap);
 void wxToolBar_SetToolDisabledBitmap(TSelf(wxToolBar) pObject, int id, TClass(wxBitmap) bitmap);
-void wxToolBar_SetDropdownMenu(TSelf(wxToolBar) pObject, int id, TClass(wxMenu) menu);
+TBool wxToolBar_SetDropdownMenu(TSelf(wxToolBar) pObject, int id, TClass(wxMenu) menu);
 void wxToolBar_SetToggle(TSelf(wxToolBar) pObject, int id, TBool toggle);
 
 TClassDefExtend(wxToolBarBase, wxControl)
@@ -6383,7 +6383,7 @@ TClass(wxString) wxWindow_GetToolTip(TSelf(wxWindow) pObject);
 TClass(wxRegion) wxWindow_GetUpdateRegion(TSelf(wxWindow) pObject);
 TClass(wxValidator) wxWindow_GetValidator(TSelf(wxWindow) pObject);
 TClass(wxSize) wxWindow_GetVirtualSize(TSelf(wxWindow) pObject);
-int wxWindow_GetWindowStyleFlag(TSelf(wxWindow) pObject);
+long wxWindow_GetWindowStyleFlag(TSelf(wxWindow) pObject);
 TBool wxWindow_HasFlag(TSelf(wxWindow) pObject, int flag);
 TBool wxWindow_HasFocus(TSelf(wxWindow) pObject);
 TBool wxWindow_Hide(TSelf(wxWindow) pObject);

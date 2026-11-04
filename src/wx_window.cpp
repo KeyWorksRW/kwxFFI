@@ -213,9 +213,9 @@ extern "C"
         self->SetWindowStyleFlag(style);
     }
 
-    EXPORT int wxWindow_GetWindowStyleFlag(wxWindow* self)
+    EXPORT long wxWindow_GetWindowStyleFlag(wxWindow* self)
     {
-        return (int) self->GetWindowStyleFlag();
+        return self->GetWindowStyleFlag();
     }
 
     EXPORT bool wxWindow_HasFlag(wxWindow* self, int flag)
@@ -1355,9 +1355,11 @@ extern "C"
         return (void*) ((wxWindow*) pObject)->GetContainingSizer();
     }
 
-    EXPORT void* wxWindow_GetMinSizeFromKnownDirection(void* pObject, int direction, int size, int availableOtherDir)
+    EXPORT void* wxWindow_GetMinSizeFromKnownDirection(void* pObject, int direction, int size,
+                                                       int availableOtherDir)
     {
-        wxSize value = ((wxWindow*) pObject)->GetMinSizeFromKnownDirection(direction, size, availableOtherDir);
+        wxSize value =
+            ((wxWindow*) pObject)->GetMinSizeFromKnownDirection(direction, size, availableOtherDir);
         return new wxSize(value);
     }
 
@@ -1370,5 +1372,4 @@ extern "C"
     {
         ((wxWindow*) pObject)->PostSizeEvent();
     }
-
 }

@@ -856,7 +856,7 @@ TClassDef(wxScrolledWindow) void wxScrolledWindow_SetScrollRate(TSelf(wxScrolled
 TClassDef(wxSockAddress) void wxSockAddress_Clear(TSelf(wxSockAddress) pObject);
 void wxSockAddress_Delete(TSelf(wxSockAddress) pObject);
 
-TClassDef(wxSocketBase) void wxSocketBase_Close(TSelf(wxSocketBase) pObject);
+TClassDef(wxSocketBase) TBool wxSocketBase_Close(TSelf(wxSocketBase) pObject);
 void wxSocketBase_Delete(TSelf(wxSocketBase) pObject);
 TBool wxSocketBase_Destroy(TSelf(wxSocketBase) pObject);
 TClass(wxSocketBase) wxSocketBase_Discard(TSelf(wxSocketBase) pObject);
