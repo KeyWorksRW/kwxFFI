@@ -338,9 +338,9 @@ extern "C"
             return self->GetChildren().GetCount();
     }
 
-    EXPORT void wxSizer_AddSpacer(wxSizer* self, int size)
+    EXPORT wxSizerItem* wxSizer_AddSpacer(wxSizer* self, int size)
     {
-        self->AddSpacer(size);
+        return self->AddSpacer(size);
     }
 
     EXPORT void wxSizer_AddStretchSpacer(wxSizer* self, int size)

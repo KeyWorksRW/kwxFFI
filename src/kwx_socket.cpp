@@ -26,9 +26,9 @@ extern "C"
     {
         delete self;
     }
-    EXPORT void wxSocketBase_Close(wxSocketBase* self)
+    EXPORT bool wxSocketBase_Close(wxSocketBase* self)
     {
-        self->Close();
+        return self->Close();
     }
     EXPORT bool wxSocketBase_Destroy(wxSocketBase* self)
     {

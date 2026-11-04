@@ -31,18 +31,19 @@ extern "C"
         return self->AddSeparator();
     }
 
-    EXPORT void wxToolBar_AddTool(wxToolBar* self, int toolid, const wxString& label,
-                                  const wxBitmap& bitmap, const wxBitmap& bmpDisabled,
-                                  wxItemKind kind = wxITEM_NORMAL,
-                                  const wxString& shortHelp = wxEmptyString,
-                                  const wxString& longHelp = wxEmptyString,
-                                  wxObject* data = nullptr)
+    EXPORT wxToolBarToolBase* wxToolBar_AddTool(wxToolBar* self, int toolid, const wxString& label,
+                                                const wxBitmap& bitmap, const wxBitmap& bmpDisabled,
+                                                wxItemKind kind = wxITEM_NORMAL,
+                                                const wxString& shortHelp = wxEmptyString,
+                                                const wxString& longHelp = wxEmptyString,
+                                                wxObject* data = nullptr)
     {
         // the full AddTool() function
         //
         // If bmpDisabled is wxNullBitmap, a shadowed version of the normal bitmap
         // is created and used as the disabled image.
-        self->AddTool(toolid, label, bitmap, bmpDisabled, wxITEM_NORMAL, shortHelp, longHelp, data);
+        return self->AddTool(toolid, label, bitmap, bmpDisabled, wxITEM_NORMAL, shortHelp, longHelp,
+                             data);
     }
 
     EXPORT bool wxToolBar_DeleteTool(wxToolBar* self, int id)
@@ -130,9 +131,9 @@ extern "C"
         return self->Realize();
     }
 
-    EXPORT void wxToolBar_RemoveTool(wxToolBar* self, int id)
+    EXPORT wxToolBarToolBase* wxToolBar_RemoveTool(wxToolBar* self, int id)
     {
-        self->RemoveTool(id);
+        return self->RemoveTool(id);
     }
 
     EXPORT void wxToolBar_SetMargins(wxToolBar* self, int x, int y)
@@ -264,9 +265,9 @@ extern "C"
         self->SetToolDisabledBitmap(id, *bitmap);
     }
 
-    EXPORT void wxToolBar_SetDropdownMenu(wxToolBar* self, int id, wxMenu* menu)
+    EXPORT bool wxToolBar_SetDropdownMenu(wxToolBar* self, int id, wxMenu* menu)
     {
-        self->SetDropdownMenu(id, menu);
+        return self->SetDropdownMenu(id, menu);
     }
 
     EXPORT void wxToolBar_SetToggle(wxToolBar* self, int id, bool toggle)

@@ -192,7 +192,7 @@ extern "C"
         self->SetInt(intValue);
     }
 
-    EXPORT long wxCommandEvent_GetInt(wxCommandEvent* self)
+    EXPORT int wxCommandEvent_GetInt(wxCommandEvent* self)
     {
         return self->GetInt();
     }
