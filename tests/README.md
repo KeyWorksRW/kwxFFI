@@ -56,6 +56,10 @@ sources, and registers every check with the `cheap` label.
 - `checker_self_test` — runs both guard checkers against
   `tests/fixtures/lint_tree` and fails when an expected finding is missing or a
   severity changed. This pins the multi-line declaration detector.
+- `c_includability` — compiles the exact include set the Go backend emits for
+  its cgo preamble as C99 and fails when a public header stops being
+  includable from a C translation unit. Skips (exit 77) when no C compiler is
+  available; set `CC` to choose one.
 - `deno_check` — runs `kwxgen check`; exits 77 (CTest `SKIP`) when `deno` is not
   installed.
 - `parser_tests` — assert-based tests for the kwxgen parsers and the export

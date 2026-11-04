@@ -89,6 +89,24 @@ add_test(NAME checker_self_test
 )
 set_tests_properties(checker_self_test PROPERTIES LABELS cheap)
 
+# cgo compiles the Go preamble as C99; the public headers must stay includable
+# from a C translation unit. The checker exits 77 (CTest SKIP) when no C
+# compiler is available.
+find_program(KWXFFI_C_COMPILER NAMES clang gcc cc)
+add_test(NAME c_includability
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/c_includability.py"
+        --root "${KWXFFI_ROOT}"
+)
+set_tests_properties(c_includability PROPERTIES
+    LABELS cheap
+    SKIP_RETURN_CODE 77
+)
+if(KWXFFI_C_COMPILER)
+    set_tests_properties(c_includability PROPERTIES
+        ENVIRONMENT "CC=${KWXFFI_C_COMPILER}"
+    )
+endif()
+
 add_test(NAME export_snapshot
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/export_snapshot.py"
         --root "${KWXFFI_ROOT}"

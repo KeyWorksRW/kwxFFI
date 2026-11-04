@@ -87,6 +87,23 @@ static std::string GoFileName(const std::string& class_name)
     return ToLower(stripped) + "_gen.go";
 }
 
+// Classes already hand-defined in the Go module (wx/types.go).  Generating them
+// would redeclare the type, so they are skipped.
+static const std::unordered_set<std::string> kHandMaintainedClasses = {
+    "wxPoint",
+    "wxSize",
+    "wxRect",
+};
+
+// Package-level functions already hand-defined in the Go module (wx/app.go).
+// A generated free function with one of these names would be a redeclaration.
+static const std::unordered_set<std::string> kHandMaintainedFreeFunctions = {
+    "Bell",
+    "InitAllImageHandlers",
+    "SafeYield",
+    "Yield",
+};
+
 [[nodiscard]] static bool IsFixedGoGeneratedFile(const std::string& filename)
 {
     return filename == "cgo_glue_gen.go" || filename == "helpers_gen.go" ||
@@ -225,8 +242,209 @@ static std::string Capitalize(const std::string& text)
     return result;
 }
 
+// True when a non-constructor method's first parameter is TClass(ClassName) for the
+// method's own class. Mixin interfaces (wxTextEntry, wxItemContainer, wxComboPopup)
+// declare their receiver this way instead of TSelf, so it is the receiver for those
+// methods. Constructors are excluded: their first parameter is never the receiver.
+[[nodiscard]] static bool IsPseudoSelf(const FunctionDecl& func_decl)
+{
+    if (func_decl.is_constructor || func_decl.has_self || func_decl.class_name.empty() ||
+        func_decl.params.empty())
+    {
+        return false;
+    }
+    const Param& first_param = func_decl.params.front();
+    return first_param.macro_name == "TClass" && first_param.macro_arg == func_decl.class_name;
+}
+
+// Rename a parameter that would shadow the emitted function's receiver argument.
+// `reserved_name` is "o" in class files and "self" in the cgo glue functions.
+[[nodiscard]] static std::string ParamName(const std::string& name,
+                                           const std::string& reserved_name)
+{
+    std::string result = RenameGoKeyword(name);
+    if (!reserved_name.empty() && result == reserved_name)
+    {
+        result += "Value";
+    }
+    return result;
+}
+
+// Return the cgo scalar name for a single-indirection C pointer parameter:
+// "const unsigned char*" -> "uchar". Returns an empty string when cgo has no
+// scalar name for the element type (void*, or pointer-to-pointer); the caller
+// then passes the Go unsafe.Pointer through unchanged.
+[[nodiscard]] static std::string CgoScalarNameFor(const std::string& raw_type)
+{
+    const std::size_t begin = raw_type.find_first_not_of(" \t");
+    if (begin == std::string::npos)
+    {
+        return {};
+    }
+    const std::size_t end = raw_type.find_last_not_of(" \t");
+    std::string type = raw_type.substr(begin, end - begin + 1);
+
+    // Only a single level of indirection is mapped; "char**" has no scalar name.
+    if (!type.ends_with('*') || type.ends_with("**"))
+    {
+        return {};
+    }
+    type.pop_back();
+    const std::size_t name_end = type.find_last_not_of(" \t");
+    if (name_end == std::string::npos)
+    {
+        return {};
+    }
+    type.resize(name_end + 1);
+
+    for (const std::string_view qualifier: { "const", "volatile" })
+    {
+        if (!type.starts_with(qualifier))
+        {
+            continue;
+        }
+        const std::size_t after = type.find_first_not_of(" \t", qualifier.size());
+        if (after == std::string::npos)
+        {
+            return {};
+        }
+        type = type.substr(after);
+    }
+
+    if (type == "unsigned char")
+    {
+        return "uchar";
+    }
+    if (type == "signed char")
+    {
+        return "schar";
+    }
+    if (type == "char")
+    {
+        return "char";
+    }
+    if (type == "unsigned short" || type == "unsigned short int")
+    {
+        return "ushort";
+    }
+    if (type == "short" || type == "short int")
+    {
+        return "short";
+    }
+    if (type == "unsigned int" || type == "unsigned")
+    {
+        return "uint";
+    }
+    if (type == "int")
+    {
+        return "int";
+    }
+    // "unsigned long long" must be tested before "unsigned long".
+    if (type == "unsigned long long" || type == "unsigned long long int")
+    {
+        return "ulonglong";
+    }
+    if (type == "unsigned long" || type == "unsigned long int")
+    {
+        return "ulong";
+    }
+    if (type == "long long" || type == "long long int")
+    {
+        return "longlong";
+    }
+    if (type == "long" || type == "long int")
+    {
+        return "long";
+    }
+    if (type == "double")
+    {
+        return "double";
+    }
+    if (type == "float")
+    {
+        return "float";
+    }
+    if (type == "size_t")
+    {
+        return "size_t";
+    }
+    if (type == "time_t")
+    {
+        return "time_t";
+    }
+    if (type == "intptr_t")
+    {
+        return "intptr_t";
+    }
+    if (type == "uintptr_t")
+    {
+        return "uintptr_t";
+    }
+    if (type == "TChar")
+    {
+        return "char";
+    }
+    if (type == "TBool" || type == "TBoolInt")
+    {
+        return "int";
+    }
+    if (type == "TUInt8")
+    {
+        return "uchar";
+    }
+    if (type == "TUInt16")
+    {
+        return "uint16_t";
+    }
+    if (type == "TUInt32" || type == "TUInt")
+    {
+        return "uint32_t";
+    }
+    if (type == "TInt64")
+    {
+        return "longlong";
+    }
+    if (type == "TIntPtr")
+    {
+        return "intptr_t";
+    }
+    if (type == "int8_t")
+    {
+        return "int8_t";
+    }
+    if (type == "uint8_t")
+    {
+        return "uint8_t";
+    }
+    if (type == "int16_t")
+    {
+        return "int16_t";
+    }
+    if (type == "uint16_t")
+    {
+        return "uint16_t";
+    }
+    if (type == "int32_t")
+    {
+        return "int32_t";
+    }
+    if (type == "uint32_t")
+    {
+        return "uint32_t";
+    }
+    if (type == "int64_t")
+    {
+        return "int64_t";
+    }
+    if (type == "uint64_t")
+    {
+        return "uint64_t";
+    }
+    return {};
+}
+
 // Convert one Param to one or more GoParams.
-static std::vector<GoParam> ConvertParam(const Param& param)
+static std::vector<GoParam> ConvertParam(const Param& param, const std::string& reserved_name = {})
 {
     std::vector<GoParam> result;
 
@@ -242,7 +460,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
     {
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "int", "C.int(" + n + ")", "", "", false });
         }
         return result;
@@ -253,7 +471,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
     {
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "int", "C.long(" + n + ")", "", "", false });
         }
         return result;
@@ -266,7 +484,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         // for C call
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "unsafe.Pointer", "(*C.int)(" + n + ")", "", "", true });
         }
         return result;
@@ -278,7 +496,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         // Output void* geometry params — unsafe.Pointer passes through as-is
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "unsafe.Pointer", n, "", "", true });
         }
         return result;
@@ -289,7 +507,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         // Output double* geometry params — cast to (*C.double) for C call
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "unsafe.Pointer", "(*C.double)(" + n + ")", "", "", true });
         }
         return result;
@@ -299,7 +517,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
     {
         for (auto& field: SplitMacroArg(param.macro_arg))
         {
-            const std::string n = RenameGoKeyword(field);
+            const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "int", "C.uchar(" + n + ")", "", "", false });
         }
         return result;
@@ -312,8 +530,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         const std::vector<std::string> names = SplitMacroArg(param.macro_arg);
         if (names.size() >= 2)
         {
-            const std::string first_name = RenameGoKeyword(names[0]);
-            const std::string second_name = RenameGoKeyword(names[1]);
+            const std::string first_name = ParamName(names[0], reserved_name);
+            const std::string second_name = ParamName(names[1], reserved_name);
             result.push_back({ first_name, "int", "C.int(" + first_name + ")", "", "", false });
             result.push_back(
                 { second_name, "unsafe.Pointer", "(**C.char)(" + second_name + ")", "", "", true });
@@ -332,8 +550,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         const std::vector<std::string> names = SplitMacroArg(param.macro_arg);
         if (names.size() >= 2)
         {
-            const std::string first_name = RenameGoKeyword(names[0]);
-            const std::string second_name = RenameGoKeyword(names[1]);
+            const std::string first_name = ParamName(names[0], reserved_name);
+            const std::string second_name = ParamName(names[1], reserved_name);
             result.push_back({ first_name, "int", "C.int(" + first_name + ")", "", "", false });
             result.push_back(
                 { second_name, "unsafe.Pointer", "(*C.int)(" + second_name + ")", "", "", true });
@@ -352,8 +570,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         const std::vector<std::string> names = SplitMacroArg(param.macro_arg);
         if (names.size() >= 2)
         {
-            const std::string first_name = RenameGoKeyword(names[0]);   // data pointer
-            const std::string second_name = RenameGoKeyword(names[1]);  // length
+            const std::string first_name = ParamName(names[0], reserved_name);   // data pointer
+            const std::string second_name = ParamName(names[1], reserved_name);  // length
             result.push_back(
                 { first_name, "unsafe.Pointer", "(**C.char)(" + first_name + ")", "", "", true });
             result.push_back({ second_name, "int", "C.int(" + second_name + ")", "", "", false });
@@ -369,16 +587,17 @@ static std::vector<GoParam> ConvertParam(const Param& param)
     if (param.macro_name == "TArrayObjectOutVoid")
     {
         const std::string name =
-            RenameGoKeyword(param.param_name.empty() ? "arr" : param.param_name);
+            ParamName(param.param_name.empty() ? "arr" : param.param_name, reserved_name);
         result.push_back({ name, "unsafe.Pointer", name, "", "", true });
         return result;
     }
 
     // Single parameter
     GoParam go_param;
-    go_param.name = RenameGoKeyword(param.param_name.empty() ? "arg" : param.param_name);
+    go_param.name = ParamName(param.param_name.empty() ? "arg" : param.param_name, reserved_name);
 
-    if (param.macro_name == "TClass" && param.macro_arg == "wxString")
+    if (param.macro_name == "TClass" && param.macro_arg == "wxString" &&
+        (param.raw_type.empty() || param.raw_type.back() != '*'))
     {
         // wxString parameter: class file bridges Go string → NewWxString,
         // glue function receives the raw pointer directly.
@@ -458,6 +677,48 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         go_param.go_type = "uint8";
         go_param.cgo_expr = "C.uchar(" + go_param.name + ")";
     }
+    else if (param.raw_type == "TUInt16")
+    {
+        go_param.go_type = "uint16";
+        go_param.cgo_expr = "C.uint16_t(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "TUInt32" || param.raw_type == "TUInt")
+    {
+        go_param.go_type = "uint32";
+        go_param.cgo_expr = "C.uint32_t(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "TIntPtr")
+    {
+        go_param.go_type = "int64";
+        go_param.cgo_expr = "C.intptr_t(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "unsigned char")
+    {
+        go_param.go_type = "byte";
+        go_param.cgo_expr = "C.uchar(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "signed char")
+    {
+        go_param.go_type = "int8";
+        go_param.cgo_expr = "C.schar(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "char")
+    {
+        go_param.go_type = "byte";
+        go_param.cgo_expr = "C.char(" + go_param.name + ")";
+    }
+    else if (param.raw_type == "void**")
+    {
+        // void** is represented by *unsafe.Pointer in cgo.
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*unsafe.Pointer)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "intptr_t")
+    {
+        go_param.go_type = "int64";
+        go_param.cgo_expr = "C.intptr_t(" + go_param.name + ")";
+    }
     else if (param.raw_type == "TString")
     {
         // char* input: glue function handles C.CString conversion internally.
@@ -499,6 +760,11 @@ static std::vector<GoParam> ConvertParam(const Param& param)
             go_param.go_type = "uint";
             go_param.cgo_expr = "C.ulong(" + go_param.name + ")";
         }
+        else if (raw_type == "unsigned short")
+        {
+            go_param.go_type = "uint16";
+            go_param.cgo_expr = "C.ushort(" + go_param.name + ")";
+        }
         else if (raw_type == "wxUIntPtr")
         {
             go_param.go_type = "uintptr";
@@ -523,6 +789,11 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         {
             go_param.go_type = "int";
             go_param.cgo_expr = "C.size_t(" + go_param.name + ")";
+        }
+        else if (raw_type == "time_t")
+        {
+            go_param.go_type = "int64";
+            go_param.cgo_expr = "C.time_t(" + go_param.name + ")";
         }
         else if (raw_type == "TInt64" || raw_type == "int64_t")
         {
@@ -562,9 +833,19 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else if (raw_type.find('*') != std::string::npos)
         {
-            // Any other pointer type
+            // Pointer to a scalar: cgo requires an exact pointer type, so the
+            // unsafe.Pointer has to be cast. void* (and any element type without a
+            // known cgo name) is already represented by unsafe.Pointer.
             go_param.go_type = "unsafe.Pointer";
-            go_param.cgo_expr = go_param.name;
+            const std::string cgo_scalar = CgoScalarNameFor(raw_type);
+            if (cgo_scalar.empty())
+            {
+                go_param.cgo_expr = go_param.name;
+            }
+            else
+            {
+                go_param.cgo_expr = "(*C." + cgo_scalar + ")(" + go_param.name + ")";
+            }
             go_param.needs_unsafe = true;
         }
         else
@@ -654,6 +935,18 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
     {
         return "uint8";
     }
+    if (func_decl.return_type == "TUInt16")
+    {
+        return "uint16";
+    }
+    if (func_decl.return_type == "TUInt32" || func_decl.return_type == "TUInt")
+    {
+        return "uint32";
+    }
+    if (func_decl.return_type == "unsigned short")
+    {
+        return "uint16";
+    }
     if (func_decl.return_type == "void*")
     {
         return "unsafe.Pointer";
@@ -704,9 +997,11 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
         {
             return true;
         }
+        const bool pseudo_self = IsPseudoSelf(method);
         bool seen_self = false;
-        for (auto& param: method.params)
+        for (size_t param_index = 0; param_index < method.params.size(); ++param_index)
         {
+            const Param& param = method.params[param_index];
             if (param.macro_name == "TSelf")
             {
                 if (!seen_self)
@@ -715,6 +1010,10 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
                     continue;  // first TSelf is receiver, not a param
                 }
                 return true;  // additional TSelf emitted as unsafe.Pointer
+            }
+            if (param_index == 0 && pseudo_self)
+            {
+                continue;  // TClass(OwnClass) receiver, not a param
             }
             const std::vector<GoParam> go_params = ConvertParam(param);
             for (const auto& go_param: go_params)
@@ -759,7 +1058,8 @@ static std::string BuildGlueCall(const FunctionDecl& func_decl, const std::strin
     std::string call = "cgo_" + c_name + "(";
     bool first = true;
 
-    if (func_decl.has_self)
+    // A TSelf receiver or a mixin's TClass(OwnClass) receiver is passed first.
+    if (func_decl.has_self || IsPseudoSelf(func_decl))
     {
         call += receiver_expr;
         first = false;
@@ -849,6 +1149,18 @@ static std::string GlueReturnType(const FunctionDecl& func_decl)
     {
         return "uint8";
     }
+    if (func_decl.return_type == "TUInt16")
+    {
+        return "uint16";
+    }
+    if (func_decl.return_type == "TUInt32" || func_decl.return_type == "TUInt")
+    {
+        return "uint32";
+    }
+    if (func_decl.return_type == "unsigned short")
+    {
+        return "uint16";
+    }
     if (func_decl.return_type == "void*")
     {
         return "unsafe.Pointer";
@@ -892,8 +1204,10 @@ static void EmitGlueFunction(std::ostream& output, const FunctionDecl& func_decl
     std::vector<std::string> pre_lines;
     std::vector<std::string> defer_lines;
 
-    // Self parameter (skipped by ConvertParam — handle explicitly)
-    if (func_decl.has_self)
+    // Self parameter (skipped by ConvertParam — handle explicitly). Mixin
+    // methods declare their receiver as TClass(OwnClass) rather than TSelf.
+    const bool pseudo_self = IsPseudoSelf(func_decl);
+    if (func_decl.has_self || pseudo_self)
     {
         output << "self unsafe.Pointer";
         c_call_args.emplace_back("self");
@@ -901,8 +1215,13 @@ static void EmitGlueFunction(std::ostream& output, const FunctionDecl& func_decl
     }
 
     bool first_tself = true;
-    for (const auto& param: func_decl.params)
+    for (size_t param_index = 0; param_index < func_decl.params.size(); ++param_index)
     {
+        const Param& param = func_decl.params[param_index];
+        if (param_index == 0 && pseudo_self)
+        {
+            continue;  // receiver already emitted as 'self'
+        }
         if (param.macro_name == "TSelf")
         {
             if (first_tself)
@@ -916,13 +1235,14 @@ static void EmitGlueFunction(std::ostream& output, const FunctionDecl& func_decl
             {
                 output << ", ";
             }
-            const std::string name = param.param_name.empty() ? "other" : param.param_name;
+            const std::string name =
+                ParamName(param.param_name.empty() ? "other" : param.param_name, "self");
             output << name << " unsafe.Pointer";
             c_call_args.push_back(name);
             first_param = false;
             continue;
         }
-        for (const auto& go_param: ConvertParam(param))
+        for (const auto& go_param: ConvertParam(param, "self"))
         {
             if (!first_param)
             {
@@ -1074,10 +1394,17 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
     const std::string go_ret_type = GoReturnType(func_decl, go_class_name);
 
     // Collect non-self Go params; handle multiple TSelf (e.g. wxIcon_IsEqual)
+    const bool pseudo_self = IsPseudoSelf(func_decl);
     std::vector<std::vector<GoParam>> param_groups;
-    bool seen_self = false;  // track whether we've seen the receiver TSelf
-    for (const auto& param: func_decl.params)
+    bool seen_self = false;  // track whether we've seen the receiver self
+    for (size_t param_index = 0; param_index < func_decl.params.size(); ++param_index)
     {
+        const Param& param = func_decl.params[param_index];
+        if (param_index == 0 && pseudo_self)
+        {
+            seen_self = true;
+            continue;  // TClass(OwnClass) receiver, already available as the Go receiver
+        }
         if (param.macro_name == "TSelf")
         {
             if (!seen_self)
@@ -1086,7 +1413,8 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
                 continue;  // first TSelf already handled as receiver
             }
             // Additional TSelf — emit as unsafe.Pointer parameter
-            const std::string name = param.param_name.empty() ? "other" : param.param_name;
+            const std::string name =
+                ParamName(param.param_name.empty() ? "other" : param.param_name, kReceiverVar);
             GoParam go_param;
             go_param.name = name;
             go_param.go_type = "unsafe.Pointer";
@@ -1096,7 +1424,7 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
             param_groups.push_back({ go_param });
             continue;
         }
-        param_groups.push_back(ConvertParam(param));
+        param_groups.push_back(ConvertParam(param, kReceiverVar));
     }
 
     // Method signature
@@ -1167,23 +1495,9 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
 
 // Emit a C free function (class_name empty, no TSelf) as a package-level Go function.
 // kwxMessageBox → MessageBox, kwxFoo → Foo, wxFoo → Foo
-static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl)
+static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl,
+                             const std::string& go_name)
 {
-    // Strip kwx/wx prefix and capitalize for an exported Go identifier.
-    std::string name = func_decl.method_name;
-    if (name.starts_with(KWX_PREFIX))
-    {
-        name = Capitalize(name.substr(KWX_PREFIX.length()));
-    }
-    else if (name.starts_with(WX_PREFIX))
-    {
-        name = Capitalize(name.substr(WX_PREFIX.length()));
-    }
-    else
-    {
-        name = Capitalize(name);
-    }
-
     std::vector<std::vector<GoParam>> param_groups;
     param_groups.reserve(func_decl.params.size());
     for (const auto& param: func_decl.params)
@@ -1193,7 +1507,7 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
 
     const std::string go_ret_type = GoReturnType(func_decl, "");
 
-    output << "func " << SafeGoIdentifier(name) << "(";
+    output << "func " << SafeGoIdentifier(go_name) << "(";
     bool first = true;
     for (const auto& group: param_groups)
     {
@@ -1246,6 +1560,102 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
     }
 
     output << "}\n\n";
+}
+
+// Strip the kwx/wx prefix and capitalize for an exported Go identifier.
+[[nodiscard]] static std::string GoFreeFunctionName(const FunctionDecl& func_decl)
+{
+    std::string name = func_decl.method_name;
+    if (name.starts_with(KWX_PREFIX))
+    {
+        name = Capitalize(name.substr(KWX_PREFIX.length()));
+    }
+    else if (name.starts_with(WX_PREFIX))
+    {
+        name = Capitalize(name.substr(WX_PREFIX.length()));
+    }
+    else
+    {
+        name = Capitalize(name);
+    }
+    return name;
+}
+
+// Go type names emitted for the classes that produce their own file.
+[[nodiscard]] static std::unordered_set<std::string>
+    CollectClassTypeNames(const ParsedFFI& parsed_ffi)
+{
+    std::unordered_set<std::string> names;
+    names.reserve(parsed_ffi.classes.size());
+    for (const auto& class_decl: parsed_ffi.classes)
+    {
+        if (!class_decl.methods.empty() && !kHandMaintainedClasses.contains(class_decl.name))
+        {
+            names.insert(StripPrefix(class_decl.name));
+        }
+    }
+    return names;
+}
+
+// A free function together with the package-level Go name it is emitted under.
+struct GoFreeFunction
+{
+    const FunctionDecl* decl = nullptr;
+    std::string go_name;
+};
+
+// Canonical package-level free functions for the Go backend.
+//
+// The same C function can be reached through more than one header (wxBell from
+// kwx_constants.h and kwxBell from kwx_classes_sync.h), and some names are already
+// defined by hand-written files in the Go module.  Emitting one Go function per Go
+// identifier here keeps functions_gen.go and the cgo glue consistent; a free
+// function that would collide with a class type is suffixed with "Func".
+[[nodiscard]] static std::vector<GoFreeFunction> CollectFreeFunctions(const ParsedFFI& parsed_ffi)
+{
+    const std::unordered_set<std::string> class_names = CollectClassTypeNames(parsed_ffi);
+    std::vector<GoFreeFunction> result;
+    std::unordered_set<std::string> emitted_names;
+    for (const auto& func: parsed_ffi.free_functions)
+    {
+        if (!IsValidFunction(func))
+        {
+            continue;
+        }
+        std::string go_name = GoFreeFunctionName(func);
+        if (kHandMaintainedFreeFunctions.contains(go_name))
+        {
+            continue;
+        }
+        if (class_names.contains(go_name))
+        {
+            go_name += "Func";
+        }
+        if (!emitted_names.insert(go_name).second)
+        {
+            continue;  // second declaration of the same Go identifier
+        }
+        result.push_back({ &func, std::move(go_name) });
+    }
+    return result;
+}
+
+// Canonical constant list: drops entries that would declare the same Go name.
+// Each ribbon constant is exported from both kwx_defs.cpp (expwx*) and
+// kwx_constants.h (exp*); emitting both is a redeclaration in one const block.
+[[nodiscard]] static std::vector<const ConstantDecl*> CollectConstants(const ParsedFFI& parsed_ffi)
+{
+    std::vector<const ConstantDecl*> result;
+    std::unordered_set<std::string> emitted_names;
+    result.reserve(parsed_ffi.constants.size());
+    for (const auto& constant: parsed_ffi.constants)
+    {
+        if (emitted_names.insert(constant.constant_name).second)
+        {
+            result.push_back(&constant);
+        }
+    }
+    return result;
 }
 
 // -------------------------------------------------------------------------
@@ -1363,7 +1773,8 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
 
 void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::path& out_dir)
 {
-    if (parsed_ffi.free_functions.empty())
+    const std::vector<GoFreeFunction> free_functions = CollectFreeFunctions(parsed_ffi);
+    if (free_functions.empty())
     {
         return;
     }
@@ -1379,11 +1790,11 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
     WriteGeneratedHeader(writer);
     writer << "package wx\n\n";
 
-    // Check if any free function needs the "unsafe" import
+    // Check if any emitted free function needs the "unsafe" import
     bool needs_unsafe = false;
-    for (const auto& func: parsed_ffi.free_functions)
+    for (const auto& func: free_functions)
     {
-        if (IsValidFunction(func) && FunctionNeedsUnsafe(func))
+        if (FunctionNeedsUnsafe(*func.decl))
         {
             needs_unsafe = true;
             break;
@@ -1394,16 +1805,11 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
         writer << "import \"unsafe\"\n\n";
     }
 
-    size_t count = 0;
-    for (const auto& func: parsed_ffi.free_functions)
+    for (const auto& func: free_functions)
     {
-        if (!IsValidFunction(func))
-        {
-            continue;
-        }
-        EmitFreeFunction(writer, func);
-        ++count;
+        EmitFreeFunction(writer, *func.decl, func.go_name);
     }
+    const size_t count = free_functions.size();
 
     std::ignore = writer.Flush();
     std::println(stderr, "  functions_gen.go: {:L} free functions{}", count,
@@ -1427,23 +1833,23 @@ void GoEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path& o
     WriteGeneratedHeader(writer);
     writer << "package wx\n\n";
 
-    // Sort constants by name for stable output
-    std::vector<ConstantDecl> sorted = parsed_ffi.constants;
+    // One Go name per constant, sorted for stable output.
+    std::vector<const ConstantDecl*> sorted = CollectConstants(parsed_ffi);
     std::ranges::sort(sorted,
-                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      [](const ConstantDecl* left, const ConstantDecl* right)
                       {
-                          return left.constant_name < right.constant_name;
+                          return left->constant_name < right->constant_name;
                       });
 
     writer << "var (\n";
-    for (const auto& constant: sorted)
+    for (const ConstantDecl* constant: sorted)
     {
-        writer << "\t" << constant.constant_name << " = " << GoConstantExpr(constant) << "\n";
+        writer << "\t" << constant->constant_name << " = " << GoConstantExpr(*constant) << "\n";
     }
     writer << ")\n";
 
     std::ignore = writer.Flush();
-    std::println(stderr, "  constants_gen.go: {:L} constants{}", parsed_ffi.constants.size(),
+    std::println(stderr, "  constants_gen.go: {:L} constants{}", sorted.size(),
                  writer.WasWritten() ? "" : " (unchanged)");
 }
 
@@ -1532,14 +1938,8 @@ size_t GoEmitter::GenerateClassFiles(const ParsedFFI& parsed_ffi, const fs::path
     size_t method_count = 0;
     size_t skipped_methods = 0;
 
-    // Classes already hand-defined in types.go — skip generation to avoid
-    // redeclaration errors.  Add entries here whenever a new class is added
-    // to the hand-maintained types.go file.
-    static const std::unordered_set<std::string> kHandMaintainedClasses = {
-        "wxPoint",
-        "wxSize",
-        "wxRect",
-    };
+    // Classes already hand-defined in the Go module (wx/types.go) are skipped by
+    // kHandMaintainedClasses, which is shared with the free-function collision check.
 
     // Only include classes that will actually be generated (have methods and
     // aren't hand-maintained).  This prevents parent-embed resolution from
@@ -1649,7 +2049,10 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         output << "type " << go_class_name << " struct{ " << embed_type << " }\n\n";
     }
 
-    // Emit methods
+    // Emit methods. The public headers sometimes declare the same operation twice
+    // under two C symbols (wxTextDataObject_GetText and TextDataObject_GetText);
+    // only the first Go member of a given name can exist on the type.
+    std::unordered_set<std::string> emitted_member_names;
     for (const auto& func: class_info.methods)
     {
         if (!IsValidFunction(func))
@@ -1660,14 +2063,34 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         // Free functions (class_name empty, no TSelf) — emit as package-level Go functions.
         // These are bare C functions (e.g. kwxMessageBox) that appear inside a class block
         // in the header but have no class prefix; route them out as free functions.
-        if (func.class_name.empty() && !func.has_self)
-        {
-            EmitFreeFunction(output, func);
-            continue;
-        }
-
+        const bool is_free_function = func.class_name.empty() && !func.has_self;
         const bool is_true_constructor =
             func.is_constructor && !func.has_self && func.return_type != "TBool";
+
+        std::string member_name;
+        if (is_free_function)
+        {
+            member_name = GoFreeFunctionName(func);
+        }
+        else if (is_true_constructor)
+        {
+            member_name = GoConstructorName(go_class_name, func.method_name);
+        }
+        else
+        {
+            member_name = SafeGoIdentifier(func.method_name);
+        }
+
+        if (!emitted_member_names.insert(member_name).second)
+        {
+            continue;  // second C wrapper for the same Go member name
+        }
+
+        if (is_free_function)
+        {
+            EmitFreeFunction(output, func, member_name);
+            continue;
+        }
 
         if (is_true_constructor)
         {
@@ -1782,6 +2205,9 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
     writer << "}\n\n";
 
     size_t glue_count = 0;
+    // One glue function per C symbol: a symbol declared in a class header and again
+    // in a standalone header must not produce two cgo_ wrappers.
+    std::unordered_set<std::string> emitted_symbols;
 
     // --- Class method glue functions ---
     writer << "// " << std::string(COMMENT_BANNER_WIDTH, '-') << "\n";
@@ -1796,25 +2222,30 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
             {
                 continue;
             }
+            if (!emitted_symbols.insert(CFuncName(func)).second)
+            {
+                continue;
+            }
             EmitGlueFunction(writer, func);
             ++glue_count;
         }
     }
 
     // --- Free function glue ---
-    if (!parsed_ffi.free_functions.empty())
+    const std::vector<GoFreeFunction> free_functions = CollectFreeFunctions(parsed_ffi);
+    if (!free_functions.empty())
     {
         writer << "// " << std::string(COMMENT_BANNER_WIDTH, '-') << "\n";
         writer << "// Free function glue\n";
         writer << "// " << std::string(COMMENT_BANNER_WIDTH, '-') << "\n\n";
 
-        for (const auto& func: parsed_ffi.free_functions)
+        for (const auto& func: free_functions)
         {
-            if (!IsValidFunction(func))
+            if (!emitted_symbols.insert(CFuncName(*func.decl)).second)
             {
                 continue;
             }
-            EmitGlueFunction(writer, func);
+            EmitGlueFunction(writer, *func.decl);
             ++glue_count;
         }
     }
@@ -1857,17 +2288,17 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
         writer << "// Constant glue functions\n";
         writer << "// " << std::string(COMMENT_BANNER_WIDTH, '-') << "\n\n";
 
-        for (const auto& constant: parsed_ffi.constants)
+        for (const ConstantDecl* constant: CollectConstants(parsed_ffi))
         {
-            if (constant.return_type == "int")
+            if (constant->return_type == "int")
             {
-                writer << "func cgo_" << constant.export_name << "() int { return int(C."
-                       << constant.export_name << "()) }\n";
+                writer << "func cgo_" << constant->export_name << "() int { return int(C."
+                       << constant->export_name << "()) }\n";
             }
             else
             {
-                writer << "func cgo_" << constant.export_name
-                       << "() unsafe.Pointer { return unsafe.Pointer(C." << constant.export_name
+                writer << "func cgo_" << constant->export_name
+                       << "() unsafe.Pointer { return unsafe.Pointer(C." << constant->export_name
                        << "()) }\n";
             }
             ++glue_count;

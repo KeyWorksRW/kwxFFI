@@ -54,9 +54,13 @@ TClassDef(wxRibbonArtProvider) TClass(wxRibbonArtProvider)
     wxRibbonArtProvider_Clone(TSelf(wxRibbonArtProvider) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxColour) wxRibbonArtProvider_GetColor(TSelf(wxRibbonArtProvider) pObject, int id);
-void wxRibbonArtProvider_GetColourScheme(TSelf(wxRibbonArtProvider) pObject, void* primary, void* secondary, void* tertiary);
-void wxRibbonArtProvider_SetColor(TSelf(wxRibbonArtProvider) pObject, int id, TClass(wxColour) color);
-void wxRibbonArtProvider_SetColourScheme(TSelf(wxRibbonArtProvider) pObject, TClass(wxColour) primary, TClass(wxColour) secondary, TClass(wxColour) tertiary);
+void wxRibbonArtProvider_GetColourScheme(TSelf(wxRibbonArtProvider) pObject, void* primary,
+                                         void* secondary, void* tertiary);
+void wxRibbonArtProvider_SetColor(TSelf(wxRibbonArtProvider) pObject, int id,
+                                  TClass(wxColour) color);
+void wxRibbonArtProvider_SetColourScheme(TSelf(wxRibbonArtProvider) pObject,
+                                         TClass(wxColour) primary, TClass(wxColour) secondary,
+                                         TClass(wxColour) tertiary);
 void wxRibbonArtProvider_Delete(TSelf(wxRibbonArtProvider) pObject);
 TClass(wxColour) wxRibbonArtProvider_GetColour(TSelf(wxRibbonArtProvider) pObject, int id);
 TClass(wxFont) wxRibbonArtProvider_GetFont(TSelf(wxRibbonArtProvider) pObject, int id);
@@ -114,5 +118,6 @@ TClass(wxString) wxWebViewHandler_GetName(TSelf(wxWebViewHandler) pObject);
 // wxWebView handler registration (extends the wxWebView block in kwx_classes.h).
 // The handler is owned by the web view after registration, matching the wxWidgets contract.
 
-TClassDefExtend(wxWebView, wxControl)
-    wxWebView_RegisterHandler(TSelf(wxWebView) pObject, TClass(wxWebViewHandler) handler);
+TClassDefExtend(wxWebView, wxControl) void wxWebView_RegisterHandler(TSelf(wxWebView) pObject,
+                                                                     TClass(wxWebViewHandler)
+                                                                         handler);

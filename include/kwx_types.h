@@ -16,6 +16,7 @@
 #undef TClassDefExtend
 #undef TChar
 #undef TUInt8
+#undef TUInt16
 #undef TInt64
 #undef TIntPtr
 #undef TBool
@@ -80,6 +81,9 @@
 
 /* 8 bit unsigned integer */
 #define TUInt8 uint8_t
+
+/* 16 bit unsigned integer */
+#define TUInt16 uint16_t
 
 /* 32 bit unsigned integer */
 #define TUInt32 uint32_t

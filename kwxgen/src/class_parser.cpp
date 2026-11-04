@@ -254,6 +254,17 @@ static size_t FindFuncParenOpen(const std::string& line, size_t semicolon_pos)
     }
 
     // Parse return type for macro info
+    // The public headers mark some declarations with EXPORT (see kwx_def.h). A
+    // declaration carries no storage class, so the macro must not become part of
+    // the parsed return type — otherwise "EXPORT void" is not recognised as void.
+    for (const std::string_view export_prefix: { "EXPORT ", "WXFFI_FUNC " })
+    {
+        if (return_type_str.starts_with(export_prefix))
+        {
+            return_type_str = Trim(return_type_str.substr(export_prefix.size()));
+            break;
+        }
+    }
     decl_out.return_type = return_type_str;
     std::ignore = ParseMacroType(return_type_str, decl_out.return_macro, decl_out.return_arg);
 

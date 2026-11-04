@@ -13,8 +13,15 @@
 // Only `using` statements belong in this header. tests/checks/guard_lint.py
 // treats any other declaration under a platform guard as an error, and `using`
 // declarations are not classified as declarations at all.
+//
+// The aliases are C++ only. A C translation unit (the cgo preamble) must not see
+// them: `using` is a C++ declaration and the aliased wxWidgets types do not exist
+// there. kwxgen skips preprocessor lines, so the aliases are still parsed on
+// every platform.
 
-#if !defined(__WXMSW__)
+#ifdef __cplusplus
+
+    #if !defined(__WXMSW__)
 
 using wxRegConfig = wxFileConfig;
 using wxRegKey = wxObject;
@@ -32,24 +39,26 @@ using wxAuiMSWToolBarArt = wxAuiDefaultToolBarArt;
 using wxWebViewIE = wxObject;
 using wxWebViewEdge = wxObject;
 
-#endif  // !defined(__WXMSW__)
+    #endif  // !defined(__WXMSW__)
 
-// wx/taskbarbutton.h declares wxTaskBarButton on every platform, but only when
-// wxUSE_TASKBARBUTTON is enabled. The guard below is the exact complement of
-// that one, so the class is always nameable and is never redeclared.
-#if !wxUSE_TASKBARBUTTON
+    // wx/taskbarbutton.h declares wxTaskBarButton on every platform, but only when
+    // wxUSE_TASKBARBUTTON is enabled. The guard below is the exact complement of
+    // that one, so the class is always nameable and is never redeclared.
+    #if !wxUSE_TASKBARBUTTON
 
 using wxTaskBarButton = wxObject;
 
-#endif  // !wxUSE_TASKBARBUTTON
+    #endif  // !wxUSE_TASKBARBUTTON
 
-// wx/webview.h declares nothing when web view support is disabled, so the
-// wrapped classes are aliased to their nearest available base class.
-#if !wxUSE_WEBVIEW
+    // wx/webview.h declares nothing when web view support is disabled, so the
+    // wrapped classes are aliased to their nearest available base class.
+    #if !wxUSE_WEBVIEW
 
 using wxWebView = wxControl;
 using wxWebViewEvent = wxNotifyEvent;
 using wxWebViewHandler = wxObject;
 using wxWebViewFactory = wxObject;
 
-#endif  // !wxUSE_WEBVIEW
+    #endif  // !wxUSE_WEBVIEW
+
+#endif  // __cplusplus
