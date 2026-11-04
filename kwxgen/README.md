@@ -193,6 +193,11 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
   to every ancestor's static side, which cannot be satisfied once factory signatures
   differ across the hierarchy. Item-deletion methods that collide with the `Delete()`
   destructor are exposed as `DeleteItem()`.
+  A member that hides an inherited member with a different parameter list is emitted as
+  one overload set (each signature plus a dispatching implementation) so both call
+  shapes keep working. A member that cannot share the inherited name — same parameters
+  and a different return type — is exposed as `<Name>__<DeclaringClass>`; `generate`
+  prints these renames as one block at the end of the run.
 - `kwx_gen.ts` — Master barrel re-export of every generated module.
 
 Run with:
@@ -298,6 +303,7 @@ Parses the headers and generates binding source files for the specified language
 | `--out <dir>` | Output directory for generated files |
 | `--libname <name>` | Runtime shared-lib name embedded in bindings (default: `kwxFFI`) |
 | `--profile <name>` | Surface profile: `full` or `gui` (default: per language — see [Profiles](#profiles)) |
+| `--rename-report <file>` | Write a JSON report of TypeScript member renames (TypeScript only) |
 
 ### `verify` — Verify existing bindings
 

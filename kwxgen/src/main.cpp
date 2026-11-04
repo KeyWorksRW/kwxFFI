@@ -94,6 +94,7 @@ static constexpr std::string_view ARG_DENO = "--deno";
 static constexpr std::string_view ARG_DENO_CONFIG = "--deno-config";
 static constexpr std::string_view ARG_DENO_LOG = "--deno-log";
 static constexpr std::string_view ARG_DENO_CHECK = "--deno-check";
+static constexpr std::string_view ARG_RENAME_REPORT = "--rename-report";
 static constexpr std::string_view ARG_CONSTANTS_VALUES = "--constants-values";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
@@ -133,6 +134,9 @@ static void PrintUsage(const char* prog_name)
     std::println(stderr,
                  "  --deno-log <file>  write the complete deno diagnostic output to <file>");
     std::println(stderr,
+                 "  --rename-report <f>  write a JSON report of TypeScript member renames to "
+                 "<f>");
+    std::println(stderr,
                  "  --constants-values <file>  NAME<TAB>VALUE dump used to emit true `const` "
                  "declarations");
 }
@@ -152,6 +156,7 @@ struct Args
     std::string deno_exe = "deno";    // --deno
     std::string deno_config;          // --deno-config
     std::string deno_log;             // --deno-log
+    std::string rename_report;        // --rename-report (TypeScript only)
     bool deno_check = false;          // --deno-check
     std::string constants_values;     // --constants-values (NAME<TAB>VALUE dump)
 };
@@ -250,6 +255,10 @@ static bool LoadConfigFile(Args& args)
         else if (argument == ARG_DENO_CHECK)
         {
             args.deno_check = true;
+        }
+        else if (argument == ARG_RENAME_REPORT && i + 1 < argc)
+        {
+            args.rename_report = argv[++i];
         }
         else if (argument == ARG_CONSTANTS_VALUES && i + 1 < argc)
         {
@@ -645,6 +654,15 @@ int main(int argc, char* argv[])
         }
 
         std::println(stderr, "Generating {} bindings (profile: {})...", args.lang, profile);
+        if (args.lang == "typescript")
+        {
+            SetTypeScriptRenameReportPath(args.rename_report);
+        }
+        else if (!args.rename_report.empty())
+        {
+            std::println(stderr,
+                         "  Warning: --rename-report is only supported for --lang typescript");
+        }
         emitter->Generate(ApplyProfile(parsed_ffi, profile), args.out_path);
 
         if (args.exports)

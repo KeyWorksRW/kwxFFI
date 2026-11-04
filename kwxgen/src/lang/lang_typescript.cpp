@@ -27,6 +27,7 @@
 #include <array>
 #include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <print>
 #include <set>
 #include <sstream>
@@ -450,7 +451,8 @@ struct WrapParam
 // call_expr is the raw lib.symbols.Func(...) expression (without trailing semicolon).
 static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
                            const std::string& class_name, const std::string& call_expr,
-                           const std::unordered_set<std::string>& wrapped_classes)
+                           const std::unordered_set<std::string>& wrapped_classes,
+                           std::string_view indent = "    ")
 {
     const bool is_void = func.return_type.empty() || func.return_type == "void";
     const bool is_ctor = !class_name.empty() && IsFactoryMethod(func) &&
@@ -464,57 +466,81 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
 
     if (is_void)
     {
-        output << "    " << call_expr << ";\n";
+        output << indent << call_expr << ";\n";
         return;
     }
 
     if (is_ctor)
     {
-        output << "    const rawPtr = " << call_expr << ";\n";
-        output << "    if (rawPtr === null) return null;\n";
-        output << "    return new " << EffectiveFactoryClass(func, class_name, wrapped_classes)
-               << "(rawPtr);\n";
+        output << indent << "const rawPtr = " << call_expr << ";\n";
+        output << indent << "if (rawPtr === null) return null;\n";
+        output << indent << "return new "
+               << EffectiveFactoryClass(func, class_name, wrapped_classes) << "(rawPtr);\n";
         return;
     }
 
     if (is_bool)
     {
-        output << "    return (" << call_expr << " as number) !== 0;\n";
+        output << indent << "return (" << call_expr << " as number) !== 0;\n";
         return;
     }
 
     if (is_bigint)
     {
-        output << "    return " << call_expr << " as bigint;\n";
+        output << indent << "return " << call_expr << " as bigint;\n";
         return;
     }
 
-    output << "    return " << call_expr << ";\n";
+    output << indent << "return " << call_expr << ";\n";
 }
 
 // The visible TypeScript signature of one member: parameter types in order, then the
-// return type.  Used to decide whether a derived member can legally override it.
+// return type.
 struct AncestorMemberInfo
 {
     std::vector<std::string> param_types;
     std::string return_type;
-    std::string origin_name;  // declared name before any ancestor-side rename
+    std::string origin_name;        // declared name before any ancestor-side rename
+    std::vector<WrapParam> params;  // visible parameters, in order
 };
 
-// Member names exposed by the TypeScript ancestors of a class.  Used to decide where
-// an `override` modifier is required (TS4114 / TS4113) and whether a same-named member
-// has a compatible signature.
+// Member names exposed by the TypeScript ancestors of a class.  Each name maps to the
+// complete set of overload signatures a consumer inherits under that name.
 struct AncestorMembers
 {
     std::unordered_set<std::string> instance_names;
-    std::unordered_map<std::string, AncestorMemberInfo> signatures;
+    std::unordered_map<std::string, std::vector<AncestorMemberInfo>> signatures;
     bool has_ptr = false;
     bool has_delete = false;
 };
 
-// True when `derived` can legally override `base`: it adds no required parameters and has
-// an identical return type.  Extra parameters make the member non-assignable, which
-// TypeScript rejects with TS2416.
+// How one C-call argument is produced from an implementation parameter.
+enum class FfiArgumentKind
+{
+    self,
+    boolean,
+    plain,
+};
+
+struct FfiArgument
+{
+    FfiArgumentKind kind = FfiArgumentKind::plain;
+    std::string ts_type;  // visible type; empty for the hidden receiver
+};
+
+// One overload emitted for a member: its visible parameters, the C-call arguments, and
+// where its body comes from.
+struct EmittedOverload
+{
+    std::vector<WrapParam> params;           // visible signature parameters
+    std::vector<FfiArgument> ffi_arguments;  // one entry per C-call argument
+    std::string return_type;
+    bool from_ancestor = false;
+    const FunctionDecl* func = nullptr;  // non-null when from_ancestor is false
+};
+
+// True when `derived` can legally override `base` as the only visible signature: it adds
+// no required parameters and has an identical return type.
 [[nodiscard]] static bool IsAssignableOverride(const AncestorMemberInfo& derived,
                                                const AncestorMemberInfo& base)
 {
@@ -532,13 +558,106 @@ struct AncestorMembers
     return derived.return_type == base.return_type;
 }
 
-// Pick a deterministic member name for a method that hides an incompatible ancestor
-// signature: <name>_<arity>, then <name>_<arity>v2, <name>_<arity>v3, ...
-[[nodiscard]] static std::string
-    DisambiguateName(const std::string& name, size_t arity, const std::set<std::string>& taken,
-                     const std::unordered_set<std::string>& ancestor_names)
+[[nodiscard]] static bool HasSameParameters(const AncestorMemberInfo& lhs,
+                                            const AncestorMemberInfo& rhs)
 {
-    const std::string base_name = name + "_" + std::to_string(arity);
+    return lhs.param_types == rhs.param_types;
+}
+
+[[nodiscard]] static bool IsSameSignature(const AncestorMemberInfo& lhs,
+                                          const AncestorMemberInfo& rhs)
+{
+    return HasSameParameters(lhs, rhs) && lhs.return_type == rhs.return_type;
+}
+
+// True for the TypeScript primitives whose runtime type is visible through `typeof`.
+[[nodiscard]] static bool HasTypeGuard(std::string_view ts_type)
+{
+    return ts_type == "number" || ts_type == "bigint" || ts_type == "boolean" ||
+           ts_type == "string";
+}
+
+[[nodiscard]] static std::string TypeGuardExpression(const std::string& ts_type,
+                                                     const std::string& expr)
+{
+    return "typeof " + expr + " === \"" + ts_type + "\"";
+}
+
+// True when two signatures can be told apart at run time: either they take a different
+// number of arguments, or a `typeof` check on a primitive parameter separates them.
+[[nodiscard]] static bool SameArityDistinguishable(const AncestorMemberInfo& lhs,
+                                                   const AncestorMemberInfo& rhs)
+{
+    if (lhs.param_types.size() != rhs.param_types.size())
+    {
+        return true;
+    }
+    for (size_t idx = 0; idx < lhs.param_types.size(); ++idx)
+    {
+        if (lhs.param_types[idx] != rhs.param_types[idx] &&
+            (HasTypeGuard(lhs.param_types[idx]) || HasTypeGuard(rhs.param_types[idx])))
+        {
+            return true;
+        }
+    }
+    return lhs.param_types == rhs.param_types;
+}
+
+// True when `overloads` can be emitted as one TypeScript overload set without a TS2394
+// conflict and without an ambiguous runtime dispatch.
+[[nodiscard]] static bool CanMergeOverloads(const std::vector<AncestorMemberInfo>& overloads)
+{
+    for (size_t left = 0; left < overloads.size(); ++left)
+    {
+        for (size_t right = left + 1; right < overloads.size(); ++right)
+        {
+            const AncestorMemberInfo& lhs = overloads[left];
+            const AncestorMemberInfo& rhs = overloads[right];
+            if (HasSameParameters(lhs, rhs) && lhs.return_type != rhs.return_type)
+            {
+                return false;  // identical signature, different return type
+            }
+            if (!SameArityDistinguishable(lhs, rhs))
+            {
+                return false;  // same arity, types indistinguishable at run time
+            }
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] static std::vector<AncestorMemberInfo>
+    CombineOverloads(const std::vector<AncestorMemberInfo>& own_overloads,
+                     const std::vector<AncestorMemberInfo>& inherited)
+{
+    std::vector<AncestorMemberInfo> combined = own_overloads;
+    for (const auto& overload: inherited)
+    {
+        bool present = false;
+        for (const auto& existing: combined)
+        {
+            if (IsSameSignature(existing, overload))
+            {
+                present = true;
+                break;
+            }
+        }
+        if (!present)
+        {
+            combined.push_back(overload);
+        }
+    }
+    return combined;
+}
+
+// Owner-qualified fallback for a member that cannot share the plain name: the declaring
+// class is part of the name, so the suffix survives parameter-map changes.
+[[nodiscard]] static std::string
+    OwnerQualifiedName(const std::string& name, const std::string& owner,
+                       const std::set<std::string>& taken,
+                       const std::unordered_set<std::string>& ancestor_names)
+{
+    const std::string base_name = name + "__" + owner;
     std::string candidate = base_name;
     for (size_t suffix = 2; taken.contains(candidate) || ancestor_names.contains(candidate);
          ++suffix)
@@ -554,37 +673,82 @@ struct MemberNameResolution
     std::string name;             // identifier to emit
     bool use_override = false;    // an ancestor exposes the same member name
     bool adopted_rename = false;  // took over an ancestor's renamed member
-    bool renamed = false;         // fresh disambiguated name; hides an incompatible ancestor
+    bool renamed = false;         // fresh owner-qualified name; cannot share the plain name
+    std::vector<AncestorMemberInfo> inherited_overloads;  // re-emitted under `name`
 };
 
-// Resolve the name under which a member is emitted.  A member that cannot override the
-// same-named inherited member either adopts an ancestor's renamed member with a matching
-// signature (which keeps the override intact) or gets a fresh disambiguated name.
-[[nodiscard]] static MemberNameResolution ResolveMemberName(const std::string& declared_name,
-                                                            const AncestorMemberInfo& info,
-                                                            const AncestorMembers& inherited,
-                                                            const std::set<std::string>& taken)
+// Resolve the name under which a member group is emitted.  A member that cannot share the
+// plain name with an inherited signature either adopts an ancestor's owner-qualified
+// rename (which keeps the override intact) or gets a fresh one.
+[[nodiscard]] static MemberNameResolution
+    ResolveMemberName(const std::string& declared_name, const std::string& owner_class,
+                      const std::vector<AncestorMemberInfo>& own_overloads,
+                      const AncestorMembers& inherited, const std::set<std::string>& taken)
 {
     MemberNameResolution resolution;
     resolution.name = declared_name;
 
-    const std::unordered_map<std::string, AncestorMemberInfo>::const_iterator base_iter =
-        inherited.signatures.find(declared_name);
+    const std::unordered_map<std::string, std::vector<AncestorMemberInfo>>::const_iterator
+        base_iter = inherited.signatures.find(declared_name);
     if (base_iter == inherited.signatures.end())
     {
         return resolution;  // no inherited member of that name
     }
-    if (IsAssignableOverride(info, base_iter->second))
+
+    const std::vector<AncestorMemberInfo> combined =
+        CombineOverloads(own_overloads, base_iter->second);
+    if (CanMergeOverloads(combined))
     {
+        if (base_iter->second.size() == 1 && own_overloads.size() == 1 &&
+            IsAssignableOverride(own_overloads[0], base_iter->second[0]))
+        {
+            resolution.use_override = true;
+            return resolution;
+        }
         resolution.use_override = true;
+        for (const auto& overload: base_iter->second)
+        {
+            bool already_own = false;
+            for (const auto& own_entry: own_overloads)
+            {
+                if (IsSameSignature(own_entry, overload))
+                {
+                    already_own = true;
+                    break;
+                }
+            }
+            if (!already_own)
+            {
+                resolution.inherited_overloads.push_back(overload);
+            }
+        }
         return resolution;
     }
 
-    // Pick the lexicographically smallest matching renamed member so the choice does not
-    // depend on unordered_map iteration order.
+    // The plain name cannot carry every signature.  Prefer an ancestor's existing
+    // owner-qualified rename of the same member over inventing a new one.
     for (const auto& entry: inherited.signatures)
     {
-        if (entry.second.origin_name != declared_name || !IsAssignableOverride(info, entry.second))
+        if (entry.first == declared_name)
+        {
+            continue;
+        }
+        bool same_origin = true;
+        for (const auto& overload: entry.second)
+        {
+            if (overload.origin_name != declared_name)
+            {
+                same_origin = false;
+                break;
+            }
+        }
+        if (!same_origin)
+        {
+            continue;
+        }
+        const std::vector<AncestorMemberInfo> adopted =
+            CombineOverloads(own_overloads, entry.second);
+        if (!CanMergeOverloads(adopted))
         {
             continue;
         }
@@ -592,21 +756,38 @@ struct MemberNameResolution
         {
             resolution.name = entry.first;
             resolution.adopted_rename = true;
+            resolution.use_override = true;
+            resolution.inherited_overloads.clear();
+            for (const auto& overload: entry.second)
+            {
+                bool already_own = false;
+                for (const auto& own_entry: own_overloads)
+                {
+                    if (IsSameSignature(own_entry, overload))
+                    {
+                        already_own = true;
+                        break;
+                    }
+                }
+                if (!already_own)
+                {
+                    resolution.inherited_overloads.push_back(overload);
+                }
+            }
         }
     }
     if (resolution.adopted_rename)
     {
-        resolution.use_override = true;
         return resolution;
     }
 
     resolution.name =
-        DisambiguateName(declared_name, info.param_types.size(), taken, inherited.instance_names);
+        OwnerQualifiedName(declared_name, owner_class, taken, inherited.instance_names);
     resolution.renamed = true;
     return resolution;
 }
 
-// Compute the member signature exactly as EmitInstanceMethod emits it.  Hidden receivers
+// Compute the member signature exactly as EmitInstanceMethod emits it.
 // (TSelf, or a TClass(ClassName) pseudo-self first parameter) are not visible parameters.
 [[nodiscard]] static AncestorMemberInfo BuildAncestorMemberInfo(const FunctionDecl& func,
                                                                 const std::string& owner)
@@ -630,6 +811,7 @@ struct MemberNameResolution
             if (!wpar.is_self)
             {
                 info.param_types.push_back(wpar.ts_type);
+                info.params.push_back(wpar);
             }
         }
     }
@@ -677,6 +859,8 @@ struct MemberNameResolution
         std::set<std::string> emitted;
         bool declares_delete = false;
 
+        // Collect this ancestor's own members first, then the mixin members it re-emits.
+        std::vector<std::pair<std::string, AncestorMemberInfo>> candidates;
         for (const auto& func: parent_class.methods)
         {
             if (!IsValidFunction(func))
@@ -692,18 +876,9 @@ struct MemberNameResolution
                 declares_delete = true;
                 continue;
             }
-            const std::string member_name = TsMethodName(parent_class.name, func);
-            if (emitted.contains(member_name))
-            {
-                continue;  // EmitClassFile drops this duplicate
-            }
             AncestorMemberInfo info = BuildAncestorMemberInfo(func, parent_class.name);
-            info.origin_name = member_name;
-            const MemberNameResolution resolution =
-                ResolveMemberName(member_name, info, members, emitted);
-            resolved.instance_names.insert(resolution.name);
-            resolved.signatures.insert({ resolution.name, info });
-            emitted.insert(resolution.name);
+            info.origin_name = TsMethodName(parent_class.name, func);
+            candidates.emplace_back(info.origin_name, std::move(info));
         }
 
         // A wrapped ancestor re-emits its own mixin members on the TypeScript side, so a
@@ -729,20 +904,78 @@ struct MemberNameResolution
                         continue;
                     }
                     const std::string member_name = TsMethodName(mixin_name, func);
-                    if (members.instance_names.contains(member_name) ||
-                        emitted.contains(member_name))
+                    if (members.instance_names.contains(member_name))
                     {
-                        continue;  // ancestor already exposes (or re-emits) this name
+                        continue;  // farther ancestor already exposes this name
+                    }
+                    bool already_listed = false;
+                    for (const auto& candidate: candidates)
+                    {
+                        if (candidate.first == member_name)
+                        {
+                            already_listed = true;
+                            break;
+                        }
+                    }
+                    if (already_listed)
+                    {
+                        continue;  // this ancestor already exposes (or re-emits) the name
                     }
                     AncestorMemberInfo info = BuildAncestorMemberInfo(func, mixin_name);
                     info.origin_name = member_name;
-                    const MemberNameResolution resolution =
-                        ResolveMemberName(member_name, info, members, emitted);
-                    resolved.instance_names.insert(resolution.name);
-                    resolved.signatures.insert({ resolution.name, info });
-                    emitted.insert(resolution.name);
+                    candidates.emplace_back(member_name, std::move(info));
                 }
             }
+        }
+
+        // Methods that share an exposed name are overloads of one member; resolve them as
+        // a group so the whole set is visible to descendants.
+        std::vector<std::string> group_order;
+        std::unordered_map<std::string, std::vector<AncestorMemberInfo>> groups;
+        for (auto& candidate: candidates)
+        {
+            if (!groups.contains(candidate.first))
+            {
+                group_order.push_back(candidate.first);
+            }
+            groups[candidate.first].push_back(std::move(candidate.second));
+        }
+
+        for (const std::string& declared_name: group_order)
+        {
+            std::vector<AncestorMemberInfo> own_overloads;
+            for (const auto& info: groups[declared_name])
+            {
+                bool duplicate = false;
+                for (const auto& existing: own_overloads)
+                {
+                    if (IsSameSignature(existing, info))
+                    {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate)
+                {
+                    own_overloads.push_back(info);
+                }
+            }
+            if (own_overloads.empty())
+            {
+                continue;
+            }
+            if (!CanMergeOverloads(own_overloads))
+            {
+                // EmitClassFile drops these same-class duplicates; keep the first only.
+                own_overloads.resize(1);
+            }
+
+            const MemberNameResolution resolution = ResolveMemberName(
+                declared_name, parent_class.name, own_overloads, members, emitted);
+            resolved.instance_names.insert(resolution.name);
+            resolved.signatures.insert_or_assign(
+                resolution.name, CombineOverloads(own_overloads, resolution.inherited_overloads));
+            emitted.insert(resolution.name);
         }
 
         // The nearer ancestor shadows same-named members of the farther ones.
@@ -760,6 +993,473 @@ struct MemberNameResolution
     return members;
 }
 
+struct RenameRecord
+{
+    std::string class_name;
+    std::string member_name;
+    std::string exposed_as;
+    std::string reason;
+};
+
+static std::vector<RenameRecord> s_rename_records;
+static std::string s_rename_report_path;
+
+static void RecordRename(const RenameRecord& record)
+{
+    s_rename_records.push_back(record);
+}
+
+static void WriteRenameReport()
+{
+    std::ofstream report(s_rename_report_path, std::ios::binary | std::ios::trunc);
+    if (!report.is_open())
+    {
+        std::println(stderr, "  Warning: could not write rename report to {}",
+                     s_rename_report_path);
+        return;
+    }
+    report << "{\n  \"count\": " << s_rename_records.size() << ",\n  \"renames\": [\n";
+    for (size_t idx = 0; idx < s_rename_records.size(); ++idx)
+    {
+        const RenameRecord& record = s_rename_records[idx];
+        report << "    { \"class\": \"" << EscapeTsString(record.class_name) << "\", \"member\": \""
+               << EscapeTsString(record.member_name) << "\", \"exposed_as\": \""
+               << EscapeTsString(record.exposed_as) << "\", \"reason\": \""
+               << EscapeTsString(record.reason) << "\" }";
+        if (idx + 1 < s_rename_records.size())
+        {
+            report << ",";
+        }
+        report << "\n";
+    }
+    report << "  ]\n}\n";
+}
+
+// Set the destination for the machine-readable rename report.  An empty path disables it.
+void SetTypeScriptRenameReportPath(const std::string& path)
+{
+    s_rename_report_path = path;
+}
+
+// The early-return guard for a member that deletes an item; the value must match the
+// declared return type.
+static void EmitDisposedGuard(std::ostream& output, const std::string& return_type)
+{
+    if (return_type == "void")
+    {
+        output << "    if (this._disposed) return;\n";
+    }
+    else if (return_type == "boolean")
+    {
+        output << "    if (this._disposed) return false;\n";
+    }
+    else if (return_type == "number")
+    {
+        output << "    if (this._disposed) return 0;\n";
+    }
+    else if (return_type == "bigint")
+    {
+        output << "    if (this._disposed) return 0n;\n";
+    }
+    else
+    {
+        output << "    if (this._disposed) return null;\n";
+    }
+}
+
+[[nodiscard]] static std::string CastArgument(const std::string& impl_name,
+                                              const std::string& impl_type, bool impl_optional,
+                                              const std::string& target_type)
+{
+    if (impl_type == target_type && !impl_optional)
+    {
+        return impl_name;
+    }
+    if (target_type.contains('|'))
+    {
+        return impl_name + " as (" + target_type + ")";
+    }
+    return impl_name + " as " + target_type;
+}
+
+[[nodiscard]] static std::string BuildFfiArgumentExpr(const FfiArgument& argument,
+                                                      const std::string& impl_name,
+                                                      const std::string& impl_type,
+                                                      bool impl_optional)
+{
+    switch (argument.kind)
+    {
+        case FfiArgumentKind::self:
+            return "this._ptr";
+        case FfiArgumentKind::boolean:
+            return impl_name + " ? 1 : 0";
+        case FfiArgumentKind::plain:
+            return CastArgument(impl_name, impl_type, impl_optional, argument.ts_type);
+    }
+    return impl_name;
+}
+
+static void EmitSingleOverload(std::ostream& output, const std::string& declared_name,
+                               const MemberNameResolution& resolution,
+                               const EmittedOverload& overload, const std::string& method_owner,
+                               const std::unordered_set<std::string>& wrapped_classes)
+{
+    output << "  " << (resolution.use_override ? "override " : "") << resolution.name << "(";
+    bool first = true;
+    for (const auto& wpar: overload.params)
+    {
+        if (!first)
+        {
+            output << ", ";
+        }
+        output << wpar.name << ": " << wpar.ts_type;
+        first = false;
+    }
+    output << "): " << overload.return_type << " {\n";
+
+    if (declared_name == "DeleteItem")
+    {
+        EmitDisposedGuard(output, overload.return_type);
+    }
+
+    std::string call = "lib.symbols." + CFuncName(*overload.func) + "(";
+    size_t visible_index = 0;
+    bool call_first = true;
+    for (const auto& argument: overload.ffi_arguments)
+    {
+        if (!call_first)
+        {
+            call += ", ";
+        }
+        call_first = false;
+        if (argument.kind == FfiArgumentKind::self)
+        {
+            call += "this._ptr";
+            continue;
+        }
+        const WrapParam& wpar = overload.params[visible_index];
+        call += BuildFfiArgumentExpr(argument, wpar.name, wpar.ts_type, false);
+        ++visible_index;
+    }
+    call += ")";
+
+    EmitWrapReturn(output, *overload.func, method_owner, call, wrapped_classes);
+    output << "  }\n\n";
+}
+
+static void EmitMergedBranch(std::ostream& output, const EmittedOverload& overload,
+                             const std::string& declared_name, const std::string& method_name,
+                             const std::vector<std::string>& impl_names,
+                             const std::vector<std::string>& impl_types,
+                             const std::vector<bool>& impl_optional,
+                             const std::string& method_owner,
+                             const std::unordered_set<std::string>& wrapped_classes)
+{
+    if (overload.from_ancestor)
+    {
+        std::string call = "super." + method_name + "(";
+        for (size_t idx = 0; idx < overload.params.size(); ++idx)
+        {
+            if (idx > 0)
+            {
+                call += ", ";
+            }
+            call += CastArgument(impl_names[idx], impl_types[idx], impl_optional[idx],
+                                 overload.params[idx].ts_type);
+        }
+        call += ")";
+        if (overload.return_type == "void")
+        {
+            output << "      " << call << ";\n";
+        }
+        else
+        {
+            output << "      return " << call << ";\n";
+        }
+        return;
+    }
+
+    if (declared_name == "DeleteItem")
+    {
+        EmitDisposedGuard(output, overload.return_type);
+    }
+
+    std::string call = "lib.symbols." + CFuncName(*overload.func) + "(";
+    size_t visible_index = 0;
+    bool call_first = true;
+    for (const auto& argument: overload.ffi_arguments)
+    {
+        if (!call_first)
+        {
+            call += ", ";
+        }
+        call_first = false;
+        if (argument.kind == FfiArgumentKind::self)
+        {
+            call += "this._ptr";
+            continue;
+        }
+        call += BuildFfiArgumentExpr(argument, impl_names[visible_index], impl_types[visible_index],
+                                     impl_optional[visible_index]);
+        ++visible_index;
+    }
+    call += ")";
+
+    EmitWrapReturn(output, *overload.func, method_owner, call, wrapped_classes, "      ");
+}
+
+// True when this overload must run before an unguarded same-arity overload because it has
+// a `typeof` check that separates it from a peer.
+[[nodiscard]] static bool IsGuardedOverload(size_t self_index,
+                                            const std::vector<EmittedOverload>& overloads)
+{
+    const EmittedOverload& self = overloads[self_index];
+    for (size_t other_index = 0; other_index < overloads.size(); ++other_index)
+    {
+        if (other_index == self_index)
+        {
+            continue;
+        }
+        const EmittedOverload& other = overloads[other_index];
+        if (self.params.size() != other.params.size())
+        {
+            continue;
+        }
+        for (size_t pidx = 0; pidx < self.params.size(); ++pidx)
+        {
+            if (self.params[pidx].ts_type != other.params[pidx].ts_type &&
+                HasTypeGuard(self.params[pidx].ts_type))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+[[nodiscard]] static std::vector<size_t>
+    BuildDispatchOrder(const std::vector<EmittedOverload>& overloads)
+{
+    std::vector<size_t> arities;
+    for (const auto& overload: overloads)
+    {
+        if (std::ranges::find(arities, overload.params.size()) == arities.end())
+        {
+            arities.push_back(overload.params.size());
+        }
+    }
+
+    std::vector<size_t> order;
+    for (const size_t arity: arities)
+    {
+        for (size_t idx = 0; idx < overloads.size(); ++idx)
+        {
+            if (overloads[idx].params.size() == arity && IsGuardedOverload(idx, overloads))
+            {
+                order.push_back(idx);
+            }
+        }
+        for (size_t idx = 0; idx < overloads.size(); ++idx)
+        {
+            if (overloads[idx].params.size() == arity && !IsGuardedOverload(idx, overloads))
+            {
+                order.push_back(idx);
+            }
+        }
+    }
+    return order;
+}
+
+[[nodiscard]] static std::string
+    BuildDispatchCondition(size_t self_index, const std::vector<EmittedOverload>& overloads,
+                           const std::vector<std::string>& impl_names)
+{
+    const EmittedOverload& self = overloads[self_index];
+    std::string condition = "arguments.length === " + std::to_string(self.params.size());
+    for (size_t pidx = 0; pidx < self.params.size(); ++pidx)
+    {
+        if (!HasTypeGuard(self.params[pidx].ts_type))
+        {
+            continue;
+        }
+        bool differs = false;
+        for (size_t other_index = 0; other_index < overloads.size(); ++other_index)
+        {
+            if (other_index == self_index)
+            {
+                continue;
+            }
+            const EmittedOverload& other = overloads[other_index];
+            if (other.params.size() != self.params.size())
+            {
+                continue;
+            }
+            if (other.params[pidx].ts_type != self.params[pidx].ts_type)
+            {
+                differs = true;
+                break;
+            }
+        }
+        if (differs)
+        {
+            condition += " && " + TypeGuardExpression(self.params[pidx].ts_type, impl_names[pidx]);
+        }
+    }
+    return condition;
+}
+
+static void EmitOverloadSet(std::ostream& output, const std::string& declared_name,
+                            const MemberNameResolution& resolution,
+                            const std::vector<EmittedOverload>& overloads,
+                            const std::string& method_owner,
+                            const std::unordered_set<std::string>& wrapped_classes)
+{
+    // Declarations: the class's own signature first, then every inherited signature that
+    // must stay visible under the same name.
+    for (const auto& overload: overloads)
+    {
+        output << "  override " << resolution.name << "(";
+        bool first = true;
+        for (const auto& wpar: overload.params)
+        {
+            if (!first)
+            {
+                output << ", ";
+            }
+            output << wpar.name << ": " << wpar.ts_type;
+            first = false;
+        }
+        output << "): " << overload.return_type << ";\n";
+    }
+
+    // Implementation signature: the union of all parameter types, with optional
+    // parameters where an overload is shorter.
+    size_t arity = 0;
+    for (const auto& overload: overloads)
+    {
+        arity = std::max(arity, overload.params.size());
+    }
+
+    std::vector<std::string> impl_names(arity);
+    std::vector<std::string> impl_types(arity);
+    std::vector<bool> impl_optional(arity, false);
+    for (size_t idx = 0; idx < arity; ++idx)
+    {
+        std::vector<std::string> types;
+        for (const auto& overload: overloads)
+        {
+            if (idx < overload.params.size())
+            {
+                const WrapParam& wpar = overload.params[idx];
+                if (std::ranges::find(types, wpar.ts_type) == types.end())
+                {
+                    types.push_back(wpar.ts_type);
+                }
+                if (impl_names[idx].empty())
+                {
+                    impl_names[idx] = wpar.name;
+                }
+            }
+            else
+            {
+                impl_optional[idx] = true;
+            }
+        }
+        if (impl_names[idx].empty())
+        {
+            impl_names[idx] = "arg" + std::to_string(idx);
+        }
+        for (size_t type_index = 0; type_index < types.size(); ++type_index)
+        {
+            if (type_index > 0)
+            {
+                impl_types[idx] += " | ";
+            }
+            impl_types[idx] += types[type_index];
+        }
+    }
+
+    // Implementation parameter names must be unique even when overloads use the same
+    // name at different positions.
+    std::set<std::string> used_names;
+    for (size_t idx = 0; idx < arity; ++idx)
+    {
+        std::string candidate = impl_names[idx];
+        if (used_names.contains(candidate))
+        {
+            size_t suffix = 2;
+            std::string unique_name = candidate + std::to_string(suffix);
+            while (used_names.contains(unique_name))
+            {
+                ++suffix;
+                unique_name = candidate + std::to_string(suffix);
+            }
+            candidate = unique_name;
+        }
+        used_names.insert(candidate);
+        impl_names[idx] = candidate;
+    }
+
+    std::vector<std::string> return_types;
+    for (const auto& overload: overloads)
+    {
+        if (std::ranges::find(return_types, overload.return_type) == return_types.end())
+        {
+            return_types.push_back(overload.return_type);
+        }
+    }
+    std::string impl_return;
+    for (size_t type_index = 0; type_index < return_types.size(); ++type_index)
+    {
+        if (type_index > 0)
+        {
+            impl_return += " | ";
+        }
+        impl_return += return_types[type_index];
+    }
+
+    output << "  override " << resolution.name << "(";
+    for (size_t idx = 0; idx < arity; ++idx)
+    {
+        if (idx > 0)
+        {
+            output << ", ";
+        }
+        output << impl_names[idx];
+        if (impl_optional[idx])
+        {
+            output << "?";
+        }
+        output << ": " << impl_types[idx];
+    }
+    output << "): " << impl_return << " {\n";
+
+    const std::vector<size_t> dispatch_order = BuildDispatchOrder(overloads);
+    for (size_t order_index = 0; order_index < dispatch_order.size(); ++order_index)
+    {
+        const size_t overload_index = dispatch_order[order_index];
+        const bool is_last = order_index + 1 == dispatch_order.size();
+        if (order_index == 0)
+        {
+            output << "    if (" << BuildDispatchCondition(overload_index, overloads, impl_names)
+                   << ") {\n";
+        }
+        else if (is_last)
+        {
+            output << "    else {\n";
+        }
+        else
+        {
+            output << "    else if ("
+                   << BuildDispatchCondition(overload_index, overloads, impl_names) << ") {\n";
+        }
+        EmitMergedBranch(output, overloads[overload_index], declared_name, resolution.name,
+                         impl_names, impl_types, impl_optional, method_owner, wrapped_classes);
+        output << "    }\n";
+    }
+    output << "  }\n\n";
+}
+
 // Emit a single instance-method wrapper.  method_owner is the class the method is
 // declared against (used for member renames); the receiver is always this._ptr.
 // Returns the emitted TypeScript member name, which differs from TsMethodName() when the
@@ -771,92 +1471,71 @@ static std::string EmitInstanceMethod(std::ostream& output, const AncestorMember
 {
     const bool pseudo_self = IsPseudoSelf(func);
     const std::string original_name = TsMethodName(method_owner, func);
-    const std::string func_name = CFuncName(func);
-    const std::string ret_type = WrapReturnType(func, method_owner, wrapped_classes);
 
-    // A same-named ancestor member either accepts the override or forces a rename.
-    const AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, method_owner);
-    const MemberNameResolution resolution =
-        ResolveMemberName(original_name, own_info, ancestors, taken);
-    const std::string method_name = resolution.name;
-    if (resolution.renamed)
-    {
-        std::println(stderr, "  {}: {} hides an incompatible ancestor signature - exposed as {}",
-                     method_owner, original_name, method_name);
-    }
+    EmittedOverload own_overload;
+    own_overload.return_type = WrapReturnType(func, method_owner, wrapped_classes);
+    own_overload.func = &func;
 
-    std::vector<WrapParam> wrap_params;
     for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
     {
         const Param& param = func.params[pidx];
         if (pseudo_self && pidx == 0)
         {
-            // First param is TClass(ClassName) acting as self
-            wrap_params.push_back({ "", "", "this._ptr", true });
+            own_overload.ffi_arguments.push_back({ FfiArgumentKind::self, "" });
             continue;
         }
         const std::vector<WrapParam> params = BuildWrapParams(param);
-        wrap_params.insert(wrap_params.end(), params.begin(), params.end());
+        for (const auto& wpar: params)
+        {
+            if (wpar.is_self)
+            {
+                own_overload.ffi_arguments.push_back({ FfiArgumentKind::self, "" });
+                continue;
+            }
+            own_overload.params.push_back(wpar);
+            own_overload.ffi_arguments.push_back(
+                { wpar.ts_type == "boolean" ? FfiArgumentKind::boolean : FfiArgumentKind::plain,
+                  wpar.ts_type });
+        }
     }
-    output << "  " << (resolution.use_override ? "override " : "") << method_name << "(";
-    bool first = true;
-    for (const auto& wpar: wrap_params)
+
+    AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, method_owner);
+    own_info.origin_name = original_name;
+    const std::vector<AncestorMemberInfo> own_overloads { own_info };
+    const MemberNameResolution resolution =
+        ResolveMemberName(original_name, method_owner, own_overloads, ancestors, taken);
+
+    if (resolution.renamed)
     {
-        if (wpar.is_self)
-        {
-            continue;
-        }
-        if (!first)
-        {
-            output << ", ";
-        }
-        output << wpar.name << ": " << wpar.ts_type;
-        first = false;
+        RecordRename({ method_owner, func.method_name, resolution.name, "incompatible overload" });
     }
-    output << "): " << ret_type << " {\n";
-
-    if (original_name == "DeleteItem")
+    else if (resolution.adopted_rename)
     {
-        // The guard must return a value of the declared type, not a bare `return`.
-        if (ret_type == "void")
-        {
-            output << "    if (this._disposed) return;\n";
-        }
-        else if (ret_type == "boolean")
-        {
-            output << "    if (this._disposed) return false;\n";
-        }
-        else if (ret_type == "number")
-        {
-            output << "    if (this._disposed) return 0;\n";
-        }
-        else if (ret_type == "bigint")
-        {
-            output << "    if (this._disposed) return 0n;\n";
-        }
-        else
-        {
-            output << "    if (this._disposed) return null;\n";
-        }
+        RecordRename({ method_owner, func.method_name, resolution.name, "inherited rename" });
     }
 
-    std::string call = "lib.symbols." + func_name + "(";
-    bool call_first = true;
-    for (const auto& wpar: wrap_params)
+    std::vector<EmittedOverload> overloads;
+    overloads.push_back(std::move(own_overload));
+    for (const auto& inherited: resolution.inherited_overloads)
     {
-        if (!call_first)
-        {
-            call += ", ";
-        }
-        call += wpar.ffi_expr;
-        call_first = false;
+        EmittedOverload inherited_overload;
+        inherited_overload.params = inherited.params;
+        inherited_overload.return_type = inherited.return_type;
+        inherited_overload.from_ancestor = true;
+        overloads.push_back(std::move(inherited_overload));
     }
-    call += ")";
 
-    EmitWrapReturn(output, func, method_owner, call, wrapped_classes);
-
-    output << "  }\n\n";
-    return method_name;
+    if (overloads.size() == 1)
+    {
+        EmitSingleOverload(output, original_name, resolution, overloads[0], method_owner,
+                           wrapped_classes);
+    }
+    else
+    {
+        EmitOverloadSet(output, original_name, resolution, overloads, method_owner,
+                        wrapped_classes);
+    }
+    return resolution.name;
 }
 
 // Emit the dlopen symbol entry for a single function.
@@ -870,10 +1549,7 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
     for (const auto& param: func.params)
     {
         const std::vector<TsFFIParam> expanded = ExpandParamToTsFFI(param);
-        for (const auto& ffi_param: expanded)
-        {
-            params.push_back(ffi_param);
-        }
+        params.insert(params.end(), expanded.begin(), expanded.end());
     }
 
     output << "  " << func_name << ": {\n";
@@ -897,6 +1573,8 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
 
 void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 {
+    s_rename_records.clear();
+
     std::error_code dir_error;
     fs::create_directories(out_dir, dir_error);
     if (dir_error)
@@ -913,6 +1591,30 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
     GenerateFreeFunctions(ffi, out_dir);
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
+
+    std::ranges::sort(s_rename_records,
+                      [](const RenameRecord& lhs, const RenameRecord& rhs)
+                      {
+                          if (lhs.class_name != rhs.class_name)
+                          {
+                              return lhs.class_name < rhs.class_name;
+                          }
+                          return lhs.member_name < rhs.member_name;
+                      });
+    if (!s_rename_records.empty())
+    {
+        std::println(stderr, "  member renames:          {}", s_rename_records.size());
+        for (const auto& record: s_rename_records)
+        {
+            std::println(stderr, "    {}.{} -> {} ({})", record.class_name, record.member_name,
+                         record.exposed_as, record.reason);
+        }
+    }
+    if (!s_rename_report_path.empty())
+    {
+        WriteRenameReport();
+        std::println(stderr, "  rename report:           {}", s_rename_report_path);
+    }
 
     std::println(stderr, "TypeScript: generated TypeScript FFI bindings in {}", out_dir.string());
 }

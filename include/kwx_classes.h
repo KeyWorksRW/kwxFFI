@@ -2059,7 +2059,7 @@ TClassDefExtend(wxEvtHandler, wxObject) void wxEvtHandler_AddPendingEvent(TSelf(
                                                                               pObject,
                                                                           TClass(wxEvent) event);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
+void* wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
 int wxEvtHandler_Connect(TSelf(wxEvtHandler) pObject, int first, int last, int type, void* data);
 TClass(wxEvtHandler) wxEvtHandler_Create();
 void wxEvtHandler_Delete(TSelf(wxEvtHandler) pObject);
@@ -5770,7 +5770,7 @@ void wxToggleButton_SetValue(TSelf(wxToggleButton) pObject, TBool state);
 
 TClassDefExtend(wxToolBar, wxToolBarBase) TBool
     wxToolBar_AddControl(TSelf(wxToolBar) pObject, TClass(wxControl) ctrl);
-void wxToolBar_AddSeparator(TSelf(wxToolBar) pObject);
+TClass(wxToolBarToolBase) wxToolBar_AddSeparator(TSelf(wxToolBar) pObject);
 // void       wxToolBar_AddTool( TSelf(wxToolBar) pObject, int id, TClass(wxBitmap)
 // bmp, TClass(wxString) shelp, TClass(wxString) lhelp );
 void wxToolBar_AddTool(TSelf(wxToolBar) pObject, int toolid, TClass(wxString) label,
@@ -5821,7 +5821,7 @@ void* wxToolBar_FindToolForPosition(TSelf(wxToolBar) pObject, int x, int y);
 void* wxToolBar_FindById(TSelf(wxToolBar) pObject, int id);
 int wxToolBar_GetToolPos(TSelf(wxToolBar) pObject, int id);
 int wxToolBar_GetToolSeparation(TSelf(wxToolBar) pObject);
-int wxToolBar_GetToolsCount(TSelf(wxToolBar) pObject);
+size_t wxToolBar_GetToolsCount(TSelf(wxToolBar) pObject);
 TBool wxToolBar_IsVertical(TSelf(wxToolBar) pObject);
 void wxToolBar_SetToolNormalBitmap(TSelf(wxToolBar) pObject, int id, TClass(wxBitmap) bitmap);
 void wxToolBar_SetToolDisabledBitmap(TSelf(wxToolBar) pObject, int id, TClass(wxBitmap) bitmap);
