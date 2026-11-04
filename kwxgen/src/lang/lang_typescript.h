@@ -53,3 +53,7 @@ private:
     // Emits kwx_helpers_gen.ts — wxString conversion utilities for generated code.
     static void GenerateHelpers(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 };
+
+// Set the destination for the machine-readable rename report written by the TypeScript
+// emitter (generate --rename-report).  An empty path disables report writing.
+void SetTypeScriptRenameReportPath(const std::string& path);
