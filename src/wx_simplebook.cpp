@@ -16,19 +16,19 @@ extern "C"
         return new wxSimplebook(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT size_t wxSimplebook_GetPageCount(wxSimplebook* self)
+    EXPORT int wxSimplebook_GetPageCount(wxSimplebook* self)
     {
-        return self->GetPageCount();
+        return static_cast<int>(self->GetPageCount());
     }
 
-    EXPORT int wxSimplebook_SetSelection(wxSimplebook* self, size_t nPage)
+    EXPORT int wxSimplebook_SetSelection(wxSimplebook* self, int nPage)
     {
-        return self->SetSelection(nPage);
+        return self->SetSelection(static_cast<size_t>(nPage));
     }
 
-    EXPORT int wxSimplebook_ChangeSelection(wxSimplebook* self, size_t nPage)
+    EXPORT int wxSimplebook_ChangeSelection(wxSimplebook* self, int nPage)
     {
-        return self->ChangeSelection(nPage);
+        return self->ChangeSelection(static_cast<size_t>(nPage));
     }
 
     EXPORT int wxSimplebook_GetSelection(wxSimplebook* self)
@@ -36,15 +36,15 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT int wxSimplebook_SetPageText(wxSimplebook* self, size_t nPage, wxString* strText)
+    EXPORT int wxSimplebook_SetPageText(wxSimplebook* self, int nPage, wxString* strText)
     {
-        return self->SetPageText(nPage, *strText);
+        return self->SetPageText(static_cast<size_t>(nPage), *strText);
     }
 
-    EXPORT wxString* wxSimplebook_GetPageText(wxSimplebook* self, size_t nPage)
+    EXPORT wxString* wxSimplebook_GetPageText(wxSimplebook* self, int nPage)
     {
         wxString* result = new wxString();
-        *result = self->GetPageText(nPage);
+        *result = self->GetPageText(static_cast<size_t>(nPage));
         return result;
     }
 
@@ -58,24 +58,24 @@ extern "C"
         return self->GetImageList();
     }
 
-    EXPORT int wxSimplebook_GetPageImage(wxSimplebook* self, size_t nPage)
+    EXPORT int wxSimplebook_GetPageImage(wxSimplebook* self, int nPage)
     {
-        return self->GetPageImage(nPage);
+        return self->GetPageImage(static_cast<size_t>(nPage));
     }
 
-    EXPORT int wxSimplebook_SetPageImage(wxSimplebook* self, size_t nPage, int nImage)
+    EXPORT int wxSimplebook_SetPageImage(wxSimplebook* self, int nPage, int nImage)
     {
-        return self->SetPageImage(nPage, nImage);
+        return self->SetPageImage(static_cast<size_t>(nPage), nImage);
     }
 
-    EXPORT int wxSimplebook_DeletePage(wxSimplebook* self, size_t nPage)
+    EXPORT int wxSimplebook_DeletePage(wxSimplebook* self, int nPage)
     {
-        return self->DeletePage(nPage);
+        return self->DeletePage(static_cast<size_t>(nPage));
     }
 
-    EXPORT int wxSimplebook_RemovePage(wxSimplebook* self, size_t nPage)
+    EXPORT int wxSimplebook_RemovePage(wxSimplebook* self, int nPage)
     {
-        return self->RemovePage(nPage);
+        return self->RemovePage(static_cast<size_t>(nPage));
     }
 
     EXPORT int wxSimplebook_DeleteAllPages(wxSimplebook* self)
@@ -89,15 +89,15 @@ extern "C"
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT int wxSimplebook_InsertPage(wxSimplebook* self, size_t nPage, wxWindow* pPage,
+    EXPORT int wxSimplebook_InsertPage(wxSimplebook* self, int nPage, wxWindow* pPage,
                                        wxString* strText, bool bSelect, int imageId)
     {
-        return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
+        return self->InsertPage(static_cast<size_t>(nPage), pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT wxWindow* wxSimplebook_GetPage(wxSimplebook* self, size_t nPage)
+    EXPORT wxWindow* wxSimplebook_GetPage(wxSimplebook* self, int nPage)
     {
-        return self->GetPage(nPage);
+        return self->GetPage(static_cast<size_t>(nPage));
     }
 
     EXPORT void wxSimplebook_ShowNewPage(wxSimplebook* self, wxWindow* page)

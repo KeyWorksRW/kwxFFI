@@ -3,6 +3,9 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/vector.h>
+#include <wx/withimages.h>
+
 // wxNotebook inherits from wxBookCtrlBase (wxControl).
 // Additional methods available via:
 //   wxWindow_*  — base window methods (see wx_window.cpp)
@@ -10,6 +13,16 @@
 
 extern "C"
 {
+    EXPORT int expNB_DEFAULT()
+    {
+        return (int) wxNB_DEFAULT;
+    }
+
+    EXPORT int expNB_NOPAGETHEME()
+    {
+        return (int) wxNB_NOPAGETHEME;
+    }
+
     EXPORT int expNB_TOP()
     {
         return (int) wxNB_TOP;
@@ -106,6 +119,11 @@ extern "C"
     EXPORT int wxNotebook_HitTest(wxNotebook* self, int x, int y, long* flags)
     {
         return self->HitTest(wxPoint(x, y), flags);
+    }
+
+    EXPORT int expBK_DEFAULT()
+    {
+        return (int) wxBK_DEFAULT;
     }
 
     EXPORT int expBK_HITTEST_NOWHERE()
@@ -261,5 +279,57 @@ extern "C"
     EXPORT void wxNotebook_SendPageChangedEvent(wxNotebook* self, int nPageOld, int nPageNew)
     {
         self->SendPageChangedEvent(nPageOld, nPageNew);
+    }
+
+    // wxWithImages book-control page images
+
+    EXPORT void wxBookCtrlBase_SetImages(wxBookCtrlBase* self, wxVector<wxBitmapBundle>* images)
+    {
+        self->SetImages(*images);
+    }
+
+    EXPORT int wxBookCtrlBase_GetImageCount(wxBookCtrlBase* self)
+    {
+        return self->GetImageCount();
+    }
+
+    EXPORT int wxBookCtrlBase_HasImages(wxBookCtrlBase* self)
+    {
+        return self->HasImages() ? 1 : 0;
+    }
+
+    // wxWithImages::GetImage(int) is protected in wxWidgets 3.3.x, so resolve the icon through the
+    // public GetImageList(); it returns the same image list that the protected accessor reads.
+    EXPORT wxIcon* wxBookCtrlBase_GetImage(wxBookCtrlBase* self, int iconIndex)
+    {
+        wxIcon icon;
+        wxImageList* const list = self->GetImageList();
+        if (list && iconIndex != wxWithImages::NO_IMAGE)
+        {
+            icon = list->GetIcon(iconIndex);
+        }
+        return new wxIcon(icon);
+    }
+
+    // wxBitmapBundleArray
+
+    EXPORT wxVector<wxBitmapBundle>* wxBitmapBundleArray_Create()
+    {
+        return new wxVector<wxBitmapBundle>();
+    }
+
+    EXPORT void wxBitmapBundleArray_Delete(wxVector<wxBitmapBundle>* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxBitmapBundleArray_GetCount(wxVector<wxBitmapBundle>* self)
+    {
+        return static_cast<int>(self->size());
+    }
+
+    EXPORT void wxBitmapBundleArray_Add(wxVector<wxBitmapBundle>* self, wxBitmapBundle* item)
+    {
+        self->push_back(*item);
     }
 }

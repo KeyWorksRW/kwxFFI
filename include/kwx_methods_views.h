@@ -98,7 +98,7 @@ void wxTreeListCtrl_SetItemData(TSelf(wxTreeListCtrl) pObject, TClass(wxTreeList
 /* wxNotebook                                                                */
 /* ------------------------------------------------------------------------- */
 
-TClassDefExtend(wxNotebook, wxControl) TClass(wxWindow)
+TClassDefExtend(wxNotebook, wxBookCtrlBase) TClass(wxWindow)
     wxNotebook_GetCurrentPage(TSelf(wxNotebook) pObject);
 TClass(wxSize) wxNotebook_GetControllerSize(TSelf(wxNotebook) pObject);
 TClass(wxSize) wxNotebook_CalcSizeFromPage(TSelf(wxNotebook) pObject, TSize(width, height));

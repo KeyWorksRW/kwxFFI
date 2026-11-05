@@ -185,4 +185,11 @@ extern "C"
     {
         ((wxApp*) pObject)->SetVendorName(*(wxString*) name);
     }
+
+    EXPORT void GTKAllowDiagnosticsControl()
+    {
+#if defined(__WXGTK__)
+        wxApp::GTKAllowDiagnosticsControl();
+#endif
+    }
 }
