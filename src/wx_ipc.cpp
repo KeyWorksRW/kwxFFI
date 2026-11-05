@@ -20,7 +20,7 @@ extern "C"
         delete (kwxConnection*) self;
     }
 
-    EXPORT bool kwxConnection_Execute(kwxConnection* self, wxString* data, int size, int format)
+    EXPORT int kwxConnection_Execute(kwxConnection* self, wxString* data, int size, int format)
     {
         return self->Execute(*data, size, (wxIPCFormat) format);
     }
@@ -31,29 +31,29 @@ extern "C"
             ->Request(*item, (size_t*) size, (wxIPCFormat) format);
     }
 
-    EXPORT bool kwxConnection_Poke(kwxConnection* self, wxString* item, char* data, int size,
-                                   int format)
+    EXPORT int kwxConnection_Poke(kwxConnection* self, wxString* item, char* data, int size,
+                                  int format)
     {
         return self->Poke(*item, data, size, (wxIPCFormat) format);
     }
 
-    EXPORT bool kwxConnection_StartAdvise(kwxConnection* self, wxString* item)
+    EXPORT int kwxConnection_StartAdvise(kwxConnection* self, wxString* item)
     {
         return self->StartAdvise(*item);
     }
 
-    EXPORT bool kwxConnection_StopAdvise(kwxConnection* self, wxString* item)
+    EXPORT int kwxConnection_StopAdvise(kwxConnection* self, wxString* item)
     {
         return self->StopAdvise(*item);
     }
 
-    EXPORT bool kwxConnection_Advise(kwxConnection* self, wxString* item, char* data, int size,
-                                     int format)
+    EXPORT int kwxConnection_Advise(kwxConnection* self, wxString* item, char* data, int size,
+                                    int format)
     {
         return self->Advise(*item, data, size, (wxIPCFormat) format);
     }
 
-    EXPORT bool kwxConnection_Disconnect(kwxConnection* self)
+    EXPORT int kwxConnection_Disconnect(kwxConnection* self)
     {
         return self->Disconnect();
     }

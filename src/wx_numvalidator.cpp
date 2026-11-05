@@ -274,12 +274,12 @@ extern "C"
         return self->GetValueDouble();
     }
 
-    EXPORT bool wxNumValidator_IsInRange(wxNumValidator* self, long value)
+    EXPORT int wxNumValidator_IsInRange(wxNumValidator* self, long value)
     {
         return self->IsInRangeLong(value);
     }
 
-    EXPORT bool wxNumValidator_IsInRangeDouble(wxNumValidator* self, double value)
+    EXPORT int wxNumValidator_IsInRangeDouble(wxNumValidator* self, double value)
     {
         return self->IsInRangeDouble(value);
     }

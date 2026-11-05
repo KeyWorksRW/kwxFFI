@@ -38,7 +38,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxControl_SetLabelMarkup(wxControl* self, wxString* markup)
+    EXPORT int wxControl_SetLabelMarkup(wxControl* self, wxString* markup)
     {
         return self->SetLabelMarkup(*markup);
     }
@@ -85,7 +85,7 @@ extern "C"
         return wxControl::FindAccelIndex(*label);
     }
 
-    EXPORT bool wxControl_ShouldInheritColours(wxControl* self)
+    EXPORT int wxControl_ShouldInheritColours(wxControl* self)
     {
         return self->ShouldInheritColours();
     }

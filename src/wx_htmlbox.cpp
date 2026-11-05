@@ -107,12 +107,12 @@ extern "C"
         self->SetCanLiveOnPagebreak(can);
     }
 
-    EXPORT bool wxHtmlCell_IsLinebreakAllowed(wxHtmlCell* self)
+    EXPORT int wxHtmlCell_IsLinebreakAllowed(wxHtmlCell* self)
     {
         return self->IsLinebreakAllowed();
     }
 
-    EXPORT bool wxHtmlCell_IsTerminalCell(wxHtmlCell* self)
+    EXPORT int wxHtmlCell_IsTerminalCell(wxHtmlCell* self)
     {
         return self->IsTerminalCell();
     }
@@ -132,7 +132,7 @@ extern "C"
         return self->GetScriptBaseline();
     }
 
-    EXPORT bool wxHtmlCell_IsFormattingCell(wxHtmlCell* self)
+    EXPORT int wxHtmlCell_IsFormattingCell(wxHtmlCell* self)
     {
         return self->IsFormattingCell();
     }
@@ -142,7 +142,7 @@ extern "C"
         return new wxString(self->GetId());
     }
 
-    EXPORT bool wxHtmlCell_HasId(wxHtmlCell* self)
+    EXPORT int wxHtmlCell_HasId(wxHtmlCell* self)
     {
         return self->HasId();
     }
@@ -222,7 +222,7 @@ extern "C"
         return self->GetDepth();
     }
 
-    EXPORT bool wxHtmlCell_IsBefore(wxHtmlCell* self, void* cell)
+    EXPORT int wxHtmlCell_IsBefore(wxHtmlCell* self, void* cell)
     {
         return self->IsBefore(static_cast<wxHtmlCell*>(cell));
     }
@@ -257,7 +257,7 @@ extern "C"
         self->SetLinkClicked(linkClicked);
     }
 
-    EXPORT bool wxHtmlCellEvent_GetLinkClicked(wxHtmlCellEvent* self)
+    EXPORT int wxHtmlCellEvent_GetLinkClicked(wxHtmlCellEvent* self)
     {
         return self->GetLinkClicked();
     }
@@ -364,7 +364,7 @@ extern "C"
         return new wxString(value);
     }
 
-    EXPORT bool wxHtmlTag_HasParam(void* pObject, void* par)
+    EXPORT int wxHtmlTag_HasParam(void* pObject, void* par)
     {
         return ((wxHtmlTag*) pObject)->HasParam(*(wxString*) par);
     }
@@ -378,5 +378,4 @@ extern "C"
     {
         return (void*) ((wxHtmlWinParser*) pObject)->GetWindowInterface();
     }
-
 }

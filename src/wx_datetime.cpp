@@ -21,7 +21,7 @@ extern "C"
         return (int) wxDateTime::GetCountry();
     }
 
-    EXPORT bool wxDateTime_IsWestEuropeanCountry(int country)
+    EXPORT int wxDateTime_IsWestEuropeanCountry(int country)
     {
         return wxDateTime::IsWestEuropeanCountry((wxDateTime::Country) country);
     }
@@ -41,7 +41,7 @@ extern "C"
         return (int) wxDateTime::GetCurrentMonth((wxDateTime::Calendar) cal);
     }
 
-    EXPORT bool wxDateTime_IsLeapYear(int year, int cal)
+    EXPORT int wxDateTime_IsLeapYear(int year, int cal)
     {
         return wxDateTime::IsLeapYear(year, (wxDateTime::Calendar) cal);
     }
@@ -94,7 +94,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxDateTime_IsDSTApplicable(int year, int country)
+    EXPORT int wxDateTime_IsDSTApplicable(int year, int country)
     {
         return wxDateTime::IsDSTApplicable(year, (wxDateTime::Country) country);
     }
@@ -215,8 +215,8 @@ extern "C"
         *ref = self->GetPrevWeekDay((wxDateTime::WeekDay) weekday);
     }
 
-    EXPORT bool wxDateTime_SetToWeekDay(wxDateTime* self, int weekday, int nthWeek, int month,
-                                        int year)
+    EXPORT int wxDateTime_SetToWeekDay(wxDateTime* self, int weekday, int nthWeek, int month,
+                                       int year)
     {
         return self->SetToWeekDay((wxDateTime::WeekDay) weekday, nthWeek, (wxDateTime::Month) month,
                                   year);
@@ -229,7 +229,7 @@ extern "C"
                                 year);
     }
 
-    EXPORT bool wxDateTime_SetToLastWeekDay(wxDateTime* self, int weekday, int month, int year)
+    EXPORT int wxDateTime_SetToLastWeekDay(wxDateTime* self, int weekday, int month, int year)
     {
         return self->SetToLastWeekDay((wxDateTime::WeekDay) weekday, (wxDateTime::Month) month,
                                       year);
@@ -276,7 +276,7 @@ extern "C"
         return self->IsDST((wxDateTime::Country) country);
     }
 
-    EXPORT bool wxDateTime_IsValid(wxDateTime* self)
+    EXPORT int wxDateTime_IsValid(wxDateTime* self)
     {
         return self->IsValid();
     }
@@ -343,47 +343,47 @@ extern "C"
                                           wxDateTime::TimeZone((wxDateTime::TZ) timeZone));
     }
 
-    EXPORT bool wxDateTime_IsWorkDay(wxDateTime* self, int country)
+    EXPORT int wxDateTime_IsWorkDay(wxDateTime* self, int country)
     {
         return self->IsWorkDay((wxDateTime::Country) country);
     }
 
-    EXPORT bool wxDateTime_IsEqualTo(wxDateTime* self, wxDateTime* datetime)
+    EXPORT int wxDateTime_IsEqualTo(wxDateTime* self, wxDateTime* datetime)
     {
         return self->IsEqualTo(*datetime);
     }
 
-    EXPORT bool wxDateTime_IsEarlierThan(wxDateTime* self, wxDateTime* datetime)
+    EXPORT int wxDateTime_IsEarlierThan(wxDateTime* self, wxDateTime* datetime)
     {
         return self->IsEarlierThan(*datetime);
     }
 
-    EXPORT bool wxDateTime_IsLaterThan(wxDateTime* self, wxDateTime* datetime)
+    EXPORT int wxDateTime_IsLaterThan(wxDateTime* self, wxDateTime* datetime)
     {
         return self->IsLaterThan(*datetime);
     }
 
-    EXPORT bool wxDateTime_IsStrictlyBetween(wxDateTime* self, wxDateTime* t1, wxDateTime* t2)
+    EXPORT int wxDateTime_IsStrictlyBetween(wxDateTime* self, wxDateTime* t1, wxDateTime* t2)
     {
         return self->IsStrictlyBetween(*t1, *t2);
     }
 
-    EXPORT bool wxDateTime_IsBetween(wxDateTime* self, wxDateTime* t1, wxDateTime* t2)
+    EXPORT int wxDateTime_IsBetween(wxDateTime* self, wxDateTime* t1, wxDateTime* t2)
     {
         return self->IsBetween(*t1, *t2);
     }
 
-    EXPORT bool wxDateTime_IsSameDate(wxDateTime* self, wxDateTime* dateTime)
+    EXPORT int wxDateTime_IsSameDate(wxDateTime* self, wxDateTime* dateTime)
     {
         return self->IsSameDate(*dateTime);
     }
 
-    EXPORT bool wxDateTime_IsSameTime(wxDateTime* self, wxDateTime* dateTime)
+    EXPORT int wxDateTime_IsSameTime(wxDateTime* self, wxDateTime* dateTime)
     {
         return self->IsSameTime(*dateTime);
     }
 
-    EXPORT bool wxDateTime_IsEqualUpTo(wxDateTime* self, wxDateTime* dateTime, wxTimeSpan* timeSpan)
+    EXPORT int wxDateTime_IsEqualUpTo(wxDateTime* self, wxDateTime* dateTime, wxTimeSpan* timeSpan)
     {
         return self->IsEqualUpTo(*dateTime, *timeSpan);
     }
@@ -598,5 +598,4 @@ extern "C"
     {
         ((wxDataOutputStream*) pObject)->WriteString(*(wxString*) string);
     }
-
 }

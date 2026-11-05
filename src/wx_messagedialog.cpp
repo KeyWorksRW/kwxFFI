@@ -55,29 +55,29 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxMessageDialog_SetOKLabel(wxMessageDialog* self, wxString* label)
+    EXPORT int wxMessageDialog_SetOKLabel(wxMessageDialog* self, wxString* label)
     {
         return self->SetOKLabel(*label);
     }
 
-    EXPORT bool wxMessageDialog_SetOKCancelLabels(wxMessageDialog* self, wxString* ok,
-                                                  wxString* cancel)
+    EXPORT int wxMessageDialog_SetOKCancelLabels(wxMessageDialog* self, wxString* ok,
+                                                 wxString* cancel)
     {
         return self->SetOKCancelLabels(*ok, *cancel);
     }
 
-    EXPORT bool wxMessageDialog_SetYesNoLabels(wxMessageDialog* self, wxString* yes, wxString* no)
+    EXPORT int wxMessageDialog_SetYesNoLabels(wxMessageDialog* self, wxString* yes, wxString* no)
     {
         return self->SetYesNoLabels(*yes, *no);
     }
 
-    EXPORT bool wxMessageDialog_SetYesNoCancelLabels(wxMessageDialog* self, wxString* yes,
-                                                     wxString* no, wxString* cancel)
+    EXPORT int wxMessageDialog_SetYesNoCancelLabels(wxMessageDialog* self, wxString* yes,
+                                                    wxString* no, wxString* cancel)
     {
         return self->SetYesNoCancelLabels(*yes, *no, *cancel);
     }
 
-    EXPORT bool wxMessageDialog_SetHelpLabel(wxMessageDialog* self, wxString* label)
+    EXPORT int wxMessageDialog_SetHelpLabel(wxMessageDialog* self, wxString* label)
     {
         return self->SetHelpLabel(*label);
     }

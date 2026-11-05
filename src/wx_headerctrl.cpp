@@ -90,7 +90,7 @@ extern "C"
         return self->GetFlags();
     }
 
-    EXPORT bool wxHeaderColumnSimple_IsSortKey(wxHeaderColumnSimple* self)
+    EXPORT int wxHeaderColumnSimple_IsSortKey(wxHeaderColumnSimple* self)
     {
         return self->IsSortKey();
     }
@@ -100,7 +100,7 @@ extern "C"
         self->SetSortOrder(ascending);
     }
 
-    EXPORT bool wxHeaderColumnSimple_IsSortOrderAscending(wxHeaderColumnSimple* self)
+    EXPORT int wxHeaderColumnSimple_IsSortOrderAscending(wxHeaderColumnSimple* self)
     {
         return self->IsSortOrderAscending();
     }
@@ -158,7 +158,7 @@ extern "C"
         return self->GetColumnCount();
     }
 
-    EXPORT bool wxHeaderCtrl_IsEmpty(wxHeaderCtrl* self)
+    EXPORT int wxHeaderCtrl_IsEmpty(wxHeaderCtrl* self)
     {
         return self->IsEmpty();
     }

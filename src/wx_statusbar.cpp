@@ -58,7 +58,7 @@ extern "C"
         return self->GetBorderY();
     }
 
-    EXPORT bool wxStatusBar_GetFieldRect(wxStatusBar* self, int i, int* x, int* y, int* w, int* h)
+    EXPORT int wxStatusBar_GetFieldRect(wxStatusBar* self, int i, int* x, int* y, int* w, int* h)
     {
         wxRect rect;
         bool result = self->GetFieldRect(i, rect);
@@ -101,7 +101,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxStatusBar_AddFieldControl(wxStatusBar* self, int n, wxWindow* win)
+    EXPORT int wxStatusBar_AddFieldControl(wxStatusBar* self, int n, wxWindow* win)
     {
         return self->AddFieldControl(n, win);
     }

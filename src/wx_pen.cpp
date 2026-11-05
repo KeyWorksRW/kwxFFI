@@ -63,12 +63,12 @@ extern "C"
         *self = *((wxPen*) pen);
     }
 
-    EXPORT bool wxPen_IsEqual(wxPen* self, wxPen* pen)
+    EXPORT int wxPen_IsEqual(wxPen* self, wxPen* pen)
     {
         return *self == *pen;
     }
 
-    EXPORT bool wxPen_IsOk(wxPen* self)
+    EXPORT int wxPen_IsOk(wxPen* self)
     {
         return self->IsOk();
     }

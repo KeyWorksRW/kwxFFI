@@ -26,11 +26,11 @@ extern "C"
     {
         delete self;
     }
-    EXPORT bool wxSocketBase_Close(wxSocketBase* self)
+    EXPORT int wxSocketBase_Close(wxSocketBase* self)
     {
         return self->Close();
     }
-    EXPORT bool wxSocketBase_Destroy(wxSocketBase* self)
+    EXPORT int wxSocketBase_Destroy(wxSocketBase* self)
     {
         return self->Destroy();
     }
@@ -38,7 +38,7 @@ extern "C"
     {
         return &self->Discard();
     }
-    EXPORT bool wxSocketBase_Error(wxSocketBase* self)
+    EXPORT int wxSocketBase_Error(wxSocketBase* self)
     {
         return self->Error();
     }
@@ -46,7 +46,7 @@ extern "C"
     {
         return self->GetClientData();
     }
-    EXPORT bool wxSocketBase_GetLocal(wxSocketBase* self, wxSockAddress* addr)
+    EXPORT int wxSocketBase_GetLocal(wxSocketBase* self, wxSockAddress* addr)
     {
         return self->GetLocal(*addr);
     }
@@ -55,7 +55,7 @@ extern "C"
     {
         return self->GetFlags();
     }
-    EXPORT bool wxSocketBase_GetPeer(wxSocketBase* self, wxSockAddress* addr)
+    EXPORT int wxSocketBase_GetPeer(wxSocketBase* self, wxSockAddress* addr)
     {
         return self->GetPeer(*addr);
     }
@@ -63,15 +63,15 @@ extern "C"
     {
         self->InterruptWait();
     }
-    EXPORT bool wxSocketBase_IsConnected(wxSocketBase* self)
+    EXPORT int wxSocketBase_IsConnected(wxSocketBase* self)
     {
         return self->IsConnected();
     }
-    EXPORT bool wxSocketBase_IsData(wxSocketBase* self)
+    EXPORT int wxSocketBase_IsData(wxSocketBase* self)
     {
         return self->IsData();
     }
-    EXPORT bool wxSocketBase_IsDisconnected(wxSocketBase* self)
+    EXPORT int wxSocketBase_IsDisconnected(wxSocketBase* self)
     {
         return self->IsDisconnected();
     }
@@ -87,7 +87,7 @@ extern "C"
     {
         self->Notify(notify);
     }
-    EXPORT bool wxSocketBase_IsOk(wxSocketBase* self)
+    EXPORT int wxSocketBase_IsOk(wxSocketBase* self)
     {
         return self->IsOk();
     }
@@ -111,7 +111,7 @@ extern "C"
     {
         self->SetFlags(flags);
     }
-    EXPORT bool wxSocketBase_SetLocal(wxSocketBase* self, wxIPV4address* local)
+    EXPORT int wxSocketBase_SetLocal(wxSocketBase* self, wxIPV4address* local)
     {
         return self->SetLocal(*local);
     }
@@ -139,19 +139,19 @@ extern "C"
     {
         return &self->Unread(buffer, nbytes);
     }
-    EXPORT bool wxSocketBase_Wait(wxSocketBase* self, long seconds, long millisecond)
+    EXPORT int wxSocketBase_Wait(wxSocketBase* self, long seconds, long millisecond)
     {
         return self->Wait(seconds, millisecond);
     }
-    EXPORT bool wxSocketBase_WaitForLost(wxSocketBase* self, long seconds, long millisecond)
+    EXPORT int wxSocketBase_WaitForLost(wxSocketBase* self, long seconds, long millisecond)
     {
         return self->WaitForLost(seconds, millisecond);
     }
-    EXPORT bool wxSocketBase_WaitForRead(wxSocketBase* self, long seconds, long millisecond)
+    EXPORT int wxSocketBase_WaitForRead(wxSocketBase* self, long seconds, long millisecond)
     {
         return self->WaitForRead(seconds, millisecond);
     }
-    EXPORT bool wxSocketBase_WaitForWrite(wxSocketBase* self, long seconds, long millisecond)
+    EXPORT int wxSocketBase_WaitForWrite(wxSocketBase* self, long seconds, long millisecond)
     {
         return self->WaitForWrite(seconds, millisecond);
     }
@@ -193,16 +193,16 @@ extern "C"
     {
         delete self;
     }
-    EXPORT bool wxSocketClient_Connect(wxSocketClient* self, wxSockAddress* address, bool wait)
+    EXPORT int wxSocketClient_Connect(wxSocketClient* self, wxSockAddress* address, bool wait)
     {
         return self->Connect(*address, wait);
     }
-    EXPORT bool wxSocketClient_ConnectLocal(wxSocketClient* self, wxSockAddress* address,
-                                            wxSockAddress* local, bool wait)
+    EXPORT int wxSocketClient_ConnectLocal(wxSocketClient* self, wxSockAddress* address,
+                                           wxSockAddress* local, bool wait)
     {
         return self->Connect(*address, *local, wait);
     }
-    EXPORT bool wxSocketClient_WaitOnConnect(wxSocketClient* self, long seconds, long millisecond)
+    EXPORT int wxSocketClient_WaitOnConnect(wxSocketClient* self, long seconds, long millisecond)
     {
         return self->WaitOnConnect(seconds, millisecond);
     }
@@ -220,11 +220,11 @@ extern "C"
     {
         return self->Accept(wait);
     }
-    EXPORT bool wxSocketServer_AcceptWith(wxSocketServer* self, wxSocketBase* socket, bool wait)
+    EXPORT int wxSocketServer_AcceptWith(wxSocketServer* self, wxSocketBase* socket, bool wait)
     {
         return self->AcceptWith(*socket, wait);
     }
-    EXPORT bool wxSocketServer_WaitForAccept(wxSocketServer* self, long seconds, long millisecond)
+    EXPORT int wxSocketServer_WaitForAccept(wxSocketServer* self, long seconds, long millisecond)
     {
         return self->WaitForAccept(seconds, millisecond);
     }

@@ -323,7 +323,7 @@ extern "C"
         return self->GetRenderer();
     }
 
-    EXPORT bool wxGraphicsObject_IsNull(wxGraphicsObject* self)
+    EXPORT int wxGraphicsObject_IsNull(wxGraphicsObject* self)
     {
         return self->IsNull();
     }
@@ -382,12 +382,12 @@ extern "C"
         self->Invert();
     }
 
-    EXPORT bool wxGraphicsMatrix_IsEqual(wxGraphicsMatrix* self, const wxGraphicsMatrix* t)
+    EXPORT int wxGraphicsMatrix_IsEqual(wxGraphicsMatrix* self, const wxGraphicsMatrix* t)
     {
         return self->IsEqual(*t);
     }
 
-    EXPORT bool wxGraphicsMatrix_IsIdentity(wxGraphicsMatrix* self)
+    EXPORT int wxGraphicsMatrix_IsIdentity(wxGraphicsMatrix* self)
     {
         return self->IsIdentity();
     }
@@ -710,12 +710,12 @@ extern "C"
         return new wxSize(value);
     }
 
-    EXPORT bool wxGraphicsContext_SetAntialiasMode(void* pObject, int antialias)
+    EXPORT int wxGraphicsContext_SetAntialiasMode(void* pObject, int antialias)
     {
         return ((wxGraphicsContext*) pObject)->SetAntialiasMode((wxAntialiasMode) antialias);
     }
 
-    EXPORT bool wxGraphicsContext_SetCompositionMode(void* pObject, int op)
+    EXPORT int wxGraphicsContext_SetCompositionMode(void* pObject, int op)
     {
         return ((wxGraphicsContext*) pObject)->SetCompositionMode((wxCompositionMode) op);
     }

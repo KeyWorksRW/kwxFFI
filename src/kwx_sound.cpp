@@ -25,12 +25,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxSound_IsOk(wxSound* self)
+    EXPORT int wxSound_IsOk(wxSound* self)
     {
         return self && self->IsOk();
     }
 
-    EXPORT bool wxSound_Play(wxSound* self, unsigned flag)
+    EXPORT int wxSound_Play(wxSound* self, unsigned flag)
     {
         return self && ((wxSoundBase*) self)->Play(flag);
     }
@@ -38,6 +38,6 @@ extern "C"
     EXPORT void wxSound_Stop(wxSound* self)
     {
         if (self)
-             self->Stop();
+            self->Stop();
     }
 }

@@ -12,24 +12,24 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxHtmlEasyPrinting_PreviewFile(wxHtmlEasyPrinting* self, wxString* htmlfile)
+    EXPORT int wxHtmlEasyPrinting_PreviewFile(wxHtmlEasyPrinting* self, wxString* htmlfile)
     {
         return self->PreviewFile(*htmlfile);
     }
 
-    EXPORT bool wxHtmlEasyPrinting_PreviewText(wxHtmlEasyPrinting* self, wxString* htmltext,
-                                               wxString* basepath)
+    EXPORT int wxHtmlEasyPrinting_PreviewText(wxHtmlEasyPrinting* self, wxString* htmltext,
+                                              wxString* basepath)
     {
         return self->PreviewText(*htmltext, *basepath);
     }
 
-    EXPORT bool wxHtmlEasyPrinting_PrintFile(wxHtmlEasyPrinting* self, wxString* htmlfile)
+    EXPORT int wxHtmlEasyPrinting_PrintFile(wxHtmlEasyPrinting* self, wxString* htmlfile)
     {
         return self->PrintFile(*htmlfile);
     }
 
-    EXPORT bool wxHtmlEasyPrinting_PrintText(wxHtmlEasyPrinting* self, wxString* htmltext,
-                                             wxString* basepath)
+    EXPORT int wxHtmlEasyPrinting_PrintText(wxHtmlEasyPrinting* self, wxString* htmltext,
+                                            wxString* basepath)
     {
         return self->PrintText(*htmltext, *basepath);
     }

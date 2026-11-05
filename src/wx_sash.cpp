@@ -20,7 +20,7 @@ extern "C"
         self->SetSashVisible((wxSashEdgePosition) edge, sash);
     }
 
-    EXPORT bool wxSashWindow_GetSashVisible(wxSashWindow* self, int edge)
+    EXPORT int wxSashWindow_GetSashVisible(wxSashWindow* self, int edge)
     {
         return self->GetSashVisible((wxSashEdgePosition) edge);
     }
@@ -32,7 +32,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxSashWindow_HasBorder(wxSashWindow* self, int edge)
+    EXPORT int wxSashWindow_HasBorder(wxSashWindow* self, int edge)
     {
 #if WXWIN_COMPATIBILITY_2_6
         return self->HasBorder((wxSashEdgePosition) edge);
@@ -245,8 +245,8 @@ extern "C"
         return self->GetFlags();
     }
 
-    EXPORT void wxCalculateLayoutEvent_SetRect(wxCalculateLayoutEvent* self, int x, int y, int width,
-                                               int height)
+    EXPORT void wxCalculateLayoutEvent_SetRect(wxCalculateLayoutEvent* self, int x, int y,
+                                               int width, int height)
     {
         self->SetRect(wxRect(x, y, width, height));
     }
@@ -268,8 +268,8 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxLayoutAlgorithm_LayoutMDIFrame(wxLayoutAlgorithm* self, wxMDIParentFrame* frame,
-                                                 int x, int y, int width, int height, int use)
+    EXPORT int wxLayoutAlgorithm_LayoutMDIFrame(wxLayoutAlgorithm* self, wxMDIParentFrame* frame,
+                                                int x, int y, int width, int height, int use)
     {
         wxRect* r = nullptr;
         if (use)
@@ -282,14 +282,14 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxLayoutAlgorithm_LayoutFrame(wxLayoutAlgorithm* self, wxFrame* frame,
-                                              wxWindow* mainWindow)
+    EXPORT int wxLayoutAlgorithm_LayoutFrame(wxLayoutAlgorithm* self, wxFrame* frame,
+                                             wxWindow* mainWindow)
     {
         return self->LayoutFrame(frame, mainWindow);
     }
 
-    EXPORT bool wxLayoutAlgorithm_LayoutWindow(wxLayoutAlgorithm* self, wxFrame* frame,
-                                               wxWindow* mainWindow)
+    EXPORT int wxLayoutAlgorithm_LayoutWindow(wxLayoutAlgorithm* self, wxFrame* frame,
+                                              wxWindow* mainWindow)
     {
         return self->LayoutWindow(frame, mainWindow);
     }

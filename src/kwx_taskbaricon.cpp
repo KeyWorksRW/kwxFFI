@@ -36,27 +36,27 @@ extern "C"
             delete self;
     }
 
-    EXPORT bool wxTaskBarIcon_IsIconInstalled(wxTaskBarIcon* self)
+    EXPORT int wxTaskBarIcon_IsIconInstalled(wxTaskBarIcon* self)
     {
         return self->IsIconInstalled();
     }
 
-    EXPORT bool wxTaskBarIcon_IsOk(wxTaskBarIcon* self)
+    EXPORT int wxTaskBarIcon_IsOk(wxTaskBarIcon* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxTaskBarIcon_PopupMenu(wxTaskBarIcon* self, wxMenu* menu)
+    EXPORT int wxTaskBarIcon_PopupMenu(wxTaskBarIcon* self, wxMenu* menu)
     {
         return self->PopupMenu(menu);
     }
 
-    EXPORT bool wxTaskBarIcon_RemoveIcon(wxTaskBarIcon* self)
+    EXPORT int wxTaskBarIcon_RemoveIcon(wxTaskBarIcon* self)
     {
         return self->RemoveIcon();
     }
 
-    EXPORT bool wxTaskBarIcon_SetIcon(wxTaskBarIcon* self, wxIcon* icon, wxString* tooltip)
+    EXPORT int wxTaskBarIcon_SetIcon(wxTaskBarIcon* self, wxIcon* icon, wxString* tooltip)
     {
         return tooltip ? self->SetIcon(*icon, *tooltip) : self->SetIcon(*icon);
     }

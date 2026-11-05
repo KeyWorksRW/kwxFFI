@@ -36,7 +36,7 @@ extern "C"
         self->Save(object);
     }
 
-    EXPORT bool wxPersistenceManager_Restore(wxPersistenceManager* self, void* object)
+    EXPORT int wxPersistenceManager_Restore(wxPersistenceManager* self, void* object)
     {
         return self->Restore(object);
     }
@@ -46,8 +46,8 @@ extern "C"
         self->SaveAndUnregister(object);
     }
 
-    EXPORT bool wxPersistenceManager_RegisterAndRestore(wxPersistenceManager* self, void* object,
-                                                        wxPersistentObject* persistent_object)
+    EXPORT int wxPersistenceManager_RegisterAndRestore(wxPersistenceManager* self, void* object,
+                                                       wxPersistentObject* persistent_object)
     {
         return self->RegisterAndRestore(object, persistent_object);
     }
@@ -82,7 +82,7 @@ extern "C"
         self->Save();
     }
 
-    EXPORT bool wxPersistentObject_Restore(wxPersistentObject* self)
+    EXPORT int wxPersistentObject_Restore(wxPersistentObject* self)
     {
         return self->Restore();
     }

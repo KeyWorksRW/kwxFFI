@@ -15,7 +15,7 @@ extern "C"
         // delete pObject;
     }
 
-    EXPORT bool wxClipboard_Open(wxClipboard* self)
+    EXPORT int wxClipboard_Open(wxClipboard* self)
     {
         return self->Open();
     }
@@ -25,27 +25,27 @@ extern "C"
         self->Close();
     }
 
-    EXPORT bool wxClipboard_IsOpened(wxClipboard* self)
+    EXPORT int wxClipboard_IsOpened(wxClipboard* self)
     {
         return self->IsOpened();
     }
 
-    EXPORT bool wxClipboard_SetData(wxClipboard* self, wxDataObject* data)
+    EXPORT int wxClipboard_SetData(wxClipboard* self, wxDataObject* data)
     {
         return self->SetData(data);
     }
 
-    EXPORT bool wxClipboard_AddData(wxClipboard* self, wxDataObject* data)
+    EXPORT int wxClipboard_AddData(wxClipboard* self, wxDataObject* data)
     {
         return self->AddData(data);
     }
 
-    EXPORT bool wxClipboard_IsSupported(wxClipboard* self, wxDataFormat* format)
+    EXPORT int wxClipboard_IsSupported(wxClipboard* self, wxDataFormat* format)
     {
         return self->IsSupported(*format);
     }
 
-    EXPORT bool wxClipboard_GetData(wxClipboard* self, wxDataObject* data)
+    EXPORT int wxClipboard_GetData(wxClipboard* self, wxDataObject* data)
     {
         return self->GetData(*data);
     }
@@ -55,7 +55,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxClipboard_Flush(wxClipboard* self)
+    EXPORT int wxClipboard_Flush(wxClipboard* self)
     {
         return self->Flush();
     }

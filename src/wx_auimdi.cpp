@@ -183,8 +183,8 @@ extern "C"
     // wxAuiMDIClientWindow - AUI MDI client window
     // ============================================================================
 
-    EXPORT bool wxAuiMDIClientWindow_CreateClient(wxAuiMDIClientWindow* self,
-                                                  wxAuiMDIParentFrame* parent, int style)
+    EXPORT int wxAuiMDIClientWindow_CreateClient(wxAuiMDIClientWindow* self,
+                                                 wxAuiMDIParentFrame* parent, int style)
     {
         return self->CreateClient(parent, style);
     }

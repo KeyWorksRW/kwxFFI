@@ -30,42 +30,42 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxRegion_UnionRect(wxRegion* self, int x, int y, int width, int height)
+    EXPORT int wxRegion_UnionRect(wxRegion* self, int x, int y, int width, int height)
     {
         return self->Union((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT bool wxRegion_UnionRegion(wxRegion* self, wxRegion* region)
+    EXPORT int wxRegion_UnionRegion(wxRegion* self, wxRegion* region)
     {
         return self->Union(*region);
     }
 
-    EXPORT bool wxRegion_IntersectRect(wxRegion* self, int x, int y, int width, int height)
+    EXPORT int wxRegion_IntersectRect(wxRegion* self, int x, int y, int width, int height)
     {
         return self->Intersect((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT bool wxRegion_IntersectRegion(wxRegion* self, wxRegion* region)
+    EXPORT int wxRegion_IntersectRegion(wxRegion* self, wxRegion* region)
     {
         return self->Intersect(*region);
     }
 
-    EXPORT bool wxRegion_SubtractRect(wxRegion* self, int x, int y, int width, int height)
+    EXPORT int wxRegion_SubtractRect(wxRegion* self, int x, int y, int width, int height)
     {
         return self->Subtract((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT bool wxRegion_SubtractRegion(wxRegion* self, wxRegion* region)
+    EXPORT int wxRegion_SubtractRegion(wxRegion* self, wxRegion* region)
     {
         return self->Subtract(*region);
     }
 
-    EXPORT bool wxRegion_XorRect(wxRegion* self, int x, int y, int width, int height)
+    EXPORT int wxRegion_XorRect(wxRegion* self, int x, int y, int width, int height)
     {
         return self->Xor((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }
 
-    EXPORT bool wxRegion_XorRegion(wxRegion* self, wxRegion* region)
+    EXPORT int wxRegion_XorRegion(wxRegion* self, wxRegion* region)
     {
         return self->Xor(*region);
     }
@@ -75,17 +75,17 @@ extern "C"
         self->GetBox(*((wxCoord*) x), *((wxCoord*) y), *((wxCoord*) width), *((wxCoord*) height));
     }
 
-    EXPORT bool wxRegion_IsEmpty(wxRegion* self)
+    EXPORT int wxRegion_IsEmpty(wxRegion* self)
     {
         return self->IsEmpty();
     }
 
-    EXPORT bool wxRegion_ContainsPoint(wxRegion* self, int x, int y)
+    EXPORT int wxRegion_ContainsPoint(wxRegion* self, int x, int y)
     {
         return self->Contains((wxCoord) x, (wxCoord) y);
     }
 
-    EXPORT bool wxRegion_ContainsRect(wxRegion* self, int x, int y, int width, int height)
+    EXPORT int wxRegion_ContainsRect(wxRegion* self, int x, int y, int width, int height)
     {
         return self->Contains((wxCoord) x, (wxCoord) y, (wxCoord) width, (wxCoord) height);
     }

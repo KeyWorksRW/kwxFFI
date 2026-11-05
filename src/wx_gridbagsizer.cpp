@@ -65,20 +65,20 @@ extern "C"
     }
 
     // Set item position
-    EXPORT bool wxGridBagSizer_SetItemPosition(wxGridBagSizer* self, wxWindow* window, int row,
-                                               int col)
+    EXPORT int wxGridBagSizer_SetItemPosition(wxGridBagSizer* self, wxWindow* window, int row,
+                                              int col)
     {
         return self->SetItemPosition(window, wxGBPosition(row, col));
     }
 
-    EXPORT bool wxGridBagSizer_SetItemPositionSizer(wxGridBagSizer* self, wxSizer* sizer, int row,
-                                                    int col)
+    EXPORT int wxGridBagSizer_SetItemPositionSizer(wxGridBagSizer* self, wxSizer* sizer, int row,
+                                                   int col)
     {
         return self->SetItemPosition(sizer, wxGBPosition(row, col));
     }
 
-    EXPORT bool wxGridBagSizer_SetItemPositionIndex(wxGridBagSizer* self, size_t index, int row,
-                                                    int col)
+    EXPORT int wxGridBagSizer_SetItemPositionIndex(wxGridBagSizer* self, size_t index, int row,
+                                                   int col)
     {
         return self->SetItemPosition(index, wxGBPosition(row, col));
     }
@@ -109,20 +109,20 @@ extern "C"
     }
 
     // Set item span
-    EXPORT bool wxGridBagSizer_SetItemSpan(wxGridBagSizer* self, wxWindow* window, int rowspan,
-                                           int colspan)
+    EXPORT int wxGridBagSizer_SetItemSpan(wxGridBagSizer* self, wxWindow* window, int rowspan,
+                                          int colspan)
     {
         return self->SetItemSpan(window, wxGBSpan(rowspan, colspan));
     }
 
-    EXPORT bool wxGridBagSizer_SetItemSpanSizer(wxGridBagSizer* self, wxSizer* sizer, int rowspan,
-                                                int colspan)
+    EXPORT int wxGridBagSizer_SetItemSpanSizer(wxGridBagSizer* self, wxSizer* sizer, int rowspan,
+                                               int colspan)
     {
         return self->SetItemSpan(sizer, wxGBSpan(rowspan, colspan));
     }
 
-    EXPORT bool wxGridBagSizer_SetItemSpanIndex(wxGridBagSizer* self, size_t index, int rowspan,
-                                                int colspan)
+    EXPORT int wxGridBagSizer_SetItemSpanIndex(wxGridBagSizer* self, size_t index, int rowspan,
+                                               int colspan)
     {
         return self->SetItemSpan(index, wxGBSpan(rowspan, colspan));
     }
@@ -134,15 +134,15 @@ extern "C"
     }
 
     // Check for intersection
-    EXPORT bool wxGridBagSizer_CheckForIntersection(wxGridBagSizer* self, wxGBSizerItem* item,
-                                                    wxGBSizerItem* excludeItem)
+    EXPORT int wxGridBagSizer_CheckForIntersection(wxGridBagSizer* self, wxGBSizerItem* item,
+                                                   wxGBSizerItem* excludeItem)
     {
         return self->CheckForIntersection(item, excludeItem);
     }
 
-    EXPORT bool wxGridBagSizer_CheckForIntersectionPos(wxGridBagSizer* self, int row, int col,
-                                                       int rowspan, int colspan,
-                                                       wxGBSizerItem* excludeItem)
+    EXPORT int wxGridBagSizer_CheckForIntersectionPos(wxGridBagSizer* self, int row, int col,
+                                                      int rowspan, int colspan,
+                                                      wxGBSizerItem* excludeItem)
     {
         return self->CheckForIntersection(wxGBPosition(row, col), wxGBSpan(rowspan, colspan),
                                           excludeItem);

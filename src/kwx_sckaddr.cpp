@@ -25,7 +25,7 @@ extern "C"
     {
         return new wxString(self->Hostname());
     }
-    EXPORT bool wxIPaddress_HostnameSet(wxIPaddress* self, wxString* hostname)
+    EXPORT int wxIPaddress_HostnameSet(wxIPaddress* self, wxString* hostname)
     {
         return self->Hostname(*hostname);
     }
@@ -37,24 +37,24 @@ extern "C"
     {
         return self->Service();
     }
-    EXPORT bool wxIPaddress_ServiceSet(wxIPaddress* self, wxString* service)
+    EXPORT int wxIPaddress_ServiceSet(wxIPaddress* self, wxString* service)
     {
         return self->Service(*service);
     }
-    EXPORT bool wxIPaddress_ServiceSetPort(wxIPaddress* self, wxUint16 service)
+    EXPORT int wxIPaddress_ServiceSetPort(wxIPaddress* self, wxUint16 service)
     {
         return self->Service(service);
     }
 
-    EXPORT bool wxIPaddress_AnyAddress(wxIPaddress* self)
+    EXPORT int wxIPaddress_AnyAddress(wxIPaddress* self)
     {
         return self->AnyAddress();
     }
-    EXPORT bool wxIPaddress_LocalHost(wxIPaddress* self)
+    EXPORT int wxIPaddress_LocalHost(wxIPaddress* self)
     {
         return self->LocalHost();
     }
-    EXPORT bool wxIPaddress_IsLocalHost(wxIPaddress* self)
+    EXPORT int wxIPaddress_IsLocalHost(wxIPaddress* self)
     {
         return self->IsLocalHost();
     }

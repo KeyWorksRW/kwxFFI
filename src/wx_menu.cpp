@@ -140,7 +140,7 @@ extern "C"
         self->Enable(id, enable);
     }
 
-    EXPORT bool wxMenu_IsEnabled(wxMenu* self, int id)
+    EXPORT int wxMenu_IsEnabled(wxMenu* self, int id)
     {
         return self->IsEnabled(id);
     }
@@ -150,7 +150,7 @@ extern "C"
         self->Check(id, check);
     }
 
-    EXPORT bool wxMenu_IsChecked(wxMenu* self, int id)
+    EXPORT int wxMenu_IsChecked(wxMenu* self, int id)
     {
         return self->IsChecked(id);
     }
@@ -226,7 +226,7 @@ extern "C"
         self->UpdateUI(source);
     }
 
-    EXPORT bool wxMenu_IsAttached(wxMenu* self)
+    EXPORT int wxMenu_IsAttached(wxMenu* self)
     {
         return self->IsAttached();
     }
@@ -318,7 +318,7 @@ extern "C"
         return self->GetId();
     }
 
-    EXPORT bool wxMenuItem_IsSeparator(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsSeparator(wxMenuItem* self)
     {
         return self->IsSeparator();
     }
@@ -354,12 +354,12 @@ extern "C"
         self->SetCheckable(checkable);
     }
 
-    EXPORT bool wxMenuItem_IsCheckable(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsCheckable(wxMenuItem* self)
     {
         return self->IsCheckable();
     }
 
-    EXPORT bool wxMenuItem_IsSubMenu(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsSubMenu(wxMenuItem* self)
     {
         return self->IsSubMenu();
     }
@@ -379,7 +379,7 @@ extern "C"
         self->Enable(enable);
     }
 
-    EXPORT bool wxMenuItem_IsEnabled(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsEnabled(wxMenuItem* self)
     {
         return self->IsEnabled();
     }
@@ -389,7 +389,7 @@ extern "C"
         self->Check(check);
     }
 
-    EXPORT bool wxMenuItem_IsChecked(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsChecked(wxMenuItem* self)
     {
         return self->IsChecked();
     }
@@ -411,12 +411,12 @@ extern "C"
         return (int) self->GetKind();
     }
 
-    EXPORT bool wxMenuItem_IsCheck(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsCheck(wxMenuItem* self)
     {
         return self->IsCheck();
     }
 
-    EXPORT bool wxMenuItem_IsRadio(wxMenuItem* self)
+    EXPORT int wxMenuItem_IsRadio(wxMenuItem* self)
     {
         return self->IsRadio();
     }
@@ -494,7 +494,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMenu_Destroy(void* pObject, int itemid)
+    EXPORT int wxMenu_Destroy(void* pObject, int itemid)
     {
         return ((wxMenu*) pObject)->Destroy(itemid);
     }

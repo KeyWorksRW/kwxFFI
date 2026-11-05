@@ -32,37 +32,37 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTextFile_Exists(wxTextFile* self)
+    EXPORT int wxTextFile_Exists(wxTextFile* self)
     {
         return self->Exists();
     }
 
-    EXPORT bool wxTextFile_CreateOnDisk(wxTextFile* self)
+    EXPORT int wxTextFile_CreateOnDisk(wxTextFile* self)
     {
         return self->Create();
     }
 
-    EXPORT bool wxTextFile_CreateOnDiskNamed(wxTextFile* self, wxString* file_name)
+    EXPORT int wxTextFile_CreateOnDiskNamed(wxTextFile* self, wxString* file_name)
     {
         return self->Create(*file_name);
     }
 
-    EXPORT bool wxTextFile_Open(wxTextFile* self)
+    EXPORT int wxTextFile_Open(wxTextFile* self)
     {
         return self->Open();
     }
 
-    EXPORT bool wxTextFile_OpenNamed(wxTextFile* self, wxString* file_name)
+    EXPORT int wxTextFile_OpenNamed(wxTextFile* self, wxString* file_name)
     {
         return self->Open(*file_name);
     }
 
-    EXPORT bool wxTextFile_Close(wxTextFile* self)
+    EXPORT int wxTextFile_Close(wxTextFile* self)
     {
         return self->Close();
     }
 
-    EXPORT bool wxTextFile_IsOpened(wxTextFile* self)
+    EXPORT int wxTextFile_IsOpened(wxTextFile* self)
     {
         return self->IsOpened();
     }
@@ -87,7 +87,7 @@ extern "C"
         self->GoToLine(static_cast<size_t>(line_index));
     }
 
-    EXPORT bool wxTextFile_Eof(wxTextFile* self)
+    EXPORT int wxTextFile_Eof(wxTextFile* self)
     {
         return self->Eof();
     }
@@ -149,12 +149,12 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxTextFile_Write(wxTextFile* self)
+    EXPORT int wxTextFile_Write(wxTextFile* self)
     {
         return self->Write();
     }
 
-    EXPORT bool wxTextFile_WriteAs(wxTextFile* self, int line_type)
+    EXPORT int wxTextFile_WriteAs(wxTextFile* self, int line_type)
     {
         return self->Write(static_cast<wxTextFileType>(line_type));
     }
@@ -188,12 +188,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTempFile_Open(wxTempFile* self, wxString* file_name)
+    EXPORT int wxTempFile_Open(wxTempFile* self, wxString* file_name)
     {
         return self->Open(*file_name);
     }
 
-    EXPORT bool wxTempFile_IsOpened(wxTempFile* self)
+    EXPORT int wxTempFile_IsOpened(wxTempFile* self)
     {
         return self->IsOpened();
     }
@@ -214,22 +214,22 @@ extern "C"
         return static_cast<int>(self->Tell());
     }
 
-    EXPORT bool wxTempFile_WriteBytes(wxTempFile* self, void* buffer, int size)
+    EXPORT int wxTempFile_WriteBytes(wxTempFile* self, void* buffer, int size)
     {
         return self->Write(buffer, static_cast<size_t>(size));
     }
 
-    EXPORT bool wxTempFile_WriteText(wxTempFile* self, wxString* text)
+    EXPORT int wxTempFile_WriteText(wxTempFile* self, wxString* text)
     {
         return self->Write(*text);
     }
 
-    EXPORT bool wxTempFile_Flush(wxTempFile* self)
+    EXPORT int wxTempFile_Flush(wxTempFile* self)
     {
         return self->Flush();
     }
 
-    EXPORT bool wxTempFile_Commit(wxTempFile* self)
+    EXPORT int wxTempFile_Commit(wxTempFile* self)
     {
         return self->Commit();
     }
@@ -275,7 +275,7 @@ extern "C"
         return static_cast<int>(self->CountTokens());
     }
 
-    EXPORT bool wxStringTokenizer_HasMoreTokens(wxStringTokenizer* self)
+    EXPORT int wxStringTokenizer_HasMoreTokens(wxStringTokenizer* self)
     {
         return self->HasMoreTokens();
     }
@@ -305,7 +305,7 @@ extern "C"
         return static_cast<int>(self->GetMode());
     }
 
-    EXPORT bool wxStringTokenizer_AllowEmpty(wxStringTokenizer* self)
+    EXPORT int wxStringTokenizer_AllowEmpty(wxStringTokenizer* self)
     {
         return self->AllowEmpty();
     }
@@ -436,12 +436,12 @@ extern "C"
         self->Flushable(flushable);
     }
 
-    EXPORT bool wxStreamBuffer_FlushBuffer(wxStreamBuffer* self)
+    EXPORT int wxStreamBuffer_FlushBuffer(wxStreamBuffer* self)
     {
         return self->FlushBuffer();
     }
 
-    EXPORT bool wxStreamBuffer_FillBuffer(wxStreamBuffer* self)
+    EXPORT int wxStreamBuffer_FillBuffer(wxStreamBuffer* self)
     {
         return self->FillBuffer();
     }
@@ -456,17 +456,17 @@ extern "C"
         return self->GetStream();
     }
 
-    EXPORT bool wxStreamBuffer_HasBuffer(wxStreamBuffer* self)
+    EXPORT int wxStreamBuffer_HasBuffer(wxStreamBuffer* self)
     {
         return self->HasBuffer();
     }
 
-    EXPORT bool wxStreamBuffer_IsFixed(wxStreamBuffer* self)
+    EXPORT int wxStreamBuffer_IsFixed(wxStreamBuffer* self)
     {
         return self->IsFixed();
     }
 
-    EXPORT bool wxStreamBuffer_IsFlushable(wxStreamBuffer* self)
+    EXPORT int wxStreamBuffer_IsFlushable(wxStreamBuffer* self)
     {
         return self->IsFlushable();
     }
@@ -555,22 +555,22 @@ extern "C"
         return new wxString(self->GetComment());
     }
 
-    EXPORT bool wxZipEntry_IsDir(wxZipEntry* self)
+    EXPORT int wxZipEntry_IsDir(wxZipEntry* self)
     {
         return self->IsDir();
     }
 
-    EXPORT bool wxZipEntry_IsText(wxZipEntry* self)
+    EXPORT int wxZipEntry_IsText(wxZipEntry* self)
     {
         return self->IsText();
     }
 
-    EXPORT bool wxZipEntry_IsReadOnly(wxZipEntry* self)
+    EXPORT int wxZipEntry_IsReadOnly(wxZipEntry* self)
     {
         return self->IsReadOnly();
     }
 
-    EXPORT bool wxZipEntry_IsMadeByUnix(wxZipEntry* self)
+    EXPORT int wxZipEntry_IsMadeByUnix(wxZipEntry* self)
     {
         return self->IsMadeByUnix();
     }
@@ -644,12 +644,12 @@ extern "C"
         return self->GetNextEntry();
     }
 
-    EXPORT bool wxZipInputStream_OpenEntry(wxZipInputStream* self, wxZipEntry* entry)
+    EXPORT int wxZipInputStream_OpenEntry(wxZipInputStream* self, wxZipEntry* entry)
     {
         return self->OpenEntry(*entry);
     }
 
-    EXPORT bool wxZipInputStream_CloseEntry(wxZipInputStream* self)
+    EXPORT int wxZipInputStream_CloseEntry(wxZipInputStream* self)
     {
         return self->CloseEntry();
     }
@@ -683,30 +683,30 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxZipOutputStream_PutNextEntry(wxZipOutputStream* self, wxString* entry_name,
-                                               int size)
+    EXPORT int wxZipOutputStream_PutNextEntry(wxZipOutputStream* self, wxString* entry_name,
+                                              int size)
     {
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
-    EXPORT bool wxZipOutputStream_PutNextDirEntry(wxZipOutputStream* self, wxString* entry_name)
+    EXPORT int wxZipOutputStream_PutNextDirEntry(wxZipOutputStream* self, wxString* entry_name)
     {
         return self->PutNextDirEntry(*entry_name, wxDateTime::Now());
     }
 
-    EXPORT bool wxZipOutputStream_PutEntry(wxZipOutputStream* self, wxZipEntry* entry)
+    EXPORT int wxZipOutputStream_PutEntry(wxZipOutputStream* self, wxZipEntry* entry)
     {
         return self->PutNextEntry(entry);
     }
 
-    EXPORT bool wxZipOutputStream_CopyEntry(wxZipOutputStream* self, wxZipEntry* entry,
-                                            wxZipInputStream* input_stream)
+    EXPORT int wxZipOutputStream_CopyEntry(wxZipOutputStream* self, wxZipEntry* entry,
+                                           wxZipInputStream* input_stream)
     {
         return self->CopyEntry(entry, *input_stream);
     }
 
-    EXPORT bool wxZipOutputStream_CopyArchiveMetaData(wxZipOutputStream* self,
-                                                      wxZipInputStream* input_stream)
+    EXPORT int wxZipOutputStream_CopyArchiveMetaData(wxZipOutputStream* self,
+                                                     wxZipInputStream* input_stream)
     {
         return self->CopyArchiveMetaData(*input_stream);
     }
@@ -721,12 +721,12 @@ extern "C"
         self->Sync();
     }
 
-    EXPORT bool wxZipOutputStream_CloseEntry(wxZipOutputStream* self)
+    EXPORT int wxZipOutputStream_CloseEntry(wxZipOutputStream* self)
     {
         return self->CloseEntry();
     }
 
-    EXPORT bool wxZipOutputStream_Close(wxZipOutputStream* self)
+    EXPORT int wxZipOutputStream_Close(wxZipOutputStream* self)
     {
         return self->Close();
     }
@@ -770,12 +770,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxZlibInputStream_CanHandleGZip()
+    EXPORT int wxZlibInputStream_CanHandleGZip()
     {
         return wxZlibInputStream::CanHandleGZip();
     }
 
-    EXPORT bool wxZlibInputStream_SetDictionary(wxZlibInputStream* self, void* data, int size)
+    EXPORT int wxZlibInputStream_SetDictionary(wxZlibInputStream* self, void* data, int size)
     {
         return self->SetDictionary(static_cast<const char*>(data), static_cast<size_t>(size));
     }
@@ -796,12 +796,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxZlibOutputStream_CanHandleGZip()
+    EXPORT int wxZlibOutputStream_CanHandleGZip()
     {
         return wxZlibOutputStream::CanHandleGZip();
     }
 
-    EXPORT bool wxZlibOutputStream_SetDictionary(wxZlibOutputStream* self, void* data, int size)
+    EXPORT int wxZlibOutputStream_SetDictionary(wxZlibOutputStream* self, void* data, int size)
     {
         return self->SetDictionary(static_cast<const char*>(data), static_cast<size_t>(size));
     }
@@ -811,7 +811,7 @@ extern "C"
         self->Sync();
     }
 
-    EXPORT bool wxZlibOutputStream_Close(wxZlibOutputStream* self)
+    EXPORT int wxZlibOutputStream_Close(wxZlibOutputStream* self)
     {
         return self->Close();
     }
@@ -910,12 +910,12 @@ extern "C"
         return self->GetDevMinor();
     }
 
-    EXPORT bool wxTarEntry_IsDir(wxTarEntry* self)
+    EXPORT int wxTarEntry_IsDir(wxTarEntry* self)
     {
         return self->IsDir();
     }
 
-    EXPORT bool wxTarEntry_IsReadOnly(wxTarEntry* self)
+    EXPORT int wxTarEntry_IsReadOnly(wxTarEntry* self)
     {
         return self->IsReadOnly();
     }
@@ -1004,12 +1004,12 @@ extern "C"
         return self->GetNextEntry();
     }
 
-    EXPORT bool wxTarInputStream_OpenEntry(wxTarInputStream* self, wxTarEntry* entry)
+    EXPORT int wxTarInputStream_OpenEntry(wxTarInputStream* self, wxTarEntry* entry)
     {
         return self->OpenEntry(*entry);
     }
 
-    EXPORT bool wxTarInputStream_CloseEntry(wxTarInputStream* self)
+    EXPORT int wxTarInputStream_CloseEntry(wxTarInputStream* self)
     {
         return self->CloseEntry();
     }
@@ -1043,30 +1043,30 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTarOutputStream_PutNextEntry(wxTarOutputStream* self, wxString* entry_name,
-                                               int size)
+    EXPORT int wxTarOutputStream_PutNextEntry(wxTarOutputStream* self, wxString* entry_name,
+                                              int size)
     {
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
-    EXPORT bool wxTarOutputStream_PutNextDirEntry(wxTarOutputStream* self, wxString* entry_name)
+    EXPORT int wxTarOutputStream_PutNextDirEntry(wxTarOutputStream* self, wxString* entry_name)
     {
         return self->PutNextDirEntry(*entry_name, wxDateTime::Now());
     }
 
-    EXPORT bool wxTarOutputStream_PutEntry(wxTarOutputStream* self, wxTarEntry* entry)
+    EXPORT int wxTarOutputStream_PutEntry(wxTarOutputStream* self, wxTarEntry* entry)
     {
         return self->PutNextEntry(entry);
     }
 
-    EXPORT bool wxTarOutputStream_CopyEntry(wxTarOutputStream* self, wxTarEntry* entry,
-                                            wxTarInputStream* input_stream)
+    EXPORT int wxTarOutputStream_CopyEntry(wxTarOutputStream* self, wxTarEntry* entry,
+                                           wxTarInputStream* input_stream)
     {
         return self->CopyEntry(entry, *input_stream);
     }
 
-    EXPORT bool wxTarOutputStream_CopyArchiveMetaData(wxTarOutputStream* self,
-                                                      wxTarInputStream* input_stream)
+    EXPORT int wxTarOutputStream_CopyArchiveMetaData(wxTarOutputStream* self,
+                                                     wxTarInputStream* input_stream)
     {
         return self->CopyArchiveMetaData(*input_stream);
     }
@@ -1081,17 +1081,17 @@ extern "C"
         self->Sync();
     }
 
-    EXPORT bool wxTarOutputStream_CloseEntry(wxTarOutputStream* self)
+    EXPORT int wxTarOutputStream_CloseEntry(wxTarOutputStream* self)
     {
         return self->CloseEntry();
     }
 
-    EXPORT bool wxTarOutputStream_Close(wxTarOutputStream* self)
+    EXPORT int wxTarOutputStream_Close(wxTarOutputStream* self)
     {
         return self->Close();
     }
 
-    EXPORT bool wxTarOutputStream_IsSeekable(wxTarOutputStream* self)
+    EXPORT int wxTarOutputStream_IsSeekable(wxTarOutputStream* self)
     {
         return self->IsSeekable();
     }
@@ -1107,19 +1107,18 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxFFile_IsOpened(void* pObject)
+    EXPORT int wxFFile_IsOpened(void* pObject)
     {
         return ((wxFFile*) pObject)->IsOpened();
     }
 
-    EXPORT bool wxFFile_ReadAll(void* pObject, void* str, void* conv)
+    EXPORT int wxFFile_ReadAll(void* pObject, void* str, void* conv)
     {
         return ((wxFFile*) pObject)->ReadAll((wxString*) str, *(wxMBConv*) conv);
     }
 
-    EXPORT bool wxFilterOutputStream_Close(void* pObject)
+    EXPORT int wxFilterOutputStream_Close(void* pObject)
     {
         return ((wxFilterOutputStream*) pObject)->Close();
     }
-
 }

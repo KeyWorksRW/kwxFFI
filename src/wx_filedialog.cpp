@@ -140,7 +140,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxFileDialog_AddShortcut(void* pObject, void* directory, int flags)
+    EXPORT int wxFileDialog_AddShortcut(void* pObject, void* directory, int flags)
     {
         return ((wxFileDialog*) pObject)->AddShortcut(*(wxString*) directory, flags);
     }
@@ -150,9 +150,9 @@ extern "C"
         return ((wxFileDialog*) pObject)->GetCurrentlySelectedFilterIndex();
     }
 
-    EXPORT bool wxFileDialog_SetCustomizeHook(void* pObject, void* customizeHook)
+    EXPORT int wxFileDialog_SetCustomizeHook(void* pObject, void* customizeHook)
     {
-        return ((wxFileDialog*) pObject)->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
+        return ((wxFileDialog*) pObject)
+            ->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
     }
-
 }

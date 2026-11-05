@@ -97,7 +97,7 @@ extern "C"
         *self = *name;
     }
 
-    EXPORT bool wxColour_ValidName(wxString* name)
+    EXPORT int wxColour_ValidName(wxString* name)
     {
         return wxTheColourDatabase->Find(*name).IsOk();
     }
@@ -109,9 +109,9 @@ extern "C"
         return new wxString(value);
     }
 
-    EXPORT void wxColour_MakeDisabled(unsigned char* r, unsigned char* g, unsigned char* b, unsigned char brightness)
+    EXPORT void wxColour_MakeDisabled(unsigned char* r, unsigned char* g, unsigned char* b,
+                                      unsigned char brightness)
     {
         wxColour::MakeDisabled(r, g, b, brightness);
     }
-
 }

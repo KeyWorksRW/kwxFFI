@@ -34,7 +34,7 @@ extern "C"
         return (void*) new wxIcon(*name, (wxBitmapType) type, width, height);
     }
 
-    EXPORT bool wxIcon_Load(wxIcon* self, wxString* name, long type, int width, int height)
+    EXPORT int wxIcon_Load(wxIcon* self, wxString* name, long type, int width, int height)
     {
 #ifdef __WIN32__
         return self->LoadFile(*name, (wxBitmapType) type, width, height);
@@ -50,7 +50,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxIcon_IsOk(wxIcon* self)
+    EXPORT int wxIcon_IsOk(wxIcon* self)
     {
         return self->IsOk();
     }
@@ -75,7 +75,7 @@ extern "C"
         *self = *((wxIcon*) other);
     }
 
-    EXPORT bool wxIcon_IsEqual(wxIcon* self, wxIcon* other)
+    EXPORT int wxIcon_IsEqual(wxIcon* self, wxIcon* other)
     {
         wxIcon* icon1 = self;
         wxIcon* icon2 = other;
@@ -95,10 +95,11 @@ extern "C"
             {
                 for (int sizeY = 0; sizeY < (icon1->GetHeight()); sizeY++)
                 {
-                    equal = equal && (img1->GetRed(sizeX, sizeY) == img2->GetRed(sizeX, sizeY) &&
-                                      img1->GetGreen(sizeX, sizeY) == img2->GetGreen(sizeX, sizeY) &&
-                                      img1->GetBlue(sizeX, sizeY) == img2->GetBlue(sizeX, sizeY) &&
-                                      img1->GetAlpha(sizeX, sizeY) == img2->GetAlpha(sizeX, sizeY));
+                    equal =
+                        equal && (img1->GetRed(sizeX, sizeY) == img2->GetRed(sizeX, sizeY) &&
+                                  img1->GetGreen(sizeX, sizeY) == img2->GetGreen(sizeX, sizeY) &&
+                                  img1->GetBlue(sizeX, sizeY) == img2->GetBlue(sizeX, sizeY) &&
+                                  img1->GetAlpha(sizeX, sizeY) == img2->GetAlpha(sizeX, sizeY));
                 }
             }
             return equal;

@@ -150,8 +150,8 @@ extern "C"
         self->SetToggleValue(value, row, col);
     }
 
-    EXPORT bool wxDataViewListCtrl_GetToggleValue(wxDataViewListCtrl* self, unsigned int row,
-                                                  unsigned int col)
+    EXPORT int wxDataViewListCtrl_GetToggleValue(wxDataViewListCtrl* self, unsigned int row,
+                                                 unsigned int col)
     {
         return self->GetToggleValue(row, col);
     }
@@ -217,25 +217,25 @@ extern "C"
 
     // --- Additional wxDataViewListCtrl methods ---
 
-    EXPORT bool wxDataViewListCtrl_IsRowSelected(wxDataViewListCtrl* self, unsigned row)
+    EXPORT int wxDataViewListCtrl_IsRowSelected(wxDataViewListCtrl* self, unsigned row)
     {
         return self->IsRowSelected(row);
     }
 
-    EXPORT bool wxDataViewListCtrl_AppendColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
-                                                wxString* variantType)
+    EXPORT int wxDataViewListCtrl_AppendColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
+                                               wxString* variantType)
     {
         return self->AppendColumn(column, *variantType);
     }
 
-    EXPORT bool wxDataViewListCtrl_PrependColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
-                                                 wxString* variantType)
+    EXPORT int wxDataViewListCtrl_PrependColumn(wxDataViewListCtrl* self, wxDataViewColumn* column,
+                                                wxString* variantType)
     {
         return self->PrependColumn(column, *variantType);
     }
 
-    EXPORT bool wxDataViewListCtrl_InsertColumn(wxDataViewListCtrl* self, unsigned int pos,
-                                                wxDataViewColumn* column, wxString* variantType)
+    EXPORT int wxDataViewListCtrl_InsertColumn(wxDataViewListCtrl* self, unsigned int pos,
+                                               wxDataViewColumn* column, wxString* variantType)
     {
         return self->InsertColumn(pos, column, *variantType);
     }

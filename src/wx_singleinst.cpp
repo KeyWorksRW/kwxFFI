@@ -11,13 +11,13 @@ extern "C"
         return (void*) new wxSingleInstanceChecker();
     }
 
-    EXPORT bool wxSingleInstanceChecker_Create(wxSingleInstanceChecker* self, wxString* name,
-                                               wxString* path)
+    EXPORT int wxSingleInstanceChecker_Create(wxSingleInstanceChecker* self, wxString* name,
+                                              wxString* path)
     {
         return self->Create(*name, *path);
     }
 
-    EXPORT bool wxSingleInstanceChecker_IsAnotherRunning(wxSingleInstanceChecker* self)
+    EXPORT int wxSingleInstanceChecker_IsAnotherRunning(wxSingleInstanceChecker* self)
     {
         return self->IsAnotherRunning();
     }

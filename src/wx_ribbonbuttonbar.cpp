@@ -97,7 +97,7 @@ extern "C"
         self->ClearButtons();
     }
 
-    EXPORT bool wxRibbonButtonBar_DeleteButton(wxRibbonButtonBar* self, int button_id)
+    EXPORT int wxRibbonButtonBar_DeleteButton(wxRibbonButtonBar* self, int button_id)
     {
         return self->DeleteButton(button_id);
     }
@@ -213,7 +213,7 @@ extern "C"
         self->SetShowToolTipsForDisabled(show);
     }
 
-    EXPORT bool wxRibbonButtonBar_GetShowToolTipsForDisabled(wxRibbonButtonBar* self)
+    EXPORT int wxRibbonButtonBar_GetShowToolTipsForDisabled(wxRibbonButtonBar* self)
     {
         return self->GetShowToolTipsForDisabled();
     }
@@ -295,7 +295,7 @@ extern "C"
         return self->GetButton();
     }
 
-    EXPORT bool wxRibbonButtonBarEvent_PopupMenu(wxRibbonButtonBarEvent* self, wxMenu* menu)
+    EXPORT int wxRibbonButtonBarEvent_PopupMenu(wxRibbonButtonBarEvent* self, wxMenu* menu)
     {
         return self->PopupMenu(menu);
     }
@@ -311,16 +311,18 @@ extern "C"
         self->SetButton(button);
     }
 
-
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT void wxRibbonButtonBar_SetButtonTextMinWidth(void* pObject, int button_id, int min_width_medium, int min_width_large)
+    EXPORT void wxRibbonButtonBar_SetButtonTextMinWidth(void* pObject, int button_id,
+                                                        int min_width_medium, int min_width_large)
     {
-        ((wxRibbonButtonBar*) pObject)->SetButtonTextMinWidth(button_id, min_width_medium, min_width_large);
+        ((wxRibbonButtonBar*) pObject)
+            ->SetButtonTextMinWidth(button_id, min_width_medium, min_width_large);
     }
 
     EXPORT void wxRibbonButtonBar_SetDropdownKeyTip(void* pObject, int button_id, void* keytip)
     {
-        ((wxRibbonButtonBar*) pObject)->SetDropdownKeyTip((wxWindowID) button_id, *(wxString*) keytip);
+        ((wxRibbonButtonBar*) pObject)
+            ->SetDropdownKeyTip((wxWindowID) button_id, *(wxString*) keytip);
     }
 
     EXPORT void wxRibbonButtonBar_SetKeyTip(void* pObject, int button_id, void* keytip)

@@ -19,6 +19,7 @@ TClass(wxSize) wxSizer_ComputeFittingClientSize(TSelf(wxSizer) pObject, TClass(w
 TClass(wxSize) wxSizer_ComputeFittingWindowSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
 TClass(wxSize) wxSizer_FitWithSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
 int wxSizer_GetItemCount(TSelf(wxSizer) pObject);
+int wxSizer_GetDefaultBorder();
 TBool wxSizer_IsEmpty(TSelf(wxSizer) pObject);
 TClass(wxSizerItem) wxSizer_GetItemById(TSelf(wxSizer) pObject, int id, TBool recursive);
 void wxSizer_ShowItems(TSelf(wxSizer) pObject, TBool show);

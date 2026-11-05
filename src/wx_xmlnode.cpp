@@ -88,7 +88,7 @@ extern "C"
         self->SetContent(*content);
     }
 
-    EXPORT bool wxXmlNode_GetAttribute(wxXmlNode* self, wxString* attribute_name, wxString* value)
+    EXPORT int wxXmlNode_GetAttribute(wxXmlNode* self, wxString* attribute_name, wxString* value)
     {
         return self->GetAttribute(*attribute_name, value);
     }
@@ -99,7 +99,7 @@ extern "C"
         return new wxString(self->GetAttribute(*attribute_name, *default_value));
     }
 
-    EXPORT bool wxXmlNode_HasAttribute(wxXmlNode* self, wxString* attribute_name)
+    EXPORT int wxXmlNode_HasAttribute(wxXmlNode* self, wxString* attribute_name)
     {
         return self->HasAttribute(*attribute_name);
     }
@@ -114,7 +114,7 @@ extern "C"
         self->AddAttribute(attribute);
     }
 
-    EXPORT bool wxXmlNode_DeleteAttribute(wxXmlNode* self, wxString* attribute_name)
+    EXPORT int wxXmlNode_DeleteAttribute(wxXmlNode* self, wxString* attribute_name)
     {
         return self->DeleteAttribute(*attribute_name);
     }
@@ -134,18 +134,18 @@ extern "C"
         self->AddChild(child);
     }
 
-    EXPORT bool wxXmlNode_InsertChild(wxXmlNode* self, wxXmlNode* child, wxXmlNode* following_node)
+    EXPORT int wxXmlNode_InsertChild(wxXmlNode* self, wxXmlNode* child, wxXmlNode* following_node)
     {
         return self->InsertChild(child, following_node);
     }
 
-    EXPORT bool wxXmlNode_InsertChildAfter(wxXmlNode* self, wxXmlNode* child,
-                                           wxXmlNode* preceding_node)
+    EXPORT int wxXmlNode_InsertChildAfter(wxXmlNode* self, wxXmlNode* child,
+                                          wxXmlNode* preceding_node)
     {
         return self->InsertChildAfter(child, preceding_node);
     }
 
-    EXPORT bool wxXmlNode_RemoveChild(wxXmlNode* self, wxXmlNode* child)
+    EXPORT int wxXmlNode_RemoveChild(wxXmlNode* self, wxXmlNode* child)
     {
         return self->RemoveChild(child);
     }
@@ -175,7 +175,7 @@ extern "C"
         return self->GetLineNumber();
     }
 
-    EXPORT bool wxXmlNode_GetNoConversion(wxXmlNode* self)
+    EXPORT int wxXmlNode_GetNoConversion(wxXmlNode* self)
     {
         return self->GetNoConversion();
     }

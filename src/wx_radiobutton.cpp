@@ -22,7 +22,7 @@ extern "C"
         self->SetValue(value);
     }
 
-    EXPORT bool wxRadioButton_GetValue(wxRadioButton* self)
+    EXPORT int wxRadioButton_GetValue(wxRadioButton* self)
     {
         return self->GetValue();
     }

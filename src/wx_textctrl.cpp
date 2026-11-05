@@ -52,12 +52,12 @@ extern "C"
         return self->GetNumberOfLines();
     }
 
-    EXPORT bool wxTextCtrl_IsModified(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_IsModified(wxTextCtrl* self)
     {
         return self->IsModified();
     }
 
-    EXPORT bool wxTextCtrl_IsEditable(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_IsEditable(wxTextCtrl* self)
     {
         return self->IsEditable();
     }
@@ -82,12 +82,12 @@ extern "C"
         self->Remove(from, toPos);
     }
 
-    EXPORT bool wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file, int fileType)
+    EXPORT int wxTextCtrl_LoadFile(wxTextCtrl* self, wxString* file, int fileType)
     {
         return self->LoadFile(*file, fileType);
     }
 
-    EXPORT bool wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file, int fileType)
+    EXPORT int wxTextCtrl_SaveFile(wxTextCtrl* self, wxString* file, int fileType)
     {
         return self->SaveFile(*file, fileType);
     }
@@ -137,17 +137,17 @@ extern "C"
         self->Paste();
     }
 
-    EXPORT bool wxTextCtrl_CanCopy(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_CanCopy(wxTextCtrl* self)
     {
         return self->CanCopy();
     }
 
-    EXPORT bool wxTextCtrl_CanCut(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_CanCut(wxTextCtrl* self)
     {
         return self->CanCut();
     }
 
-    EXPORT bool wxTextCtrl_CanPaste(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_CanPaste(wxTextCtrl* self)
     {
         return self->CanPaste();
     }
@@ -162,12 +162,12 @@ extern "C"
         self->Redo();
     }
 
-    EXPORT bool wxTextCtrl_CanUndo(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_CanUndo(wxTextCtrl* self)
     {
         return self->CanUndo();
     }
 
-    EXPORT bool wxTextCtrl_CanRedo(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_CanRedo(wxTextCtrl* self)
     {
         return self->CanRedo();
     }
@@ -217,7 +217,7 @@ extern "C"
         self->EmptyUndoBuffer();
     }
 
-    EXPORT bool wxTextCtrl_GetStyle(wxTextCtrl* self, long position, wxTextAttr* style)
+    EXPORT int wxTextCtrl_GetStyle(wxTextCtrl* self, long position, wxTextAttr* style)
     {
         return self->GetStyle(position, *style);
     }
@@ -241,7 +241,7 @@ extern "C"
         return static_cast<int>(self->HitTest(wxPoint(x, y), column, row));
     }
 
-    EXPORT bool wxTextCtrl_IsRTFSupported(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_IsRTFSupported(wxTextCtrl* self)
     {
         return self->IsRTFSupported();
     }
@@ -256,7 +256,7 @@ extern "C"
         self->SetRTFValue(*value);
     }
 
-    EXPORT bool wxTextCtrl_ShouldInheritColours(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_ShouldInheritColours(wxTextCtrl* self)
     {
         return self->ShouldInheritColours();
     }

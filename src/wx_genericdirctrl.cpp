@@ -21,7 +21,7 @@ extern "C"
                                             style, f, defaultFilter);
     }
 
-    EXPORT bool wxGenericDirCtrl_CollapsePath(wxGenericDirCtrl* self, wxString* path)
+    EXPORT int wxGenericDirCtrl_CollapsePath(wxGenericDirCtrl* self, wxString* path)
     {
         return self->CollapsePath(*path);
     }
@@ -31,7 +31,7 @@ extern "C"
         self->CollapseTree();
     }
 
-    EXPORT bool wxGenericDirCtrl_ExpandPath(wxGenericDirCtrl* self, wxString* path)
+    EXPORT int wxGenericDirCtrl_ExpandPath(wxGenericDirCtrl* self, wxString* path)
     {
         return self->ExpandPath(*path);
     }

@@ -16,7 +16,7 @@ extern "C"
         return (void*) new wxStaticLine(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool wxStaticLine_IsVertical(wxStaticLine* self)
+    EXPORT int wxStaticLine_IsVertical(wxStaticLine* self)
     {
         return self->IsVertical();
     }

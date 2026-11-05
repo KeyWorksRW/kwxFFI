@@ -122,8 +122,8 @@ extern "C"
         self->DrawRotatedText(*text, (wxCoord) x, (wxCoord) y, angle);
     }
 
-    EXPORT bool wxDC_Blit(wxDC* self, int xdest, int ydest, int width, int height, wxDC* source,
-                          int xsrc, int ysrc, int rop, bool useMask, int xsrcMask, int ysrcMask)
+    EXPORT int wxDC_Blit(wxDC* self, int xdest, int ydest, int width, int height, wxDC* source,
+                         int xsrc, int ysrc, int rop, bool useMask, int xsrcMask, int ysrcMask)
     {
         wxRasterOperationMode rasterOp = (wxRasterOperationMode) rop;
         return self->Blit((wxCoord) xdest, (wxCoord) ydest, (wxCoord) width, (wxCoord) height,
@@ -136,7 +136,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxDC_StartDoc(wxDC* self, wxString* msg)
+    EXPORT int wxDC_StartDoc(wxDC* self, wxString* msg)
     {
         return self->StartDoc(*msg);
     }
@@ -288,12 +288,12 @@ extern "C"
         return self->LogicalToDeviceYRel((wxCoord) y);
     }
 
-    EXPORT bool wxDC_CanDrawBitmap(wxDC* self)
+    EXPORT int wxDC_CanDrawBitmap(wxDC* self)
     {
         return self->CanDrawBitmap();
     }
 
-    EXPORT bool wxDC_CanGetTextExtent(wxDC* self)
+    EXPORT int wxDC_CanGetTextExtent(wxDC* self)
     {
         return self->CanGetTextExtent();
     }
@@ -310,7 +310,7 @@ extern "C"
         return s;
     }
 
-    EXPORT bool wxDC_IsOk(wxDC* self)
+    EXPORT int wxDC_IsOk(wxDC* self)
     {
         return self->IsOk();
     }
@@ -619,7 +619,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMetafile_SetClipboard(wxMetafile* self, int width, int height)
+    EXPORT int wxMetafile_SetClipboard(wxMetafile* self, int width, int height)
     {
 #if defined(__WXGTK__)
         return false;
@@ -628,7 +628,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMetafile_Play(wxMetafile* self, wxDC* dc)
+    EXPORT int wxMetafile_Play(wxMetafile* self, wxDC* dc)
     {
 #if defined(__WXGTK__)
         return false;
@@ -637,7 +637,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxMetafile_IsOk(wxMetafile* self)
+    EXPORT int wxMetafile_IsOk(wxMetafile* self)
     {
 #if defined(__WXGTK__)
         return false;
@@ -761,7 +761,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxDC_GetPartialTextExtents(wxDC* self, wxString* text, int count, int* widths)
+    EXPORT int wxDC_GetPartialTextExtents(wxDC* self, wxString* text, int count, int* widths)
     {
         wxArrayInt extents;
         const bool result = self->GetPartialTextExtents(*text, extents);
@@ -834,7 +834,7 @@ extern "C"
         self->DisableAutomaticBoundingBoxUpdates();
     }
 
-    EXPORT bool wxDC_AreAutomaticBoundingBoxUpdatesEnabled(wxDC* self)
+    EXPORT int wxDC_AreAutomaticBoundingBoxUpdatesEnabled(wxDC* self)
     {
         return self->AreAutomaticBoundingBoxUpdatesEnabled();
     }
@@ -844,7 +844,7 @@ extern "C"
         self->SetClippingRegion(wxPoint(x, y), wxSize(width, height));
     }
 
-    EXPORT bool wxDC_GetClippingRect(wxDC* self, void* x, void* y, void* width, void* height)
+    EXPORT int wxDC_GetClippingRect(wxDC* self, void* x, void* y, void* width, void* height)
     {
         wxRect rect;
         const bool clipping = self->GetClippingBox(rect);
@@ -868,7 +868,7 @@ extern "C"
         return clipping;
     }
 
-    EXPORT bool wxDC_FloodFillEx(wxDC* self, int x, int y, wxColour* col, int style)
+    EXPORT int wxDC_FloodFillEx(wxDC* self, int x, int y, wxColour* col, int style)
     {
         return self->FloodFill(x, y, *col, static_cast<wxFloodFillStyle>(style));
     }
@@ -895,9 +895,9 @@ extern "C"
                                  static_cast<wxDirection>(direction));
     }
 
-    EXPORT bool wxDC_StretchBlit(wxDC* self, int dstX, int dstY, int dstWidth, int dstHeight,
-                                 wxDC* source, int srcX, int srcY, int srcWidth, int srcHeight,
-                                 int rop, bool useMask, int maskX, int maskY)
+    EXPORT int wxDC_StretchBlit(wxDC* self, int dstX, int dstY, int dstWidth, int dstHeight,
+                                wxDC* source, int srcX, int srcY, int srcWidth, int srcHeight,
+                                int rop, bool useMask, int maskX, int maskY)
     {
         return self->StretchBlit(dstX, dstY, dstWidth, dstHeight, source, srcX, srcY, srcWidth,
                                  srcHeight, static_cast<wxRasterOperationMode>(rop), useMask, maskX,
@@ -972,12 +972,12 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxDC_CanUseTransformMatrix(void* pObject)
+    EXPORT int wxDC_CanUseTransformMatrix(void* pObject)
     {
         return ((wxDC*) pObject)->CanUseTransformMatrix();
     }
 
-    EXPORT bool wxDC_SetTransformMatrix(void* pObject, void* matrix)
+    EXPORT int wxDC_SetTransformMatrix(void* pObject, void* matrix)
     {
         return ((wxDC*) pObject)->SetTransformMatrix(*(wxAffineMatrix2D*) matrix);
     }
@@ -986,5 +986,4 @@ extern "C"
     {
         ((wxMemoryDC*) pObject)->SelectObjectAsSource(*(wxBitmap*) bmp);
     }
-
 }

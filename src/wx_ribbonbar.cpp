@@ -34,7 +34,7 @@ extern "C"
         return self->GetPageCount();
     }
 
-    EXPORT bool wxRibbonBar_DeletePage(wxRibbonBar* self, size_t index)
+    EXPORT int wxRibbonBar_DeletePage(wxRibbonBar* self, size_t index)
     {
         self->DeletePage(index);
         return true;  // Always succeeds if it doesn't throw
@@ -198,7 +198,7 @@ extern "C"
         ((wxRibbonBar*) pObject)->AddPageHighlight((size_t) page, highlight);
     }
 
-    EXPORT bool wxRibbonBar_ArePanelsShown(void* pObject)
+    EXPORT int wxRibbonBar_ArePanelsShown(void* pObject)
     {
         return ((wxRibbonBar*) pObject)->ArePanelsShown();
     }
@@ -237,5 +237,4 @@ extern "C"
     {
         ((wxRibbonBar*) pObject)->ShowPanels((wxRibbonDisplayMode) mode);
     }
-
 }

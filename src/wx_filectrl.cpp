@@ -61,17 +61,17 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxFileCtrl_SetDirectory(wxFileCtrl* self, wxString* directory)
+    EXPORT int wxFileCtrl_SetDirectory(wxFileCtrl* self, wxString* directory)
     {
         return self->SetDirectory(*directory);
     }
 
-    EXPORT bool wxFileCtrl_SetFilename(wxFileCtrl* self, wxString* filename)
+    EXPORT int wxFileCtrl_SetFilename(wxFileCtrl* self, wxString* filename)
     {
         return self->SetFilename(*filename);
     }
 
-    EXPORT bool wxFileCtrl_SetPath(wxFileCtrl* self, wxString* path)
+    EXPORT int wxFileCtrl_SetPath(wxFileCtrl* self, wxString* path)
     {
         return self->SetPath(*path);
     }

@@ -32,7 +32,7 @@ extern "C"
         self->ShowSearchButton(show);
     }
 
-    EXPORT bool wxSearchCtrl_IsSearchButtonVisible(wxSearchCtrl* self)
+    EXPORT int wxSearchCtrl_IsSearchButtonVisible(wxSearchCtrl* self)
     {
         return self->IsSearchButtonVisible();
     }
@@ -42,7 +42,7 @@ extern "C"
         self->ShowCancelButton(show);
     }
 
-    EXPORT bool wxSearchCtrl_IsCancelButtonVisible(wxSearchCtrl* self)
+    EXPORT int wxSearchCtrl_IsCancelButtonVisible(wxSearchCtrl* self)
     {
         return self->IsCancelButtonVisible();
     }

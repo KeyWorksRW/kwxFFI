@@ -15,7 +15,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTimer_Start(wxTimer* self, int milliseconds, bool oneShot)
+    EXPORT int wxTimer_Start(wxTimer* self, int milliseconds, bool oneShot)
     {
         return self->Start(milliseconds, oneShot);
     }
@@ -25,12 +25,12 @@ extern "C"
         self->Stop();
     }
 
-    EXPORT bool wxTimer_IsRunning(wxTimer* self)
+    EXPORT int wxTimer_IsRunning(wxTimer* self)
     {
         return self->IsRunning();
     }
 
-    EXPORT bool wxTimer_IsOneShot(wxTimer* self)
+    EXPORT int wxTimer_IsOneShot(wxTimer* self)
     {
         return self->IsOneShot();
     }
@@ -76,9 +76,8 @@ extern "C"
         ((wxTimer*) pObject)->SetOwner((wxEvtHandler*) owner, timerid);
     }
 
-    EXPORT bool wxTimer_StartOnce(void* pObject, int milliseconds)
+    EXPORT int wxTimer_StartOnce(void* pObject, int milliseconds)
     {
         return ((wxTimer*) pObject)->StartOnce(milliseconds);
     }
-
 }

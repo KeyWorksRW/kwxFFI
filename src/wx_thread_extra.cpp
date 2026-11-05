@@ -141,17 +141,17 @@ extern "C"
         return static_cast<int>(self->Resume());
     }
 
-    EXPORT bool wxThread_IsAlive(wxThread* self)
+    EXPORT int wxThread_IsAlive(wxThread* self)
     {
         return self->IsAlive();
     }
 
-    EXPORT bool wxThread_IsRunning(wxThread* self)
+    EXPORT int wxThread_IsRunning(wxThread* self)
     {
         return self->IsRunning();
     }
 
-    EXPORT bool wxThread_TestDestroy(wxThread* self)
+    EXPORT int wxThread_TestDestroy(wxThread* self)
     {
         return self->TestDestroy();
     }
@@ -248,12 +248,12 @@ extern "C"
         ForgetLibraryName(self);
     }
 
-    EXPORT bool wxDynamicLibrary_IsLoaded(wxDynamicLibrary* self)
+    EXPORT int wxDynamicLibrary_IsLoaded(wxDynamicLibrary* self)
     {
         return self->IsLoaded();
     }
 
-    EXPORT bool wxDynamicLibrary_HasSymbol(wxDynamicLibrary* self, wxString* name)
+    EXPORT int wxDynamicLibrary_HasSymbol(wxDynamicLibrary* self, wxString* name)
     {
         return self->HasSymbol(*name);
     }
@@ -277,7 +277,7 @@ extern "C"
     // wxMutex
     // -----------------------------------------------------------------------
 
-    EXPORT bool wxMutex_IsOk(wxMutex* self)
+    EXPORT int wxMutex_IsOk(wxMutex* self)
     {
         return self->IsOk();
     }
@@ -291,7 +291,7 @@ extern "C"
     // wxCriticalSection
     // -----------------------------------------------------------------------
 
-    EXPORT bool wxCriticalSection_TryEnter(wxCriticalSection* self)
+    EXPORT int wxCriticalSection_TryEnter(wxCriticalSection* self)
     {
         return self->TryEnter();
     }
@@ -300,7 +300,7 @@ extern "C"
     // wxCondition
     // -----------------------------------------------------------------------
 
-    EXPORT bool wxCondition_IsOk(wxCondition* self)
+    EXPORT int wxCondition_IsOk(wxCondition* self)
     {
         return self->IsOk();
     }
@@ -326,7 +326,7 @@ extern "C"
         return (int) wxThread::GetMainId();
     }
 
-    EXPORT bool wxThread_IsPaused(void* pObject)
+    EXPORT int wxThread_IsPaused(void* pObject)
     {
         return ((wxThread*) pObject)->IsPaused();
     }
@@ -335,5 +335,4 @@ extern "C"
     {
         wxThread::Sleep(milliseconds);
     }
-
 }

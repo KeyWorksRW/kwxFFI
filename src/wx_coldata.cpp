@@ -20,7 +20,7 @@ extern "C"
         self->SetChooseFull(flag);
     }
 
-    EXPORT bool wxColourData_GetChooseFull(wxColourData* self)
+    EXPORT int wxColourData_GetChooseFull(wxColourData* self)
     {
         return self->GetChooseFull();
     }
@@ -50,5 +50,4 @@ extern "C"
     {
         ((wxColourData*) pObject)->SetChooseAlpha(flag);
     }
-
 }

@@ -16,12 +16,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxContextHelp_BeginContextHelp(wxContextHelp* self, wxWindow* win)
+    EXPORT int wxContextHelp_BeginContextHelp(wxContextHelp* self, wxWindow* win)
     {
         return self->BeginContextHelp(win);
     }
 
-    EXPORT bool wxContextHelp_EndContextHelp(wxContextHelp* self)
+    EXPORT int wxContextHelp_EndContextHelp(wxContextHelp* self)
     {
         return self->EndContextHelp();
     }
@@ -50,7 +50,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxHelpProvider_ShowHelp(wxHelpProvider* self, wxWindowBase* window)
+    EXPORT int wxHelpProvider_ShowHelp(wxHelpProvider* self, wxWindowBase* window)
     {
         return self->ShowHelp(window);
     }

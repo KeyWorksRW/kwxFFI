@@ -43,7 +43,7 @@ extern "C"
         *ref = self->GetPrintDialogData();
     }
 
-    EXPORT bool wxPrinter_GetAbort(wxPrinter* self)
+    EXPORT int wxPrinter_GetAbort(wxPrinter* self)
     {
         return self->GetAbort();
     }
@@ -53,13 +53,12 @@ extern "C"
         return self->GetLastError();
     }
 
-    EXPORT bool wxPrinter_Setup(wxPrinter* self, wxWindow* parent)
+    EXPORT int wxPrinter_Setup(wxPrinter* self, wxWindow* parent)
     {
         return self->Setup(parent);
     }
 
-    EXPORT bool wxPrinter_Print(wxPrinter* self, wxWindow* parent, wxPrintout* printout,
-                                bool prompt)
+    EXPORT int wxPrinter_Print(wxPrinter* self, wxWindow* parent, wxPrintout* printout, bool prompt)
     {
         return self->Print(parent, printout, prompt);
     }
@@ -138,7 +137,7 @@ extern "C"
         ((kwxPrintout*) pObject)->GetPPIPrinter(x, y);
     }
 
-    EXPORT bool kwxPrintout_IsPreview(kwxPrintout* self)
+    EXPORT int kwxPrintout_IsPreview(kwxPrintout* self)
     {
         return self->IsPreview();
     }
@@ -300,7 +299,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
+    EXPORT int wxPrintPreview_SetCurrentPage(wxPrintPreview* self, int pageNum)
     {
         return self->SetCurrentPage(pageNum);
     }
@@ -345,18 +344,17 @@ extern "C"
         return (void*) self->GetCanvas();
     }
 
-    EXPORT bool wxPrintPreview_PaintPage(wxPrintPreview* self, wxPreviewCanvas* canvas, wxDC* dc)
+    EXPORT int wxPrintPreview_PaintPage(wxPrintPreview* self, wxPreviewCanvas* canvas, wxDC* dc)
     {
         return self->PaintPage(canvas, *dc);
     }
 
-    EXPORT bool wxPrintPreview_DrawBlankPage(wxPrintPreview* self, wxPreviewCanvas* canvas,
-                                             wxDC* dc)
+    EXPORT int wxPrintPreview_DrawBlankPage(wxPrintPreview* self, wxPreviewCanvas* canvas, wxDC* dc)
     {
         return self->DrawBlankPage(canvas, *dc);
     }
 
-    EXPORT bool wxPrintPreview_RenderPage(wxPrintPreview* self, int pageNum)
+    EXPORT int wxPrintPreview_RenderPage(wxPrintPreview* self, int pageNum)
     {
         return self->RenderPage(pageNum);
     }
@@ -386,7 +384,7 @@ extern "C"
         return self->GetMinPage();
     }
 
-    EXPORT bool wxPrintPreview_IsOk(wxPrintPreview* self)
+    EXPORT int wxPrintPreview_IsOk(wxPrintPreview* self)
     {
         return self->IsOk();
     }
@@ -396,7 +394,7 @@ extern "C"
         self->SetOk(isOk);
     }
 
-    EXPORT bool wxPrintPreview_Print(wxPrintPreview* self, bool interactive)
+    EXPORT int wxPrintPreview_Print(wxPrintPreview* self, bool interactive)
     {
         return self->Print(interactive);
     }
@@ -440,7 +438,7 @@ extern "C"
         return self->GetNoCopies();
     }
 
-    EXPORT bool wxPrintData_GetCollate(wxPrintData* self)
+    EXPORT int wxPrintData_GetCollate(wxPrintData* self)
     {
         return self->GetCollate();
     }
@@ -455,7 +453,7 @@ extern "C"
         return new wxString(self->GetPrinterName());
     }
 
-    EXPORT bool wxPrintData_GetColour(wxPrintData* self)
+    EXPORT int wxPrintData_GetColour(wxPrintData* self)
     {
         return self->GetColour();
     }
@@ -739,22 +737,22 @@ extern "C"
         return self->GetNoCopies();
     }
 
-    EXPORT bool wxPrintDialogData_GetAllPages(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetAllPages(wxPrintDialogData* self)
     {
         return self->GetAllPages();
     }
 
-    EXPORT bool wxPrintDialogData_GetSelection(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetSelection(wxPrintDialogData* self)
     {
         return self->GetSelection();
     }
 
-    EXPORT bool wxPrintDialogData_GetCollate(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetCollate(wxPrintDialogData* self)
     {
         return self->GetCollate();
     }
 
-    EXPORT bool wxPrintDialogData_GetPrintToFile(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetPrintToFile(wxPrintDialogData* self)
     {
         return self->GetPrintToFile();
     }
@@ -824,22 +822,22 @@ extern "C"
         self->EnableHelp(flag);
     }
 
-    EXPORT bool wxPrintDialogData_GetEnablePrintToFile(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetEnablePrintToFile(wxPrintDialogData* self)
     {
         return self->GetEnablePrintToFile();
     }
 
-    EXPORT bool wxPrintDialogData_GetEnableSelection(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetEnableSelection(wxPrintDialogData* self)
     {
         return self->GetEnableSelection();
     }
 
-    EXPORT bool wxPrintDialogData_GetEnablePageNumbers(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetEnablePageNumbers(wxPrintDialogData* self)
     {
         return self->GetEnablePageNumbers();
     }
 
-    EXPORT bool wxPrintDialogData_GetEnableHelp(wxPrintDialogData* self)
+    EXPORT int wxPrintDialogData_GetEnableHelp(wxPrintDialogData* self)
     {
         return self->GetEnableHelp();
     }
@@ -928,7 +926,7 @@ extern "C"
         ((wxPrintDialogData*) pObject)->EnableCurrentPage(flag);
     }
 
-    EXPORT bool wxPrintDialogData_GetCurrentPage(void* pObject)
+    EXPORT int wxPrintDialogData_GetCurrentPage(void* pObject)
     {
         return ((wxPrintDialogData*) pObject)->GetCurrentPage();
     }

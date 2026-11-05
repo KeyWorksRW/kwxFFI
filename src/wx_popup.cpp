@@ -17,7 +17,7 @@ extern "C"
         return (void*) new wxPopupWindow(parent, flags);
     }
 
-    EXPORT bool wxPopupWindow_Create2(wxPopupWindow* self, wxWindow* parent, int flags)
+    EXPORT int wxPopupWindow_Create2(wxPopupWindow* self, wxWindow* parent, int flags)
     {
         return self->Create(parent, flags);
     }

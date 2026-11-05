@@ -11,12 +11,12 @@ extern "C"
         return new wxCaret(window, width, height);
     }
 
-    EXPORT bool wxCaret_IsOk(wxCaret* self)
+    EXPORT int wxCaret_IsOk(wxCaret* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxCaret_IsVisible(wxCaret* self)
+    EXPORT int wxCaret_IsVisible(wxCaret* self)
     {
         return self->IsVisible();
     }

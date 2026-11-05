@@ -479,9 +479,8 @@ extern "C"
         return new wxSize(value);
     }
 
-    EXPORT bool wxBitmapBundle_IsOk(void* pObject)
+    EXPORT int wxBitmapBundle_IsOk(void* pObject)
     {
         return ((wxBitmapBundle*) pObject)->IsOk();
     }
-
 }

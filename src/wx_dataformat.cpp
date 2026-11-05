@@ -26,7 +26,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxDataFormat_IsEqual(wxDataFormat* self, wxDataFormat* other)
+    EXPORT int wxDataFormat_IsEqual(wxDataFormat* self, wxDataFormat* other)
     {
         return *self == *other;
     }

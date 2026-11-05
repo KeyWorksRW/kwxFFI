@@ -15,12 +15,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxMenuBar_Append(wxMenuBar* self, wxMenu* menu, wxString* title)
+    EXPORT int wxMenuBar_Append(wxMenuBar* self, wxMenu* menu, wxString* title)
     {
         return self->Append(menu, *title);
     }
 
-    EXPORT bool wxMenuBar_Insert(wxMenuBar* self, int pos, wxMenu* menu, wxString* title)
+    EXPORT int wxMenuBar_Insert(wxMenuBar* self, int pos, wxMenu* menu, wxString* title)
     {
         return self->Insert((size_t) pos, menu, *title);
     }
@@ -88,12 +88,12 @@ extern "C"
         self->Check(id, check);
     }
 
-    EXPORT bool wxMenuBar_IsChecked(wxMenuBar* self, int id)
+    EXPORT int wxMenuBar_IsChecked(wxMenuBar* self, int id)
     {
         return self->IsChecked(id);
     }
 
-    EXPORT bool wxMenuBar_IsEnabled(wxMenuBar* self, int id)
+    EXPORT int wxMenuBar_IsEnabled(wxMenuBar* self, int id)
     {
         return self->IsEnabled(id);
     }
@@ -132,7 +132,7 @@ extern "C"
         self->SetLabel(*str);
     }
 
-    EXPORT bool wxMenuBar_IsEnabledTop(wxMenuBar* self, int pos)
+    EXPORT int wxMenuBar_IsEnabledTop(wxMenuBar* self, int pos)
     {
         return self->IsEnabledTop(pos);
     }
@@ -149,7 +149,7 @@ extern "C"
         self->UpdateMenus();
     }
 
-    EXPORT bool wxMenuBar_IsAttached(wxMenuBar* self)
+    EXPORT int wxMenuBar_IsAttached(wxMenuBar* self)
     {
         return self->IsAttached();
     }

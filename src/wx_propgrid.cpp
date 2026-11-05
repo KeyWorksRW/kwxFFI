@@ -16,7 +16,7 @@ extern "C"
         return new wxString(self->GetName());
     }
 
-    EXPORT bool wxPGEditor_CanContainCustomImage(wxPGEditor* self)
+    EXPORT int wxPGEditor_CanContainCustomImage(wxPGEditor* self)
     {
         return self->CanContainCustomImage();
     }
@@ -96,12 +96,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxPGCell_HasText(wxPGCell* self)
+    EXPORT int wxPGCell_HasText(wxPGCell* self)
     {
         return self->HasText();
     }
 
-    EXPORT bool wxPGCell_IsInvalid(wxPGCell* self)
+    EXPORT int wxPGCell_IsInvalid(wxPGCell* self)
     {
         return self->IsInvalid();
     }
@@ -210,8 +210,8 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxNumericPropertyValidator_Validate(wxNumericPropertyValidator* self,
-                                                    wxWindow* parent)
+    EXPORT int wxNumericPropertyValidator_Validate(wxNumericPropertyValidator* self,
+                                                   wxWindow* parent)
     {
         return self->Validate(parent);
     }
@@ -226,8 +226,8 @@ extern "C"
 
     EXPORT void wxNumericPropertyValidator_Delete([[maybe_unused]] void* self) {}
 
-    EXPORT bool wxNumericPropertyValidator_Validate([[maybe_unused]] void* self,
-                                                    [[maybe_unused]] wxWindow* parent)
+    EXPORT int wxNumericPropertyValidator_Validate([[maybe_unused]] void* self,
+                                                   [[maybe_unused]] wxWindow* parent)
     {
         return false;
     }
@@ -260,7 +260,7 @@ extern "C"
         self->SetNewButtonText(*text);
     }
 
-    EXPORT bool wxPGArrayEditorDialog_IsModified(wxPGArrayEditorDialog* self)
+    EXPORT int wxPGArrayEditorDialog_IsModified(wxPGArrayEditorDialog* self)
     {
         return self->IsModified();
     }
@@ -289,7 +289,7 @@ extern "C"
     {
     }
 
-    EXPORT bool wxPGArrayEditorDialog_IsModified([[maybe_unused]] void* self)
+    EXPORT int wxPGArrayEditorDialog_IsModified([[maybe_unused]] void* self)
     {
         return false;
     }
@@ -359,11 +359,12 @@ extern "C"
         wxPropertyGridInterface::RegisterAdditionalEditors();
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyAttributeAll(void* pObject, void* attrName, void* value)
+    EXPORT void wxPropertyGridInterface_SetPropertyAttributeAll(void* pObject, void* attrName,
+                                                                void* value)
     {
-        ((wxPropertyGridInterface*) pObject)->SetPropertyAttributeAll(*(wxString*) attrName, *(wxVariant*) value);
+        ((wxPropertyGridInterface*) pObject)
+            ->SetPropertyAttributeAll(*(wxString*) attrName, *(wxVariant*) value);
     }
-
 }
 
 // ===========================================================================
@@ -429,17 +430,17 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxPropertyGridPageState_EnableCategories(wxPropertyGridPageState* self, bool enable)
+    EXPORT int wxPropertyGridPageState_EnableCategories(wxPropertyGridPageState* self, bool enable)
     {
         return self->EnableCategories(enable);
     }
 
-    EXPORT bool wxPropertyGridPageState_IsDisplayed(wxPropertyGridPageState* self)
+    EXPORT int wxPropertyGridPageState_IsDisplayed(wxPropertyGridPageState* self)
     {
         return self->IsDisplayed();
     }
 
-    EXPORT bool wxPropertyGridPageState_IsInNonCatMode(wxPropertyGridPageState* self)
+    EXPORT int wxPropertyGridPageState_IsInNonCatMode(wxPropertyGridPageState* self)
     {
         return self->IsInNonCatMode();
     }
@@ -591,8 +592,8 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxPropertyGridInterface_ClearSelection(wxPropertyGridInterface* self,
-                                                       bool validation)
+    EXPORT int wxPropertyGridInterface_ClearSelection(wxPropertyGridInterface* self,
+                                                      bool validation)
     {
         return self->ClearSelection(validation);
     }
@@ -602,45 +603,45 @@ extern "C"
         self->ClearModifiedStatus();
     }
 
-    EXPORT bool wxPropertyGridInterface_EditorValidate(wxPropertyGridInterface* self)
+    EXPORT int wxPropertyGridInterface_EditorValidate(wxPropertyGridInterface* self)
     {
         return self->EditorValidate();
     }
 
-    EXPORT bool wxPropertyGridInterface_Collapse(wxPropertyGridInterface* self, wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_Collapse(wxPropertyGridInterface* self, wxPGProperty* id)
     {
         return self->Collapse(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_CollapseAll(wxPropertyGridInterface* self)
+    EXPORT int wxPropertyGridInterface_CollapseAll(wxPropertyGridInterface* self)
     {
         return self->CollapseAll();
     }
 
-    EXPORT bool wxPropertyGridInterface_Expand(wxPropertyGridInterface* self, wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_Expand(wxPropertyGridInterface* self, wxPGProperty* id)
     {
         return self->Expand(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_ExpandAll(wxPropertyGridInterface* self, bool expand)
+    EXPORT int wxPropertyGridInterface_ExpandAll(wxPropertyGridInterface* self, bool expand)
     {
         return self->ExpandAll(expand);
     }
 
-    EXPORT bool wxPropertyGridInterface_DisableProperty(wxPropertyGridInterface* self,
-                                                        wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_DisableProperty(wxPropertyGridInterface* self,
+                                                       wxPGProperty* id)
     {
         return self->DisableProperty(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_EnableProperty(wxPropertyGridInterface* self,
-                                                       wxPGProperty* id, bool enable)
+    EXPORT int wxPropertyGridInterface_EnableProperty(wxPropertyGridInterface* self,
+                                                      wxPGProperty* id, bool enable)
     {
         return self->EnableProperty(id, enable);
     }
 
-    EXPORT bool wxPropertyGridInterface_HideProperty(wxPropertyGridInterface* self,
-                                                     wxPGProperty* id, bool hide, int flags)
+    EXPORT int wxPropertyGridInterface_HideProperty(wxPropertyGridInterface* self, wxPGProperty* id,
+                                                    bool hide, int flags)
     {
         return self->HideProperty(id, hide, static_cast<wxPGPropertyValuesFlags>(flags));
     }
@@ -687,8 +688,8 @@ extern "C"
         return self->GetPropertyValueAsInt(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_GetPropertyValueAsBool(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_GetPropertyValueAsBool(wxPropertyGridInterface* self,
+                                                              wxPGProperty* id)
     {
         return self->GetPropertyValueAsBool(id);
     }
@@ -792,50 +793,50 @@ extern "C"
         self->SetPropertyCell(id, column, *text, *bitmap, *fg_col, *bg_col);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyCategory(wxPropertyGridInterface* self,
-                                                           wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyCategory(wxPropertyGridInterface* self,
+                                                          wxPGProperty* id)
     {
         return self->IsPropertyCategory(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyEnabled(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyEnabled(wxPropertyGridInterface* self,
+                                                         wxPGProperty* id)
     {
         return self->IsPropertyEnabled(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyExpanded(wxPropertyGridInterface* self,
-                                                           wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyExpanded(wxPropertyGridInterface* self,
+                                                          wxPGProperty* id)
     {
         return self->IsPropertyExpanded(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyModified(wxPropertyGridInterface* self,
-                                                           wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyModified(wxPropertyGridInterface* self,
+                                                          wxPGProperty* id)
     {
         return self->IsPropertyModified(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertySelected(wxPropertyGridInterface* self,
-                                                           wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertySelected(wxPropertyGridInterface* self,
+                                                          wxPGProperty* id)
     {
         return self->IsPropertySelected(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyShown(wxPropertyGridInterface* self,
-                                                        wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyShown(wxPropertyGridInterface* self,
+                                                       wxPGProperty* id)
     {
         return self->IsPropertyShown(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_IsPropertyValueUnspecified(wxPropertyGridInterface* self,
-                                                                   wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyValueUnspecified(wxPropertyGridInterface* self,
+                                                                  wxPGProperty* id)
     {
         return self->IsPropertyValueUnspecified(id);
     }
 
-    EXPORT bool wxPropertyGridInterface_SetColumnProportion(wxPropertyGridInterface* self,
-                                                            unsigned int column, int proportion)
+    EXPORT int wxPropertyGridInterface_SetColumnProportion(wxPropertyGridInterface* self,
+                                                           unsigned int column, int proportion)
     {
         return self->SetColumnProportion(column, proportion);
     }
@@ -852,8 +853,8 @@ extern "C"
         return new wxString(self->SaveEditableState(included_states));
     }
 
-    EXPORT bool wxPropertyGridInterface_RestoreEditableState(wxPropertyGridInterface* self,
-                                                             wxString* src, int restore_states)
+    EXPORT int wxPropertyGridInterface_RestoreEditableState(wxPropertyGridInterface* self,
+                                                            wxString* src, int restore_states)
     {
         return self->RestoreEditableState(*src, restore_states);
     }

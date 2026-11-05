@@ -72,7 +72,7 @@ extern "C"
         self->Disable();
     }
 
-    EXPORT bool wxFileDialogCustomControl_GetValue(wxFileDialogCustomControl* self)
+    EXPORT int wxFileDialogCustomControl_GetValue(wxFileDialogCustomControl* self)
     {
         wxFileDialogCheckBox* check_box = dynamic_cast<wxFileDialogCheckBox*>(self);
         if (!check_box)

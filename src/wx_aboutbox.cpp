@@ -96,7 +96,7 @@ extern "C"
         self->SetIcon(*icon);
     }
 
-    EXPORT bool wxAboutDialogInfo_HasIcon(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasIcon(wxAboutDialogInfo* self)
     {
         return self->HasIcon();
     }
@@ -141,32 +141,32 @@ extern "C"
         self->AddTranslator(*translator);
     }
 
-    EXPORT bool wxAboutDialogInfo_HasDevelopers(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasDevelopers(wxAboutDialogInfo* self)
     {
         return self->HasDevelopers();
     }
 
-    EXPORT bool wxAboutDialogInfo_HasDocWriters(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasDocWriters(wxAboutDialogInfo* self)
     {
         return self->HasDocWriters();
     }
 
-    EXPORT bool wxAboutDialogInfo_HasArtists(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasArtists(wxAboutDialogInfo* self)
     {
         return self->HasArtists();
     }
 
-    EXPORT bool wxAboutDialogInfo_HasTranslators(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasTranslators(wxAboutDialogInfo* self)
     {
         return self->HasTranslators();
     }
 
-    EXPORT bool wxAboutDialogInfo_HasLicence(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasLicence(wxAboutDialogInfo* self)
     {
         return self->HasLicence();
     }
 
-    EXPORT bool wxAboutDialogInfo_HasWebSite(wxAboutDialogInfo* self)
+    EXPORT int wxAboutDialogInfo_HasWebSite(wxAboutDialogInfo* self)
     {
         return self->HasWebSite();
     }

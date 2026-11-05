@@ -29,7 +29,7 @@ extern "C"
         return static_cast<int>(self->GetTimeout());
     }
 
-    EXPORT bool wxSocketBase_IsClosed(wxSocketBase* self)
+    EXPORT int wxSocketBase_IsClosed(wxSocketBase* self)
     {
         return self->IsClosed();
     }
@@ -64,14 +64,14 @@ extern "C"
         self->ShutdownOutput();
     }
 
-    EXPORT bool wxSocketBase_GetOption(wxSocketBase* self, int level, int option_name,
-                                       void* option_value, int* option_length)
+    EXPORT int wxSocketBase_GetOption(wxSocketBase* self, int level, int option_name,
+                                      void* option_value, int* option_length)
     {
         return self->GetOption(level, option_name, option_value, option_length);
     }
 
-    EXPORT bool wxSocketBase_SetOption(wxSocketBase* self, int level, int option_name,
-                                       void* option_value, int option_length)
+    EXPORT int wxSocketBase_SetOption(wxSocketBase* self, int level, int option_name,
+                                      void* option_value, int option_length)
     {
         return self->SetOption(level, option_name, option_value, option_length);
     }
@@ -81,7 +81,7 @@ extern "C"
         return self->GetEventHandler();
     }
 
-    EXPORT bool wxSocketBase_Initialize()
+    EXPORT int wxSocketBase_Initialize()
     {
         return wxSocketBase::Initialize();
     }
@@ -91,7 +91,7 @@ extern "C"
         wxSocketBase::Shutdown();
     }
 
-    EXPORT bool wxSocketBase_IsInitialized()
+    EXPORT int wxSocketBase_IsInitialized()
     {
         return wxSocketBase::IsInitialized();
     }
@@ -133,12 +133,12 @@ extern "C"
     // wxIPV4address
     // -----------------------------------------------------------------------
 
-    EXPORT bool wxIPV4address_HostnameAddr(wxIPV4address* self, wxUint32 address)
+    EXPORT int wxIPV4address_HostnameAddr(wxIPV4address* self, wxUint32 address)
     {
         return self->Hostname(static_cast<unsigned long>(address));
     }
 
-    EXPORT bool wxIPV4address_BroadcastAddress(wxIPV4address* self)
+    EXPORT int wxIPV4address_BroadcastAddress(wxIPV4address* self)
     {
         return self->BroadcastAddress();
     }
@@ -156,17 +156,17 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxProtocol_Reconnect(wxProtocol* self)
+    EXPORT int wxProtocol_Reconnect(wxProtocol* self)
     {
         return self->Reconnect();
     }
 
-    EXPORT bool wxProtocol_Connect(wxProtocol* self, wxString* host)
+    EXPORT int wxProtocol_Connect(wxProtocol* self, wxString* host)
     {
         return self->Connect(*host);
     }
 
-    EXPORT bool wxProtocol_ConnectAddr(wxProtocol* self, wxSockAddress* address, bool wait)
+    EXPORT int wxProtocol_ConnectAddr(wxProtocol* self, wxSockAddress* address, bool wait)
     {
         return self->Connect(*address, wait);
     }
@@ -179,7 +179,7 @@ extern "C"
         return static_cast<int>(error);
     }
 
-    EXPORT bool wxProtocol_Abort(wxProtocol* self)
+    EXPORT int wxProtocol_Abort(wxProtocol* self)
     {
         return self->Abort();
     }
@@ -240,17 +240,17 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxHTTP_Connect(wxHTTP* self, wxString* host)
+    EXPORT int wxHTTP_Connect(wxHTTP* self, wxString* host)
     {
         return self->Connect(*host);
     }
 
-    EXPORT bool wxHTTP_ConnectPort(wxHTTP* self, wxString* host, unsigned short port)
+    EXPORT int wxHTTP_ConnectPort(wxHTTP* self, wxString* host, unsigned short port)
     {
         return self->Connect(*host, port);
     }
 
-    EXPORT bool wxHTTP_ConnectAddr(wxHTTP* self, wxSockAddress* address, bool wait)
+    EXPORT int wxHTTP_ConnectAddr(wxHTTP* self, wxSockAddress* address, bool wait)
     {
     #if wxUSE_SOCKETS
         return self->Connect(*address, wait);
@@ -262,7 +262,7 @@ extern "C"
     #endif
     }
 
-    EXPORT bool wxHTTP_Abort(wxHTTP* self)
+    EXPORT int wxHTTP_Abort(wxHTTP* self)
     {
         return self->Abort();
     }
@@ -297,12 +297,12 @@ extern "C"
         self->SetHeader(*header, *header_data);
     }
 
-    EXPORT bool wxHTTP_SetPostText(wxHTTP* self, wxString* content_type, wxString* text)
+    EXPORT int wxHTTP_SetPostText(wxHTTP* self, wxString* content_type, wxString* text)
     {
         return self->SetPostText(*content_type, *text);
     }
 
-    EXPORT bool wxHTTP_SetPostBuffer(wxHTTP* self, wxString* content_type, wxMemoryBuffer* buffer)
+    EXPORT int wxHTTP_SetPostBuffer(wxHTTP* self, wxString* content_type, wxMemoryBuffer* buffer)
     {
         return self->SetPostBuffer(*content_type, *buffer);
     }
@@ -317,7 +317,7 @@ extern "C"
         return new wxString(self->GetCookie(*cookie));
     }
 
-    EXPORT bool wxHTTP_HasCookies(wxHTTP* self)
+    EXPORT int wxHTTP_HasCookies(wxHTTP* self)
     {
         return self->HasCookies();
     }
@@ -338,22 +338,22 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxFTP_Connect(wxFTP* self, wxString* host)
+    EXPORT int wxFTP_Connect(wxFTP* self, wxString* host)
     {
         return self->Connect(*host);
     }
 
-    EXPORT bool wxFTP_ConnectPort(wxFTP* self, wxString* host, unsigned short port)
+    EXPORT int wxFTP_ConnectPort(wxFTP* self, wxString* host, unsigned short port)
     {
         return self->Connect(*host, port);
     }
 
-    EXPORT bool wxFTP_ConnectAddr(wxFTP* self, wxSockAddress* address, bool wait)
+    EXPORT int wxFTP_ConnectAddr(wxFTP* self, wxSockAddress* address, bool wait)
     {
         return self->Connect(*address, wait);
     }
 
-    EXPORT bool wxFTP_Close(wxFTP* self)
+    EXPORT int wxFTP_Close(wxFTP* self)
     {
         return self->Close();
     }
@@ -363,17 +363,17 @@ extern "C"
         self->SetPassive(passive);
     }
 
-    EXPORT bool wxFTP_SetBinary(wxFTP* self)
+    EXPORT int wxFTP_SetBinary(wxFTP* self)
     {
         return self->SetBinary();
     }
 
-    EXPORT bool wxFTP_SetAscii(wxFTP* self)
+    EXPORT int wxFTP_SetAscii(wxFTP* self)
     {
         return self->SetAscii();
     }
 
-    EXPORT bool wxFTP_SetTransferMode(wxFTP* self, int mode)
+    EXPORT int wxFTP_SetTransferMode(wxFTP* self, int mode)
     {
         return self->SetTransferMode(static_cast<wxFTP::TransferMode>(mode));
     }
@@ -393,22 +393,22 @@ extern "C"
         return static_cast<int>(self->SendCommand(*command));
     }
 
-    EXPORT bool wxFTP_CheckCommand(wxFTP* self, wxString* command, int expected_result)
+    EXPORT int wxFTP_CheckCommand(wxFTP* self, wxString* command, int expected_result)
     {
         return self->CheckCommand(*command, static_cast<char>(expected_result));
     }
 
-    EXPORT bool wxFTP_ChDir(wxFTP* self, wxString* directory)
+    EXPORT int wxFTP_ChDir(wxFTP* self, wxString* directory)
     {
         return self->ChDir(*directory);
     }
 
-    EXPORT bool wxFTP_MkDir(wxFTP* self, wxString* directory)
+    EXPORT int wxFTP_MkDir(wxFTP* self, wxString* directory)
     {
         return self->MkDir(*directory);
     }
 
-    EXPORT bool wxFTP_RmDir(wxFTP* self, wxString* directory)
+    EXPORT int wxFTP_RmDir(wxFTP* self, wxString* directory)
     {
         return self->RmDir(*directory);
     }
@@ -418,12 +418,12 @@ extern "C"
         return new wxString(self->Pwd());
     }
 
-    EXPORT bool wxFTP_Rename(wxFTP* self, wxString* source, wxString* destination)
+    EXPORT int wxFTP_Rename(wxFTP* self, wxString* source, wxString* destination)
     {
         return self->Rename(*source, *destination);
     }
 
-    EXPORT bool wxFTP_RmFile(wxFTP* self, wxString* path)
+    EXPORT int wxFTP_RmFile(wxFTP* self, wxString* path)
     {
         return self->RmFile(*path);
     }
@@ -433,12 +433,12 @@ extern "C"
         return self->GetFileSize(*file_name);
     }
 
-    EXPORT bool wxFTP_FileExists(wxFTP* self, wxString* file_name)
+    EXPORT int wxFTP_FileExists(wxFTP* self, wxString* file_name)
     {
         return self->FileExists(*file_name);
     }
 
-    EXPORT bool wxFTP_Abort(wxFTP* self)
+    EXPORT int wxFTP_Abort(wxFTP* self)
     {
         return self->Abort();
     }
@@ -453,7 +453,7 @@ extern "C"
         return self->GetOutputStream(*path);
     }
 
-    EXPORT bool wxFTP_GetList(wxFTP* self, wxArrayString* files, wxString* wildcard, bool details)
+    EXPORT int wxFTP_GetList(wxFTP* self, wxArrayString* files, wxString* wildcard, bool details)
     {
         return self->GetList(*files, *wildcard, details);
     }
@@ -501,7 +501,7 @@ extern "C"
         return static_cast<int>(self->SetURL(*url));
     }
 
-    EXPORT bool wxURL_IsOk(wxURL* self)
+    EXPORT int wxURL_IsOk(wxURL* self)
     {
         return self->IsOk();
     }

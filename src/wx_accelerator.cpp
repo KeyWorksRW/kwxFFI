@@ -69,12 +69,12 @@ extern "C"
         return self->GetMenuItem();
     }
 
-    EXPORT bool wxAcceleratorEntry_IsOk(wxAcceleratorEntry* self)
+    EXPORT int wxAcceleratorEntry_IsOk(wxAcceleratorEntry* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxAcceleratorEntry_MatchesEvent(wxAcceleratorEntry* self, wxKeyEvent* event)
+    EXPORT int wxAcceleratorEntry_MatchesEvent(wxAcceleratorEntry* self, wxKeyEvent* event)
     {
         return self->MatchesEvent(*event);
     }
@@ -89,7 +89,7 @@ extern "C"
         return new wxString(self->ToRawString());
     }
 
-    EXPORT bool wxAcceleratorEntry_FromString(wxAcceleratorEntry* self, wxString* str)
+    EXPORT int wxAcceleratorEntry_FromString(wxAcceleratorEntry* self, wxString* str)
     {
         return self->FromString(*str);
     }
@@ -104,7 +104,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxAcceleratorTable_IsOk(wxAcceleratorTable* self)
+    EXPORT int wxAcceleratorTable_IsOk(wxAcceleratorTable* self)
     {
         return self->IsOk();
     }

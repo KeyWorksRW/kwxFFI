@@ -15,7 +15,7 @@ extern "C"
         return new wxDialog(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool wxDialog_IsModal(wxDialog* self)
+    EXPORT int wxDialog_IsModal(wxDialog* self)
     {
         return self->IsModal();
     }
@@ -94,7 +94,7 @@ extern "C"
         self->AddMainButtonId(static_cast<wxWindowID>(id));
     }
 
-    EXPORT bool wxDialog_IsMainButtonId(wxDialog* self, int id)
+    EXPORT int wxDialog_IsMainButtonId(wxDialog* self, int id)
     {
         return self->IsMainButtonId(static_cast<wxWindowID>(id));
     }
@@ -124,12 +124,12 @@ extern "C"
         self->SetLayoutAdaptationDone(adaptationDone);
     }
 
-    EXPORT bool wxDialog_GetLayoutAdaptationDone(wxDialog* self)
+    EXPORT int wxDialog_GetLayoutAdaptationDone(wxDialog* self)
     {
         return self->GetLayoutAdaptationDone();
     }
 
-    EXPORT bool wxDialog_IsLayoutAdaptationEnabled()
+    EXPORT int wxDialog_IsLayoutAdaptationEnabled()
     {
         return wxDialog::IsLayoutAdaptationEnabled();
     }
@@ -139,12 +139,12 @@ extern "C"
         wxDialog::EnableLayoutAdaptation(enable);
     }
 
-    EXPORT bool wxDialog_CanDoLayoutAdaptation(wxDialog* self)
+    EXPORT int wxDialog_CanDoLayoutAdaptation(wxDialog* self)
     {
         return self->CanDoLayoutAdaptation();
     }
 
-    EXPORT bool wxDialog_DoLayoutAdaptation(wxDialog* self)
+    EXPORT int wxDialog_DoLayoutAdaptation(wxDialog* self)
     {
         return self->DoLayoutAdaptation();
     }
@@ -155,9 +155,8 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxDialog_Show(void* pObject, bool show)
+    EXPORT int wxDialog_Show(void* pObject, bool show)
     {
         return ((wxDialog*) pObject)->Show(show);
     }
-
 }

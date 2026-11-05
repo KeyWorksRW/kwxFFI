@@ -15,11 +15,11 @@ extern "C"
     // ============================================================================
 
     EXPORT wxDocParentFrame* wxDocParentFrame_Create(wxDocManager* manager, wxFrame* parent, int id,
-                                                     wxString* title, int x, int y, int width, int height,
-                                                     int style)
+                                                     wxString* title, int x, int y, int width,
+                                                     int height, int style)
     {
-        return new wxDocParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(width, height),
-                                    style);
+        return new wxDocParentFrame(manager, parent, id, *title, wxPoint(x, y),
+                                    wxSize(width, height), style);
     }
 
     EXPORT wxDocManager* wxDocParentFrame_GetDocumentManager(wxDocParentFrame* self)
@@ -35,8 +35,8 @@ extern "C"
                                                    int id, wxString* title, int x, int y, int width,
                                                    int height, int style)
     {
-        return new wxDocChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(width, height),
-                                   style);
+        return new wxDocChildFrame(doc, view, parent, id, *title, wxPoint(x, y),
+                                   wxSize(width, height), style);
     }
 
     EXPORT wxDocument* wxDocChildFrame_GetDocument(wxDocChildFrame* self)
@@ -67,8 +67,8 @@ extern "C"
                                                            int id, wxString* title, int x, int y,
                                                            int width, int height, int style)
     {
-        return new wxDocMDIParentFrame(manager, parent, id, *title, wxPoint(x, y), wxSize(width, height),
-                                       style);
+        return new wxDocMDIParentFrame(manager, parent, id, *title, wxPoint(x, y),
+                                       wxSize(width, height), style);
     }
 
     EXPORT wxDocManager* wxDocMDIParentFrame_GetDocumentManager(wxDocMDIParentFrame* self)
@@ -85,8 +85,8 @@ extern "C"
                                                          wxString* title, int x, int y, int width,
                                                          int height, int style)
     {
-        return new wxDocMDIChildFrame(doc, view, parent, id, *title, wxPoint(x, y), wxSize(width, height),
-                                      style);
+        return new wxDocMDIChildFrame(doc, view, parent, id, *title, wxPoint(x, y),
+                                      wxSize(width, height), style);
     }
 
     EXPORT wxDocument* wxDocMDIChildFrame_GetDocument(wxDocMDIChildFrame* self)
@@ -110,7 +110,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxDocManager_CloseDocuments(void* pObject, bool force)
+    EXPORT int wxDocManager_CloseDocuments(void* pObject, bool force)
     {
         return ((wxDocManager*) pObject)->CloseDocuments(force);
     }
@@ -150,7 +150,7 @@ extern "C"
         ((wxDocManager*) pObject)->SetMaxDocsOpen(n);
     }
 
-    EXPORT bool wxDocument_DeleteContents(void* pObject)
+    EXPORT int wxDocument_DeleteContents(void* pObject)
     {
         return ((wxDocument*) pObject)->DeleteContents();
     }
@@ -205,5 +205,4 @@ extern "C"
     {
         ((wxView*) pObject)->SetFrame((wxWindow*) frame);
     }
-
 }

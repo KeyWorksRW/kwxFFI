@@ -16,8 +16,8 @@ extern "C"
     // wxVScrolledWindow - Note: This is an abstract class in wxWidgets
     // Users typically subclass it. We provide the basic navigation methods.
 
-    EXPORT bool wxVScrolledWindow_Create(wxVScrolledWindow* self, wxWindow* parent, int id, int x,
-                                         int y, int width, int height, long style, wxString* name)
+    EXPORT int wxVScrolledWindow_Create(wxVScrolledWindow* self, wxWindow* parent, int id, int x,
+                                        int y, int width, int height, long style, wxString* name)
     {
         return self->Create(parent, id, wxPoint(x, y), wxSize(width, height), style,
                             name ? *name : wxString(wxPanelNameStr));
@@ -38,7 +38,7 @@ extern "C"
         return self->GetVisibleRowsEnd();
     }
 
-    EXPORT bool wxVScrolledWindow_IsRowVisible(wxVScrolledWindow* self, size_t row)
+    EXPORT int wxVScrolledWindow_IsRowVisible(wxVScrolledWindow* self, size_t row)
     {
         return self->IsRowVisible(row);
     }
@@ -53,17 +53,17 @@ extern "C"
         self->RefreshRows(from, toPos);
     }
 
-    EXPORT bool wxVScrolledWindow_ScrollRowPages(wxVScrolledWindow* self, int pages)
+    EXPORT int wxVScrolledWindow_ScrollRowPages(wxVScrolledWindow* self, int pages)
     {
         return self->ScrollRowPages(pages);
     }
 
-    EXPORT bool wxVScrolledWindow_ScrollRows(wxVScrolledWindow* self, int rows)
+    EXPORT int wxVScrolledWindow_ScrollRows(wxVScrolledWindow* self, int rows)
     {
         return self->ScrollRows(rows);
     }
 
-    EXPORT bool wxVScrolledWindow_ScrollToRow(wxVScrolledWindow* self, size_t row)
+    EXPORT int wxVScrolledWindow_ScrollToRow(wxVScrolledWindow* self, size_t row)
     {
         return self->ScrollToRow(row);
     }
@@ -75,8 +75,8 @@ extern "C"
 
     // wxHScrolledWindow
 
-    EXPORT bool wxHScrolledWindow_Create(wxHScrolledWindow* self, wxWindow* parent, int id, int x,
-                                         int y, int width, int height, long style, wxString* name)
+    EXPORT int wxHScrolledWindow_Create(wxHScrolledWindow* self, wxWindow* parent, int id, int x,
+                                        int y, int width, int height, long style, wxString* name)
     {
         return self->Create(parent, id, wxPoint(x, y), wxSize(width, height), style,
                             name ? *name : wxString(wxPanelNameStr));
@@ -97,7 +97,7 @@ extern "C"
         return self->GetVisibleColumnsEnd();
     }
 
-    EXPORT bool wxHScrolledWindow_IsColumnVisible(wxHScrolledWindow* self, size_t column)
+    EXPORT int wxHScrolledWindow_IsColumnVisible(wxHScrolledWindow* self, size_t column)
     {
         return self->IsColumnVisible(column);
     }
@@ -112,17 +112,17 @@ extern "C"
         self->RefreshColumns(from, toPos);
     }
 
-    EXPORT bool wxHScrolledWindow_ScrollColumnPages(wxHScrolledWindow* self, int pages)
+    EXPORT int wxHScrolledWindow_ScrollColumnPages(wxHScrolledWindow* self, int pages)
     {
         return self->ScrollColumnPages(pages);
     }
 
-    EXPORT bool wxHScrolledWindow_ScrollColumns(wxHScrolledWindow* self, int columns)
+    EXPORT int wxHScrolledWindow_ScrollColumns(wxHScrolledWindow* self, int columns)
     {
         return self->ScrollColumns(columns);
     }
 
-    EXPORT bool wxHScrolledWindow_ScrollToColumn(wxHScrolledWindow* self, size_t column)
+    EXPORT int wxHScrolledWindow_ScrollToColumn(wxHScrolledWindow* self, size_t column)
     {
         return self->ScrollToColumn(column);
     }
@@ -134,8 +134,8 @@ extern "C"
 
     // wxHVScrolledWindow combines both
 
-    EXPORT bool wxHVScrolledWindow_Create(wxHVScrolledWindow* self, wxWindow* parent, int id, int x,
-                                          int y, int width, int height, long style, wxString* name)
+    EXPORT int wxHVScrolledWindow_Create(wxHVScrolledWindow* self, wxWindow* parent, int id, int x,
+                                         int y, int width, int height, long style, wxString* name)
     {
         return self->Create(parent, id, wxPoint(x, y), wxSize(width, height), style,
                             name ? *name : wxString(wxPanelNameStr));
@@ -153,8 +153,8 @@ extern "C"
         self->RefreshRowsColumns(wxPosition(fromRow, fromCol), wxPosition(toRow, toCol));
     }
 
-    EXPORT bool wxHVScrolledWindow_ScrollToRowColumn(wxHVScrolledWindow* self, size_t row,
-                                                     size_t column)
+    EXPORT int wxHVScrolledWindow_ScrollToRowColumn(wxHVScrolledWindow* self, size_t row,
+                                                    size_t column)
     {
         return self->ScrollToRowColumn(wxPosition(row, column));
     }

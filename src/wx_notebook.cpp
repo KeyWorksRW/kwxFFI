@@ -56,7 +56,7 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxNotebook_SetPageText(wxNotebook* self, int nPage, wxString* strText)
+    EXPORT int wxNotebook_SetPageText(wxNotebook* self, int nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
@@ -83,7 +83,7 @@ extern "C"
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxNotebook_SetPageImage(wxNotebook* self, int nPage, int nImage)
+    EXPORT int wxNotebook_SetPageImage(wxNotebook* self, int nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
@@ -133,29 +133,29 @@ extern "C"
         return (int) wxBK_HITTEST_ONPAGE;
     }
 
-    EXPORT bool wxNotebook_DeletePage(wxNotebook* self, int nPage)
+    EXPORT int wxNotebook_DeletePage(wxNotebook* self, int nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxNotebook_RemovePage(wxNotebook* self, int nPage)
+    EXPORT int wxNotebook_RemovePage(wxNotebook* self, int nPage)
     {
         return self->RemovePage(nPage);
     }
 
-    EXPORT bool wxNotebook_DeleteAllPages(wxNotebook* self)
+    EXPORT int wxNotebook_DeleteAllPages(wxNotebook* self)
     {
         return self->DeleteAllPages();
     }
 
-    EXPORT bool wxNotebook_AddPage(wxNotebook* self, wxNotebookPage* pPage, wxString* strText,
-                                   bool bSelect, int imageId)
+    EXPORT int wxNotebook_AddPage(wxNotebook* self, wxNotebookPage* pPage, wxString* strText,
+                                  bool bSelect, int imageId)
     {
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxNotebook_InsertPage(wxNotebook* self, int nPage, wxNotebookPage* pPage,
-                                      wxString* strText, bool bSelect, int imageId)
+    EXPORT int wxNotebook_InsertPage(wxNotebook* self, int nPage, wxNotebookPage* pPage,
+                                     wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
     }
@@ -204,7 +204,7 @@ extern "C"
         return self->GetControlMargin();
     }
 
-    EXPORT bool wxNotebook_IsVertical(wxNotebook* self)
+    EXPORT int wxNotebook_IsVertical(wxNotebook* self)
     {
         return self->IsVertical();
     }
@@ -214,7 +214,7 @@ extern "C"
         self->SetFitToCurrentPage(fit);
     }
 
-    EXPORT bool wxNotebook_GetFitToCurrentPage(wxNotebook* self)
+    EXPORT int wxNotebook_GetFitToCurrentPage(wxNotebook* self)
     {
         return self->GetFitToCurrentPage();
     }
@@ -253,7 +253,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxNotebook_SendPageChangingEvent(wxNotebook* self, int nPage)
+    EXPORT int wxNotebook_SendPageChangingEvent(wxNotebook* self, int nPage)
     {
         return self->SendPageChangingEvent(nPage);
     }

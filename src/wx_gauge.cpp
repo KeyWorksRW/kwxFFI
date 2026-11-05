@@ -41,7 +41,7 @@ extern "C"
         self->Pulse();
     }
 
-    EXPORT bool wxGauge_IsVertical(wxGauge* self)
+    EXPORT int wxGauge_IsVertical(wxGauge* self)
     {
         return self->IsVertical();
     }

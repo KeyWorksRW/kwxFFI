@@ -13,12 +13,12 @@ extern "C"
                                     (long) style);
     }
 
-    EXPORT bool wxWindow_Close(wxWindow* self, bool force)
+    EXPORT int wxWindow_Close(wxWindow* self, bool force)
     {
         return self->Close(force);
     }
 
-    EXPORT bool wxWindow_Destroy(wxWindow* self)
+    EXPORT int wxWindow_Destroy(wxWindow* self)
     {
         return self->Destroy();
     }
@@ -33,12 +33,12 @@ extern "C"
         self->Fit();
     }
 
-    EXPORT bool wxWindow_DestroyChildren(wxWindow* self)
+    EXPORT int wxWindow_DestroyChildren(wxWindow* self)
     {
         return self->DestroyChildren();
     }
 
-    EXPORT bool wxWindow_IsBeingDeleted(wxWindow* self)
+    EXPORT int wxWindow_IsBeingDeleted(wxWindow* self)
     {
         return self->IsBeingDeleted();
     }
@@ -55,7 +55,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxWindow_GetLabelEmpty(wxWindow* self)
+    EXPORT int wxWindow_GetLabelEmpty(wxWindow* self)
     {
         return self->GetLabel().IsEmpty();
     }
@@ -178,32 +178,32 @@ extern "C"
         return self->GetMaxHeight();
     }
 
-    EXPORT bool wxWindow_Show(wxWindow* self)
+    EXPORT int wxWindow_Show(wxWindow* self)
     {
         return self->Show();
     }
 
-    EXPORT bool wxWindow_Hide(wxWindow* self)
+    EXPORT int wxWindow_Hide(wxWindow* self)
     {
         return self->Hide();
     }
 
-    EXPORT bool wxWindow_Enable(wxWindow* self, bool enable)
+    EXPORT int wxWindow_Enable(wxWindow* self, bool enable)
     {
         return self->Enable(enable);
     }
 
-    EXPORT bool wxWindow_Disable(wxWindow* self)
+    EXPORT int wxWindow_Disable(wxWindow* self)
     {
         return self->Disable();
     }
 
-    EXPORT bool wxWindow_IsShown(wxWindow* self)
+    EXPORT int wxWindow_IsShown(wxWindow* self)
     {
         return self->IsShown();
     }
 
-    EXPORT bool wxWindow_IsEnabled(wxWindow* self)
+    EXPORT int wxWindow_IsEnabled(wxWindow* self)
     {
         return self->IsEnabled();
     }
@@ -218,7 +218,7 @@ extern "C"
         return self->GetWindowStyleFlag();
     }
 
-    EXPORT bool wxWindow_HasFlag(wxWindow* self, int flag)
+    EXPORT int wxWindow_HasFlag(wxWindow* self, int flag)
     {
         return self->HasFlag(flag);
     }
@@ -228,7 +228,7 @@ extern "C"
         self->SetExtraStyle(exStyle);
     }
 
-    EXPORT bool wxWindow_HasFocus(wxWindow* self)
+    EXPORT int wxWindow_HasFocus(wxWindow* self)
     {
         return self->HasFocus();
     }
@@ -266,7 +266,7 @@ extern "C"
         return (void*) self->GetParent();
     }
 
-    EXPORT bool wxWindow_IsTopLevel(wxWindow* self)
+    EXPORT int wxWindow_IsTopLevel(wxWindow* self)
     {
         return self->IsTopLevel();
     }
@@ -321,17 +321,17 @@ extern "C"
         return (void*) self->GetClientData();
     }
 
-    EXPORT bool wxWindow_Validate(wxWindow* self)
+    EXPORT int wxWindow_Validate(wxWindow* self)
     {
         return self->Validate();
     }
 
-    EXPORT bool wxWindow_TransferDataToWindow(wxWindow* self)
+    EXPORT int wxWindow_TransferDataToWindow(wxWindow* self)
     {
         return self->TransferDataToWindow();
     }
 
-    EXPORT bool wxWindow_TransferDataFromWindow(wxWindow* self)
+    EXPORT int wxWindow_TransferDataFromWindow(wxWindow* self)
     {
         return self->TransferDataFromWindow();
     }
@@ -399,12 +399,12 @@ extern "C"
         return (void*) (&self->GetUpdateRegion());
     }
 
-    EXPORT bool wxWindow_IsExposed(wxWindow* self, int x, int y, int width, int height)
+    EXPORT int wxWindow_IsExposed(wxWindow* self, int x, int y, int width, int height)
     {
         return self->IsExposed(x, y, width, height);
     }
 
-    EXPORT bool wxWindow_SetBackgroundColour(wxWindow* self, wxColour* colour)
+    EXPORT int wxWindow_SetBackgroundColour(wxWindow* self, wxColour* colour)
     {
         return self->SetBackgroundColour(*colour);
     }
@@ -436,7 +436,7 @@ extern "C"
         return cur;
     }
 
-    EXPORT bool wxWindow_SetFont(wxWindow* self, wxFont* font)
+    EXPORT int wxWindow_SetFont(wxWindow* self, wxFont* font)
     {
         return self->SetFont(*font);
     }
@@ -490,7 +490,7 @@ extern "C"
         self->UpdateWindowUI(flags);
     }
 
-    EXPORT bool wxWindow_PopupMenu(wxWindow* self, wxMenu* menu, int x, int y)
+    EXPORT int wxWindow_PopupMenu(wxWindow* self, wxMenu* menu, int x, int y)
     {
         return self->PopupMenu(menu, x, y);
     }
@@ -596,7 +596,7 @@ extern "C"
         self->SetScrollbar(orient, pos, thumbVisible, range, refresh);
     }
 
-    EXPORT bool wxWindow_Reparent(wxWindow* self, wxWindow* parent)
+    EXPORT int wxWindow_Reparent(wxWindow* self, wxWindow* parent)
     {
         return self->Reparent(parent);
     }
@@ -750,7 +750,7 @@ extern "C"
         self->CacheBestSize(wxSize(width, height));
     }
 
-    EXPORT bool wxWindow_SetInitialSize(wxWindow* self, int width, int height)
+    EXPORT int wxWindow_SetInitialSize(wxWindow* self, int width, int height)
     {
         return self->SetInitialSize(wxSize(width, height));
     }
@@ -820,24 +820,24 @@ extern "C"
         self->SendSizeEventToParent(flags);
     }
 
-    EXPORT bool wxWindow_ShowWithEffect(wxWindow* self, int effect, int timeout)
+    EXPORT int wxWindow_ShowWithEffect(wxWindow* self, int effect, int timeout)
     {
         return self->ShowWithEffect(static_cast<wxShowEffect>(effect),
                                     static_cast<unsigned>(timeout));
     }
 
-    EXPORT bool wxWindow_HideWithEffect(wxWindow* self, int effect, int timeout)
+    EXPORT int wxWindow_HideWithEffect(wxWindow* self, int effect, int timeout)
     {
         return self->HideWithEffect(static_cast<wxShowEffect>(effect),
                                     static_cast<unsigned>(timeout));
     }
 
-    EXPORT bool wxWindow_IsThisEnabled(wxWindow* self)
+    EXPORT int wxWindow_IsThisEnabled(wxWindow* self)
     {
         return self->IsThisEnabled();
     }
 
-    EXPORT bool wxWindow_IsShownOnScreen(wxWindow* self)
+    EXPORT int wxWindow_IsShownOnScreen(wxWindow* self)
     {
         return self->IsShownOnScreen();
     }
@@ -852,12 +852,12 @@ extern "C"
         return self->GetWindowStyle();
     }
 
-    EXPORT bool wxWindow_IsRetained(wxWindow* self)
+    EXPORT int wxWindow_IsRetained(wxWindow* self)
     {
         return self->IsRetained();
     }
 
-    EXPORT bool wxWindow_ToggleWindowStyle(wxWindow* self, int flag)
+    EXPORT int wxWindow_ToggleWindowStyle(wxWindow* self, int flag)
     {
         return self->ToggleWindowStyle(flag);
     }
@@ -867,7 +867,7 @@ extern "C"
         return self->GetExtraStyle();
     }
 
-    EXPORT bool wxWindow_HasExtraStyle(wxWindow* self, int exFlag)
+    EXPORT int wxWindow_HasExtraStyle(wxWindow* self, int exFlag)
     {
         return self->HasExtraStyle(exFlag);
     }
@@ -877,7 +877,7 @@ extern "C"
         self->SetThemeEnabled(enableTheme);
     }
 
-    EXPORT bool wxWindow_GetThemeEnabled(wxWindow* self)
+    EXPORT int wxWindow_GetThemeEnabled(wxWindow* self)
     {
         return self->GetThemeEnabled();
     }
@@ -887,17 +887,17 @@ extern "C"
         self->SetFocusFromKbd();
     }
 
-    EXPORT bool wxWindow_AcceptsFocus(wxWindow* self)
+    EXPORT int wxWindow_AcceptsFocus(wxWindow* self)
     {
         return self->AcceptsFocus();
     }
 
-    EXPORT bool wxWindow_AcceptsFocusRecursively(wxWindow* self)
+    EXPORT int wxWindow_AcceptsFocusRecursively(wxWindow* self)
     {
         return self->AcceptsFocusRecursively();
     }
 
-    EXPORT bool wxWindow_AcceptsFocusFromKeyboard(wxWindow* self)
+    EXPORT int wxWindow_AcceptsFocusFromKeyboard(wxWindow* self)
     {
         return self->AcceptsFocusFromKeyboard();
     }
@@ -912,22 +912,22 @@ extern "C"
         self->EnableFocusFromKeyboard();
     }
 
-    EXPORT bool wxWindow_CanBeFocused(wxWindow* self)
+    EXPORT int wxWindow_CanBeFocused(wxWindow* self)
     {
         return self->CanBeFocused();
     }
 
-    EXPORT bool wxWindow_IsFocusable(wxWindow* self)
+    EXPORT int wxWindow_IsFocusable(wxWindow* self)
     {
         return self->IsFocusable();
     }
 
-    EXPORT bool wxWindow_CanAcceptFocus(wxWindow* self)
+    EXPORT int wxWindow_CanAcceptFocus(wxWindow* self)
     {
         return self->CanAcceptFocus();
     }
 
-    EXPORT bool wxWindow_CanAcceptFocusFromKeyboard(wxWindow* self)
+    EXPORT int wxWindow_CanAcceptFocusFromKeyboard(wxWindow* self)
     {
         return self->CanAcceptFocusFromKeyboard();
     }
@@ -942,12 +942,12 @@ extern "C"
         self->EnableVisibleFocus(enabled);
     }
 
-    EXPORT bool wxWindow_NavigateIn(wxWindow* self, int flags)
+    EXPORT int wxWindow_NavigateIn(wxWindow* self, int flags)
     {
         return self->NavigateIn(flags);
     }
 
-    EXPORT bool wxWindow_Navigate(wxWindow* self, int flags)
+    EXPORT int wxWindow_Navigate(wxWindow* self, int flags)
     {
         return self->Navigate(flags);
     }
@@ -962,7 +962,7 @@ extern "C"
         self->MoveAfterInTabOrder(win);
     }
 
-    EXPORT bool wxWindow_IsDescendant(wxWindow* self, wxWindow* win)
+    EXPORT int wxWindow_IsDescendant(wxWindow* self, wxWindow* win)
     {
         return self->IsDescendant(win);
     }
@@ -977,22 +977,22 @@ extern "C"
         self->SetEventHandler(handler);
     }
 
-    EXPORT bool wxWindow_RemoveEventHandler(wxWindow* self, wxEvtHandler* handler)
+    EXPORT int wxWindow_RemoveEventHandler(wxWindow* self, wxEvtHandler* handler)
     {
         return self->RemoveEventHandler(handler);
     }
 
-    EXPORT bool wxWindow_ProcessWindowEvent(wxWindow* self, wxEvent* event)
+    EXPORT int wxWindow_ProcessWindowEvent(wxWindow* self, wxEvent* event)
     {
         return self->ProcessWindowEvent(*event);
     }
 
-    EXPORT bool wxWindow_ProcessWindowEventLocally(wxWindow* self, wxEvent* event)
+    EXPORT int wxWindow_ProcessWindowEventLocally(wxWindow* self, wxEvent* event)
     {
         return self->ProcessWindowEventLocally(*event);
     }
 
-    EXPORT bool wxWindow_HandleWindowEvent(wxWindow* self, wxEvent* event)
+    EXPORT int wxWindow_HandleWindowEvent(wxWindow* self, wxEvent* event)
     {
         return self->HandleWindowEvent(*event);
     }
@@ -1002,12 +1002,12 @@ extern "C"
         return const_cast<wxAcceleratorTable*>(self->GetAcceleratorTable());
     }
 
-    EXPORT bool wxWindow_RegisterHotKey(wxWindow* self, int hotkeyId, int modifiers, int keycode)
+    EXPORT int wxWindow_RegisterHotKey(wxWindow* self, int hotkeyId, int modifiers, int keycode)
     {
         return self->RegisterHotKey(hotkeyId, modifiers, keycode);
     }
 
-    EXPORT bool wxWindow_UnregisterHotKey(wxWindow* self, int hotkeyId)
+    EXPORT int wxWindow_UnregisterHotKey(wxWindow* self, int hotkeyId)
     {
         return self->UnregisterHotKey(hotkeyId);
     }
@@ -1027,17 +1027,17 @@ extern "C"
         return self->ToDIP(value);
     }
 
-    EXPORT bool wxWindow_HasCapture(wxWindow* self)
+    EXPORT int wxWindow_HasCapture(wxWindow* self)
     {
         return self->HasCapture();
     }
 
-    EXPORT bool wxWindow_EnableTouchEvents(wxWindow* self, int eventsMask)
+    EXPORT int wxWindow_EnableTouchEvents(wxWindow* self, int eventsMask)
     {
         return self->EnableTouchEvents(eventsMask);
     }
 
-    EXPORT bool wxWindow_IsFrozen(wxWindow* self)
+    EXPORT int wxWindow_IsFrozen(wxWindow* self)
     {
         return self->IsFrozen();
     }
@@ -1047,7 +1047,7 @@ extern "C"
         self->SetDoubleBuffered(on);
     }
 
-    EXPORT bool wxWindow_IsDoubleBuffered(wxWindow* self)
+    EXPORT int wxWindow_IsDoubleBuffered(wxWindow* self)
     {
         return self->IsDoubleBuffered();
     }
@@ -1062,17 +1062,17 @@ extern "C"
         self->SetOwnBackgroundColour(*colour);
     }
 
-    EXPORT bool wxWindow_UseBgCol(wxWindow* self)
+    EXPORT int wxWindow_UseBgCol(wxWindow* self)
     {
         return self->UseBgCol();
     }
 
-    EXPORT bool wxWindow_UseBackgroundColour(wxWindow* self)
+    EXPORT int wxWindow_UseBackgroundColour(wxWindow* self)
     {
         return self->UseBackgroundColour();
     }
 
-    EXPORT bool wxWindow_InheritsBackgroundColour(wxWindow* self)
+    EXPORT int wxWindow_InheritsBackgroundColour(wxWindow* self)
     {
         return self->InheritsBackgroundColour();
     }
@@ -1082,17 +1082,17 @@ extern "C"
         self->SetOwnForegroundColour(*colour);
     }
 
-    EXPORT bool wxWindow_UseForegroundColour(wxWindow* self)
+    EXPORT int wxWindow_UseForegroundColour(wxWindow* self)
     {
         return self->UseForegroundColour();
     }
 
-    EXPORT bool wxWindow_InheritsForegroundColour(wxWindow* self)
+    EXPORT int wxWindow_InheritsForegroundColour(wxWindow* self)
     {
         return self->InheritsForegroundColour();
     }
 
-    EXPORT bool wxWindow_SetBackgroundStyle(wxWindow* self, int style)
+    EXPORT int wxWindow_SetBackgroundStyle(wxWindow* self, int style)
     {
         return self->SetBackgroundStyle(static_cast<wxBackgroundStyle>(style));
     }
@@ -1102,7 +1102,7 @@ extern "C"
         return static_cast<int>(self->GetBackgroundStyle());
     }
 
-    EXPORT bool wxWindow_HasTransparentBackground(wxWindow* self)
+    EXPORT int wxWindow_HasTransparentBackground(wxWindow* self)
     {
         return self->HasTransparentBackground();
     }
@@ -1117,7 +1117,7 @@ extern "C"
         self->EnableInputMethod(enable);
     }
 
-    EXPORT bool wxWindow_IsInputMethodEnabled(wxWindow* self)
+    EXPORT int wxWindow_IsInputMethodEnabled(wxWindow* self)
     {
         return self->IsInputMethodEnabled();
     }
@@ -1143,17 +1143,17 @@ extern "C"
         return static_cast<int>(self->GetBorder(flags));
     }
 
-    EXPORT bool wxWindow_HasMultiplePages(wxWindow* self)
+    EXPORT int wxWindow_HasMultiplePages(wxWindow* self)
     {
         return self->HasMultiplePages();
     }
 
-    EXPORT bool wxWindow_CanScroll(wxWindow* self, int orient)
+    EXPORT int wxWindow_CanScroll(wxWindow* self, int orient)
     {
         return self->CanScroll(orient);
     }
 
-    EXPORT bool wxWindow_HasScrollbar(wxWindow* self, int orient)
+    EXPORT int wxWindow_HasScrollbar(wxWindow* self, int orient)
     {
         return self->HasScrollbar(orient);
     }
@@ -1163,32 +1163,32 @@ extern "C"
         return self->GetScrollbarSize(orient);
     }
 
-    EXPORT bool wxWindow_ScrollLines(wxWindow* self, int lines)
+    EXPORT int wxWindow_ScrollLines(wxWindow* self, int lines)
     {
         return self->ScrollLines(lines);
     }
 
-    EXPORT bool wxWindow_ScrollPages(wxWindow* self, int pages)
+    EXPORT int wxWindow_ScrollPages(wxWindow* self, int pages)
     {
         return self->ScrollPages(pages);
     }
 
-    EXPORT bool wxWindow_LineUp(wxWindow* self)
+    EXPORT int wxWindow_LineUp(wxWindow* self)
     {
         return self->LineUp();
     }
 
-    EXPORT bool wxWindow_LineDown(wxWindow* self)
+    EXPORT int wxWindow_LineDown(wxWindow* self)
     {
         return self->LineDown();
     }
 
-    EXPORT bool wxWindow_PageUp(wxWindow* self)
+    EXPORT int wxWindow_PageUp(wxWindow* self)
     {
         return self->PageUp();
     }
 
-    EXPORT bool wxWindow_PageDown(wxWindow* self)
+    EXPORT int wxWindow_PageDown(wxWindow* self)
     {
         return self->PageDown();
     }
@@ -1198,7 +1198,7 @@ extern "C"
         self->AlwaysShowScrollbars(horz, vert);
     }
 
-    EXPORT bool wxWindow_IsScrollbarAlwaysShown(wxWindow* self, int orient)
+    EXPORT int wxWindow_IsScrollbarAlwaysShown(wxWindow* self, int orient)
     {
         return self->IsScrollbarAlwaysShown(orient);
     }
@@ -1233,12 +1233,12 @@ extern "C"
         self->SetContainingSizer(sizer);
     }
 
-    EXPORT bool wxWindow_SetTransparent(wxWindow* self, unsigned char alpha)
+    EXPORT int wxWindow_SetTransparent(wxWindow* self, unsigned char alpha)
     {
         return self->SetTransparent(alpha);
     }
 
-    EXPORT bool wxWindow_CanSetTransparent(wxWindow* self)
+    EXPORT int wxWindow_CanSetTransparent(wxWindow* self)
     {
         return self->CanSetTransparent();
     }
@@ -1253,7 +1253,7 @@ extern "C"
         self->SetPalette(*palette);
     }
 
-    EXPORT bool wxWindow_HasCustomPalette(wxWindow* self)
+    EXPORT int wxWindow_HasCustomPalette(wxWindow* self)
     {
         return self->HasCustomPalette();
     }
@@ -1263,7 +1263,7 @@ extern "C"
         self->InheritAttributes();
     }
 
-    EXPORT bool wxWindow_ShouldInheritColours(wxWindow* self)
+    EXPORT int wxWindow_ShouldInheritColours(wxWindow* self)
     {
         return self->ShouldInheritColours();
     }
@@ -1278,7 +1278,7 @@ extern "C"
         return self->AdjustForLayoutDirection(x, width, widthTotal);
     }
 
-    EXPORT bool wxWindow_BeginRepositioningChildren(wxWindow* self)
+    EXPORT int wxWindow_BeginRepositioningChildren(wxWindow* self)
     {
         return self->BeginRepositioningChildren();
     }
@@ -1288,7 +1288,7 @@ extern "C"
         self->EndRepositioningChildren();
     }
 
-    EXPORT bool wxWindow_IsClientAreaChild(wxWindow* self, wxWindow* child)
+    EXPORT int wxWindow_IsClientAreaChild(wxWindow* self, wxWindow* child)
     {
         return self->IsClientAreaChild(child);
     }
@@ -1314,22 +1314,22 @@ extern "C"
         return self->GetHelpIdAtPoint(wxPoint(x, y));
     }
 
-    EXPORT bool wxWindow_CopyToolTip(wxWindow* self, void* tip)
+    EXPORT int wxWindow_CopyToolTip(wxWindow* self, void* tip)
     {
         return self->CopyToolTip(static_cast<wxToolTip*>(tip));
     }
 
-    EXPORT bool wxWindow_CanBeOutsideClientArea(wxWindow* self)
+    EXPORT int wxWindow_CanBeOutsideClientArea(wxWindow* self)
     {
         return self->CanBeOutsideClientArea();
     }
 
-    EXPORT bool wxWindow_CanApplyThemeBorder(wxWindow* self)
+    EXPORT int wxWindow_CanApplyThemeBorder(wxWindow* self)
     {
         return self->CanApplyThemeBorder();
     }
 
-    EXPORT bool wxWindow_IsTopNavigationDomain(wxWindow* self, int kind)
+    EXPORT int wxWindow_IsTopNavigationDomain(wxWindow* self, int kind)
     {
         return self->IsTopNavigationDomain(static_cast<wxWindowBase::NavigationKind>(kind));
     }
@@ -1363,7 +1363,7 @@ extern "C"
         return new wxSize(value);
     }
 
-    EXPORT bool wxWindow_IsTransparentBackgroundSupported(void* pObject, void* reason)
+    EXPORT int wxWindow_IsTransparentBackgroundSupported(void* pObject, void* reason)
     {
         return ((wxWindow*) pObject)->IsTransparentBackgroundSupported((wxString*) reason);
     }

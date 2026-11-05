@@ -40,8 +40,8 @@ extern "C"
         self->Initialize(window);
     }
 
-    EXPORT bool wxSplitterWindow_SplitVertically(wxSplitterWindow* self, wxWindow* window1,
-                                                 wxWindow* window2, int sashPosition)
+    EXPORT int wxSplitterWindow_SplitVertically(wxSplitterWindow* self, wxWindow* window1,
+                                                wxWindow* window2, int sashPosition)
     {
         return self->SplitVertically(window1, window2, sashPosition);
     }
@@ -63,7 +63,7 @@ extern "C"
         return (int) self->ReplaceWindow(winOld, winNew);
     }
 
-    EXPORT bool wxSplitterWindow_IsSplit(wxSplitterWindow* self)
+    EXPORT int wxSplitterWindow_IsSplit(wxSplitterWindow* self)
     {
         return self->IsSplit();
     }
@@ -123,7 +123,7 @@ extern "C"
         self->SetSashInvisible(invisible);
     }
 
-    EXPORT bool wxSplitterWindow_IsSashInvisible(wxSplitterWindow* self)
+    EXPORT int wxSplitterWindow_IsSashInvisible(wxSplitterWindow* self)
     {
         return self->IsSashInvisible();
     }
@@ -134,7 +134,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxSplitterWindow_SashHitTest(void* pObject, int x, int y)
+    EXPORT int wxSplitterWindow_SashHitTest(void* pObject, int x, int y)
     {
         return ((wxSplitterWindow*) pObject)->SashHitTest(x, y);
     }
@@ -143,5 +143,4 @@ extern "C"
     {
         ((wxSplitterWindow*) pObject)->SizeWindows();
     }
-
 }

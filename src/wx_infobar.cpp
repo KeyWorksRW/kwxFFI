@@ -50,7 +50,7 @@ extern "C"
         return static_cast<int>(self->GetHideEffect());
     }
 
-    EXPORT bool wxInfoBar_HasFlag(wxInfoBar* self, int flag)
+    EXPORT int wxInfoBar_HasFlag(wxInfoBar* self, int flag)
     {
         return self->HasFlag(flag);
     }

@@ -38,7 +38,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxLocale_IsOk(wxLocale* self)
+    EXPORT int wxLocale_IsOk(wxLocale* self)
     {
         return self->IsOk();
     }
@@ -54,12 +54,12 @@ extern "C"
         self->AddCatalogLookupPathPrefix((const char*) prefix);
     }
 
-    EXPORT bool wxLocale_AddCatalog(wxLocale* self, void* szDomain, int msgIdLanguage)
+    EXPORT int wxLocale_AddCatalog(wxLocale* self, void* szDomain, int msgIdLanguage)
     {
         return self->AddCatalog((const char*) szDomain, (wxLanguage) msgIdLanguage);
     }
 
-    EXPORT bool wxLocale_IsLoaded(wxLocale* self, void* szDomain)
+    EXPORT int wxLocale_IsLoaded(wxLocale* self, void* szDomain)
     {
         return self->IsLoaded((const char*) szDomain);
     }
@@ -121,12 +121,12 @@ extern "C"
         return (void*) strdup(retVal.utf8_string().data());
     }
 
-    EXPORT bool wxUILocale_UseDefault()
+    EXPORT int wxUILocale_UseDefault()
     {
         return wxUILocale::UseDefault();
     }
 
-    EXPORT bool wxUILocale_IsSet()
+    EXPORT int wxUILocale_IsSet()
     {
         return wxUILocale::IsSet();
     }

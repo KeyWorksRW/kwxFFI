@@ -24,12 +24,12 @@ extern "C"
         self->DismissExpandedPanel();
     }
 
-    EXPORT bool wxRibbonPage_ScrollLines(wxRibbonPage* self, int lines)
+    EXPORT int wxRibbonPage_ScrollLines(wxRibbonPage* self, int lines)
     {
         return self->ScrollLines(lines);
     }
 
-    EXPORT bool wxRibbonPage_ScrollPixels(wxRibbonPage* self, int pixels)
+    EXPORT int wxRibbonPage_ScrollPixels(wxRibbonPage* self, int pixels)
     {
         return self->ScrollPixels(pixels);
     }
@@ -161,17 +161,17 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxRibbonControl_IsSizingContinuous(wxRibbonControl* self)
+    EXPORT int wxRibbonControl_IsSizingContinuous(wxRibbonControl* self)
     {
         return self->IsSizingContinuous();
     }
 
-    EXPORT bool wxRibbonControl_Realize(wxRibbonControl* self)
+    EXPORT int wxRibbonControl_Realize(wxRibbonControl* self)
     {
         return self->Realize();
     }
 
-    EXPORT bool wxRibbonControl_Realise(wxRibbonControl* self)
+    EXPORT int wxRibbonControl_Realise(wxRibbonControl* self)
     {
         return self->Realise();
     }
@@ -183,9 +183,11 @@ extern "C"
         return new wxColour(value);
     }
 
-    EXPORT void wxRibbonArtProvider_GetColourScheme(void* pObject, void* primary, void* secondary, void* tertiary)
+    EXPORT void wxRibbonArtProvider_GetColourScheme(void* pObject, void* primary, void* secondary,
+                                                    void* tertiary)
     {
-        ((wxRibbonArtProvider*) pObject)->GetColourScheme((wxColour*) primary, (wxColour*) secondary, (wxColour*) tertiary);
+        ((wxRibbonArtProvider*) pObject)
+            ->GetColourScheme((wxColour*) primary, (wxColour*) secondary, (wxColour*) tertiary);
     }
 
     EXPORT void wxRibbonArtProvider_SetColor(void* pObject, int id, void* color)
@@ -193,9 +195,11 @@ extern "C"
         ((wxRibbonArtProvider*) pObject)->SetColor(id, *(wxColour*) color);
     }
 
-    EXPORT void wxRibbonArtProvider_SetColourScheme(void* pObject, void* primary, void* secondary, void* tertiary)
+    EXPORT void wxRibbonArtProvider_SetColourScheme(void* pObject, void* primary, void* secondary,
+                                                    void* tertiary)
     {
-        ((wxRibbonArtProvider*) pObject)->SetColourScheme(*(wxColour*) primary, *(wxColour*) secondary, *(wxColour*) tertiary);
+        ((wxRibbonArtProvider*) pObject)
+            ->SetColourScheme(*(wxColour*) primary, *(wxColour*) secondary, *(wxColour*) tertiary);
     }
 
     EXPORT void* wxRibbonPage_GetPanel(void* pObject, int n)
@@ -208,9 +212,9 @@ extern "C"
         return (size_t) ((wxRibbonPage*) pObject)->GetPanelCount();
     }
 
-    EXPORT void wxRibbonPage_SetSizeWithScrollButtonAdjustment(void* pObject, int x, int y, int width, int height)
+    EXPORT void wxRibbonPage_SetSizeWithScrollButtonAdjustment(void* pObject, int x, int y,
+                                                               int width, int height)
     {
         ((wxRibbonPage*) pObject)->SetSizeWithScrollButtonAdjustment(x, y, width, height);
     }
-
 }

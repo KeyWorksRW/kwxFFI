@@ -104,12 +104,12 @@ extern "C"
         self->ClearTools();
     }
 
-    EXPORT bool wxRibbonToolBar_DeleteTool(wxRibbonToolBar* self, int tool_id)
+    EXPORT int wxRibbonToolBar_DeleteTool(wxRibbonToolBar* self, int tool_id)
     {
         return self->DeleteTool(tool_id);
     }
 
-    EXPORT bool wxRibbonToolBar_DeleteToolByPos(wxRibbonToolBar* self, size_t pos)
+    EXPORT int wxRibbonToolBar_DeleteToolByPos(wxRibbonToolBar* self, size_t pos)
     {
         return self->DeleteToolByPos(pos);
     }
@@ -167,7 +167,7 @@ extern "C"
         self->EnableTool(tool_id, enable);
     }
 
-    EXPORT bool wxRibbonToolBar_GetToolEnabled(wxRibbonToolBar* self, int tool_id)
+    EXPORT int wxRibbonToolBar_GetToolEnabled(wxRibbonToolBar* self, int tool_id)
     {
         return self->GetToolEnabled(tool_id);
     }
@@ -190,7 +190,7 @@ extern "C"
         return (int) self->GetToolKind(tool_id);
     }
 
-    EXPORT bool wxRibbonToolBar_GetToolState(wxRibbonToolBar* self, int tool_id)
+    EXPORT int wxRibbonToolBar_GetToolState(wxRibbonToolBar* self, int tool_id)
     {
         return self->GetToolState(tool_id);
     }
@@ -258,7 +258,7 @@ extern "C"
         return self->GetBar();
     }
 
-    EXPORT bool wxRibbonToolBarEvent_PopupMenu(wxRibbonToolBarEvent* self, wxMenu* menu)
+    EXPORT int wxRibbonToolBarEvent_PopupMenu(wxRibbonToolBarEvent* self, wxMenu* menu)
     {
         return self->PopupMenu(menu);
     }
@@ -267,7 +267,6 @@ extern "C"
     {
         self->SetBar(bar);
     }
-
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void wxRibbonToolBar_SetDropdownKeyTip(void* pObject, int tool_id, void* keytip)

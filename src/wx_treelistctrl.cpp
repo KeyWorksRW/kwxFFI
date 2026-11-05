@@ -23,7 +23,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTreeListItem_IsOk(wxTreeListItem* self)
+    EXPORT int wxTreeListItem_IsOk(wxTreeListItem* self)
     {
         return self->IsOk();
     }
@@ -54,7 +54,7 @@ extern "C"
         return self->GetColumnCount();
     }
 
-    EXPORT bool wxTreeListCtrl_DeleteColumn(wxTreeListCtrl* self, unsigned col)
+    EXPORT int wxTreeListCtrl_DeleteColumn(wxTreeListCtrl* self, unsigned col)
     {
         return self->DeleteColumn(col);
     }
@@ -178,7 +178,7 @@ extern "C"
         self->Collapse(*item);
     }
 
-    EXPORT bool wxTreeListCtrl_IsExpanded(wxTreeListCtrl* self, wxTreeListItem* item)
+    EXPORT int wxTreeListCtrl_IsExpanded(wxTreeListCtrl* self, wxTreeListItem* item)
     {
         return self->IsExpanded(*item);
     }
@@ -199,7 +199,7 @@ extern "C"
         self->Unselect(*item);
     }
 
-    EXPORT bool wxTreeListCtrl_IsSelected(wxTreeListCtrl* self, wxTreeListItem* item)
+    EXPORT int wxTreeListCtrl_IsSelected(wxTreeListCtrl* self, wxTreeListItem* item)
     {
         return self->IsSelected(*item);
     }
@@ -247,8 +247,8 @@ extern "C"
         return (int) self->GetCheckedState(*item);
     }
 
-    EXPORT bool wxTreeListCtrl_AreAllChildrenInState(wxTreeListCtrl* self, wxTreeListItem* item,
-                                                     int state)
+    EXPORT int wxTreeListCtrl_AreAllChildrenInState(wxTreeListCtrl* self, wxTreeListItem* item,
+                                                    int state)
     {
         return self->AreAllChildrenInState(*item, (wxCheckBoxState) state);
     }
@@ -260,8 +260,8 @@ extern "C"
         self->SetSortColumn(col, ascendingOrder);
     }
 
-    EXPORT bool wxTreeListCtrl_GetSortColumn(wxTreeListCtrl* self, unsigned* col,
-                                             bool* ascendingOrder)
+    EXPORT int wxTreeListCtrl_GetSortColumn(wxTreeListCtrl* self, unsigned* col,
+                                            bool* ascendingOrder)
     {
         return self->GetSortColumn(col, ascendingOrder);
     }
@@ -303,7 +303,7 @@ extern "C"
         self->Allow();
     }
 
-    EXPORT bool wxTreeListEvent_IsAllowed(wxTreeListEvent* self)
+    EXPORT int wxTreeListEvent_IsAllowed(wxTreeListEvent* self)
     {
         return self->IsAllowed();
     }

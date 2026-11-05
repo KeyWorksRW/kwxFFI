@@ -33,7 +33,7 @@ extern "C"
         self->EnablePopupAnimation(enable);
     }
 
-    EXPORT bool wxComboCtrl_IsPopupWindowState(wxComboCtrl* self, int state)
+    EXPORT int wxComboCtrl_IsPopupWindowState(wxComboCtrl* self, int state)
     {
         return self->IsPopupWindowState(state);
     }
@@ -113,7 +113,7 @@ extern "C"
         self->HidePopup(generateEvent);
     }
 
-    EXPORT bool wxComboCtrl_IsPopupShown(wxComboCtrl* self)
+    EXPORT int wxComboCtrl_IsPopupShown(wxComboCtrl* self)
     {
         return self->IsPopupShown();
     }
@@ -205,7 +205,7 @@ extern "C"
         self->Remove(from, toPos);
     }
 
-    EXPORT bool wxComboCtrl_IsEditable(wxComboCtrl* self)
+    EXPORT int wxComboCtrl_IsEditable(wxComboCtrl* self)
     {
         return self->IsEditable();
     }
@@ -324,12 +324,12 @@ extern "C"
         self->SetClientData(index, data);
     }
 
-    EXPORT bool wxOwnerDrawnComboBox_IsListEmpty(wxOwnerDrawnComboBox* self)
+    EXPORT int wxOwnerDrawnComboBox_IsListEmpty(wxOwnerDrawnComboBox* self)
     {
         return self->IsListEmpty();
     }
 
-    EXPORT bool wxOwnerDrawnComboBox_IsTextEmpty(wxOwnerDrawnComboBox* self)
+    EXPORT int wxOwnerDrawnComboBox_IsTextEmpty(wxOwnerDrawnComboBox* self)
     {
         return self->IsTextEmpty();
     }
@@ -371,7 +371,7 @@ extern "C"
         return new wxString(self->GetStringValue());
     }
 
-    EXPORT bool wxComboPopup_FindItem(wxComboPopup* self, wxString* item, wxString* trueItem)
+    EXPORT int wxComboPopup_FindItem(wxComboPopup* self, wxString* item, wxString* trueItem)
     {
         return self->FindItem(*item, trueItem);
     }
@@ -408,7 +408,7 @@ extern "C"
             *height = size.y;
     }
 
-    EXPORT bool wxComboPopup_LazyCreate(wxComboPopup* self)
+    EXPORT int wxComboPopup_LazyCreate(wxComboPopup* self)
     {
         return self->LazyCreate();
     }
@@ -418,7 +418,7 @@ extern "C"
         self->Dismiss();
     }
 
-    EXPORT bool wxComboPopup_IsCreated(wxComboPopup* self)
+    EXPORT int wxComboPopup_IsCreated(wxComboPopup* self)
     {
         return self->IsCreated();
     }
@@ -484,7 +484,7 @@ extern "C"
         return new wxRect(self->GetTextRect());
     }
 
-    EXPORT bool wxComboCtrl_IsKeyPopupToggle(wxComboCtrl* self, wxKeyEvent* event)
+    EXPORT int wxComboCtrl_IsKeyPopupToggle(wxComboCtrl* self, wxKeyEvent* event)
     {
         return self->IsKeyPopupToggle(*event);
     }
@@ -496,7 +496,7 @@ extern "C"
         self->PrepareBackground(*dc, rect, flags);
     }
 
-    EXPORT bool wxComboCtrl_SetHint(wxComboCtrl* self, wxString* hint)
+    EXPORT int wxComboCtrl_SetHint(wxComboCtrl* self, wxString* hint)
     {
         return self->SetHint(*hint);
     }
@@ -516,7 +516,7 @@ extern "C"
         self->SetValueByUser(*value);
     }
 
-    EXPORT bool wxComboCtrl_ShouldDrawFocus(wxComboCtrl* self)
+    EXPORT int wxComboCtrl_ShouldDrawFocus(wxComboCtrl* self)
     {
         return self->ShouldDrawFocus();
     }
@@ -550,8 +550,8 @@ extern "C"
                                         wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool kwxComboCtrl_Create(kwxComboCtrl* self, wxWindow* parent, int id, wxString* value,
-                                    int x, int y, int width, int height, long style)
+    EXPORT int kwxComboCtrl_Create(kwxComboCtrl* self, wxWindow* parent, int id, wxString* value,
+                                   int x, int y, int width, int height, long style)
     {
         return self->Create(parent, id, value ? *value : wxString(), wxPoint(x, y),
                             wxSize(width, height), style);
@@ -592,9 +592,9 @@ extern "C"
                                                  wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool kwxOwnerDrawnComboBox_Create(kwxOwnerDrawnComboBox* self, wxWindow* parent, int id,
-                                             wxString* value, int x, int y, int width, int height,
-                                             long style)
+    EXPORT int kwxOwnerDrawnComboBox_Create(kwxOwnerDrawnComboBox* self, wxWindow* parent, int id,
+                                            wxString* value, int x, int y, int width, int height,
+                                            long style)
     {
         return self->Create(parent, id, value ? *value : wxString(), wxPoint(x, y),
                             wxSize(width, height), style);

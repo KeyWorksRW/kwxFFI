@@ -78,7 +78,7 @@ extern "C"
         return self->GetBase();
     }
 
-    EXPORT bool wxSpinCtrl_SetBase(wxSpinCtrl* self, int base)
+    EXPORT int wxSpinCtrl_SetBase(wxSpinCtrl* self, int base)
     {
         return self->SetBase(base);
     }
@@ -88,5 +88,4 @@ extern "C"
     {
         ((wxSpinButton*) pObject)->SetIncrement(value);
     }
-
 }

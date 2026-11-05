@@ -132,22 +132,22 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxRichTextObject_IsComposite(wxRichTextObject* self)
+    EXPORT int wxRichTextObject_IsComposite(wxRichTextObject* self)
     {
         return self->IsComposite();
     }
 
-    EXPORT bool wxRichTextObject_IsEmpty(wxRichTextObject* self)
+    EXPORT int wxRichTextObject_IsEmpty(wxRichTextObject* self)
     {
         return self->IsEmpty();
     }
 
-    EXPORT bool wxRichTextObject_IsTopLevel(wxRichTextObject* self)
+    EXPORT int wxRichTextObject_IsTopLevel(wxRichTextObject* self)
     {
         return self->IsTopLevel();
     }
 
-    EXPORT bool wxRichTextObject_IsShown(wxRichTextObject* self)
+    EXPORT int wxRichTextObject_IsShown(wxRichTextObject* self)
     {
         return self->IsShown();
     }
@@ -189,20 +189,20 @@ extern "C"
         return self->AppendChild(child);
     }
 
-    EXPORT bool wxRichTextCompositeObject_InsertChild(wxRichTextCompositeObject* self,
-                                                      wxRichTextObject* child,
-                                                      wxRichTextObject* inFrontOf)
+    EXPORT int wxRichTextCompositeObject_InsertChild(wxRichTextCompositeObject* self,
+                                                     wxRichTextObject* child,
+                                                     wxRichTextObject* inFrontOf)
     {
         return self->InsertChild(child, inFrontOf);
     }
 
-    EXPORT bool wxRichTextCompositeObject_RemoveChild(wxRichTextCompositeObject* self,
-                                                      wxRichTextObject* child, bool deleteChild)
+    EXPORT int wxRichTextCompositeObject_RemoveChild(wxRichTextCompositeObject* self,
+                                                     wxRichTextObject* child, bool deleteChild)
     {
         return self->RemoveChild(child, deleteChild);
     }
 
-    EXPORT bool wxRichTextCompositeObject_DeleteChildren(wxRichTextCompositeObject* self)
+    EXPORT int wxRichTextCompositeObject_DeleteChildren(wxRichTextCompositeObject* self)
     {
         return self->DeleteChildren();
     }
@@ -272,28 +272,27 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_DeleteRange(wxRichTextParagraphLayoutBox* self,
-                                                         long startPos, long endPos)
+    EXPORT int wxRichTextParagraphLayoutBox_DeleteRange(wxRichTextParagraphLayoutBox* self,
+                                                        long startPos, long endPos)
     {
         return self->DeleteRange(wxRichTextRange(startPos, endPos));
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_SetStyle(wxRichTextParagraphLayoutBox* self,
-                                                      long startPos, long endPos,
-                                                      wxRichTextAttr* style, int flags)
+    EXPORT int wxRichTextParagraphLayoutBox_SetStyle(wxRichTextParagraphLayoutBox* self,
+                                                     long startPos, long endPos,
+                                                     wxRichTextAttr* style, int flags)
     {
         return self->SetStyle(wxRichTextRange(startPos, endPos), *style, flags);
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_GetStyle(wxRichTextParagraphLayoutBox* self,
-                                                      long position, wxRichTextAttr* style)
+    EXPORT int wxRichTextParagraphLayoutBox_GetStyle(wxRichTextParagraphLayoutBox* self,
+                                                     long position, wxRichTextAttr* style)
     {
         return self->GetStyle(position, *style);
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_GetUncombinedStyle(wxRichTextParagraphLayoutBox* self,
-                                                                long position,
-                                                                wxRichTextAttr* style)
+    EXPORT int wxRichTextParagraphLayoutBox_GetUncombinedStyle(wxRichTextParagraphLayoutBox* self,
+                                                               long position, wxRichTextAttr* style)
     {
         return self->GetUncombinedStyle(position, *style);
     }
@@ -324,14 +323,14 @@ extern "C"
         return self->XYToPosition(x, y);
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_PositionToXY(wxRichTextParagraphLayoutBox* self,
-                                                          long position, long* x, long* y)
+    EXPORT int wxRichTextParagraphLayoutBox_PositionToXY(wxRichTextParagraphLayoutBox* self,
+                                                         long position, long* x, long* y)
     {
         return self->PositionToXY(position, x, y);
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_SetDefaultStyle(wxRichTextParagraphLayoutBox* self,
-                                                             wxRichTextAttr* style)
+    EXPORT int wxRichTextParagraphLayoutBox_SetDefaultStyle(wxRichTextParagraphLayoutBox* self,
+                                                            wxRichTextAttr* style)
     {
         return self->SetDefaultStyle(*style);
     }
@@ -378,7 +377,7 @@ extern "C"
         self->SetPartialParagraph(partialParagraph);
     }
 
-    EXPORT bool wxRichTextParagraphLayoutBox_GetPartialParagraph(wxRichTextParagraphLayoutBox* self)
+    EXPORT int wxRichTextParagraphLayoutBox_GetPartialParagraph(wxRichTextParagraphLayoutBox* self)
     {
         return self->GetPartialParagraph();
     }
@@ -428,7 +427,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxRichTextImageBlock_IsOk(wxRichTextImageBlock* self)
+    EXPORT int wxRichTextImageBlock_IsOk(wxRichTextImageBlock* self)
     {
         return self->IsOk();
     }
@@ -526,7 +525,7 @@ extern "C"
         *endPos = range.GetEnd();
     }
 
-    EXPORT bool wxRichTextBuffer_DeleteRange(wxRichTextBuffer* self, long startPos, long endPos)
+    EXPORT int wxRichTextBuffer_DeleteRange(wxRichTextBuffer* self, long startPos, long endPos)
     {
         return self->DeleteRange(wxRichTextRange(startPos, endPos));
     }
@@ -550,12 +549,12 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxRichTextBuffer_LoadFile(wxRichTextBuffer* self, wxString* filename, int type)
+    EXPORT int wxRichTextBuffer_LoadFile(wxRichTextBuffer* self, wxString* filename, int type)
     {
         return self->LoadFile(*filename, static_cast<wxRichTextFileType>(type));
     }
 
-    EXPORT bool wxRichTextBuffer_SaveFile(wxRichTextBuffer* self, wxString* filename, int type)
+    EXPORT int wxRichTextBuffer_SaveFile(wxRichTextBuffer* self, wxString* filename, int type)
     {
         return self->SaveFile(*filename, static_cast<wxRichTextFileType>(type));
     }
@@ -576,14 +575,14 @@ extern "C"
         return self->GetStyleSheet();
     }
 
-    EXPORT bool wxRichTextBuffer_SetStyleSheetAndNotify(wxRichTextBuffer* self,
-                                                        wxRichTextStyleSheet* sheet)
+    EXPORT int wxRichTextBuffer_SetStyleSheetAndNotify(wxRichTextBuffer* self,
+                                                       wxRichTextStyleSheet* sheet)
     {
         return self->SetStyleSheetAndNotify(sheet);
     }
 
-    EXPORT bool wxRichTextBuffer_PushStyleSheet(wxRichTextBuffer* self,
-                                                wxRichTextStyleSheet* styleSheet)
+    EXPORT int wxRichTextBuffer_PushStyleSheet(wxRichTextBuffer* self,
+                                               wxRichTextStyleSheet* styleSheet)
     {
         return self->PushStyleSheet(styleSheet);
     }
@@ -623,32 +622,32 @@ extern "C"
         return self->GetDimensionScale();
     }
 
-    EXPORT bool wxRichTextBuffer_BeginBatchUndo(wxRichTextBuffer* self, wxString* cmdName)
+    EXPORT int wxRichTextBuffer_BeginBatchUndo(wxRichTextBuffer* self, wxString* cmdName)
     {
         return self->BeginBatchUndo(*cmdName);
     }
 
-    EXPORT bool wxRichTextBuffer_EndBatchUndo(wxRichTextBuffer* self)
+    EXPORT int wxRichTextBuffer_EndBatchUndo(wxRichTextBuffer* self)
     {
         return self->EndBatchUndo();
     }
 
-    EXPORT bool wxRichTextBuffer_BatchingUndo(wxRichTextBuffer* self)
+    EXPORT int wxRichTextBuffer_BatchingUndo(wxRichTextBuffer* self)
     {
         return self->BatchingUndo();
     }
 
-    EXPORT bool wxRichTextBuffer_BeginSuppressUndo(wxRichTextBuffer* self)
+    EXPORT int wxRichTextBuffer_BeginSuppressUndo(wxRichTextBuffer* self)
     {
         return self->BeginSuppressUndo();
     }
 
-    EXPORT bool wxRichTextBuffer_EndSuppressUndo(wxRichTextBuffer* self)
+    EXPORT int wxRichTextBuffer_EndSuppressUndo(wxRichTextBuffer* self)
     {
         return self->EndSuppressUndo();
     }
 
-    EXPORT bool wxRichTextBuffer_SuppressingUndo(wxRichTextBuffer* self)
+    EXPORT int wxRichTextBuffer_SuppressingUndo(wxRichTextBuffer* self)
     {
         return self->SuppressingUndo();
     }
@@ -713,22 +712,22 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxRichTextFileHandler_CanHandle(wxRichTextFileHandler* self, wxString* filename)
+    EXPORT int wxRichTextFileHandler_CanHandle(wxRichTextFileHandler* self, wxString* filename)
     {
         return self->CanHandle(*filename);
     }
 
-    EXPORT bool wxRichTextFileHandler_CanLoad(wxRichTextFileHandler* self)
+    EXPORT int wxRichTextFileHandler_CanLoad(wxRichTextFileHandler* self)
     {
         return self->CanLoad();
     }
 
-    EXPORT bool wxRichTextFileHandler_CanSave(wxRichTextFileHandler* self)
+    EXPORT int wxRichTextFileHandler_CanSave(wxRichTextFileHandler* self)
     {
         return self->CanSave();
     }
 
-    EXPORT bool wxRichTextFileHandler_IsVisible(wxRichTextFileHandler* self)
+    EXPORT int wxRichTextFileHandler_IsVisible(wxRichTextFileHandler* self)
     {
         return self->IsVisible();
     }
@@ -773,7 +772,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxRichTextHTMLHandler_CanHandle(wxRichTextHTMLHandler* self, wxString* filename)
+    EXPORT int wxRichTextHTMLHandler_CanHandle(wxRichTextHTMLHandler* self, wxString* filename)
     {
         return self->CanHandle(*filename);
     }
@@ -783,7 +782,7 @@ extern "C"
         self->ClearTemporaryImageLocations();
     }
 
-    EXPORT bool wxRichTextHTMLHandler_DeleteTemporaryImages(wxRichTextHTMLHandler* self)
+    EXPORT int wxRichTextHTMLHandler_DeleteTemporaryImages(wxRichTextHTMLHandler* self)
     {
         return self->DeleteTemporaryImages();
     }
@@ -806,7 +805,7 @@ extern "C"
         wxRichTextBuffer::AddHandler((wxRichTextFileHandler*) handler);
     }
 
-    EXPORT bool wxRichTextFileHandler_SaveFile(void* pObject, void* buffer, void* stream)
+    EXPORT int wxRichTextFileHandler_SaveFile(void* pObject, void* buffer, void* stream)
     {
         return ((wxRichTextFileHandler*) pObject)
             ->SaveFile((wxRichTextBuffer*) buffer, *(wxOutputStream*) stream);

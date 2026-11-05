@@ -179,7 +179,7 @@ extern "C"
         ((wxComboBox*) pObject)->Dismiss();
     }
 
-    EXPORT bool wxComboBox_IsListEmpty(void* pObject)
+    EXPORT int wxComboBox_IsListEmpty(void* pObject)
     {
         return ((wxComboBox*) pObject)->IsListEmpty();
     }
@@ -188,5 +188,4 @@ extern "C"
     {
         ((wxComboBox*) pObject)->Popup();
     }
-
 }

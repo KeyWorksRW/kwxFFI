@@ -45,7 +45,7 @@ extern "C"
         return self->Add(*icon);
     }
 
-    EXPORT bool wxImageList_Replace(wxImageList* self, int index, wxBitmap* bitmap, wxBitmap* mask)
+    EXPORT int wxImageList_Replace(wxImageList* self, int index, wxBitmap* bitmap, wxBitmap* mask)
     {
 #ifdef __WIN32__
         return self->Replace(index, *bitmap, *mask);
@@ -54,23 +54,23 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxImageList_ReplaceIcon(wxImageList* self, int index, wxIcon* icon)
+    EXPORT int wxImageList_ReplaceIcon(wxImageList* self, int index, wxIcon* icon)
     {
         return self->Replace(index, *icon);
     }
 
-    EXPORT bool wxImageList_Remove(wxImageList* self, int index)
+    EXPORT int wxImageList_Remove(wxImageList* self, int index)
     {
         return self->Remove(index);
     }
 
-    EXPORT bool wxImageList_RemoveAll(wxImageList* self)
+    EXPORT int wxImageList_RemoveAll(wxImageList* self)
     {
         return self->RemoveAll();
     }
 
-    EXPORT bool wxImageList_Draw(wxImageList* self, int index, wxDC* dc, int x, int y, int flags,
-                                 bool solidBackground)
+    EXPORT int wxImageList_Draw(wxImageList* self, int index, wxDC* dc, int x, int y, int flags,
+                                bool solidBackground)
     {
         return self->Draw(index, *dc, x, y, flags, solidBackground);
     }
@@ -80,5 +80,4 @@ extern "C"
     {
         return ((wxImageList*) pObject)->Add(*(wxBitmap*) bitmap, *(wxBitmap*) mask);
     }
-
 }

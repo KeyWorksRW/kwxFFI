@@ -115,9 +115,8 @@ extern "C"
         return (void*) ((wxFindDialogEvent*) pObject)->GetDialog();
     }
 
-    EXPORT bool wxFindReplaceDialog_Show(void* pObject, bool show)
+    EXPORT int wxFindReplaceDialog_Show(void* pObject, bool show)
     {
         return ((wxFindReplaceDialog*) pObject)->Show(show);
     }
-
 }

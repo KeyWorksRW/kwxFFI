@@ -31,12 +31,12 @@ extern "C"
         return self->GetSymbolChar();
     }
 
-    EXPORT bool wxSymbolPickerDialog_HasSelection(wxSymbolPickerDialog* self)
+    EXPORT int wxSymbolPickerDialog_HasSelection(wxSymbolPickerDialog* self)
     {
         return self->HasSelection();
     }
 
-    EXPORT bool wxSymbolPickerDialog_UseNormalFont(wxSymbolPickerDialog* self)
+    EXPORT int wxSymbolPickerDialog_UseNormalFont(wxSymbolPickerDialog* self)
     {
         return self->UseNormalFont();
     }
@@ -75,7 +75,7 @@ extern "C"
         self->SetFontName(*fontName);
     }
 
-    EXPORT bool wxSymbolPickerDialog_GetFromUnicode(wxSymbolPickerDialog* self)
+    EXPORT int wxSymbolPickerDialog_GetFromUnicode(wxSymbolPickerDialog* self)
     {
         return self->GetFromUnicode();
     }
@@ -116,23 +116,22 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxRichTextFormattingDialog_GetStyle(wxRichTextFormattingDialog* self,
-                                                    wxRichTextCtrl* ctrl, long startPos,
-                                                    long endPos)
+    EXPORT int wxRichTextFormattingDialog_GetStyle(wxRichTextFormattingDialog* self,
+                                                   wxRichTextCtrl* ctrl, long startPos, long endPos)
     {
         return self->GetStyle(ctrl, wxRichTextRange(startPos, endPos));
     }
 
-    EXPORT bool wxRichTextFormattingDialog_SetStyle(wxRichTextFormattingDialog* self,
-                                                    wxRichTextAttr* style, bool update)
+    EXPORT int wxRichTextFormattingDialog_SetStyle(wxRichTextFormattingDialog* self,
+                                                   wxRichTextAttr* style, bool update)
     {
         return self->SetStyle(*style, update);
     }
 
-    EXPORT bool wxRichTextFormattingDialog_SetStyleDefinition(wxRichTextFormattingDialog* self,
-                                                              wxRichTextStyleDefinition* styleDef,
-                                                              wxRichTextStyleSheet* sheet,
-                                                              bool update)
+    EXPORT int wxRichTextFormattingDialog_SetStyleDefinition(wxRichTextFormattingDialog* self,
+                                                             wxRichTextStyleDefinition* styleDef,
+                                                             wxRichTextStyleSheet* sheet,
+                                                             bool update)
     {
         return self->SetStyleDefinition(*styleDef, sheet, update);
     }
@@ -149,14 +148,14 @@ extern "C"
         return self->GetStyleSheet();
     }
 
-    EXPORT bool wxRichTextFormattingDialog_UpdateDisplay(wxRichTextFormattingDialog* self)
+    EXPORT int wxRichTextFormattingDialog_UpdateDisplay(wxRichTextFormattingDialog* self)
     {
         return self->UpdateDisplay();
     }
 
-    EXPORT bool wxRichTextFormattingDialog_ApplyStyle(wxRichTextFormattingDialog* self,
-                                                      wxRichTextCtrl* ctrl, long startPos,
-                                                      long endPos, int flags)
+    EXPORT int wxRichTextFormattingDialog_ApplyStyle(wxRichTextFormattingDialog* self,
+                                                     wxRichTextCtrl* ctrl, long startPos,
+                                                     long endPos, int flags)
     {
         return self->ApplyStyle(ctrl, wxRichTextRange(startPos, endPos), flags);
     }
@@ -183,7 +182,7 @@ extern "C"
         return self->GetOptions();
     }
 
-    EXPORT bool wxRichTextFormattingDialog_HasOption(wxRichTextFormattingDialog* self, int option)
+    EXPORT int wxRichTextFormattingDialog_HasOption(wxRichTextFormattingDialog* self, int option)
     {
         return self->HasOption(option);
     }
@@ -199,12 +198,12 @@ extern "C"
         self->SetObject(obj);
     }
 
-    EXPORT bool wxRichTextFormattingDialog_TransferDataToWindow(wxRichTextFormattingDialog* self)
+    EXPORT int wxRichTextFormattingDialog_TransferDataToWindow(wxRichTextFormattingDialog* self)
     {
         return self->TransferDataToWindow();
     }
 
-    EXPORT bool wxRichTextFormattingDialog_TransferDataFromWindow(wxRichTextFormattingDialog* self)
+    EXPORT int wxRichTextFormattingDialog_TransferDataFromWindow(wxRichTextFormattingDialog* self)
     {
         return self->TransferDataFromWindow();
     }
@@ -299,8 +298,8 @@ extern "C"
         return self->GetSelectedStyleDefinition();
     }
 
-    EXPORT bool wxRichTextStyleOrganiserDialog_ApplyStyle(wxRichTextStyleOrganiserDialog* self,
-                                                          wxRichTextCtrl* ctrl)
+    EXPORT int wxRichTextStyleOrganiserDialog_ApplyStyle(wxRichTextStyleOrganiserDialog* self,
+                                                         wxRichTextCtrl* ctrl)
     {
         return self->ApplyStyle(ctrl);
     }

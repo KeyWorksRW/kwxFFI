@@ -15,17 +15,17 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxValidator_Validate(wxValidator* self, wxWindow* parent)
+    EXPORT int wxValidator_Validate(wxValidator* self, wxWindow* parent)
     {
         return self->Validate(parent);
     }
 
-    EXPORT bool wxValidator_TransferToWindow(wxValidator* self)
+    EXPORT int wxValidator_TransferToWindow(wxValidator* self)
     {
         return self->TransferToWindow();
     }
 
-    EXPORT bool wxValidator_TransferFromWindow(wxValidator* self)
+    EXPORT int wxValidator_TransferFromWindow(wxValidator* self)
     {
         return self->TransferFromWindow();
     }
@@ -135,12 +135,12 @@ extern "C"
         return (void*) self->Clone();
     }
 
-    EXPORT bool wxTextValidator_TransferToWindow(wxTextValidator* self)
+    EXPORT int wxTextValidator_TransferToWindow(wxTextValidator* self)
     {
         return self->TransferToWindow();
     }
 
-    EXPORT bool wxTextValidator_TransferFromWindow(wxTextValidator* self)
+    EXPORT int wxTextValidator_TransferFromWindow(wxTextValidator* self)
     {
         return self->TransferFromWindow();
     }
@@ -183,11 +183,10 @@ extern "C"
         ((wxTextValidator*) pObject)->SetCharIncludes(*(wxString*) chars);
     }
 
-    EXPORT bool wxValidator_IsSilent()
+    EXPORT int wxValidator_IsSilent()
     {
         return wxValidator::IsSilent();
     }
-
 }
 
 bool kwxTextValidator::Validate(wxWindow* parent)

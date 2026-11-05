@@ -79,7 +79,7 @@ extern "C"
         *self = *brush;
     }
 
-    EXPORT bool wxBrush_IsEqual(wxBrush* self, wxBrush* brush)
+    EXPORT int wxBrush_IsEqual(wxBrush* self, wxBrush* brush)
     {
         return *self == *brush;
     }
@@ -99,7 +99,7 @@ extern "C"
         *ref = *(self->GetStipple());
     }
 
-    EXPORT bool wxBrush_IsOk(wxBrush* self)
+    EXPORT int wxBrush_IsOk(wxBrush* self)
     {
         return self->IsOk();
     }

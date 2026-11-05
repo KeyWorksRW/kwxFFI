@@ -36,7 +36,7 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxToolbook_SetPageText(wxToolbook* self, size_t nPage, wxString* strText)
+    EXPORT int wxToolbook_SetPageText(wxToolbook* self, size_t nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
@@ -63,34 +63,34 @@ extern "C"
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxToolbook_SetPageImage(wxToolbook* self, size_t nPage, int nImage)
+    EXPORT int wxToolbook_SetPageImage(wxToolbook* self, size_t nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
 
-    EXPORT bool wxToolbook_DeletePage(wxToolbook* self, size_t nPage)
+    EXPORT int wxToolbook_DeletePage(wxToolbook* self, size_t nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxToolbook_RemovePage(wxToolbook* self, size_t nPage)
+    EXPORT int wxToolbook_RemovePage(wxToolbook* self, size_t nPage)
     {
         return self->RemovePage(nPage);
     }
 
-    EXPORT bool wxToolbook_DeleteAllPages(wxToolbook* self)
+    EXPORT int wxToolbook_DeleteAllPages(wxToolbook* self)
     {
         return self->DeleteAllPages();
     }
 
-    EXPORT bool wxToolbook_AddPage(wxToolbook* self, wxWindow* pPage, wxString* strText,
-                                   bool bSelect, int imageId)
+    EXPORT int wxToolbook_AddPage(wxToolbook* self, wxWindow* pPage, wxString* strText,
+                                  bool bSelect, int imageId)
     {
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxToolbook_InsertPage(wxToolbook* self, size_t nPage, wxWindow* pPage,
-                                      wxString* strText, bool bSelect, int imageId)
+    EXPORT int wxToolbook_InsertPage(wxToolbook* self, size_t nPage, wxWindow* pPage,
+                                     wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
     }

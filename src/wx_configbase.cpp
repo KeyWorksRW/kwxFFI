@@ -81,17 +81,17 @@ extern "C"
         return self->GetNumberOfGroups(bRecursive);
     }
 
-    EXPORT bool wxConfigBase_HasGroup(wxConfigBase* self, wxString* strName)
+    EXPORT int wxConfigBase_HasGroup(wxConfigBase* self, wxString* strName)
     {
         return self->HasGroup(*strName);
     }
 
-    EXPORT bool wxConfigBase_HasEntry(wxConfigBase* self, wxString* strName)
+    EXPORT int wxConfigBase_HasEntry(wxConfigBase* self, wxString* strName)
     {
         return self->HasEntry(*strName);
     }
 
-    EXPORT bool wxConfigBase_Exists(wxConfigBase* self, wxString* strName)
+    EXPORT int wxConfigBase_Exists(wxConfigBase* self, wxString* strName)
     {
         return self->Exists(*strName);
     }
@@ -121,7 +121,7 @@ extern "C"
         return 0.0;
     }
 
-    EXPORT bool wxConfigBase_ReadBool(wxConfigBase* self, wxString* key, bool defVal)
+    EXPORT int wxConfigBase_ReadBool(wxConfigBase* self, wxString* key, bool defVal)
     {
         bool val;
         if (self->Read(*key, &val, defVal))
@@ -129,63 +129,62 @@ extern "C"
         return false;
     }
 
-    EXPORT bool wxConfigBase_WriteString(wxConfigBase* self, wxString* key, wxString* value)
+    EXPORT int wxConfigBase_WriteString(wxConfigBase* self, wxString* key, wxString* value)
     {
         return self->Write(*key, *value);
     }
 
-    EXPORT bool wxConfigBase_WriteInteger(wxConfigBase* self, wxString* key, int value)
+    EXPORT int wxConfigBase_WriteInteger(wxConfigBase* self, wxString* key, int value)
     {
         return self->Write(*key, (long) value);
     }
 
-    EXPORT bool wxConfigBase_WriteLong(wxConfigBase* self, wxString* key, long value)
+    EXPORT int wxConfigBase_WriteLong(wxConfigBase* self, wxString* key, long value)
     {
         return self->Write(*key, value);
     }
 
-    EXPORT bool wxConfigBase_WriteDouble(wxConfigBase* self, wxString* key, double value)
+    EXPORT int wxConfigBase_WriteDouble(wxConfigBase* self, wxString* key, double value)
     {
         return self->Write(*key, value);
     }
 
-    EXPORT bool wxConfigBase_WriteBool(wxConfigBase* self, wxString* key, bool value)
+    EXPORT int wxConfigBase_WriteBool(wxConfigBase* self, wxString* key, bool value)
     {
         return self->Write(*key, value);
     }
 
-    EXPORT bool wxConfigBase_Flush(wxConfigBase* self, bool bCurrentOnly)
+    EXPORT int wxConfigBase_Flush(wxConfigBase* self, bool bCurrentOnly)
     {
         return self->Flush(bCurrentOnly);
     }
 
-    EXPORT bool wxConfigBase_RenameEntry(wxConfigBase* self, wxString* oldName, wxString* newName)
+    EXPORT int wxConfigBase_RenameEntry(wxConfigBase* self, wxString* oldName, wxString* newName)
     {
         return self->RenameEntry(*oldName, *newName);
     }
 
-    EXPORT bool wxConfigBase_RenameGroup(wxConfigBase* self, wxString* oldName, wxString* newName)
+    EXPORT int wxConfigBase_RenameGroup(wxConfigBase* self, wxString* oldName, wxString* newName)
     {
         return self->RenameGroup(*oldName, *newName);
     }
 
-    EXPORT bool wxConfigBase_DeleteEntry(wxConfigBase* self, wxString* key,
-                                         bool bDeleteGroupIfEmpty)
+    EXPORT int wxConfigBase_DeleteEntry(wxConfigBase* self, wxString* key, bool bDeleteGroupIfEmpty)
     {
         return self->DeleteEntry(*key, bDeleteGroupIfEmpty);
     }
 
-    EXPORT bool wxConfigBase_DeleteGroup(wxConfigBase* self, wxString* key)
+    EXPORT int wxConfigBase_DeleteGroup(wxConfigBase* self, wxString* key)
     {
         return self->DeleteGroup(*key);
     }
 
-    EXPORT bool wxConfigBase_DeleteAll(wxConfigBase* self)
+    EXPORT int wxConfigBase_DeleteAll(wxConfigBase* self)
     {
         return self->DeleteAll();
     }
 
-    EXPORT bool wxConfigBase_IsExpandingEnvVars(wxConfigBase* self)
+    EXPORT int wxConfigBase_IsExpandingEnvVars(wxConfigBase* self)
     {
         return self->IsExpandingEnvVars();
     }
@@ -200,7 +199,7 @@ extern "C"
         self->SetRecordDefaults(bDoIt);
     }
 
-    EXPORT bool wxConfigBase_IsRecordingDefaults(wxConfigBase* self)
+    EXPORT int wxConfigBase_IsRecordingDefaults(wxConfigBase* self)
     {
         return self->IsRecordingDefaults();
     }
@@ -247,14 +246,13 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxConfigBase_Read(void* pObject, void* key, void* pStr)
+    EXPORT int wxConfigBase_Read(void* pObject, void* key, void* pStr)
     {
         return ((wxConfigBase*) pObject)->Read(*(wxString*) key, (wxString*) pStr);
     }
 
-    EXPORT bool wxConfigBase_Write(void* pObject, void* key, void* value)
+    EXPORT int wxConfigBase_Write(void* pObject, void* key, void* value)
     {
         return ((wxConfigBase*) pObject)->Write(*(wxString*) key, *(wxString*) value);
     }
-
 }

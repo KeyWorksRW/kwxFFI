@@ -23,7 +23,7 @@ extern "C"
         self->SetValue(state);
     }
 
-    EXPORT bool wxToggleButton_GetValue(wxToggleButton* self)
+    EXPORT int wxToggleButton_GetValue(wxToggleButton* self)
     {
         return self->GetValue();
     }
@@ -33,7 +33,7 @@ extern "C"
         self->SetLabel(*label);
     }
 
-    EXPORT bool wxToggleButton_Enable(wxToggleButton* self, bool enable)
+    EXPORT int wxToggleButton_Enable(wxToggleButton* self, bool enable)
     {
         return self->Enable(enable);
     }
@@ -51,12 +51,12 @@ extern "C"
         self->SetValue(state);
     }
 
-    EXPORT bool wxBitmapToggleButton_GetValue(wxBitmapToggleButton* self)
+    EXPORT int wxBitmapToggleButton_GetValue(wxBitmapToggleButton* self)
     {
         return self->GetValue();
     }
 
-    EXPORT bool wxBitmapToggleButton_Enable(wxBitmapToggleButton* self, bool enable)
+    EXPORT int wxBitmapToggleButton_Enable(wxBitmapToggleButton* self, bool enable)
     {
         return self->Enable(enable);
     }

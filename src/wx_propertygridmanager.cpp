@@ -34,7 +34,7 @@ extern "C"
         return self->InsertPage(index, *label, bmp ? *bmp : wxBitmapBundle(), nullptr);
     }
 
-    EXPORT bool wxPropertyGridManager_RemovePage(wxPropertyGridManager* self, int page)
+    EXPORT int wxPropertyGridManager_RemovePage(wxPropertyGridManager* self, int page)
     {
         return self->RemovePage(page);
     }
@@ -117,12 +117,12 @@ extern "C"
         self->ShowHeader(show);
     }
 
-    EXPORT bool wxPropertyGridManager_IsAnyModified(wxPropertyGridManager* self)
+    EXPORT int wxPropertyGridManager_IsAnyModified(wxPropertyGridManager* self)
     {
         return self->IsAnyModified();
     }
 
-    EXPORT bool wxPropertyGridManager_IsPageModified(wxPropertyGridManager* self, size_t index)
+    EXPORT int wxPropertyGridManager_IsPageModified(wxPropertyGridManager* self, size_t index)
     {
         return self->IsPageModified(index);
     }
@@ -424,7 +424,7 @@ extern "C"
         self->SetVirtualWidth(width);
     }
 
-    EXPORT bool wxPropertyGrid_HasVirtualWidth(wxPropertyGrid* self)
+    EXPORT int wxPropertyGrid_HasVirtualWidth(wxPropertyGrid* self)
     {
         return self->HasVirtualWidth();
     }
@@ -455,32 +455,32 @@ extern "C"
         self->SetVerticalSpacing(spacing);
     }
 
-    EXPORT bool wxPropertyGrid_SelectProperty(wxPropertyGrid* self, wxPGProperty* id, bool focus)
+    EXPORT int wxPropertyGrid_SelectProperty(wxPropertyGrid* self, wxPGProperty* id, bool focus)
     {
         return self->SelectProperty(id, focus);
     }
 
-    EXPORT bool wxPropertyGrid_AddToSelection(wxPropertyGrid* self, wxPGProperty* id)
+    EXPORT int wxPropertyGrid_AddToSelection(wxPropertyGrid* self, wxPGProperty* id)
     {
         return self->AddToSelection(id);
     }
 
-    EXPORT bool wxPropertyGrid_RemoveFromSelection(wxPropertyGrid* self, wxPGProperty* id)
+    EXPORT int wxPropertyGrid_RemoveFromSelection(wxPropertyGrid* self, wxPGProperty* id)
     {
         return self->RemoveFromSelection(id);
     }
 
-    EXPORT bool wxPropertyGrid_EnsureVisible(wxPropertyGrid* self, wxPGProperty* id)
+    EXPORT int wxPropertyGrid_EnsureVisible(wxPropertyGrid* self, wxPGProperty* id)
     {
         return self->EnsureVisible(id);
     }
 
-    EXPORT bool wxPropertyGrid_EnableCategories(wxPropertyGrid* self, bool enable)
+    EXPORT int wxPropertyGrid_EnableCategories(wxPropertyGrid* self, bool enable)
     {
         return self->EnableCategories(enable);
     }
 
-    EXPORT bool wxPropertyGrid_CommitChangesFromEditor(wxPropertyGrid* self, int flags)
+    EXPORT int wxPropertyGrid_CommitChangesFromEditor(wxPropertyGrid* self, int flags)
     {
         return self->CommitChangesFromEditor(static_cast<wxPGSelectPropertyFlags>(flags));
     }
@@ -495,17 +495,17 @@ extern "C"
         self->EndLabelEdit(commit);
     }
 
-    EXPORT bool wxPropertyGrid_IsAnyModified(wxPropertyGrid* self)
+    EXPORT int wxPropertyGrid_IsAnyModified(wxPropertyGrid* self)
     {
         return self->IsAnyModified();
     }
 
-    EXPORT bool wxPropertyGrid_IsEditorFocused(wxPropertyGrid* self)
+    EXPORT int wxPropertyGrid_IsEditorFocused(wxPropertyGrid* self)
     {
         return self->IsEditorFocused();
     }
 
-    EXPORT bool wxPropertyGrid_IsEditorsValueModified(wxPropertyGrid* self)
+    EXPORT int wxPropertyGrid_IsEditorsValueModified(wxPropertyGrid* self)
     {
         return self->IsEditorsValueModified();
     }
@@ -525,7 +525,7 @@ extern "C"
         self->RefreshEditor();
     }
 
-    EXPORT bool wxPropertyGrid_UnfocusEditor(wxPropertyGrid* self)
+    EXPORT int wxPropertyGrid_UnfocusEditor(wxPropertyGrid* self)
     {
         return self->UnfocusEditor();
     }
@@ -556,7 +556,7 @@ extern "C"
         self->ClearActionTriggers(static_cast<wxPGKeyboardAction>(action));
     }
 
-    EXPORT bool wxPropertyGrid_SetFont(wxPropertyGrid* self, wxFont* font)
+    EXPORT int wxPropertyGrid_SetFont(wxPropertyGrid* self, wxFont* font)
     {
         return self->SetFont(*font);
     }
@@ -585,7 +585,7 @@ extern "C"
         self->Init();
     }
 
-    EXPORT bool wxPropertyGridPage_IsHandlingAllEvents(wxPropertyGridPage* self)
+    EXPORT int wxPropertyGridPage_IsHandlingAllEvents(wxPropertyGridPage* self)
     {
         return self->IsHandlingAllEvents();
     }
@@ -618,7 +618,8 @@ extern "C"
 
     EXPORT void* wxPropertyGrid_GetGoodEditorDialogPosition(void* pObject, void* p, void* sz)
     {
-        wxPoint value = ((wxPropertyGrid*) pObject)->GetGoodEditorDialogPosition((wxPGProperty*) p, *(wxSize*) sz);
+        wxPoint value = ((wxPropertyGrid*) pObject)
+                            ->GetGoodEditorDialogPosition((wxPGProperty*) p, *(wxSize*) sz);
         return new wxPoint(value);
     }
 
@@ -626,5 +627,4 @@ extern "C"
     {
         return (void*) wxPropertyGrid::RegisterEditorClass((wxPGEditor*) editor, noDefCheck);
     }
-
 }

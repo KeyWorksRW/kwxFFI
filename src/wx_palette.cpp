@@ -26,13 +26,13 @@ extern "C"
         return self->GetPixel(red, green, blue);
     }
 
-    EXPORT bool wxPalette_GetRGB(wxPalette* self, int pixel, void* red, void* green, void* blue)
+    EXPORT int wxPalette_GetRGB(wxPalette* self, int pixel, void* red, void* green, void* blue)
     {
         return self->GetRGB(pixel, (unsigned char*) red, (unsigned char*) green,
                             (unsigned char*) blue);
     }
 
-    EXPORT bool wxPalette_IsOk(wxPalette* self)
+    EXPORT int wxPalette_IsOk(wxPalette* self)
     {
         return self->IsOk();
     }
@@ -42,7 +42,7 @@ extern "C"
         *self = *((wxPalette*) palette);
     }
 
-    EXPORT bool wxPalette_IsEqual(wxPalette* self, wxPalette* palette)
+    EXPORT int wxPalette_IsEqual(wxPalette* self, wxPalette* palette)
     {
         wxPalette* pal1 = self;
         wxPalette* pal2 = palette;

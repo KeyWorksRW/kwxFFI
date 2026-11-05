@@ -98,7 +98,7 @@ extern "C"
         self->Redirect();
     }
 
-    EXPORT bool wxProcess_IsRedirected(wxProcess* self)
+    EXPORT int wxProcess_IsRedirected(wxProcess* self)
     {
         return self->IsRedirected();
     }
@@ -143,7 +143,7 @@ extern "C"
         return (int) self->GetLastError();
     }
 
-    EXPORT bool wxStreamBase_IsOk(wxStreamBase* self)
+    EXPORT int wxStreamBase_IsOk(wxStreamBase* self)
     {
         return self->IsOk();
     }
@@ -193,7 +193,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxInputStream_Eof(wxInputStream* self)
+    EXPORT int wxInputStream_Eof(wxInputStream* self)
     {
         return self->Eof();
     }
@@ -247,7 +247,7 @@ extern "C"
         return new wxProcess(flags);
     }
 
-    EXPORT bool wxProcess_Activate(wxProcess* self)
+    EXPORT int wxProcess_Activate(wxProcess* self)
     {
         return self->Activate();
     }
@@ -277,7 +277,7 @@ extern "C"
         return static_cast<int>(kill_error);
     }
 
-    EXPORT bool wxProcess_Exists(int pid)
+    EXPORT int wxProcess_Exists(int pid)
     {
         return wxProcess::Exists(pid);
     }
@@ -287,17 +287,17 @@ extern "C"
         return wxProcess::Open(*cmd, flags);
     }
 
-    EXPORT bool wxProcess_IsInputAvailable(wxProcess* self)
+    EXPORT int wxProcess_IsInputAvailable(wxProcess* self)
     {
         return self->IsInputAvailable();
     }
 
-    EXPORT bool wxProcess_IsErrorAvailable(wxProcess* self)
+    EXPORT int wxProcess_IsErrorAvailable(wxProcess* self)
     {
         return self->IsErrorAvailable();
     }
 
-    EXPORT bool wxProcess_IsInputOpened(wxProcess* self)
+    EXPORT int wxProcess_IsInputOpened(wxProcess* self)
     {
         return self->IsInputOpened();
     }
@@ -365,5 +365,4 @@ extern "C"
     {
         return (int) ((wxOutputStream*) pObject)->SeekO((wxFileOffset) pos, (wxSeekMode) mode);
     }
-
 }

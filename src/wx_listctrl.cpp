@@ -196,7 +196,7 @@ extern "C"
         return (int) self->SetForegroundColour(*col);
     }
 
-    EXPORT bool wxListCtrl_SetBackgroundColour(wxListCtrl* self, wxColour* col)
+    EXPORT int wxListCtrl_SetBackgroundColour(wxListCtrl* self, wxColour* col)
     {
         return self->SetBackgroundColour(*col);
     }
@@ -216,7 +216,7 @@ extern "C"
         return self->GetColumnWidth(col);
     }
 
-    EXPORT bool wxListCtrl_SetColumnWidth(wxListCtrl* self, int col, int width)
+    EXPORT int wxListCtrl_SetColumnWidth(wxListCtrl* self, int col, int width)
     {
         return self->SetColumnWidth(col, width);
     }
@@ -240,13 +240,13 @@ extern "C"
         return (int) self->GetItem(*info);
     }
 
-    EXPORT bool wxListCtrl_SetItemFromInfo(wxListCtrl* self, wxListItem* info)
+    EXPORT int wxListCtrl_SetItemFromInfo(wxListCtrl* self, wxListItem* info)
     {
         return self->SetItem(*info);
     }
 
-    EXPORT bool wxListCtrl_SetItem(wxListCtrl* self, int index, int col, wxString* label,
-                                   int imageId)
+    EXPORT int wxListCtrl_SetItem(wxListCtrl* self, int index, int col, wxString* label,
+                                  int imageId)
     {
         return self->SetItem((long) index, col, *label, imageId);
     }
@@ -256,12 +256,12 @@ extern "C"
         return self->GetItemState((long) item, (long) stateMask);
     }
 
-    EXPORT bool wxListCtrl_SetItemState(wxListCtrl* self, int item, int state, int stateMask)
+    EXPORT int wxListCtrl_SetItemState(wxListCtrl* self, int item, int state, int stateMask)
     {
         return self->SetItemState((long) item, (long) state, (long) stateMask);
     }
 
-    EXPORT bool wxListCtrl_SetItemImage(wxListCtrl* self, int item, int image, int selImage)
+    EXPORT int wxListCtrl_SetItemImage(wxListCtrl* self, int item, int image, int selImage)
     {
         return self->SetItemImage((long) item, image, selImage);
     }
@@ -283,7 +283,7 @@ extern "C"
         return (int) self->GetItemData((long) item);
     }
 
-    EXPORT bool wxListCtrl_SetItemData(wxListCtrl* self, int item, int data)
+    EXPORT int wxListCtrl_SetItemData(wxListCtrl* self, int item, int data)
     {
         return self->SetItemData((long) item, (long) data);
     }
@@ -377,22 +377,22 @@ extern "C"
         self->SetImageList((wxImageList*) imageList, which);
     }
 
-    EXPORT bool wxListCtrl_Arrange(wxListCtrl* self, int flag)
+    EXPORT int wxListCtrl_Arrange(wxListCtrl* self, int flag)
     {
         return self->Arrange(flag);
     }
 
-    EXPORT bool wxListCtrl_DeleteItem(wxListCtrl* self, int item)
+    EXPORT int wxListCtrl_DeleteItem(wxListCtrl* self, int item)
     {
         return self->DeleteItem((long) item);
     }
 
-    EXPORT bool wxListCtrl_DeleteAllItems(wxListCtrl* self)
+    EXPORT int wxListCtrl_DeleteAllItems(wxListCtrl* self)
     {
         return self->DeleteAllItems();
     }
 
-    EXPORT bool wxListCtrl_DeleteColumn(wxListCtrl* self, int col)
+    EXPORT int wxListCtrl_DeleteColumn(wxListCtrl* self, int col)
     {
         return self->DeleteColumn(col);
     }
@@ -412,7 +412,7 @@ extern "C"
         self->EditLabel((long) item);
     }
 
-    EXPORT bool wxListCtrl_EndEditLabel(wxListCtrl* self, bool cancel)
+    EXPORT int wxListCtrl_EndEditLabel(wxListCtrl* self, bool cancel)
     {
 #ifdef __WIN32__
         return self->EndEditLabel(cancel);
@@ -421,7 +421,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxListCtrl_EnsureVisible(wxListCtrl* self, int item)
+    EXPORT int wxListCtrl_EnsureVisible(wxListCtrl* self, int item)
     {
         return self->EnsureVisible((long) item);
     }
@@ -479,12 +479,12 @@ extern "C"
         return (int) self->InsertColumn((long) col, *heading, format, width);
     }
 
-    EXPORT bool wxListCtrl_ScrollList(wxListCtrl* self, int dx, int dy)
+    EXPORT int wxListCtrl_ScrollList(wxListCtrl* self, int dx, int dy)
     {
         return self->ScrollList(dx, dy);
     }
 
-    EXPORT bool wxListCtrl_SortItems(wxListCtrl* self, void* fnc, void* obj)
+    EXPORT int wxListCtrl_SortItems(wxListCtrl* self, void* fnc, void* obj)
     {
         kwxSort srt = { obj, (kwxSortFunc) fnc };
         return self->SortItems(ListCmp, (wxIntPtr) &srt);
@@ -497,7 +497,7 @@ extern "C"
         return fnt;
     }
 
-    EXPORT bool wxListCtrl_IsVirtual(wxListCtrl* self)
+    EXPORT int wxListCtrl_IsVirtual(wxListCtrl* self)
     {
         return self->IsVirtual();
     }
@@ -512,8 +512,8 @@ extern "C"
         self->RefreshItems(from, toPos);
     }
 
-    EXPORT bool wxListCtrl_GetSubItemRect(wxListCtrl* self, long item, long subItem, int* x, int* y,
-                                          int* width, int* height, int code)
+    EXPORT int wxListCtrl_GetSubItemRect(wxListCtrl* self, long item, long subItem, int* x, int* y,
+                                         int* width, int* height, int code)
     {
         wxRect rect;
         bool result = self->GetSubItemRect(item, subItem, rect, code);
@@ -533,17 +533,17 @@ extern "C"
         *height = rect.height;
     }
 
-    EXPORT bool wxListCtrl_HasCheckBoxes(wxListCtrl* self)
+    EXPORT int wxListCtrl_HasCheckBoxes(wxListCtrl* self)
     {
         return self->HasCheckBoxes();
     }
 
-    EXPORT bool wxListCtrl_EnableCheckBoxes(wxListCtrl* self, bool enable)
+    EXPORT int wxListCtrl_EnableCheckBoxes(wxListCtrl* self, bool enable)
     {
         return self->EnableCheckBoxes(enable);
     }
 
-    EXPORT bool wxListCtrl_IsItemChecked(wxListCtrl* self, long item)
+    EXPORT int wxListCtrl_IsItemChecked(wxListCtrl* self, long item)
     {
         return self->IsItemChecked(item);
     }
@@ -563,12 +563,12 @@ extern "C"
         return self->GetSortIndicator();
     }
 
-    EXPORT bool wxListCtrl_IsAscendingSortIndicator(wxListCtrl* self)
+    EXPORT int wxListCtrl_IsAscendingSortIndicator(wxListCtrl* self)
     {
         return self->IsAscendingSortIndicator();
     }
 
-    EXPORT bool wxListCtrl_IsVisible(wxListCtrl* self, long item)
+    EXPORT int wxListCtrl_IsVisible(wxListCtrl* self, long item)
     {
         return self->IsVisible(item);
     }
@@ -578,7 +578,7 @@ extern "C"
         self->SetItemCount(count);
     }
 
-    EXPORT bool wxListCtrl_SetHeaderAttr(wxListCtrl* self, wxItemAttr* attr)
+    EXPORT int wxListCtrl_SetHeaderAttr(wxListCtrl* self, wxItemAttr* attr)
     {
         return self->SetHeaderAttr(*attr);
     }
@@ -593,12 +593,12 @@ extern "C"
         return self->GetColumnIndexFromOrder(order);
     }
 
-    EXPORT bool wxListCtrl_SetItemColumnImage(wxListCtrl* self, long item, long column, int image)
+    EXPORT int wxListCtrl_SetItemColumnImage(wxListCtrl* self, long item, long column, int image)
     {
         return self->SetItemColumnImage(item, column, image);
     }
 
-    EXPORT bool wxListCtrl_SetItemPtrData(wxListCtrl* self, long item, uintptr_t data)
+    EXPORT int wxListCtrl_SetItemPtrData(wxListCtrl* self, long item, uintptr_t data)
     {
         return self->SetItemPtrData(item, static_cast<wxUIntPtr>(data));
     }
@@ -638,12 +638,12 @@ extern "C"
             self->AppendColumn(*heading, static_cast<wxListColumnFormat>(format), width));
     }
 
-    EXPORT bool wxListCtrl_IsEmpty(wxListCtrl* self)
+    EXPORT int wxListCtrl_IsEmpty(wxListCtrl* self)
     {
         return self->IsEmpty();
     }
 
-    EXPORT bool wxListCtrl_InReportView(wxListCtrl* self)
+    EXPORT int wxListCtrl_InReportView(wxListCtrl* self)
     {
         return self->InReportView();
     }
@@ -680,7 +680,7 @@ extern "C"
         self->RemoveSortIndicator();
     }
 
-    EXPORT bool wxListCtrl_GetUpdatedAscendingSortIndicator(wxListCtrl* self, int col)
+    EXPORT int wxListCtrl_GetUpdatedAscendingSortIndicator(wxListCtrl* self, int col)
     {
         return self->GetUpdatedAscendingSortIndicator(col);
     }

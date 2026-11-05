@@ -66,7 +66,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool PopProvider()
+    EXPORT int PopProvider()
     {
 #if WXWIN_COMPATIBILITY_2_6
         return wxArtProvider::PopProvider();
@@ -75,7 +75,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool RemoveProvider(wxArtProvider* provider)
+    EXPORT int RemoveProvider(wxArtProvider* provider)
     {
 #if WXWIN_COMPATIBILITY_2_6
         return wxArtProvider::RemoveProvider(provider);

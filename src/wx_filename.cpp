@@ -125,17 +125,17 @@ extern "C"
         return FillStringArray(self->GetDirs(), dirs);
     }
 
-    EXPORT bool wxFileName_HasName(wxFileName* self)
+    EXPORT int wxFileName_HasName(wxFileName* self)
     {
         return self->HasName();
     }
 
-    EXPORT bool wxFileName_HasExt(wxFileName* self)
+    EXPORT int wxFileName_HasExt(wxFileName* self)
     {
         return self->HasExt();
     }
 
-    EXPORT bool wxFileName_HasVolume(wxFileName* self)
+    EXPORT int wxFileName_HasVolume(wxFileName* self)
     {
         return self->HasVolume();
     }
@@ -200,7 +200,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxFileName_AppendDir(wxFileName* self, wxString* dir)
+    EXPORT int wxFileName_AppendDir(wxFileName* self, wxString* dir)
     {
         return self->AppendDir(PathOrEmpty(dir));
     }
@@ -210,7 +210,7 @@ extern "C"
         self->PrependDir(PathOrEmpty(dir));
     }
 
-    EXPORT bool wxFileName_InsertDir(wxFileName* self, size_t before, wxString* dir)
+    EXPORT int wxFileName_InsertDir(wxFileName* self, size_t before, wxString* dir)
     {
         return self->InsertDir(before, PathOrEmpty(dir));
     }
@@ -225,17 +225,17 @@ extern "C"
         self->RemoveLastDir();
     }
 
-    EXPORT bool wxFileName_Normalize(wxFileName* self, int flags, wxString* cwd, int format)
+    EXPORT int wxFileName_Normalize(wxFileName* self, int flags, wxString* cwd, int format)
     {
         return self->Normalize(flags, PathOrEmpty(cwd), static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_MakeAbsolute(wxFileName* self, wxString* cwd, int format)
+    EXPORT int wxFileName_MakeAbsolute(wxFileName* self, wxString* cwd, int format)
     {
         return self->MakeAbsolute(PathOrEmpty(cwd), static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_MakeRelativeTo(wxFileName* self, wxString* path_base, int format)
+    EXPORT int wxFileName_MakeRelativeTo(wxFileName* self, wxString* path_base, int format)
     {
         return self->MakeRelativeTo(PathOrEmpty(path_base), static_cast<wxPathFormat>(format));
     }
@@ -246,85 +246,85 @@ extern "C"
             self->GetAbsolutePath(PathOrEmpty(cwd), static_cast<wxPathFormat>(format)));
     }
 
-    EXPORT bool wxFileName_ReplaceEnvVariable(wxFileName* self, wxString* env_name,
-                                              wxString* replacement_format, int format)
+    EXPORT int wxFileName_ReplaceEnvVariable(wxFileName* self, wxString* env_name,
+                                             wxString* replacement_format, int format)
     {
         const wxString replacement = replacement_format ? *replacement_format : wxString("$%s");
         return self->ReplaceEnvVariable(PathOrEmpty(env_name), replacement,
                                         static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_ReplaceHomeDir(wxFileName* self, int format)
+    EXPORT int wxFileName_ReplaceHomeDir(wxFileName* self, int format)
     {
         return self->ReplaceHomeDir(static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_IsOk(wxFileName* self)
+    EXPORT int wxFileName_IsOk(wxFileName* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxFileName_IsDir(wxFileName* self)
+    EXPORT int wxFileName_IsDir(wxFileName* self)
     {
         return self->IsDir();
     }
 
-    EXPORT bool wxFileName_IsAbsolute(wxFileName* self, int format)
+    EXPORT int wxFileName_IsAbsolute(wxFileName* self, int format)
     {
         return self->IsAbsolute(static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_IsRelative(wxFileName* self, int format)
+    EXPORT int wxFileName_IsRelative(wxFileName* self, int format)
     {
         return self->IsRelative(static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_FileExists(wxFileName* self)
+    EXPORT int wxFileName_FileExists(wxFileName* self)
     {
         return self->FileExists();
     }
 
-    EXPORT bool wxFileName_DirExists(wxFileName* self)
+    EXPORT int wxFileName_DirExists(wxFileName* self)
     {
         return self->DirExists();
     }
 
-    EXPORT bool wxFileName_Exists(wxFileName* self, int flags)
+    EXPORT int wxFileName_Exists(wxFileName* self, int flags)
     {
         return self->Exists(flags);
     }
 
-    EXPORT bool wxFileName_IsFileReadable(wxFileName* self)
+    EXPORT int wxFileName_IsFileReadable(wxFileName* self)
     {
         return self->IsFileReadable();
     }
 
-    EXPORT bool wxFileName_IsFileWritable(wxFileName* self)
+    EXPORT int wxFileName_IsFileWritable(wxFileName* self)
     {
         return self->IsFileWritable();
     }
 
-    EXPORT bool wxFileName_IsFileExecutable(wxFileName* self)
+    EXPORT int wxFileName_IsFileExecutable(wxFileName* self)
     {
         return self->IsFileExecutable();
     }
 
-    EXPORT bool wxFileName_IsDirReadable(wxFileName* self)
+    EXPORT int wxFileName_IsDirReadable(wxFileName* self)
     {
         return self->IsDirReadable();
     }
 
-    EXPORT bool wxFileName_IsDirWritable(wxFileName* self)
+    EXPORT int wxFileName_IsDirWritable(wxFileName* self)
     {
         return self->IsDirWritable();
     }
 
-    EXPORT bool wxFileName_SameAs(wxFileName* self, wxFileName* other, int format)
+    EXPORT int wxFileName_SameAs(wxFileName* self, wxFileName* other, int format)
     {
         return self->SameAs(*other, static_cast<wxPathFormat>(format));
     }
 
-    EXPORT bool wxFileName_ShouldFollowLink(wxFileName* self)
+    EXPORT int wxFileName_ShouldFollowLink(wxFileName* self)
     {
         return self->ShouldFollowLink();
     }
@@ -339,28 +339,28 @@ extern "C"
         return new wxFileName(self->ResolveLink());
     }
 
-    EXPORT bool wxFileName_Mkdir(wxFileName* self, int perm, int flags)
+    EXPORT int wxFileName_Mkdir(wxFileName* self, int perm, int flags)
     {
         return self->Mkdir(perm, flags);
     }
 
-    EXPORT bool wxFileName_Rmdir(wxFileName* self, int flags)
+    EXPORT int wxFileName_Rmdir(wxFileName* self, int flags)
     {
         return self->Rmdir(flags);
     }
 
-    EXPORT bool wxFileName_SetPermissions(wxFileName* self, int permissions)
+    EXPORT int wxFileName_SetPermissions(wxFileName* self, int permissions)
     {
         return self->SetPermissions(permissions);
     }
 
-    EXPORT bool wxFileName_Touch(wxFileName* self)
+    EXPORT int wxFileName_Touch(wxFileName* self)
     {
         return self->Touch();
     }
 
-    EXPORT bool wxFileName_GetTimes(wxFileName* self, wxDateTime* access_time, wxDateTime* mod_time,
-                                    wxDateTime* create_time)
+    EXPORT int wxFileName_GetTimes(wxFileName* self, wxDateTime* access_time, wxDateTime* mod_time,
+                                   wxDateTime* create_time)
     {
         return self->GetTimes(access_time, mod_time, create_time);
     }
@@ -394,57 +394,57 @@ extern "C"
         return new wxString(wxFileName::FileNameToURL(*self));
     }
 
-    EXPORT bool wxFileName_FileExistsForPath(wxString* file)
+    EXPORT int wxFileName_FileExistsForPath(wxString* file)
     {
         return wxFileName::FileExists(PathOrEmpty(file));
     }
 
-    EXPORT bool wxFileName_DirExistsForPath(wxString* dir)
+    EXPORT int wxFileName_DirExistsForPath(wxString* dir)
     {
         return wxFileName::DirExists(PathOrEmpty(dir));
     }
 
-    EXPORT bool wxFileName_ExistsForPath(wxString* path, int flags)
+    EXPORT int wxFileName_ExistsForPath(wxString* path, int flags)
     {
         return wxFileName::Exists(PathOrEmpty(path), flags);
     }
 
-    EXPORT bool wxFileName_IsFileReadableForPath(wxString* file)
+    EXPORT int wxFileName_IsFileReadableForPath(wxString* file)
     {
         return wxFileName::IsFileReadable(PathOrEmpty(file));
     }
 
-    EXPORT bool wxFileName_IsFileWritableForPath(wxString* file)
+    EXPORT int wxFileName_IsFileWritableForPath(wxString* file)
     {
         return wxFileName::IsFileWritable(PathOrEmpty(file));
     }
 
-    EXPORT bool wxFileName_IsFileExecutableForPath(wxString* file)
+    EXPORT int wxFileName_IsFileExecutableForPath(wxString* file)
     {
         return wxFileName::IsFileExecutable(PathOrEmpty(file));
     }
 
-    EXPORT bool wxFileName_IsDirReadableForPath(wxString* dir)
+    EXPORT int wxFileName_IsDirReadableForPath(wxString* dir)
     {
         return wxFileName::IsDirReadable(PathOrEmpty(dir));
     }
 
-    EXPORT bool wxFileName_IsDirWritableForPath(wxString* dir)
+    EXPORT int wxFileName_IsDirWritableForPath(wxString* dir)
     {
         return wxFileName::IsDirWritable(PathOrEmpty(dir));
     }
 
-    EXPORT bool wxFileName_MkdirForPath(wxString* dir, int perm, int flags)
+    EXPORT int wxFileName_MkdirForPath(wxString* dir, int perm, int flags)
     {
         return wxFileName::Mkdir(PathOrEmpty(dir), perm, flags);
     }
 
-    EXPORT bool wxFileName_RmdirForPath(wxString* dir, int flags)
+    EXPORT int wxFileName_RmdirForPath(wxString* dir, int flags)
     {
         return wxFileName::Rmdir(PathOrEmpty(dir), flags);
     }
 
-    EXPORT bool wxFileName_SetCwdForPath(wxString* cwd)
+    EXPORT int wxFileName_SetCwdForPath(wxString* cwd)
     {
         return wxFileName::SetCwd(PathOrEmpty(cwd));
     }
@@ -479,7 +479,7 @@ extern "C"
         return new wxString(wxFileName::StripExtension(PathOrEmpty(full_name)));
     }
 
-    EXPORT bool wxFileName_IsCaseSensitive(int format)
+    EXPORT int wxFileName_IsCaseSensitive(int format)
     {
         return wxFileName::IsCaseSensitive(static_cast<wxPathFormat>(format));
     }
@@ -499,7 +499,7 @@ extern "C"
         }
     }
 
-    EXPORT bool wxPathList_Add(void* pObject, void* path)
+    EXPORT int wxPathList_Add(void* pObject, void* path)
     {
         return ((wxPathList*) pObject)->Add(*(wxString*) path);
     }

@@ -47,7 +47,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTextEntry_IsEmpty(void* self)
+    EXPORT int wxTextEntry_IsEmpty(void* self)
     {
         return AsTextEntry(self)->IsEmpty();
     }
@@ -97,17 +97,17 @@ extern "C"
         AsTextEntry(self)->Paste();
     }
 
-    EXPORT bool wxTextEntry_CanCopy(void* self)
+    EXPORT int wxTextEntry_CanCopy(void* self)
     {
         return AsTextEntry(self)->CanCopy();
     }
 
-    EXPORT bool wxTextEntry_CanCut(void* self)
+    EXPORT int wxTextEntry_CanCut(void* self)
     {
         return AsTextEntry(self)->CanCut();
     }
 
-    EXPORT bool wxTextEntry_CanPaste(void* self)
+    EXPORT int wxTextEntry_CanPaste(void* self)
     {
         return AsTextEntry(self)->CanPaste();
     }
@@ -122,12 +122,12 @@ extern "C"
         AsTextEntry(self)->Redo();
     }
 
-    EXPORT bool wxTextEntry_CanUndo(void* self)
+    EXPORT int wxTextEntry_CanUndo(void* self)
     {
         return AsTextEntry(self)->CanUndo();
     }
 
-    EXPORT bool wxTextEntry_CanRedo(void* self)
+    EXPORT int wxTextEntry_CanRedo(void* self)
     {
         return AsTextEntry(self)->CanRedo();
     }
@@ -172,7 +172,7 @@ extern "C"
         AsTextEntry(self)->GetSelection(from, to);
     }
 
-    EXPORT bool wxTextEntry_HasSelection(void* self)
+    EXPORT int wxTextEntry_HasSelection(void* self)
     {
         return AsTextEntry(self)->HasSelection();
     }
@@ -184,7 +184,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTextEntry_IsEditable(void* self)
+    EXPORT int wxTextEntry_IsEditable(void* self)
     {
         return AsTextEntry(self)->IsEditable();
     }
@@ -204,7 +204,7 @@ extern "C"
         AsTextEntry(self)->ForceUpper();
     }
 
-    EXPORT bool wxTextEntry_SetHint(void* self, wxString* hint)
+    EXPORT int wxTextEntry_SetHint(void* self, wxString* hint)
     {
         return AsTextEntry(self)->SetHint(*hint);
     }
@@ -216,7 +216,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTextEntry_SetMargins(void* self, int left, int top)
+    EXPORT int wxTextEntry_SetMargins(void* self, int left, int top)
     {
         return AsTextEntry(self)->SetMargins(left, top);
     }
@@ -228,7 +228,7 @@ extern "C"
         *top = pt.y;
     }
 
-    EXPORT bool wxTextEntry_AutoComplete(void* self, int count, void* items)
+    EXPORT int wxTextEntry_AutoComplete(void* self, int count, void* items)
     {
         wxArrayString choices;
         for (int i = 0; i < count; i++)
@@ -236,12 +236,12 @@ extern "C"
         return AsTextEntry(self)->AutoComplete(choices);
     }
 
-    EXPORT bool wxTextEntry_AutoCompleteFileNames(void* self)
+    EXPORT int wxTextEntry_AutoCompleteFileNames(void* self)
     {
         return AsTextEntry(self)->AutoCompleteFileNames();
     }
 
-    EXPORT bool wxTextEntry_AutoCompleteDirectories(void* self)
+    EXPORT int wxTextEntry_AutoCompleteDirectories(void* self)
     {
         return AsTextEntry(self)->AutoCompleteDirectories();
     }

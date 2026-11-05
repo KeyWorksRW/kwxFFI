@@ -42,8 +42,8 @@ extern "C"
         self->AddFallbacks((const wxFileTypeInfo*) types);
     }
 
-    EXPORT bool wxMimeTypesManager_IsOfType(wxMimeTypesManager* self, wxString* type,
-                                            wxString* wildcard)
+    EXPORT int wxMimeTypesManager_IsOfType(wxMimeTypesManager* self, wxString* type,
+                                           wxString* wildcard)
     {
         return self->IsOfType(*type, *wildcard);
     }
@@ -82,7 +82,7 @@ extern "C"
         return arr.GetCount();
     }
 
-    EXPORT bool wxFileType_GetIcon(wxFileType* self, wxIcon* icon)
+    EXPORT int wxFileType_GetIcon(wxFileType* self, wxIcon* icon)
     {
         wxIconLocation iconLoc;
         bool res = self->GetIcon(&iconLoc);

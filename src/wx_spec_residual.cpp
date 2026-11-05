@@ -394,7 +394,7 @@ extern "C"
         return self->GetPickerCtrlProportion();
     }
 
-    EXPORT bool wxPickerBase_IsTextCtrlGrowable(wxPickerBase* self)
+    EXPORT int wxPickerBase_IsTextCtrlGrowable(wxPickerBase* self)
     {
         return self->IsTextCtrlGrowable();
     }
@@ -404,7 +404,7 @@ extern "C"
         self->SetTextCtrlGrowable(grow);
     }
 
-    EXPORT bool wxPickerBase_IsPickerCtrlGrowable(wxPickerBase* self)
+    EXPORT int wxPickerBase_IsPickerCtrlGrowable(wxPickerBase* self)
     {
         return self->IsPickerCtrlGrowable();
     }
@@ -414,7 +414,7 @@ extern "C"
         self->SetPickerCtrlGrowable(grow);
     }
 
-    EXPORT bool wxPickerBase_HasTextCtrl(wxPickerBase* self)
+    EXPORT int wxPickerBase_HasTextCtrl(wxPickerBase* self)
     {
         return self->HasTextCtrl();
     }
@@ -511,22 +511,22 @@ extern "C"
         return new wxArrayInt(self->GetCurrentOrder());
     }
 
-    EXPORT bool wxRearrangeList_CanMoveCurrentUp(wxRearrangeList* self)
+    EXPORT int wxRearrangeList_CanMoveCurrentUp(wxRearrangeList* self)
     {
         return self->CanMoveCurrentUp();
     }
 
-    EXPORT bool wxRearrangeList_CanMoveCurrentDown(wxRearrangeList* self)
+    EXPORT int wxRearrangeList_CanMoveCurrentDown(wxRearrangeList* self)
     {
         return self->CanMoveCurrentDown();
     }
 
-    EXPORT bool wxRearrangeList_MoveCurrentUp(wxRearrangeList* self)
+    EXPORT int wxRearrangeList_MoveCurrentUp(wxRearrangeList* self)
     {
         return self->MoveCurrentUp();
     }
 
-    EXPORT bool wxRearrangeList_MoveCurrentDown(wxRearrangeList* self)
+    EXPORT int wxRearrangeList_MoveCurrentDown(wxRearrangeList* self)
     {
         return self->MoveCurrentDown();
     }
@@ -600,18 +600,18 @@ extern "C"
         self->GetSpan(*rowspan, *colspan);
     }
 
-    EXPORT bool wxGBSizerItem_SetSpan(wxGBSizerItem* self, int rowspan, int colspan)
+    EXPORT int wxGBSizerItem_SetSpan(wxGBSizerItem* self, int rowspan, int colspan)
     {
         return self->SetSpan(wxGBSpan(rowspan, colspan));
     }
 
-    EXPORT bool wxGBSizerItem_Intersects(wxGBSizerItem* self, wxGBSizerItem* other)
+    EXPORT int wxGBSizerItem_Intersects(wxGBSizerItem* self, wxGBSizerItem* other)
     {
         return self->Intersects(*other);
     }
 
-    EXPORT bool wxGBSizerItem_IntersectsPos(wxGBSizerItem* self, int row, int col, int rowspan,
-                                            int colspan)
+    EXPORT int wxGBSizerItem_IntersectsPos(wxGBSizerItem* self, int row, int col, int rowspan,
+                                           int colspan)
     {
         return self->Intersects(wxGBPosition(row, col), wxGBSpan(rowspan, colspan));
     }
@@ -696,17 +696,17 @@ extern "C"
         self->Concat(*other);
     }
 
-    EXPORT bool wxAffineMatrix2D_Invert(wxAffineMatrix2D* self)
+    EXPORT int wxAffineMatrix2D_Invert(wxAffineMatrix2D* self)
     {
         return self->Invert();
     }
 
-    EXPORT bool wxAffineMatrix2D_IsIdentity(wxAffineMatrix2D* self)
+    EXPORT int wxAffineMatrix2D_IsIdentity(wxAffineMatrix2D* self)
     {
         return self->IsIdentity();
     }
 
-    EXPORT bool wxAffineMatrix2D_IsEqual(wxAffineMatrix2D* self, wxAffineMatrix2D* other)
+    EXPORT int wxAffineMatrix2D_IsEqual(wxAffineMatrix2D* self, wxAffineMatrix2D* other)
     {
         return self->IsEqual(*other);
     }
@@ -777,7 +777,7 @@ extern "C"
         return new wxSize(wxArtProvider::GetSizeHint(*client, window));
     }
 
-    EXPORT bool wxArtProvider_HasNativeProvider()
+    EXPORT int wxArtProvider_HasNativeProvider()
     {
         return wxArtProvider::HasNativeProvider();
     }
@@ -787,7 +787,7 @@ extern "C"
         wxArtProvider::PushBack(provider);
     }
 
-    EXPORT bool wxArtProvider_DeleteProvider(wxArtProvider* provider)
+    EXPORT int wxArtProvider_DeleteProvider(wxArtProvider* provider)
     {
         return wxArtProvider::Delete(provider);
     }
@@ -816,12 +816,12 @@ extern "C"
         return wxSystemOptions::GetOptionInt(*name);
     }
 
-    EXPORT bool wxSystemOptions_HasOption(wxString* name)
+    EXPORT int wxSystemOptions_HasOption(wxString* name)
     {
         return wxSystemOptions::HasOption(*name);
     }
 
-    EXPORT bool wxSystemOptions_IsFalse(wxString* name)
+    EXPORT int wxSystemOptions_IsFalse(wxString* name)
     {
         return wxSystemOptions::IsFalse(*name);
     }
@@ -867,42 +867,42 @@ extern "C"
     // ---------------------------------------------------------------------------
 
 #if wxUSE_HELP
-    EXPORT bool wxHelpController_Initialize(wxHelpController* self, wxString* file)
+    EXPORT int wxHelpController_Initialize(wxHelpController* self, wxString* file)
     {
         return self->Initialize(*file);
     }
 
-    EXPORT bool wxHelpController_LoadFile(wxHelpController* self, wxString* file)
+    EXPORT int wxHelpController_LoadFile(wxHelpController* self, wxString* file)
     {
         return self->LoadFile(*file);
     }
 
-    EXPORT bool wxHelpController_DisplayContents(wxHelpController* self)
+    EXPORT int wxHelpController_DisplayContents(wxHelpController* self)
     {
         return self->DisplayContents();
     }
 
-    EXPORT bool wxHelpController_DisplaySection(wxHelpController* self, int section)
+    EXPORT int wxHelpController_DisplaySection(wxHelpController* self, int section)
     {
         return self->DisplaySection(section);
     }
 
-    EXPORT bool wxHelpController_DisplaySectionName(wxHelpController* self, wxString* section)
+    EXPORT int wxHelpController_DisplaySectionName(wxHelpController* self, wxString* section)
     {
         return self->DisplaySection(*section);
     }
 
-    EXPORT bool wxHelpController_DisplayBlock(wxHelpController* self, int block)
+    EXPORT int wxHelpController_DisplayBlock(wxHelpController* self, int block)
     {
         return self->DisplayBlock(block);
     }
 
-    EXPORT bool wxHelpController_KeywordSearch(wxHelpController* self, wxString* keyword, int mode)
+    EXPORT int wxHelpController_KeywordSearch(wxHelpController* self, wxString* keyword, int mode)
     {
         return self->KeywordSearch(*keyword, (wxHelpSearchMode) mode);
     }
 
-    EXPORT bool wxHelpController_Quit(wxHelpController* self)
+    EXPORT int wxHelpController_Quit(wxHelpController* self)
     {
         return self->Quit();
     }
@@ -952,8 +952,8 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxMDIClientWindow_CreateClient(wxMDIClientWindow* self, wxMDIParentFrame* parent,
-                                               int style)
+    EXPORT int wxMDIClientWindow_CreateClient(wxMDIClientWindow* self, wxMDIParentFrame* parent,
+                                              int style)
     {
         return self->CreateClient(parent, style);
     }
@@ -984,7 +984,7 @@ extern "C"
         return self->GetColsCount();
     }
 
-    EXPORT bool wxGridTableBase_IsEmptyCell(wxGridTableBase* self, int row, int col)
+    EXPORT int wxGridTableBase_IsEmptyCell(wxGridTableBase* self, int row, int col)
     {
         return self->IsEmptyCell(row, col);
     }
@@ -1004,14 +1004,14 @@ extern "C"
         return new wxString(self->GetTypeName(row, col));
     }
 
-    EXPORT bool wxGridTableBase_CanGetValueAs(wxGridTableBase* self, int row, int col,
-                                              wxString* type_name)
+    EXPORT int wxGridTableBase_CanGetValueAs(wxGridTableBase* self, int row, int col,
+                                             wxString* type_name)
     {
         return self->CanGetValueAs(row, col, *type_name);
     }
 
-    EXPORT bool wxGridTableBase_CanSetValueAs(wxGridTableBase* self, int row, int col,
-                                              wxString* type_name)
+    EXPORT int wxGridTableBase_CanSetValueAs(wxGridTableBase* self, int row, int col,
+                                             wxString* type_name)
     {
         return self->CanSetValueAs(row, col, *type_name);
     }
@@ -1026,7 +1026,7 @@ extern "C"
         return self->GetValueAsDouble(row, col);
     }
 
-    EXPORT bool wxGridTableBase_GetValueAsBool(wxGridTableBase* self, int row, int col)
+    EXPORT int wxGridTableBase_GetValueAsBool(wxGridTableBase* self, int row, int col)
     {
         return self->GetValueAsBool(row, col);
     }
@@ -1062,32 +1062,32 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxGridTableBase_InsertRows(wxGridTableBase* self, int pos, int num_rows)
+    EXPORT int wxGridTableBase_InsertRows(wxGridTableBase* self, int pos, int num_rows)
     {
         return self->InsertRows((size_t) pos, (size_t) num_rows);
     }
 
-    EXPORT bool wxGridTableBase_AppendRows(wxGridTableBase* self, int num_rows)
+    EXPORT int wxGridTableBase_AppendRows(wxGridTableBase* self, int num_rows)
     {
         return self->AppendRows((size_t) num_rows);
     }
 
-    EXPORT bool wxGridTableBase_DeleteRows(wxGridTableBase* self, int pos, int num_rows)
+    EXPORT int wxGridTableBase_DeleteRows(wxGridTableBase* self, int pos, int num_rows)
     {
         return self->DeleteRows((size_t) pos, (size_t) num_rows);
     }
 
-    EXPORT bool wxGridTableBase_InsertCols(wxGridTableBase* self, int pos, int num_cols)
+    EXPORT int wxGridTableBase_InsertCols(wxGridTableBase* self, int pos, int num_cols)
     {
         return self->InsertCols((size_t) pos, (size_t) num_cols);
     }
 
-    EXPORT bool wxGridTableBase_AppendCols(wxGridTableBase* self, int num_cols)
+    EXPORT int wxGridTableBase_AppendCols(wxGridTableBase* self, int num_cols)
     {
         return self->AppendCols((size_t) num_cols);
     }
 
-    EXPORT bool wxGridTableBase_DeleteCols(wxGridTableBase* self, int pos, int num_cols)
+    EXPORT int wxGridTableBase_DeleteCols(wxGridTableBase* self, int pos, int num_cols)
     {
         return self->DeleteCols((size_t) pos, (size_t) num_cols);
     }
@@ -1122,7 +1122,7 @@ extern "C"
         self->SetCornerLabelValue(*label);
     }
 
-    EXPORT bool wxGridTableBase_CanHaveAttributes(wxGridTableBase* self)
+    EXPORT int wxGridTableBase_CanHaveAttributes(wxGridTableBase* self)
     {
         return self->CanHaveAttributes();
     }
@@ -1272,7 +1272,7 @@ extern "C"
         return new wxString(self->GetString());
     }
 
-    EXPORT bool wxVariant_GetBool(wxVariant* self)
+    EXPORT int wxVariant_GetBool(wxVariant* self)
     {
         return self->GetBool();
     }
@@ -1303,7 +1303,7 @@ extern "C"
         return (int) self->GetFormatCount((wxDataObjectBase::Direction) direction);
     }
 
-    EXPORT bool wxDataObject_IsSupported(wxDataObject* self, wxDataFormat* format, int direction)
+    EXPORT int wxDataObject_IsSupported(wxDataObject* self, wxDataFormat* format, int direction)
     {
         return self->IsSupported(*format, (wxDataObjectBase::Direction) direction);
     }
@@ -1313,13 +1313,13 @@ extern "C"
         return self->GetDataSize(*format);
     }
 
-    EXPORT bool wxDataObject_GetDataHere(wxDataObject* self, wxDataFormat* format, void* buffer)
+    EXPORT int wxDataObject_GetDataHere(wxDataObject* self, wxDataFormat* format, void* buffer)
     {
         return self->GetDataHere(*format, buffer);
     }
 
-    EXPORT bool wxDataObject_SetData(wxDataObject* self, wxDataFormat* format, int length,
-                                     void* buffer)
+    EXPORT int wxDataObject_SetData(wxDataObject* self, wxDataFormat* format, int length,
+                                    void* buffer)
     {
         return self->SetData(*format, (size_t) length, buffer);
     }
@@ -1395,7 +1395,7 @@ extern "C"
         self->Enable(enable);
     }
 
-    EXPORT bool wxPGProperty_AreChildrenComponents(wxPGProperty* self)
+    EXPORT int wxPGProperty_AreChildrenComponents(wxPGProperty* self)
     {
         return self->AreChildrenComponents();
     }
@@ -1446,7 +1446,7 @@ extern "C"
         self->SetPropertyHelpString(id, *help);
     }
 
-    EXPORT bool wxPropertyGrid_IsPropertyModified(wxPropertyGrid* self, wxPGProperty* id)
+    EXPORT int wxPropertyGrid_IsPropertyModified(wxPropertyGrid* self, wxPGProperty* id)
     {
         return self->IsPropertyModified(id);
     }
@@ -1483,7 +1483,7 @@ extern "C"
 #endif  // wxUSE_PRINTING_ARCHITECTURE
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxArtProvider_Pop()
+    EXPORT int wxArtProvider_Pop()
     {
         return wxArtProvider::Pop();
     }
@@ -1544,7 +1544,7 @@ extern "C"
         return ((wxPGProperty*) pObject)->GetIndexInParent();
     }
 
-    EXPORT bool wxPGProperty_HasAnyChild(void* pObject)
+    EXPORT int wxPGProperty_HasAnyChild(void* pObject)
     {
         return ((wxPGProperty*) pObject)->HasAnyChild();
     }
@@ -1554,22 +1554,22 @@ extern "C"
         return ((wxPGProperty*) pObject)->InsertChoice(*(wxString*) label, index, value);
     }
 
-    EXPORT bool wxPGProperty_IsCategory(void* pObject)
+    EXPORT int wxPGProperty_IsCategory(void* pObject)
     {
         return ((wxPGProperty*) pObject)->IsCategory();
     }
 
-    EXPORT bool wxPGProperty_IsEnabled(void* pObject)
+    EXPORT int wxPGProperty_IsEnabled(void* pObject)
     {
         return ((wxPGProperty*) pObject)->IsEnabled();
     }
 
-    EXPORT bool wxPGProperty_IsExpanded(void* pObject)
+    EXPORT int wxPGProperty_IsExpanded(void* pObject)
     {
         return ((wxPGProperty*) pObject)->IsExpanded();
     }
 
-    EXPORT bool wxPGProperty_IsValueUnspecified(void* pObject)
+    EXPORT int wxPGProperty_IsValueUnspecified(void* pObject)
     {
         return ((wxPGProperty*) pObject)->IsValueUnspecified();
     }
