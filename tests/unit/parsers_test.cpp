@@ -7,11 +7,13 @@
 
 #include "class_parser.h"
 #include "constants_parser.h"
+#include "dedupe.h"
 #include "exports_gen.h"
 #include "model.h"
 #include "profile.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -170,6 +172,63 @@ static void TestProfileFilter()
     CHECK_EQ(DefaultProfileForLanguage("luajit"), std::string("full"));
 }
 
+static void TestDuplicateRemoval()
+{
+    ParsedFFI ffi_data;
+
+    const std::string duplicate_symbol = "wxHtmlTagsModule_SetOnFillHandlersTable";
+
+    ClassInfo tags_module;
+    tags_module.name = "wxHtmlTagsModule";
+
+    // The same declaration appears twice, as it does when kwx_classes.h and
+    // kwx_hook_exports.h both declare the symbol.
+    FunctionDecl repeated_method;
+    repeated_method.class_name = "wxHtmlTagsModule";
+    repeated_method.method_name = "SetOnFillHandlersTable";
+    repeated_method.c_func_name = duplicate_symbol;
+    repeated_method.return_type = "void";
+    tags_module.methods.push_back(repeated_method);
+    tags_module.methods.push_back(repeated_method);
+
+    FunctionDecl unique_method;
+    unique_method.class_name = "wxHtmlTagsModule";
+    unique_method.method_name = "GetClassInfo";
+    unique_method.c_func_name = "wxHtmlTagsModule_GetClassInfo";
+    unique_method.return_type = "void";
+    tags_module.methods.push_back(unique_method);
+
+    ffi_data.classes.push_back(tags_module);
+
+    // A free function naming a class method's symbol must lose to the method.
+    FunctionDecl colliding_free_function;
+    colliding_free_function.method_name = duplicate_symbol;
+    colliding_free_function.return_type = "void";
+    ffi_data.free_functions.push_back(colliding_free_function);
+
+    // Two free functions naming the same symbol collapse to one.
+    FunctionDecl free_function;
+    free_function.method_name = "kwxSysErrorCode";
+    free_function.return_type = "int";
+    ffi_data.free_functions.push_back(free_function);
+    ffi_data.free_functions.push_back(free_function);
+
+    const std::size_t removed_count = RemoveDuplicateFunctions(ffi_data);
+    CHECK_EQ(removed_count, std::size_t { 3 });
+
+    const ClassInfo* class_info = FindClass(ffi_data.classes, "wxHtmlTagsModule");
+    CHECK(class_info != nullptr);
+    if (class_info != nullptr)
+    {
+        CHECK_EQ(class_info->methods.size(), std::size_t { 2 });
+        CHECK_EQ(class_info->methods[0].method_name, std::string("SetOnFillHandlersTable"));
+        CHECK_EQ(class_info->methods[1].method_name, std::string("GetClassInfo"));
+    }
+
+    CHECK_EQ(ffi_data.free_functions.size(), std::size_t { 1 });
+    CHECK_EQ(ffi_data.free_functions[0].method_name, std::string("kwxSysErrorCode"));
+}
+
 static void TestExportSymbols()
 {
     ParsedFFI ffi_data;
@@ -217,6 +276,7 @@ int main(int argc, char** argv)
     TestConstantsParser(fixture_dir / "guard_constants.h");
     TestClassParser(fixture_dir / "guard_classes.h");
     TestProfileFilter();
+    TestDuplicateRemoval();
     TestExportSymbols();
 
     if (failure_count != 0)

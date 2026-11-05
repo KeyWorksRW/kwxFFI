@@ -5,6 +5,7 @@ set(KWXGEN_SRC_FILES
     src/keys_parser.cpp        # Parses keyboard key code declarations
     src/defs_parser.cpp        # Parses constant/define declarations
     src/constants_parser.cpp   # Parses free function declarations
+    src/dedupe.cpp             # Drops repeated C symbols before the emitters run
     src/deno_check.cpp         # Type-checks generated TypeScript with deno check
     src/exports_gen.cpp        # Generates platform-specific export files
     src/file_writer.cpp        # ConditionalFileWriter — writes only if content changed
@@ -21,6 +22,7 @@ set(KWXGEN_SRC_FILES
     src/lang/lang_rust.cpp     # Generates Rust FFI bindings
     src/lang/lang_typescript.cpp # Generates TypeScript FFI bindings
 
+    src/dedupe.h               # Declarations for duplicate-symbol removal
     src/deno_check.h           # Declarations for the deno check integration
     src/emitter.h              # Base class for language-specific code emitters
     src/model.h                # Data structures representing parsed classes, events, keys, etc.

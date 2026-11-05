@@ -32,6 +32,7 @@
 
 #include "class_parser.h"
 #include "constants_parser.h"
+#include "dedupe.h"
 #include "defs_parser.h"
 #include "deno_check.h"
 #include "emitter.h"
@@ -469,6 +470,14 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     else
     {
         std::println(stderr, "  Warning: {} not found", classes_file.string());
+    }
+
+    // Every emitter keys its output on the C symbol name, so the repeats the headers can
+    // produce (see dedupe.h) must be gone before any emitter sees the model.
+    const std::size_t duplicate_count = RemoveDuplicateFunctions(parsed_ffi);
+    if (duplicate_count != 0)
+    {
+        std::println(stderr, "  Duplicate C symbols skipped: {:L}", duplicate_count);
     }
 
     return parsed_ffi;
