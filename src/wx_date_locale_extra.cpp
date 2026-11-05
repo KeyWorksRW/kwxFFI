@@ -120,7 +120,7 @@ extern "C"
         self->Set(julian_day);
     }
 
-    EXPORT bool wxDateTime_GetFirstWeekDay(int* first_week_day)
+    EXPORT int wxDateTime_GetFirstWeekDay(int* first_week_day)
     {
         wxDateTime::WeekDay weekday = wxDateTime::Mon;
         const bool found = wxDateTime::GetFirstWeekDay(&weekday);
@@ -216,17 +216,17 @@ extern "C"
         return new wxString(self->FormatISOCombined(separator));
     }
 
-    EXPORT bool wxDateTime_ParseISODate(wxDateTime* self, wxString* text)
+    EXPORT int wxDateTime_ParseISODate(wxDateTime* self, wxString* text)
     {
         return self->ParseISODate(*text);
     }
 
-    EXPORT bool wxDateTime_ParseISOTime(wxDateTime* self, wxString* text)
+    EXPORT int wxDateTime_ParseISOTime(wxDateTime* self, wxString* text)
     {
         return self->ParseISOTime(*text);
     }
 
-    EXPORT bool wxDateTime_ParseISOCombined(wxDateTime* self, wxString* text, char separator)
+    EXPORT int wxDateTime_ParseISOCombined(wxDateTime* self, wxString* text, char separator)
     {
         return self->ParseISOCombined(*text, separator);
     }
@@ -335,32 +335,32 @@ extern "C"
         *ref = self->Abs();
     }
 
-    EXPORT bool wxTimeSpan_IsNull(wxTimeSpan* self)
+    EXPORT int wxTimeSpan_IsNull(wxTimeSpan* self)
     {
         return self->IsNull();
     }
 
-    EXPORT bool wxTimeSpan_IsPositive(wxTimeSpan* self)
+    EXPORT int wxTimeSpan_IsPositive(wxTimeSpan* self)
     {
         return self->IsPositive();
     }
 
-    EXPORT bool wxTimeSpan_IsNegative(wxTimeSpan* self)
+    EXPORT int wxTimeSpan_IsNegative(wxTimeSpan* self)
     {
         return self->IsNegative();
     }
 
-    EXPORT bool wxTimeSpan_IsEqualTo(wxTimeSpan* self, wxTimeSpan* other)
+    EXPORT int wxTimeSpan_IsEqualTo(wxTimeSpan* self, wxTimeSpan* other)
     {
         return self->IsEqualTo(*other);
     }
 
-    EXPORT bool wxTimeSpan_IsLongerThan(wxTimeSpan* self, wxTimeSpan* other)
+    EXPORT int wxTimeSpan_IsLongerThan(wxTimeSpan* self, wxTimeSpan* other)
     {
         return self->IsLongerThan(*other);
     }
 
-    EXPORT bool wxTimeSpan_IsShorterThan(wxTimeSpan* self, wxTimeSpan* other)
+    EXPORT int wxTimeSpan_IsShorterThan(wxTimeSpan* self, wxTimeSpan* other)
     {
         return self->IsShorterThan(*other);
     }
@@ -529,7 +529,7 @@ extern "C"
         self->Multiply(factor);
     }
 
-    EXPORT bool wxDateSpan_IsEqualTo(wxDateSpan* self, wxDateSpan* other)
+    EXPORT int wxDateSpan_IsEqualTo(wxDateSpan* self, wxDateSpan* other)
     {
         return *self == *other;
     }
@@ -538,13 +538,13 @@ extern "C"
     // wxLocale
     // -----------------------------------------------------------------------
 
-    EXPORT bool wxLocale_Init(wxLocale* self, int language, int flags)
+    EXPORT int wxLocale_Init(wxLocale* self, int language, int flags)
     {
         return self->Init(language, flags);
     }
 
-    EXPORT bool wxLocale_InitFromName(wxLocale* self, wxString* name, wxString* short_name,
-                                      wxString* locale, bool load_default)
+    EXPORT int wxLocale_InitFromName(wxLocale* self, wxString* name, wxString* short_name,
+                                     wxString* locale, bool load_default)
     {
         return self->Init(*name, *short_name, *locale, load_default);
     }
@@ -603,7 +603,7 @@ extern "C"
                                                 static_cast<wxLocaleCategory>(category)));
     }
 
-    EXPORT bool wxLocale_IsAvailable(int language)
+    EXPORT int wxLocale_IsAvailable(int language)
     {
         return wxLocale::IsAvailable(language);
     }
@@ -637,17 +637,17 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxUILocale_UseLocaleName(wxString* locale_name)
+    EXPORT int wxUILocale_UseLocaleName(wxString* locale_name)
     {
         return wxUILocale::UseLocaleName(*locale_name);
     }
 
-    EXPORT bool wxUILocale_IsSupported(wxUILocale* self)
+    EXPORT int wxUILocale_IsSupported(wxUILocale* self)
     {
         return self->IsSupported();
     }
 
-    EXPORT bool wxUILocale_IsDefault(wxUILocale* self)
+    EXPORT int wxUILocale_IsDefault(wxUILocale* self)
     {
         return self->IsDefault();
     }
@@ -797,24 +797,24 @@ extern "C"
         return new wxString(self->GetBestTranslation(*domain, *msg_id_language));
     }
 
-    EXPORT bool wxTranslations_AddAvailableCatalog(wxTranslations* self, wxString* domain,
-                                                   int msg_id_language)
+    EXPORT int wxTranslations_AddAvailableCatalog(wxTranslations* self, wxString* domain,
+                                                  int msg_id_language)
     {
         return self->AddAvailableCatalog(*domain, static_cast<wxLanguage>(msg_id_language));
     }
 
-    EXPORT bool wxTranslations_AddStdCatalog(wxTranslations* self)
+    EXPORT int wxTranslations_AddStdCatalog(wxTranslations* self)
     {
         return self->AddStdCatalog();
     }
 
-    EXPORT bool wxTranslations_AddCatalog(wxTranslations* self, wxString* domain,
-                                          int msg_id_language)
+    EXPORT int wxTranslations_AddCatalog(wxTranslations* self, wxString* domain,
+                                         int msg_id_language)
     {
         return self->AddCatalog(*domain, static_cast<wxLanguage>(msg_id_language));
     }
 
-    EXPORT bool wxTranslations_IsLoaded(wxTranslations* self, wxString* domain)
+    EXPORT int wxTranslations_IsLoaded(wxTranslations* self, wxString* domain)
     {
         return self->IsLoaded(*domain);
     }
@@ -855,12 +855,12 @@ extern "C"
         return new wxString(wxNumberFormatter::Format(*format, value));
     }
 
-    EXPORT bool wxNumberFormatter_FromStringLong(wxString* text, long* value)
+    EXPORT int wxNumberFormatter_FromStringLong(wxString* text, long* value)
     {
         return wxNumberFormatter::FromString(*text, value);
     }
 
-    EXPORT bool wxNumberFormatter_FromStringDouble(wxString* text, double* value)
+    EXPORT int wxNumberFormatter_FromStringDouble(wxString* text, double* value)
     {
         return wxNumberFormatter::FromString(*text, value);
     }
@@ -915,7 +915,7 @@ extern "C"
         self->SetUmask(mode);
     }
 
-    EXPORT bool wxFileConfig_Save(wxFileConfig* self, wxOutputStream* stream)
+    EXPORT int wxFileConfig_Save(wxFileConfig* self, wxOutputStream* stream)
     {
 #if wxUSE_STREAMS
         return self->Save(*stream);
@@ -994,7 +994,7 @@ extern "C"
         return self->Parse(false);
     }
 
-    EXPORT bool wxCmdLineParser_Found(wxCmdLineParser* self, wxString* name)
+    EXPORT int wxCmdLineParser_Found(wxCmdLineParser* self, wxString* name)
     {
         return self->Found(*name);
     }
@@ -1122,12 +1122,12 @@ extern "C"
         return new wxString(self->GetName());
     }
 
-    EXPORT bool wxVariant_IsNull(wxVariant* self)
+    EXPORT int wxVariant_IsNull(wxVariant* self)
     {
         return self->IsNull();
     }
 
-    EXPORT bool wxVariant_IsType(wxVariant* self, wxString* type)
+    EXPORT int wxVariant_IsType(wxVariant* self, wxString* type)
     {
         return self->IsType(*type);
     }
@@ -1222,7 +1222,7 @@ extern "C"
         self->Insert(*value);
     }
 
-    EXPORT bool wxVariant_Member(wxVariant* self, wxVariant* value)
+    EXPORT int wxVariant_Member(wxVariant* self, wxVariant* value)
     {
         return self->Member(*value);
     }
@@ -1232,7 +1232,7 @@ extern "C"
         self->ClearList();
     }
 
-    EXPORT bool wxVariant_ConvertToLong(wxVariant* self, long* value)
+    EXPORT int wxVariant_ConvertToLong(wxVariant* self, long* value)
     {
         long converted = 0;
         if (!self->Convert(&converted))
@@ -1243,7 +1243,7 @@ extern "C"
         return true;
     }
 
-    EXPORT bool wxVariant_ConvertToDouble(wxVariant* self, double* value)
+    EXPORT int wxVariant_ConvertToDouble(wxVariant* self, double* value)
     {
         double converted = 0.0;
         if (!self->Convert(&converted))
@@ -1254,7 +1254,7 @@ extern "C"
         return true;
     }
 
-    EXPORT bool wxVariant_ConvertToBool(wxVariant* self, int* value)
+    EXPORT int wxVariant_ConvertToBool(wxVariant* self, int* value)
     {
         bool converted = false;
         if (!self->Convert(&converted))
@@ -1266,9 +1266,11 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT void wxCmdLineParser_AddLongOption(void* pObject, void* lng, void* desc, int type, int flags)
+    EXPORT void wxCmdLineParser_AddLongOption(void* pObject, void* lng, void* desc, int type,
+                                              int flags)
     {
-        ((wxCmdLineParser*) pObject)->AddLongOption(*(wxString*) lng, *(wxString*) desc, (wxCmdLineParamType) type, flags);
+        ((wxCmdLineParser*) pObject)
+            ->AddLongOption(*(wxString*) lng, *(wxString*) desc, (wxCmdLineParamType) type, flags);
     }
 
     EXPORT void wxCmdLineParser_AddUsageText(void* pObject, void* text)
@@ -1302,7 +1304,6 @@ extern "C"
     {
         return ((wxVariant*) pObject)->GetReal();
     }
-
 }
 
 // NOLINTEND(bugprone-identical-type-multi-param)

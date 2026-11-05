@@ -32,7 +32,7 @@ extern "C"
         *row = self->Item(index).GetRow();
     }
 
-    EXPORT bool wxGridCellEditor_IsCreated(wxGridCellEditor* self)
+    EXPORT int wxGridCellEditor_IsCreated(wxGridCellEditor* self)
     {
         return self->IsCreated();
     }
@@ -75,8 +75,8 @@ extern "C"
         self->BeginEdit(row, col, (wxGrid*) grid);
     }
 
-    EXPORT bool wxGridCellEditor_EndEdit(wxGridCellEditor* self, int row, int col, wxGrid* grid,
-                                         wxString* oldCell, wxString* newCell)
+    EXPORT int wxGridCellEditor_EndEdit(wxGridCellEditor* self, int row, int col, wxGrid* grid,
+                                        wxString* oldCell, wxString* newCell)
     {
         return self->EndEdit(row, col, grid, *oldCell, newCell);
     }
@@ -86,7 +86,7 @@ extern "C"
         self->Reset();
     }
 
-    EXPORT bool wxGridCellEditor_IsAcceptedKey(wxGridCellEditor* self, wxKeyEvent* event)
+    EXPORT int wxGridCellEditor_IsAcceptedKey(wxGridCellEditor* self, wxKeyEvent* event)
     {
         return self->IsAcceptedKey(*event);
     }
@@ -211,32 +211,32 @@ extern "C"
         self->SetEditor(editor);
     }
 
-    EXPORT bool wxGridCellAttr_HasTextColour(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasTextColour(wxGridCellAttr* self)
     {
         return self->HasTextColour();
     }
 
-    EXPORT bool wxGridCellAttr_HasBackgroundColour(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasBackgroundColour(wxGridCellAttr* self)
     {
         return self->HasBackgroundColour();
     }
 
-    EXPORT bool wxGridCellAttr_HasFont(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasFont(wxGridCellAttr* self)
     {
         return self->HasFont();
     }
 
-    EXPORT bool wxGridCellAttr_HasAlignment(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasAlignment(wxGridCellAttr* self)
     {
         return self->HasAlignment();
     }
 
-    EXPORT bool wxGridCellAttr_HasRenderer(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasRenderer(wxGridCellAttr* self)
     {
         return self->HasRenderer();
     }
 
-    EXPORT bool wxGridCellAttr_HasEditor(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_HasEditor(wxGridCellAttr* self)
     {
         return self->HasEditor();
     }
@@ -271,7 +271,7 @@ extern "C"
         return (void*) self->GetEditor(grid, row, col);
     }
 
-    EXPORT bool wxGridCellAttr_IsReadOnly(wxGridCellAttr* self)
+    EXPORT int wxGridCellAttr_IsReadOnly(wxGridCellAttr* self)
     {
         return self->IsReadOnly();
     }
@@ -307,7 +307,7 @@ extern "C"
         return self->GetNumberCols();
     }
 
-    EXPORT bool wxGrid_ProcessTableMessage(wxGrid* self, wxGridTableMessage* evt)
+    EXPORT int wxGrid_ProcessTableMessage(wxGrid* self, wxGridTableMessage* evt)
     {
         return self->ProcessTableMessage(*evt);
     }
@@ -317,8 +317,8 @@ extern "C"
         return (void*) self->GetTable();
     }
 
-    EXPORT bool wxGrid_SetTable(wxGrid* self, wxGridTableBase* table, bool takeOwnership,
-                                int selmode)
+    EXPORT int wxGrid_SetTable(wxGrid* self, wxGridTableBase* table, bool takeOwnership,
+                               int selmode)
     {
         return self->SetTable(table, takeOwnership, (wxGrid::wxGridSelectionModes) selmode);
     }
@@ -328,32 +328,32 @@ extern "C"
         self->ClearGrid();
     }
 
-    EXPORT bool wxGrid_InsertRows(wxGrid* self, int pos, int numRows, bool updateLabels)
+    EXPORT int wxGrid_InsertRows(wxGrid* self, int pos, int numRows, bool updateLabels)
     {
         return self->InsertRows(pos, numRows, updateLabels);
     }
 
-    EXPORT bool wxGrid_AppendRows(wxGrid* self, int numRows, bool updateLabels)
+    EXPORT int wxGrid_AppendRows(wxGrid* self, int numRows, bool updateLabels)
     {
         return self->AppendRows(numRows, updateLabels);
     }
 
-    EXPORT bool wxGrid_DeleteRows(wxGrid* self, int pos, int numRows, bool updateLabels)
+    EXPORT int wxGrid_DeleteRows(wxGrid* self, int pos, int numRows, bool updateLabels)
     {
         return self->DeleteRows(pos, numRows, updateLabels);
     }
 
-    EXPORT bool wxGrid_InsertCols(wxGrid* self, int pos, int numCols, bool updateLabels)
+    EXPORT int wxGrid_InsertCols(wxGrid* self, int pos, int numCols, bool updateLabels)
     {
         return self->InsertCols(pos, numCols, updateLabels);
     }
 
-    EXPORT bool wxGrid_AppendCols(wxGrid* self, int numCols, int updateLabels)
+    EXPORT int wxGrid_AppendCols(wxGrid* self, int numCols, int updateLabels)
     {
         return self->AppendCols(numCols, updateLabels);
     }
 
-    EXPORT bool wxGrid_DeleteCols(wxGrid* self, int pos, int numCols, bool updateLabels)
+    EXPORT int wxGrid_DeleteCols(wxGrid* self, int pos, int numCols, bool updateLabels)
     {
         return self->DeleteCols(pos, numCols, updateLabels);
     }
@@ -456,7 +456,7 @@ extern "C"
         return self->GetBatchCount();
     }
 
-    EXPORT bool wxGrid_IsEditable(wxGrid* self)
+    EXPORT int wxGrid_IsEditable(wxGrid* self)
     {
         return self->IsEditable();
     }
@@ -476,22 +476,22 @@ extern "C"
         self->DisableCellEditControl();
     }
 
-    EXPORT bool wxGrid_CanEnableCellControl(wxGrid* self)
+    EXPORT int wxGrid_CanEnableCellControl(wxGrid* self)
     {
         return self->CanEnableCellControl();
     }
 
-    EXPORT bool wxGrid_IsCellEditControlEnabled(wxGrid* self)
+    EXPORT int wxGrid_IsCellEditControlEnabled(wxGrid* self)
     {
         return self->IsCellEditControlEnabled();
     }
 
-    EXPORT bool wxGrid_IsCellEditControlShown(wxGrid* self)
+    EXPORT int wxGrid_IsCellEditControlShown(wxGrid* self)
     {
         return self->IsCellEditControlShown();
     }
 
-    EXPORT bool wxGrid_IsCurrentCellReadOnly(wxGrid* self)
+    EXPORT int wxGrid_IsCurrentCellReadOnly(wxGrid* self)
     {
         return self->IsCurrentCellReadOnly();
     }
@@ -557,7 +557,7 @@ extern "C"
         return self->GetGridCursorCol();
     }
 
-    EXPORT bool wxGrid_IsVisible(wxGrid* self, int row, int col, bool wholeCellVisible)
+    EXPORT int wxGrid_IsVisible(wxGrid* self, int row, int col, bool wholeCellVisible)
     {
         return self->IsVisible(row, col, wholeCellVisible);
     }
@@ -572,52 +572,52 @@ extern "C"
         self->SetGridCursor(row, col);
     }
 
-    EXPORT bool wxGrid_MoveCursorUp(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorUp(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorUp(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorDown(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorDown(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorDown(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorLeft(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorLeft(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorLeft(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorRight(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorRight(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorRight(expandSelection);
     }
 
-    EXPORT bool wxGrid_MovePageDown(wxGrid* self)
+    EXPORT int wxGrid_MovePageDown(wxGrid* self)
     {
         return self->MovePageDown();
     }
 
-    EXPORT bool wxGrid_MovePageUp(wxGrid* self)
+    EXPORT int wxGrid_MovePageUp(wxGrid* self)
     {
         return self->MovePageUp();
     }
 
-    EXPORT bool wxGrid_MoveCursorUpBlock(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorUpBlock(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorUpBlock(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorDownBlock(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorDownBlock(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorDownBlock(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorLeftBlock(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorLeftBlock(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorLeftBlock(expandSelection);
     }
 
-    EXPORT bool wxGrid_MoveCursorRightBlock(wxGrid* self, bool expandSelection)
+    EXPORT int wxGrid_MoveCursorRightBlock(wxGrid* self, bool expandSelection)
     {
         return self->MoveCursorRightBlock(expandSelection);
     }
@@ -756,7 +756,7 @@ extern "C"
         self->DisableDragRowSize();
     }
 
-    EXPORT bool wxGrid_CanDragRowSize(wxGrid* self, int row)
+    EXPORT int wxGrid_CanDragRowSize(wxGrid* self, int row)
     {
         return self->CanDragRowSize(row);
     }
@@ -771,7 +771,7 @@ extern "C"
         self->DisableDragColSize();
     }
 
-    EXPORT bool wxGrid_CanDragColSize(wxGrid* self, int col)
+    EXPORT int wxGrid_CanDragColSize(wxGrid* self, int col)
     {
         return self->CanDragColSize(col);
     }
@@ -786,7 +786,7 @@ extern "C"
         self->DisableDragGridSize();
     }
 
-    EXPORT bool wxGrid_CanDragGridSize(wxGrid* self)
+    EXPORT int wxGrid_CanDragGridSize(wxGrid* self)
     {
         return self->CanDragGridSize();
     }
@@ -826,7 +826,7 @@ extern "C"
         self->EnableGridLines(enable);
     }
 
-    EXPORT bool wxGrid_GridLinesEnabled(wxGrid* self)
+    EXPORT int wxGrid_GridLinesEnabled(wxGrid* self)
     {
         return self->GridLinesEnabled();
     }
@@ -1038,7 +1038,7 @@ extern "C"
         self->SetCellValue(row, col, *str);
     }
 
-    EXPORT bool wxGrid_IsReadOnly(wxGrid* self, int row, int col)
+    EXPORT int wxGrid_IsReadOnly(wxGrid* self, int row, int col)
     {
         return self->IsReadOnly(row, col);
     }
@@ -1069,7 +1069,7 @@ extern "C"
         self->SelectAll();
     }
 
-    EXPORT bool wxGrid_IsSelection(wxGrid* self)
+    EXPORT int wxGrid_IsSelection(wxGrid* self)
     {
         return self->IsSelection();
     }
@@ -1079,7 +1079,7 @@ extern "C"
         self->ClearSelection();
     }
 
-    EXPORT bool wxGrid_IsInSelection(wxGrid* self, int row, int col)
+    EXPORT int wxGrid_IsInSelection(wxGrid* self, int row, int col)
     {
         return self->IsInSelection(row, col);
     }
@@ -1418,27 +1418,27 @@ extern "C"
         return pt;
     }
 
-    EXPORT bool wxGridEvent_Selecting(wxGridEvent* self)
+    EXPORT int wxGridEvent_Selecting(wxGridEvent* self)
     {
         return self->Selecting();
     }
 
-    EXPORT bool wxGridEvent_ControlDown(wxGridEvent* self)
+    EXPORT int wxGridEvent_ControlDown(wxGridEvent* self)
     {
         return self->ControlDown();
     }
 
-    EXPORT bool wxGridEvent_MetaDown(wxGridEvent* self)
+    EXPORT int wxGridEvent_MetaDown(wxGridEvent* self)
     {
         return self->MetaDown();
     }
 
-    EXPORT bool wxGridEvent_ShiftDown(wxGridEvent* self)
+    EXPORT int wxGridEvent_ShiftDown(wxGridEvent* self)
     {
         return self->ShiftDown();
     }
 
-    EXPORT bool wxGridEvent_AltDown(wxGridEvent* self)
+    EXPORT int wxGridEvent_AltDown(wxGridEvent* self)
     {
         return self->AltDown();
     }
@@ -1455,22 +1455,22 @@ extern "C"
         return pt;
     }
 
-    EXPORT bool wxGridSizeEvent_ControlDown(wxGridSizeEvent* self)
+    EXPORT int wxGridSizeEvent_ControlDown(wxGridSizeEvent* self)
     {
         return self->ControlDown();
     }
 
-    EXPORT bool wxGridSizeEvent_MetaDown(wxGridSizeEvent* self)
+    EXPORT int wxGridSizeEvent_MetaDown(wxGridSizeEvent* self)
     {
         return self->MetaDown();
     }
 
-    EXPORT bool wxGridSizeEvent_ShiftDown(wxGridSizeEvent* self)
+    EXPORT int wxGridSizeEvent_ShiftDown(wxGridSizeEvent* self)
     {
         return self->ShiftDown();
     }
 
-    EXPORT bool wxGridSizeEvent_AltDown(wxGridSizeEvent* self)
+    EXPORT int wxGridSizeEvent_AltDown(wxGridSizeEvent* self)
     {
         return self->AltDown();
     }
@@ -1511,27 +1511,27 @@ extern "C"
         return self->GetRightCol();
     }
 
-    EXPORT bool wxGridRangeSelectEvent_Selecting(wxGridRangeSelectEvent* self)
+    EXPORT int wxGridRangeSelectEvent_Selecting(wxGridRangeSelectEvent* self)
     {
         return self->Selecting();
     }
 
-    EXPORT bool wxGridRangeSelectEvent_ControlDown(wxGridRangeSelectEvent* self)
+    EXPORT int wxGridRangeSelectEvent_ControlDown(wxGridRangeSelectEvent* self)
     {
         return self->ControlDown();
     }
 
-    EXPORT bool wxGridRangeSelectEvent_MetaDown(wxGridRangeSelectEvent* self)
+    EXPORT int wxGridRangeSelectEvent_MetaDown(wxGridRangeSelectEvent* self)
     {
         return self->MetaDown();
     }
 
-    EXPORT bool wxGridRangeSelectEvent_ShiftDown(wxGridRangeSelectEvent* self)
+    EXPORT int wxGridRangeSelectEvent_ShiftDown(wxGridRangeSelectEvent* self)
     {
         return self->ShiftDown();
     }
 
-    EXPORT bool wxGridRangeSelectEvent_AltDown(wxGridRangeSelectEvent* self)
+    EXPORT int wxGridRangeSelectEvent_AltDown(wxGridRangeSelectEvent* self)
     {
         return self->AltDown();
     }
@@ -1709,32 +1709,32 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxGridStringTable_InsertRows(wxGridStringTable* self, int pos, int num_rows)
+    EXPORT int wxGridStringTable_InsertRows(wxGridStringTable* self, int pos, int num_rows)
     {
         return self->InsertRows(static_cast<size_t>(pos), static_cast<size_t>(num_rows));
     }
 
-    EXPORT bool wxGridStringTable_AppendRows(wxGridStringTable* self, int num_rows)
+    EXPORT int wxGridStringTable_AppendRows(wxGridStringTable* self, int num_rows)
     {
         return self->AppendRows(static_cast<size_t>(num_rows));
     }
 
-    EXPORT bool wxGridStringTable_DeleteRows(wxGridStringTable* self, int pos, int num_rows)
+    EXPORT int wxGridStringTable_DeleteRows(wxGridStringTable* self, int pos, int num_rows)
     {
         return self->DeleteRows(static_cast<size_t>(pos), static_cast<size_t>(num_rows));
     }
 
-    EXPORT bool wxGridStringTable_InsertCols(wxGridStringTable* self, int pos, int num_cols)
+    EXPORT int wxGridStringTable_InsertCols(wxGridStringTable* self, int pos, int num_cols)
     {
         return self->InsertCols(static_cast<size_t>(pos), static_cast<size_t>(num_cols));
     }
 
-    EXPORT bool wxGridStringTable_AppendCols(wxGridStringTable* self, int num_cols)
+    EXPORT int wxGridStringTable_AppendCols(wxGridStringTable* self, int num_cols)
     {
         return self->AppendCols(static_cast<size_t>(num_cols));
     }
 
-    EXPORT bool wxGridStringTable_DeleteCols(wxGridStringTable* self, int pos, int num_cols)
+    EXPORT int wxGridStringTable_DeleteCols(wxGridStringTable* self, int pos, int num_cols)
     {
         return self->DeleteCols(static_cast<size_t>(pos), static_cast<size_t>(num_cols));
     }

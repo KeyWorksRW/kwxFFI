@@ -68,28 +68,28 @@ extern "C"
         return self->Length();
     }
 
-    EXPORT bool wxMediaCtrl_Load(wxMediaCtrl* self, const wxString* fileName)
+    EXPORT int wxMediaCtrl_Load(wxMediaCtrl* self, const wxString* fileName)
     {
         return self->Load(*fileName);
     }
 
-    EXPORT bool wxMediaCtrl_LoadURI(wxMediaCtrl* self, const wxString* uri)
+    EXPORT int wxMediaCtrl_LoadURI(wxMediaCtrl* self, const wxString* uri)
     {
         return self->LoadURI(*uri);
     }
 
-    EXPORT bool wxMediaCtrl_LoadURIWithProxy(wxMediaCtrl* self, const wxString* uri,
-                                             const wxString* proxy)
+    EXPORT int wxMediaCtrl_LoadURIWithProxy(wxMediaCtrl* self, const wxString* uri,
+                                            const wxString* proxy)
     {
         return self->LoadURIWithProxy(*uri, *proxy);
     }
 
-    EXPORT bool wxMediaCtrl_Pause(wxMediaCtrl* self)
+    EXPORT int wxMediaCtrl_Pause(wxMediaCtrl* self)
     {
         return self->Pause();
     }
 
-    EXPORT bool wxMediaCtrl_Play(wxMediaCtrl* self)
+    EXPORT int wxMediaCtrl_Play(wxMediaCtrl* self)
     {
         return self->Play();
     }
@@ -99,22 +99,22 @@ extern "C"
         return self->Seek(offsetWhere, static_cast<wxSeekMode>(mode));
     }
 
-    EXPORT bool wxMediaCtrl_SetPlaybackRate(wxMediaCtrl* self, double dRate)
+    EXPORT int wxMediaCtrl_SetPlaybackRate(wxMediaCtrl* self, double dRate)
     {
         return self->SetPlaybackRate(dRate);
     }
 
-    EXPORT bool wxMediaCtrl_SetVolume(wxMediaCtrl* self, double dVolume)
+    EXPORT int wxMediaCtrl_SetVolume(wxMediaCtrl* self, double dVolume)
     {
         return self->SetVolume(dVolume);
     }
 
-    EXPORT bool wxMediaCtrl_ShowPlayerControls(wxMediaCtrl* self, int flags)
+    EXPORT int wxMediaCtrl_ShowPlayerControls(wxMediaCtrl* self, int flags)
     {
         return self->ShowPlayerControls(static_cast<wxMediaCtrlPlayerControls>(flags));
     }
 
-    EXPORT bool wxMediaCtrl_Stop(wxMediaCtrl* self)
+    EXPORT int wxMediaCtrl_Stop(wxMediaCtrl* self)
     {
         return self->Stop();
     }
@@ -134,6 +134,5 @@ extern "C"
     {
         return (int) ((wxMediaCtrl*) pObject)->GetDownloadTotal();
     }
-
 }
 #endif  // wxUSE_MEDIACTRL

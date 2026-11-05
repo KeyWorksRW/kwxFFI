@@ -27,7 +27,7 @@ extern "C"
         self->SetValue(value);
     }
 
-    EXPORT bool wxCheckBox_GetValue(wxCheckBox* self)
+    EXPORT int wxCheckBox_GetValue(wxCheckBox* self)
     {
         return self->GetValue();
     }
@@ -37,7 +37,7 @@ extern "C"
         return static_cast<int>(self->Get3StateValue());
     }
 
-    EXPORT bool wxCheckBox_Is3State(wxCheckBox* self)
+    EXPORT int wxCheckBox_Is3State(wxCheckBox* self)
     {
         return self->Is3State();
     }
@@ -47,7 +47,7 @@ extern "C"
         self->Set3StateValue(static_cast<wxCheckBoxState>(state));
     }
 
-    EXPORT bool wxCheckBox_Is3rdStateAllowedForUser(wxCheckBox* self)
+    EXPORT int wxCheckBox_Is3rdStateAllowedForUser(wxCheckBox* self)
     {
         return self->Is3rdStateAllowedForUser();
     }

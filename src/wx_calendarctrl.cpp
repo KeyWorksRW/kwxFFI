@@ -111,9 +111,11 @@ extern "C"
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_Create(wxColour* textColour, wxColour* backColour,
-                                                         wxColour* borderColour, wxFont* font, int border)
+                                                         wxColour* borderColour, wxFont* font,
+                                                         int border)
     {
-        return new wxCalendarDateAttr(*textColour, *backColour, *borderColour, *font, (wxCalendarDateBorder) border);
+        return new wxCalendarDateAttr(*textColour, *backColour, *borderColour, *font,
+                                      (wxCalendarDateBorder) border);
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_CreateDefault()
@@ -156,32 +158,32 @@ extern "C"
         self->SetHoliday(holiday);
     }
 
-    EXPORT bool wxCalendarDateAttr_HasTextColour(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_HasTextColour(wxCalendarDateAttr* self)
     {
         return self->HasTextColour();
     }
 
-    EXPORT bool wxCalendarDateAttr_HasBackgroundColour(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_HasBackgroundColour(wxCalendarDateAttr* self)
     {
         return self->HasBackgroundColour();
     }
 
-    EXPORT bool wxCalendarDateAttr_HasBorderColour(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_HasBorderColour(wxCalendarDateAttr* self)
     {
         return self->HasBorderColour();
     }
 
-    EXPORT bool wxCalendarDateAttr_HasFont(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_HasFont(wxCalendarDateAttr* self)
     {
         return self->HasFont();
     }
 
-    EXPORT bool wxCalendarDateAttr_HasBorder(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_HasBorder(wxCalendarDateAttr* self)
     {
         return self->HasBorder();
     }
 
-    EXPORT bool wxCalendarDateAttr_IsHoliday(wxCalendarDateAttr* self)
+    EXPORT int wxCalendarDateAttr_IsHoliday(wxCalendarDateAttr* self)
     {
         return self->IsHoliday();
     }

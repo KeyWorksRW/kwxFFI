@@ -7809,6 +7809,26 @@ extern "C"
     {
         return static_cast<int>(wxSTB_DEFAULT_STYLE);
     }
+    EXPORT int expwxSTB_ELLIPSIZE_END()
+    {
+        return static_cast<int>(wxSTB_ELLIPSIZE_END);
+    }
+    EXPORT int expwxSTB_ELLIPSIZE_MIDDLE()
+    {
+        return static_cast<int>(wxSTB_ELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxSTB_ELLIPSIZE_START()
+    {
+        return static_cast<int>(wxSTB_ELLIPSIZE_START);
+    }
+    EXPORT int expwxSTB_SHOW_TIPS()
+    {
+        return static_cast<int>(wxSTB_SHOW_TIPS);
+    }
+    EXPORT int expwxSTB_SIZEGRIP()
+    {
+        return static_cast<int>(wxSTB_SIZEGRIP);
+    }
     EXPORT int expwxSTREAM_FILEEXT()
     {
         return static_cast<int>(wxSTREAM_FILEEXT);
@@ -8076,6 +8096,10 @@ extern "C"
     EXPORT int expwxTEXT_TYPE_RTF()
     {
         return static_cast<int>(wxTEXT_TYPE_RTF);
+    }
+    EXPORT int expwxTEXT_TYPE_ANY()
+    {
+        return static_cast<int>(wxTEXT_TYPE_ANY);
     }
     EXPORT int expwxTE_HT_BEFORE()
     {

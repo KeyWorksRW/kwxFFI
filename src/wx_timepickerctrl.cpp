@@ -35,7 +35,7 @@ extern "C"
         self->SetTime(hour, min, sec);
     }
 
-    EXPORT bool wxTimePickerCtrl_GetTime(wxTimePickerCtrl* self, int* hour, int* min, int* sec)
+    EXPORT int wxTimePickerCtrl_GetTime(wxTimePickerCtrl* self, int* hour, int* min, int* sec)
     {
         return self->GetTime(hour, min, sec);
     }

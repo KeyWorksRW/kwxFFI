@@ -29,38 +29,38 @@ extern "C"
     }
 
     // State
-    EXPORT bool wxRibbonPanel_IsMinimised(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_IsMinimised(wxRibbonPanel* self)
     {
         return self->IsMinimised();
     }
 
-    EXPORT bool wxRibbonPanel_IsMinimised_AtSize(wxRibbonPanel* self, int width, int height)
+    EXPORT int wxRibbonPanel_IsMinimised_AtSize(wxRibbonPanel* self, int width, int height)
     {
         return self->IsMinimised(wxSize(width, height));
     }
 
-    EXPORT bool wxRibbonPanel_IsHovered(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_IsHovered(wxRibbonPanel* self)
     {
         return self->IsHovered();
     }
 
-    EXPORT bool wxRibbonPanel_IsExtButtonHovered(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_IsExtButtonHovered(wxRibbonPanel* self)
     {
         return self->IsExtButtonHovered();
     }
 
-    EXPORT bool wxRibbonPanel_CanAutoMinimise(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_CanAutoMinimise(wxRibbonPanel* self)
     {
         return self->CanAutoMinimise();
     }
 
     // Display
-    EXPORT bool wxRibbonPanel_ShowExpanded(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_ShowExpanded(wxRibbonPanel* self)
     {
         return self->ShowExpanded();
     }
 
-    EXPORT bool wxRibbonPanel_HideExpanded(wxRibbonPanel* self)
+    EXPORT int wxRibbonPanel_HideExpanded(wxRibbonPanel* self)
     {
         return self->HideExpanded();
     }
@@ -140,5 +140,4 @@ extern "C"
     {
         ((wxRibbonPanel*) pObject)->SetExtButtonKeyTip(*(wxString*) keytip);
     }
-
 }

@@ -419,12 +419,12 @@ extern "C"
         return self->GetDataSize();
     }
 
-    EXPORT bool wxDataObjectSimple_GetDataHere(wxDataObjectSimple* self, void* buffer)
+    EXPORT int wxDataObjectSimple_GetDataHere(wxDataObjectSimple* self, void* buffer)
     {
         return self->GetDataHere(buffer);
     }
 
-    EXPORT bool wxDataObjectSimple_SetData(wxDataObjectSimple* self, size_t len, void* buffer)
+    EXPORT int wxDataObjectSimple_SetData(wxDataObjectSimple* self, size_t len, void* buffer)
     {
         return self->SetData(len, buffer);
     }
@@ -464,7 +464,7 @@ extern "C"
         return self->GetData();
     }
 
-    EXPORT bool wxCustomDataObject_SetData(wxCustomDataObject* self, size_t size, void* buffer)
+    EXPORT int wxCustomDataObject_SetData(wxCustomDataObject* self, size_t size, void* buffer)
     {
         return self->SetData(size, buffer);
     }
@@ -490,5 +490,4 @@ extern "C"
     {
         ((wxTextDataObject*) pObject)->SetText(*(wxString*) text);
     }
-
 }

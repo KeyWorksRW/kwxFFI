@@ -25,7 +25,7 @@ extern "C"
         return AsItemContainer(self)->GetCount();
     }
 
-    EXPORT bool wxItemContainer_IsEmpty(void* self)
+    EXPORT int wxItemContainer_IsEmpty(void* self)
     {
         return AsItemContainer(self)->IsEmpty();
     }
@@ -57,7 +57,7 @@ extern "C"
         return AsItemContainer(self)->GetSelection();
     }
 
-    EXPORT bool wxItemContainer_SetStringSelection(void* self, wxString* s)
+    EXPORT int wxItemContainer_SetStringSelection(void* self, wxString* s)
     {
         return AsItemContainer(self)->SetStringSelection(*s);
     }
@@ -120,7 +120,7 @@ extern "C"
         AsItemContainer(self)->Delete(pos);
     }
 
-    EXPORT bool wxItemContainer_IsSorted(void* self)
+    EXPORT int wxItemContainer_IsSorted(void* self)
     {
         return AsItemContainer(self)->IsSorted();
     }
@@ -137,7 +137,7 @@ extern "C"
         return AsItemContainer(self)->GetClientData(n);
     }
 
-    EXPORT bool wxItemContainer_HasClientData(void* self)
+    EXPORT int wxItemContainer_HasClientData(void* self)
     {
         return AsItemContainer(self)->HasClientData();
     }
@@ -172,12 +172,12 @@ extern "C"
         return static_cast<int>(AsItemContainer(self)->GetClientDataType());
     }
 
-    EXPORT bool wxItemContainer_HasClientObjectData(void* self)
+    EXPORT int wxItemContainer_HasClientObjectData(void* self)
     {
         return AsItemContainer(self)->HasClientObjectData();
     }
 
-    EXPORT bool wxItemContainer_HasClientUntypedData(void* self)
+    EXPORT int wxItemContainer_HasClientUntypedData(void* self)
     {
         return AsItemContainer(self)->HasClientUntypedData();
     }

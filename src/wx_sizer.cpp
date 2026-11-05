@@ -65,17 +65,17 @@ extern "C"
         return self->GetRatio();
     }
 
-    EXPORT bool wxSizerItem_IsWindow(wxSizerItem* self)
+    EXPORT int wxSizerItem_IsWindow(wxSizerItem* self)
     {
         return self->IsWindow();
     }
 
-    EXPORT bool wxSizerItem_IsSizer(wxSizerItem* self)
+    EXPORT int wxSizerItem_IsSizer(wxSizerItem* self)
     {
         return self->IsSizer();
     }
 
-    EXPORT bool wxSizerItem_IsSpacer(wxSizerItem* self)
+    EXPORT int wxSizerItem_IsSpacer(wxSizerItem* self)
     {
         return self->IsSpacer();
     }
@@ -177,7 +177,7 @@ extern "C"
         return text;
     }
 
-    EXPORT bool wxSizerItem_IsShown(wxSizerItem* self)
+    EXPORT int wxSizerItem_IsShown(wxSizerItem* self)
     {
         return self->IsShown();
     }
@@ -353,17 +353,17 @@ extern "C"
         self->Clear(delete_windows);
     }
 
-    EXPORT bool wxSizer_DetachWindow(wxSizer* self, wxWindow* window)
+    EXPORT int wxSizer_DetachWindow(wxSizer* self, wxWindow* window)
     {
         return self->Detach(window);
     }
 
-    EXPORT bool wxSizer_DetachSizer(wxSizer* self, wxSizer* sizer)
+    EXPORT int wxSizer_DetachSizer(wxSizer* self, wxSizer* sizer)
     {
         return self->Detach(sizer);
     }
 
-    EXPORT bool wxSizer_Detach(wxSizer* self, int index)
+    EXPORT int wxSizer_Detach(wxSizer* self, int index)
     {
         return self->Detach((size_t) index);
     }
@@ -393,17 +393,17 @@ extern "C"
         return (void*) self->GetItem((size_t) index);
     }
 
-    EXPORT bool wxSizer_HideWindow(wxSizer* self, wxWindow* window)
+    EXPORT int wxSizer_HideWindow(wxSizer* self, wxWindow* window)
     {
         return self->Hide(window);
     }
 
-    EXPORT bool wxSizer_HideSizer(wxSizer* self, wxSizer* sizer)
+    EXPORT int wxSizer_HideSizer(wxSizer* self, wxSizer* sizer)
     {
         return self->Hide(sizer);
     }
 
-    EXPORT bool wxSizer_Hide(wxSizer* self, int index)
+    EXPORT int wxSizer_Hide(wxSizer* self, int index)
     {
         return self->Hide((size_t) index);
     }
@@ -418,17 +418,17 @@ extern "C"
         return (void*) self->InsertStretchSpacer((size_t) index, prop);
     }
 
-    EXPORT bool wxSizer_IsShownWindow(wxSizer* self, wxWindow* window)
+    EXPORT int wxSizer_IsShownWindow(wxSizer* self, wxWindow* window)
     {
         return self->IsShown(window);
     }
 
-    EXPORT bool wxSizer_IsShownSizer(wxSizer* self, wxSizer* sizer)
+    EXPORT int wxSizer_IsShownSizer(wxSizer* self, wxSizer* sizer)
     {
         return self->IsShown(sizer);
     }
 
-    EXPORT bool wxSizer_IsShown(wxSizer* self, size_t index)
+    EXPORT int wxSizer_IsShown(wxSizer* self, size_t index)
     {
         return self->IsShown(index);
     }
@@ -443,33 +443,33 @@ extern "C"
         return (void*) self->PrependStretchSpacer(prop);
     }
 
-    EXPORT bool wxSizer_ReplaceWindow(wxSizer* self, wxWindow* oldwin, wxWindow* newwin,
-                                      bool recursive)
+    EXPORT int wxSizer_ReplaceWindow(wxSizer* self, wxWindow* oldwin, wxWindow* newwin,
+                                     bool recursive)
     {
         return self->Replace(oldwin, newwin, recursive);
     }
 
-    EXPORT bool wxSizer_ReplaceSizer(wxSizer* self, wxSizer* oldsz, wxSizer* newsz, bool recursive)
+    EXPORT int wxSizer_ReplaceSizer(wxSizer* self, wxSizer* oldsz, wxSizer* newsz, bool recursive)
     {
         return self->Replace(oldsz, newsz, recursive);
     }
 
-    EXPORT bool wxSizer_Replace(wxSizer* self, int oldindex, wxSizerItem* newsz)
+    EXPORT int wxSizer_Replace(wxSizer* self, int oldindex, wxSizerItem* newsz)
     {
         return self->Replace((size_t) oldindex, newsz);
     }
 
-    EXPORT bool wxSizer_ShowWindow(wxSizer* self, wxWindow* window, bool show, bool recursive)
+    EXPORT int wxSizer_ShowWindow(wxSizer* self, wxWindow* window, bool show, bool recursive)
     {
         return self->Show(window, show, recursive);
     }
 
-    EXPORT bool wxSizer_ShowSizer(wxSizer* self, wxSizer* sizer, bool show, bool recursive)
+    EXPORT int wxSizer_ShowSizer(wxSizer* self, wxSizer* sizer, bool show, bool recursive)
     {
         return self->Show(sizer, show, recursive);
     }
 
-    EXPORT bool wxSizer_Show(wxSizer* self, int index, bool show)
+    EXPORT int wxSizer_Show(wxSizer* self, int index, bool show)
     {
         return self->Show((size_t) index, show);
     }
@@ -617,12 +617,12 @@ extern "C"
         return (void*) self->GetStaticBox();
     }
 
-    EXPORT bool wxSizer_RemoveSizer(wxSizer* self, wxSizer* sizer)
+    EXPORT int wxSizer_RemoveSizer(wxSizer* self, wxSizer* sizer)
     {
         return self->Remove(sizer);
     }
 
-    EXPORT bool wxSizer_Remove(wxSizer* self, int index)
+    EXPORT int wxSizer_Remove(wxSizer* self, int index)
     {
         return self->Remove(index);
     }
@@ -658,7 +658,12 @@ extern "C"
         return static_cast<int>(self->GetItemCount());
     }
 
-    EXPORT bool wxSizer_IsEmpty(wxSizer* self)
+    EXPORT int wxSizer_GetDefaultBorder()
+    {
+        return wxSizerFlags::GetDefaultBorder();
+    }
+
+    EXPORT int wxSizer_IsEmpty(wxSizer* self)
     {
         return self->IsEmpty();
     }
@@ -673,13 +678,13 @@ extern "C"
         self->Show(show);
     }
 
-    EXPORT bool wxSizer_AreAnyItemsShown(wxSizer* self)
+    EXPORT int wxSizer_AreAnyItemsShown(wxSizer* self)
     {
         return self->AreAnyItemsShown();
     }
 
-    EXPORT bool wxSizer_InformFirstDirection(wxSizer* self, int direction, int size,
-                                             int availableOtherDir)
+    EXPORT int wxSizer_InformFirstDirection(wxSizer* self, int direction, int size,
+                                            int availableOtherDir)
     {
         return self->InformFirstDirection(direction, size, availableOtherDir);
     }
@@ -689,7 +694,7 @@ extern "C"
         self->SetContainingWindow(window);
     }
 
-    EXPORT bool wxBoxSizer_IsVertical(wxBoxSizer* self)
+    EXPORT int wxBoxSizer_IsVertical(wxBoxSizer* self)
     {
         return self->IsVertical();
     }
@@ -709,12 +714,12 @@ extern "C"
         return self->GetEffectiveRowsCount();
     }
 
-    EXPORT bool wxFlexGridSizer_IsRowGrowable(wxFlexGridSizer* self, size_t idx)
+    EXPORT int wxFlexGridSizer_IsRowGrowable(wxFlexGridSizer* self, size_t idx)
     {
         return self->IsRowGrowable(idx);
     }
 
-    EXPORT bool wxFlexGridSizer_IsColGrowable(wxFlexGridSizer* self, size_t idx)
+    EXPORT int wxFlexGridSizer_IsColGrowable(wxFlexGridSizer* self, size_t idx)
     {
         return self->IsColGrowable(idx);
     }
@@ -780,7 +785,7 @@ extern "C"
         ((wxSizerItem*) pObject)->SetMinSize(*(wxSize*) size);
     }
 
-    EXPORT bool wxStaticBoxSizer_Detach(void* pObject, void* window)
+    EXPORT int wxStaticBoxSizer_Detach(void* pObject, void* window)
     {
         return ((wxStaticBoxSizer*) pObject)->Detach((wxWindowBase*) window);
     }

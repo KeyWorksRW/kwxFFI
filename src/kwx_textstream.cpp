@@ -6,7 +6,7 @@
 
 extern "C"
 {
-    EXPORT bool wxInputStream_CanRead(wxInputStream* self)
+    EXPORT int wxInputStream_CanRead(wxInputStream* self)
     {
         if (self)
             return self->CanRead();

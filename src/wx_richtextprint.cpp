@@ -91,7 +91,7 @@ extern "C"
         self->SetShowOnFirstPage(showOnFirstPage);
     }
 
-    EXPORT bool wxRichTextHeaderFooterData_GetShowOnFirstPage(wxRichTextHeaderFooterData* self)
+    EXPORT int wxRichTextHeaderFooterData_GetShowOnFirstPage(wxRichTextHeaderFooterData* self)
     {
         return self->GetShowOnFirstPage();
     }
@@ -137,13 +137,13 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxRichTextPrinting_PreviewFile(wxRichTextPrinting* self, wxString* richTextFile)
+    EXPORT int wxRichTextPrinting_PreviewFile(wxRichTextPrinting* self, wxString* richTextFile)
     {
         return self->PreviewFile(*richTextFile);
     }
 
-    EXPORT bool wxRichTextPrinting_PrintFile(wxRichTextPrinting* self, wxString* richTextFile,
-                                             bool showPrintDialog)
+    EXPORT int wxRichTextPrinting_PrintFile(wxRichTextPrinting* self, wxString* richTextFile,
+                                            bool showPrintDialog)
     {
         return self->PrintFile(*richTextFile, showPrintDialog);
     }
@@ -295,14 +295,14 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxRichTextPrinting_PreviewBuffer(void* pObject, void* buffer)
+    EXPORT int wxRichTextPrinting_PreviewBuffer(void* pObject, void* buffer)
     {
         return ((wxRichTextPrinting*) pObject)->PreviewBuffer(*(wxRichTextBuffer*) buffer);
     }
 
-    EXPORT bool wxRichTextPrinting_PrintBuffer(void* pObject, void* buffer, bool showPrintDialog)
+    EXPORT int wxRichTextPrinting_PrintBuffer(void* pObject, void* buffer, bool showPrintDialog)
     {
-        return ((wxRichTextPrinting*) pObject)->PrintBuffer(*(wxRichTextBuffer*) buffer, showPrintDialog);
+        return ((wxRichTextPrinting*) pObject)
+            ->PrintBuffer(*(wxRichTextBuffer*) buffer, showPrintDialog);
     }
-
 }

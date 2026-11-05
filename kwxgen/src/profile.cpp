@@ -124,6 +124,7 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
         "kwxCmdLineDesc",
         "wxArray",
         "wxArrayString",
+        "wxArrayInt",
         "wxBufferedInputStream",
         "wxBufferedOutputStream",
         "wxCmdLineParser",

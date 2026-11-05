@@ -172,33 +172,33 @@ extern "C"
         return self->GetBlue(x, y);
     }
 
-    EXPORT bool wxImage_CanRead(wxString* name)
+    EXPORT int wxImage_CanRead(wxString* name)
     {
         return wxImage::CanRead(*name);
     }
 
-    EXPORT bool wxImage_LoadFile(wxImage* self, wxString* name, wxBitmapType type, int index)
+    EXPORT int wxImage_LoadFile(wxImage* self, wxString* name, wxBitmapType type, int index)
     {
         return self->LoadFile(*name, type, index);
     }
 
-    EXPORT bool wxImage_LoadStream(wxImage* self, wxInputStream* stream, wxBitmapType type,
-                                   int index)
+    EXPORT int wxImage_LoadStream(wxImage* self, wxInputStream* stream, wxBitmapType type,
+                                  int index)
     {
         return self->LoadFile(*stream, type, index);
     }
 
-    EXPORT bool wxImage_SaveFile(wxImage* self, wxString* name, wxBitmapType type)
+    EXPORT int wxImage_SaveFile(wxImage* self, wxString* name, wxBitmapType type)
     {
         return self->SaveFile(*name, type);
     }
 
-    EXPORT bool wxImage_SaveStream(wxImage* self, wxOutputStream* stream, wxBitmapType type)
+    EXPORT int wxImage_SaveStream(wxImage* self, wxOutputStream* stream, wxBitmapType type)
     {
         return self->SaveFile(*stream, type);
     }
 
-    EXPORT bool wxImage_IsOk(wxImage* self)
+    EXPORT int wxImage_IsOk(wxImage* self)
     {
         return self->IsOk();
     }
@@ -254,7 +254,7 @@ extern "C"
         self->SetMask(mask);
     }
 
-    EXPORT bool wxImage_HasMask(wxImage* self)
+    EXPORT int wxImage_HasMask(wxImage* self)
     {
         return self->HasMask();
     }
@@ -291,7 +291,7 @@ extern "C"
         return self->HasOption(*key);
     }
 
-    EXPORT bool wxImage_CreateFromXPMData(wxImage* self, void* data)
+    EXPORT int wxImage_CreateFromXPMData(wxImage* self, void* data)
     {
         return self->Create(static_cast<const char* const*>(data));
     }
@@ -430,8 +430,8 @@ extern "C"
         return self->GetAlpha(x, y);
     }
 
-    EXPORT bool wxImage_FindFirstUnusedColour(wxImage* self, char* r, char* g, char* b, char startR,
-                                              char startG, char startB)
+    EXPORT int wxImage_FindFirstUnusedColour(wxImage* self, char* r, char* g, char* b, char startR,
+                                             char startG, char startB)
     {
         unsigned char red = static_cast<unsigned char>(startR);
         unsigned char green = static_cast<unsigned char>(startG);
@@ -456,24 +456,24 @@ extern "C"
         return found;
     }
 
-    EXPORT bool wxImage_SetMaskFromImage(wxImage* self, wxImage* mask, wxUint8 mr, wxUint8 mg,
-                                         wxUint8 mb)
+    EXPORT int wxImage_SetMaskFromImage(wxImage* self, wxImage* mask, wxUint8 mr, wxUint8 mg,
+                                        wxUint8 mb)
     {
         return self->SetMaskFromImage(*mask, mr, mg, mb);
     }
 
-    EXPORT bool wxImage_ConvertAlphaToMask(wxImage* self, char threshold)
+    EXPORT int wxImage_ConvertAlphaToMask(wxImage* self, char threshold)
     {
         return self->ConvertAlphaToMask(static_cast<unsigned char>(threshold));
     }
 
-    EXPORT bool wxImage_ConvertAlphaToMaskColour(wxImage* self, wxUint8 mr, wxUint8 mg, wxUint8 mb,
-                                                 char threshold)
+    EXPORT int wxImage_ConvertAlphaToMaskColour(wxImage* self, wxUint8 mr, wxUint8 mg, wxUint8 mb,
+                                                char threshold)
     {
         return self->ConvertAlphaToMask(mr, mg, mb, static_cast<unsigned char>(threshold));
     }
 
-    EXPORT bool wxImage_ConvertColourToAlpha(wxImage* self, wxUint8 r, wxUint8 g, wxUint8 b)
+    EXPORT int wxImage_ConvertColourToAlpha(wxImage* self, wxUint8 r, wxUint8 g, wxUint8 b)
     {
         return self->ConvertColourToAlpha(r, g, b);
     }
@@ -503,23 +503,23 @@ extern "C"
         return wxImage::GetImageCount(*name, static_cast<wxBitmapType>(type));
     }
 
-    EXPORT bool wxImage_SaveFileMime(wxImage* self, wxString* name, wxString* mimetype)
+    EXPORT int wxImage_SaveFileMime(wxImage* self, wxString* name, wxString* mimetype)
     {
         return self->SaveFile(*name, *mimetype);
     }
 
-    EXPORT bool wxImage_LoadFileMime(wxImage* self, wxString* name, wxString* mimetype, int index)
+    EXPORT int wxImage_LoadFileMime(wxImage* self, wxString* name, wxString* mimetype, int index)
     {
         return self->LoadFile(*name, *mimetype, index);
     }
 
-    EXPORT bool wxImage_LoadStreamMime(wxImage* self, wxInputStream* stream, wxString* mimetype,
-                                       int index)
+    EXPORT int wxImage_LoadStreamMime(wxImage* self, wxInputStream* stream, wxString* mimetype,
+                                      int index)
     {
         return self->LoadFile(*stream, *mimetype, index);
     }
 
-    EXPORT bool wxImage_SaveStreamMime(wxImage* self, wxOutputStream* stream, wxString* mimetype)
+    EXPORT int wxImage_SaveStreamMime(wxImage* self, wxOutputStream* stream, wxString* mimetype)
     {
         return self->SaveFile(*stream, *mimetype);
     }
@@ -541,7 +541,7 @@ extern "C"
         return static_cast<void*>(self->GetAlpha());
     }
 
-    EXPORT bool wxImage_HasAlpha(wxImage* self)
+    EXPORT int wxImage_HasAlpha(wxImage* self)
     {
         return self->HasAlpha();
     }
@@ -561,12 +561,12 @@ extern "C"
         self->ClearAlpha();
     }
 
-    EXPORT bool wxImage_IsTransparent(wxImage* self, int x, int y, char threshold)
+    EXPORT int wxImage_IsTransparent(wxImage* self, int x, int y, char threshold)
     {
         return self->IsTransparent(x, y, static_cast<unsigned char>(threshold));
     }
 
-    EXPORT bool wxImage_GetOrFindMaskColour(wxImage* self, char* r, char* g, char* b)
+    EXPORT int wxImage_GetOrFindMaskColour(wxImage* self, char* r, char* g, char* b)
     {
         unsigned char red = 0;
         unsigned char green = 0;
@@ -588,7 +588,7 @@ extern "C"
         return found;
     }
 
-    EXPORT bool wxImage_HasPalette(wxImage* self)
+    EXPORT int wxImage_HasPalette(wxImage* self)
     {
         return self->HasPalette();
     }
@@ -633,7 +633,7 @@ extern "C"
         wxImage::InsertHandler(handler);
     }
 
-    EXPORT bool wxImage_RemoveHandler(wxString* name)
+    EXPORT int wxImage_RemoveHandler(wxString* name)
     {
         return wxImage::RemoveHandler(*name);
     }
@@ -683,7 +683,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxQuantize_Quantize(wxImage* src, wxImage* dest, int desiredNoColours, int flags)
+    EXPORT int wxQuantize_Quantize(wxImage* src, wxImage* dest, int desiredNoColours, int flags)
     {
         return wxQuantize::Quantize(*src, *dest, desiredNoColours, nullptr, flags);
     }
@@ -739,7 +739,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxImageHandler_CanReadStream(wxImageHandler* self, wxInputStream* stream)
+    EXPORT int wxImageHandler_CanReadStream(wxImageHandler* self, wxInputStream* stream)
     {
 #if wxUSE_STREAMS
         return self->CanRead(*stream);
@@ -750,7 +750,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxImageHandler_CanReadFile(wxImageHandler* self, wxString* name)
+    EXPORT int wxImageHandler_CanReadFile(wxImageHandler* self, wxString* name)
     {
 #if wxUSE_STREAMS
         return self->CanRead(*name);
@@ -761,8 +761,8 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxImageHandler_LoadFile(wxImageHandler* self, wxImage* image, wxInputStream* stream,
-                                        bool verbose, int index)
+    EXPORT int wxImageHandler_LoadFile(wxImageHandler* self, wxImage* image, wxInputStream* stream,
+                                       bool verbose, int index)
     {
 #if wxUSE_STREAMS
         return self->LoadFile(image, *stream, verbose, index);
@@ -776,8 +776,8 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxImageHandler_SaveFile(wxImageHandler* self, wxImage* image,
-                                        wxOutputStream* stream, bool verbose)
+    EXPORT int wxImageHandler_SaveFile(wxImageHandler* self, wxImage* image, wxOutputStream* stream,
+                                       bool verbose)
     {
 #if wxUSE_STREAMS
         return self->SaveFile(image, *stream, verbose);
@@ -827,5 +827,4 @@ extern "C"
     {
         return ((wxImage*) pObject)->GetAlpha(x, y);
     }
-
 }

@@ -20,7 +20,7 @@ extern "C"
         self->SetAllowSymbols(flag);
     }
 
-    EXPORT bool wxFontData_GetAllowSymbols(wxFontData* self)
+    EXPORT int wxFontData_GetAllowSymbols(wxFontData* self)
     {
         return self->GetAllowSymbols();
     }
@@ -40,7 +40,7 @@ extern "C"
         self->SetShowHelp(flag);
     }
 
-    EXPORT bool wxFontData_GetShowHelp(wxFontData* self)
+    EXPORT int wxFontData_GetShowHelp(wxFontData* self)
     {
         return self->GetShowHelp();
     }
@@ -50,7 +50,7 @@ extern "C"
         self->EnableEffects(flag);
     }
 
-    EXPORT bool wxFontData_GetEnableEffects(wxFontData* self)
+    EXPORT int wxFontData_GetEnableEffects(wxFontData* self)
     {
         return self->GetEnableEffects();
     }

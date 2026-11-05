@@ -15,9 +15,11 @@ extern "C"
 {
     // Constructor
     EXPORT wxCollapsiblePane* wxCollapsiblePane_Create(wxWindow* parent, int id, wxString* label,
-                                                       int x, int y, int width, int height, int style)
+                                                       int x, int y, int width, int height,
+                                                       int style)
     {
-        return new wxCollapsiblePane(parent, id, *label, wxPoint(x, y), wxSize(width, height), style);
+        return new wxCollapsiblePane(parent, id, *label, wxPoint(x, y), wxSize(width, height),
+                                     style);
     }
 
     // Collapse/Expand
@@ -31,12 +33,12 @@ extern "C"
         self->Expand();
     }
 
-    EXPORT bool wxCollapsiblePane_IsCollapsed(wxCollapsiblePane* self)
+    EXPORT int wxCollapsiblePane_IsCollapsed(wxCollapsiblePane* self)
     {
         return self->IsCollapsed();
     }
 
-    EXPORT bool wxCollapsiblePane_IsExpanded(wxCollapsiblePane* self)
+    EXPORT int wxCollapsiblePane_IsExpanded(wxCollapsiblePane* self)
     {
         return self->IsExpanded();
     }
@@ -61,7 +63,7 @@ extern "C"
     }
 
     // wxCollapsiblePaneEvent methods
-    EXPORT bool wxCollapsiblePaneEvent_GetCollapsed(wxCollapsiblePaneEvent* self)
+    EXPORT int wxCollapsiblePaneEvent_GetCollapsed(wxCollapsiblePaneEvent* self)
     {
         return self->GetCollapsed();
     }

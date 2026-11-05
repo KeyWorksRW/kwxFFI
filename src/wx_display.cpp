@@ -38,7 +38,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxDisplay_IsOk(wxDisplay* self)
+    EXPORT int wxDisplay_IsOk(wxDisplay* self)
     {
         return self->IsOk();
     }
@@ -68,7 +68,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxDisplay_IsPrimary(wxDisplay* self)
+    EXPORT int wxDisplay_IsPrimary(wxDisplay* self)
     {
         return self->IsPrimary();
     }
@@ -112,12 +112,12 @@ extern "C"
         return self->GetDepth();
     }
 
-    EXPORT bool wxVideoMode_IsOk(wxVideoMode* self)
+    EXPORT int wxVideoMode_IsOk(wxVideoMode* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxVideoMode_Matches(wxVideoMode* self, wxVideoMode* other)
+    EXPORT int wxVideoMode_Matches(wxVideoMode* self, wxVideoMode* other)
     {
         return self->Matches(*other);
     }
@@ -130,7 +130,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxDisplay_ChangeMode(void* pObject, void* mode)
+    EXPORT int wxDisplay_ChangeMode(void* pObject, void* mode)
     {
         return ((wxDisplay*) pObject)->ChangeMode(*(wxVideoMode*) mode);
     }
@@ -150,5 +150,4 @@ extern "C"
     {
         ((wxDisplay*) pObject)->ResetMode();
     }
-
 }

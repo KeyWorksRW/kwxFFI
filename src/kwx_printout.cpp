@@ -56,14 +56,18 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT void wxPrintout_FitThisSizeToPageMargins(void* pObject, void* imageSize, void* pageSetupData)
+    EXPORT void wxPrintout_FitThisSizeToPageMargins(void* pObject, void* imageSize,
+                                                    void* pageSetupData)
     {
-        ((wxPrintout*) pObject)->FitThisSizeToPageMargins(*(wxSize*) imageSize, *(wxPageSetupDialogData*) pageSetupData);
+        ((wxPrintout*) pObject)
+            ->FitThisSizeToPageMargins(*(wxSize*) imageSize,
+                                       *(wxPageSetupDialogData*) pageSetupData);
     }
 
     EXPORT void* wxPrintout_GetLogicalPageMarginsRect(void* pObject, void* pageSetupData)
     {
-        wxRect value = ((wxPrintout*) pObject)->GetLogicalPageMarginsRect(*(wxPageSetupDialogData*) pageSetupData);
+        wxRect value = ((wxPrintout*) pObject)
+                           ->GetLogicalPageMarginsRect(*(wxPageSetupDialogData*) pageSetupData);
         return new wxRect(value);
     }
 
@@ -76,7 +80,6 @@ extern "C"
     {
         ((wxPrintout*) pObject)->OffsetLogicalOrigin((wxCoord) xoff, (wxCoord) yoff);
     }
-
 }
 
 class wxcPrintout : public wxPrintout
@@ -325,7 +328,7 @@ extern "C"
         return self->GetEndPage();
     }
 
-    EXPORT bool wxcPrintEvent_GetContinue(wxcPrintEvent* self)
+    EXPORT int wxcPrintEvent_GetContinue(wxcPrintEvent* self)
     {
         return self->GetContinue();
     }
@@ -397,7 +400,7 @@ extern "C"
         ((wxPrintout*) pObject)->GetPPIPrinter(x, y);
     }
 
-    EXPORT bool wxPrintout_IsPreview(wxPrintout* pObject)
+    EXPORT int wxPrintout_IsPreview(wxPrintout* pObject)
     {
         return pObject->IsPreview();
     }

@@ -22,12 +22,12 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxNotificationMessage_Show(wxNotificationMessage* self, int timeout)
+    EXPORT int wxNotificationMessage_Show(wxNotificationMessage* self, int timeout)
     {
         return self->Show(timeout);
     }
 
-    EXPORT bool wxNotificationMessage_Close(wxNotificationMessage* self)
+    EXPORT int wxNotificationMessage_Close(wxNotificationMessage* self)
     {
         return self->Close();
     }
@@ -57,26 +57,26 @@ extern "C"
         self->SetIcon(*icon);
     }
 
-    EXPORT bool wxNotificationMessage_AddAction(wxNotificationMessage* self, int actionid,
-                                                wxString* label)
+    EXPORT int wxNotificationMessage_AddAction(wxNotificationMessage* self, int actionid,
+                                               wxString* label)
     {
         wxString lbl = label ? *label : wxString();
         return self->AddAction(actionid, lbl);
     }
 
     // Static methods for platform capabilities
-    EXPORT bool wxNotificationMessage_UseTaskBarIcon(wxTaskBarIcon* icon)
+    EXPORT int wxNotificationMessage_UseTaskBarIcon(wxTaskBarIcon* icon)
     {
 #ifdef __WXMSW__
-        return wxNotificationMessage::UseTaskBarIcon(icon);
+        return wxNotificationMessage::UseTaskBarIcon(icon) != nullptr ? 1 : 0;
 #else
         // Only the MSW notification implementation can route through a task bar icon.
         wxUnusedVar(icon);
-        return false;
+        return 0;
 #endif
     }
 
-    EXPORT bool wxNotificationMessage_MSWUseToasts(wxString* shortcutPath, wxString* appId)
+    EXPORT int wxNotificationMessage_MSWUseToasts(wxString* shortcutPath, wxString* appId)
     {
 #ifdef __WXMSW__
         wxString sp = shortcutPath ? *shortcutPath : wxString();

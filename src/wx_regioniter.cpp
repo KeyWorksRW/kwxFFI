@@ -30,7 +30,7 @@ extern "C"
         self->Reset(*region);
     }
 
-    EXPORT bool wxRegionIterator_HaveRects(wxRegionIterator* self)
+    EXPORT int wxRegionIterator_HaveRects(wxRegionIterator* self)
     {
         return self->HaveRects();
     }
@@ -66,5 +66,4 @@ extern "C"
         wxRect value = ((wxRegionIterator*) pObject)->GetRect();
         return new wxRect(value);
     }
-
 }

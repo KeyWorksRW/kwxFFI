@@ -15,8 +15,8 @@ extern "C"
 {
     // Selection and navigation
 
-    EXPORT bool wxVListBox_Create(wxVListBox* self, wxWindow* parent, int id, int x, int y,
-                                  int width, int height, long style, wxString* name)
+    EXPORT int wxVListBox_Create(wxVListBox* self, wxWindow* parent, int id, int x, int y,
+                                 int width, int height, long style, wxString* name)
     {
         return self->Create(parent, id, wxPoint(x, y), wxSize(width, height), style,
                             name ? *name : wxString(wxVListBoxNameStr));
@@ -27,7 +27,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxVListBox_DeselectAll(wxVListBox* self)
+    EXPORT int wxVListBox_DeselectAll(wxVListBox* self)
     {
         return self->DeselectAll();
     }
@@ -72,32 +72,32 @@ extern "C"
         *colour = self->GetSelectionBackground();
     }
 
-    EXPORT bool wxVListBox_HasMultipleSelection(wxVListBox* self)
+    EXPORT int wxVListBox_HasMultipleSelection(wxVListBox* self)
     {
         return self->HasMultipleSelection();
     }
 
-    EXPORT bool wxVListBox_IsCurrent(wxVListBox* self, size_t item)
+    EXPORT int wxVListBox_IsCurrent(wxVListBox* self, size_t item)
     {
         return self->IsCurrent(item);
     }
 
-    EXPORT bool wxVListBox_IsSelected(wxVListBox* self, size_t item)
+    EXPORT int wxVListBox_IsSelected(wxVListBox* self, size_t item)
     {
         return self->IsSelected(item);
     }
 
-    EXPORT bool wxVListBox_Select(wxVListBox* self, size_t item, bool select)
+    EXPORT int wxVListBox_Select(wxVListBox* self, size_t item, bool select)
     {
         return self->Select(item, select);
     }
 
-    EXPORT bool wxVListBox_SelectAll(wxVListBox* self)
+    EXPORT int wxVListBox_SelectAll(wxVListBox* self)
     {
         return self->SelectAll();
     }
 
-    EXPORT bool wxVListBox_SelectRange(wxVListBox* self, size_t from, size_t toPos)
+    EXPORT int wxVListBox_SelectRange(wxVListBox* self, size_t from, size_t toPos)
     {
         return self->SelectRange(from, toPos);
     }

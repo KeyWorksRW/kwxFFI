@@ -6,7 +6,6 @@
 
 extern "C"
 {
-
     EXPORT wxMemoryInputStream* wxMemoryInputStream_Create(void* data, int len)
     {
         return new wxMemoryInputStream((unsigned char*) data, len);
@@ -17,7 +16,6 @@ extern "C"
         if (self)
             delete self;
     }
-
 
     EXPORT wxFileInputStream* wxFileInputStream_Create(wxString* ofileName)
     {
@@ -30,11 +28,10 @@ extern "C"
             delete self;
     }
 
-    EXPORT bool wxFileInputStream_IsOk(wxFileInputStream* self)
+    EXPORT int wxFileInputStream_IsOk(wxFileInputStream* self)
     {
         return self->IsOk();
     }
-
 
     EXPORT wxFileOutputStream* wxFileOutputStream_Create(wxString* ofileName)
     {
@@ -47,7 +44,7 @@ extern "C"
             delete self;
     }
 
-    EXPORT bool wxFileOutputStream_IsOk(wxFileOutputStream* self)
+    EXPORT int wxFileOutputStream_IsOk(wxFileOutputStream* self)
     {
         return self->IsOk();
     }
@@ -60,12 +57,12 @@ extern "C"
 
     EXPORT int wxBufferedOutputStream_SeekO(void* pObject, int pos, int mode)
     {
-        return (int) ((wxBufferedOutputStream*) pObject)->SeekO((wxFileOffset) pos, (wxSeekMode) mode);
+        return (int) ((wxBufferedOutputStream*) pObject)
+            ->SeekO((wxFileOffset) pos, (wxSeekMode) mode);
     }
 
     EXPORT int wxFileInputStream_GetLength(void* pObject)
     {
         return (int) ((wxFileInputStream*) pObject)->GetLength();
     }
-
 }

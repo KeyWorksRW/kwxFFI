@@ -79,7 +79,7 @@ extern "C"
         self->SetApplyOnSelection(applyOnSelection);
     }
 
-    EXPORT bool wxRichTextStyleListBox_GetApplyOnSelection(wxRichTextStyleListBox* self)
+    EXPORT int wxRichTextStyleListBox_GetApplyOnSelection(wxRichTextStyleListBox* self)
     {
         return self->GetApplyOnSelection();
     }
@@ -100,7 +100,7 @@ extern "C"
         self->SetAutoSetSelection(autoSet);
     }
 
-    EXPORT bool wxRichTextStyleListBox_CanAutoSetSelection(wxRichTextStyleListBox* self)
+    EXPORT int wxRichTextStyleListBox_CanAutoSetSelection(wxRichTextStyleListBox* self)
     {
         return self->CanAutoSetSelection();
     }

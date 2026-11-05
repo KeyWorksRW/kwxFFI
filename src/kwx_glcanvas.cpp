@@ -41,7 +41,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLCanvas_SetCurrent(wxGLCanvas* self, wxGLContext* ctxt)
+    EXPORT int wxGLCanvas_SetCurrent(wxGLCanvas* self, wxGLContext* ctxt)
     {
 #if wxUSE_GLCANVAS
         if (ctxt == nullptr)
@@ -53,7 +53,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLCanvas_SetColour(wxGLCanvas* self, wxColour* colour)
+    EXPORT int wxGLCanvas_SetColour(wxGLCanvas* self, wxColour* colour)
     {
 #if wxUSE_GLCANVAS
         wxString name = wxTheColourDatabase->FindName(*colour);
@@ -66,7 +66,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLCanvas_SwapBuffers(wxGLCanvas* self)
+    EXPORT int wxGLCanvas_SwapBuffers(wxGLCanvas* self)
     {
 #if wxUSE_GLCANVAS
         return self->SwapBuffers();
@@ -75,7 +75,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLCanvas_IsDisplaySupported(int* attributes)
+    EXPORT int wxGLCanvas_IsDisplaySupported(int* attributes)
     {
 #if wxUSE_GLCANVAS
         return wxGLCanvas::IsDisplaySupported(attributes);
@@ -84,7 +84,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLCanvas_IsExtensionSupported(wxString* extension)
+    EXPORT int wxGLCanvas_IsExtensionSupported(wxString* extension)
     {
 #if wxUSE_GLCANVAS
         const char* str = (const char*) extension->c_str();
@@ -115,7 +115,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxGLContext_SetCurrent(wxGLContext* self, wxGLCanvas* win)
+    EXPORT int wxGLContext_SetCurrent(wxGLContext* self, wxGLCanvas* win)
     {
 #if wxUSE_GLCANVAS
         if (win == nullptr)

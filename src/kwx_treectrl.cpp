@@ -61,7 +61,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxTreeItemId_IsOk(wxTreeItemId* self)
+    EXPORT int wxTreeItemId_IsOk(wxTreeItemId* self)
     {
         return self->IsOk();
     }
@@ -88,7 +88,7 @@ extern "C"
         return (wxKeyEvent*) &(self->GetKeyEvent());
     }
 
-    EXPORT bool wxTreeEvent_IsEditCancelled(wxTreeEvent* self)
+    EXPORT int wxTreeEvent_IsEditCancelled(wxTreeEvent* self)
     {
         return self->IsEditCancelled();
     }
@@ -256,7 +256,7 @@ extern "C"
         self->SetItemFont(*item, *font);
     }
 
-    EXPORT bool wxTreeCtrl_IsVisible(wxTreeCtrl* self, wxTreeItemId* item)
+    EXPORT int wxTreeCtrl_IsVisible(wxTreeCtrl* self, wxTreeItemId* item)
     {
         return self->IsVisible(*item);
     }
@@ -266,17 +266,17 @@ extern "C"
         return (int) self->ItemHasChildren(*item);
     }
 
-    EXPORT bool wxTreeCtrl_IsExpanded(wxTreeCtrl* self, wxTreeItemId* item)
+    EXPORT int wxTreeCtrl_IsExpanded(wxTreeCtrl* self, wxTreeItemId* item)
     {
         return self->IsExpanded(*item);
     }
 
-    EXPORT bool wxTreeCtrl_IsSelected(wxTreeCtrl* self, wxTreeItemId* item)
+    EXPORT int wxTreeCtrl_IsSelected(wxTreeCtrl* self, wxTreeItemId* item)
     {
         return self->IsSelected(*item);
     }
 
-    EXPORT bool wxTreeCtrl_IsBold(wxTreeCtrl* self, wxTreeItemId* item)
+    EXPORT int wxTreeCtrl_IsBold(wxTreeCtrl* self, wxTreeItemId* item)
     {
         return self->IsBold(*item);
     }
@@ -603,7 +603,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTreeCtrl_HasImages(wxTreeCtrl* self)
+    EXPORT int wxTreeCtrl_HasImages(wxTreeCtrl* self)
     {
         return self->HasImages();
     }
@@ -613,7 +613,7 @@ extern "C"
         return self->GetImageCount();
     }
 
-    EXPORT bool wxTreeCtrl_HasStateImages(wxTreeCtrl* self)
+    EXPORT int wxTreeCtrl_HasStateImages(wxTreeCtrl* self)
     {
         return self->HasStateImages();
     }
@@ -623,12 +623,12 @@ extern "C"
         return self->GetStateImageCount();
     }
 
-    EXPORT bool wxTreeCtrl_HasChildren(wxTreeCtrl* self, wxTreeItemId* item)
+    EXPORT int wxTreeCtrl_HasChildren(wxTreeCtrl* self, wxTreeItemId* item)
     {
         return self->HasChildren(*item);
     }
 
-    EXPORT bool wxTreeCtrl_IsEmpty(wxTreeCtrl* self)
+    EXPORT int wxTreeCtrl_IsEmpty(wxTreeCtrl* self)
     {
         return self->IsEmpty();
     }

@@ -17,7 +17,7 @@ extern "C"
                             wxDefaultValidator);
     }
 
-    EXPORT bool wxButton_SetBackgroundColour(wxButton* self, wxColour* colour)
+    EXPORT int wxButton_SetBackgroundColour(wxButton* self, wxColour* colour)
     {
         return self->SetBackgroundColour(*colour);
     }

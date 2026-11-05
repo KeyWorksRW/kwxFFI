@@ -42,17 +42,17 @@ namespace kwx
             return static_cast<int>(::wxGetOsVersion(major, minor, micro));
         }
 
-        EXPORT bool wxCheckOsVersion(int major, int minor, int micro)
+        EXPORT int wxCheckOsVersion(int major, int minor, int micro)
         {
             return ::wxCheckOsVersion(major, minor, micro);
         }
 
-        EXPORT bool wxIsPlatformLittleEndian()
+        EXPORT int wxIsPlatformLittleEndian()
         {
             return ::wxIsPlatformLittleEndian();
         }
 
-        EXPORT bool wxIsPlatform64Bit()
+        EXPORT int wxIsPlatform64Bit()
         {
             return ::wxIsPlatform64Bit();
         }
@@ -87,7 +87,7 @@ namespace kwx
             return ::wxGetFreeMemory().GetValue();
         }
 
-        EXPORT bool wxHandleFatalExceptions([[maybe_unused]] int doit)
+        EXPORT int wxHandleFatalExceptions([[maybe_unused]] int doit)
         {
 #if wxUSE_ON_FATAL_EXCEPTION
             return ::wxHandleFatalExceptions(doit != 0);
@@ -101,12 +101,12 @@ namespace kwx
         // GUI and system helpers
         // -------------------------------------------------------------------
 
-        EXPORT bool wxGetKeyState(int key)
+        EXPORT int wxGetKeyState(int key)
         {
             return ::wxGetKeyState(static_cast<wxKeyCode>(key));
         }
 
-        EXPORT bool wxSetDetectableAutoRepeat(int flag)
+        EXPORT int wxSetDetectableAutoRepeat(int flag)
         {
             return ::wxSetDetectableAutoRepeat(flag != 0);
         }
@@ -155,22 +155,22 @@ namespace kwx
         // Environment variables
         // -------------------------------------------------------------------
 
-        EXPORT bool wxGetEnv(const wxString* var, wxString* value)
+        EXPORT int wxGetEnv(const wxString* var, wxString* value)
         {
             return ::wxGetEnv(*var, value);
         }
 
-        EXPORT bool wxSetEnv(const wxString* var, const wxString* value)
+        EXPORT int wxSetEnv(const wxString* var, const wxString* value)
         {
             return ::wxSetEnv(*var, *value);
         }
 
-        EXPORT bool wxUnsetEnv(const wxString* var)
+        EXPORT int wxUnsetEnv(const wxString* var)
         {
             return ::wxUnsetEnv(*var);
         }
 
-        EXPORT bool wxGetEnvMap(wxArrayString* env_map)
+        EXPORT int wxGetEnvMap(wxArrayString* env_map)
         {
             wxEnvVariableHashMap env_variables;
             if (!::wxGetEnvMap(&env_variables))
@@ -224,7 +224,7 @@ namespace kwx
             return new wxString(::wxGetUserHome(*user));
         }
 
-        EXPORT bool wxGetDiskSpace(const wxString* path, int64_t* total_bytes, int64_t* free_bytes)
+        EXPORT int wxGetDiskSpace(const wxString* path, int64_t* total_bytes, int64_t* free_bytes)
         {
             wxDiskspaceSize_t total_space;
             wxDiskspaceSize_t free_space;
@@ -266,8 +266,8 @@ namespace kwx
             return ::wxExecute(arguments.data(), flags, process, execute_env);
         }
 
-        EXPORT bool wxExecuteDDE(const wxString* server, const wxString* topic,
-                                 const wxString* command)
+        EXPORT int wxExecuteDDE(const wxString* server, const wxString* topic,
+                                const wxString* command)
         {
 #if defined(__WINDOWS__) && wxUSE_IPC
             return ::wxExecuteDDE(*server, *topic, *command);
@@ -279,7 +279,7 @@ namespace kwx
 #endif
         }
 
-        EXPORT bool wxShutdown(int flags)
+        EXPORT int wxShutdown(int flags)
         {
             return ::wxShutdown(flags);
         }
@@ -296,12 +296,12 @@ namespace kwx
             return result;
         }
 
-        EXPORT bool wxShell(const wxString* command)
+        EXPORT int wxShell(const wxString* command)
         {
             return ::wxShell(*command);
         }
 
-        EXPORT bool wxShellWithOutput(const wxString* command, wxArrayString* output)
+        EXPORT int wxShellWithOutput(const wxString* command, wxArrayString* output)
         {
 #if defined(__WINDOWS__)
             // wxWidgets defines the output-capturing wxShell() overload only for the Unix
@@ -348,12 +348,12 @@ namespace kwx
         // GUI helpers
         // -------------------------------------------------------------------
 
-        EXPORT bool wxLaunchDefaultBrowser(const wxString* url, int flags)
+        EXPORT int wxLaunchDefaultBrowser(const wxString* url, int flags)
         {
             return ::wxLaunchDefaultBrowser(*url, flags);
         }
 
-        EXPORT bool wxLaunchDefaultApplication(const wxString* path, int flags)
+        EXPORT int wxLaunchDefaultApplication(const wxString* path, int flags)
         {
             return ::wxLaunchDefaultApplication(*path, flags);
         }
@@ -389,7 +389,7 @@ namespace kwx
             return ::wxFindWindowByName(*name, parent);
         }
 
-        EXPORT bool wxSafeYield(wxWindow* window, int only_if_needed)
+        EXPORT int wxSafeYield(wxWindow* window, int only_if_needed)
         {
             return ::wxSafeYield(window, only_if_needed != 0);
         }
@@ -399,7 +399,7 @@ namespace kwx
             ::wxEnableTopLevelWindows(enable != 0);
         }
 
-        EXPORT bool wxCheckForInterrupt(wxWindow* window)
+        EXPORT int wxCheckForInterrupt(wxWindow* window)
         {
             return ::wxCheckForInterrupt(window);
         }
@@ -422,17 +422,17 @@ namespace kwx
 #endif
         }
 
-        EXPORT bool wxYield()
+        EXPORT int wxYield()
         {
             return ::wxYield();
         }
 
-        EXPORT bool wxYieldIfNeeded()
+        EXPORT int wxYieldIfNeeded()
         {
             return ::wxYieldIfNeeded();
         }
 
-        EXPORT bool wxMSWIsOnSecureScreen()
+        EXPORT int wxMSWIsOnSecureScreen()
         {
 #ifdef __WINDOWS__
             return ::wxMSWIsOnSecureScreen();
@@ -477,12 +477,12 @@ namespace kwx
             return new wxString(::wxSaveFileSelector(*what, *extension, *default_name, parent));
         }
 
-        EXPORT bool wxIsStockID(int id)
+        EXPORT int wxIsStockID(int id)
         {
             return ::wxIsStockID(static_cast<wxWindowID>(id));
         }
 
-        EXPORT bool wxIsStockLabel(int id, const wxString* label)
+        EXPORT int wxIsStockLabel(int id, const wxString* label)
         {
             return ::wxIsStockLabel(static_cast<wxWindowID>(id), *label);
         }
@@ -574,7 +574,7 @@ namespace kwx
             return ::wxGetTopLevelParent(window);
         }
 
-        EXPORT bool wxIsprint(int character)
+        EXPORT int wxIsprint(int character)
         {
             return ::wxIsprint(wxUniChar(static_cast<wxUint32>(character)));
         }
@@ -609,7 +609,7 @@ namespace kwx
             return new wxString(::wxGetCwd());
         }
 
-        EXPORT bool wxIsMainThread()
+        EXPORT int wxIsMainThread()
         {
             return ::wxIsMainThread();
         }
@@ -671,7 +671,7 @@ namespace kwx
                 ::wxDirSelector(*message, *default_path, style, wxPoint(x, y), parent));
         }
 
-        EXPORT bool wxFileExists(const wxString* filename)
+        EXPORT int wxFileExists(const wxString* filename)
         {
             return ::wxFileExists(*filename);
         }
@@ -748,17 +748,17 @@ namespace kwx
             return &::wxGet_wxConvUTF8();
         }
 
-        EXPORT bool wxIsalnum(int character)
+        EXPORT int wxIsalnum(int character)
         {
             return ::wxIsalnum(wxUniChar(static_cast<wxUint32>(character)));
         }
 
-        EXPORT bool wxIsdigit(int character)
+        EXPORT int wxIsdigit(int character)
         {
             return ::wxIsdigit(wxUniChar(static_cast<wxUint32>(character)));
         }
 
-        EXPORT bool wxIslower(int character)
+        EXPORT int wxIslower(int character)
         {
             return ::wxIslower(wxUniChar(static_cast<wxUint32>(character)));
         }
@@ -778,7 +778,7 @@ namespace kwx
             ::wxMutexGuiLeave();
         }
 
-        EXPORT bool wxPlatformIs(int platform)
+        EXPORT int wxPlatformIs(int platform)
         {
             return ::wxPlatformIs(platform);
         }
@@ -803,12 +803,12 @@ namespace kwx
             return ::wxPuts(*str);
         }
 
-        EXPORT bool wxRenameFile(const wxString* old_path, const wxString* new_path, int overwrite)
+        EXPORT int wxRenameFile(const wxString* old_path, const wxString* new_path, int overwrite)
         {
             return ::wxRenameFile(*old_path, *new_path, overwrite != 0);
         }
 
-        EXPORT bool wxShowTip(wxWindow* parent, void* tip_provider)
+        EXPORT int wxShowTip(wxWindow* parent, void* tip_provider)
         {
             return ::wxShowTip(parent, static_cast<wxTipProvider*>(tip_provider));
         }
@@ -871,7 +871,7 @@ namespace kwx
             self->RemoveAt(static_cast<size_t>(index), static_cast<size_t>(count));
         }
 
-        EXPORT bool wxArrayString_IsEmpty(wxArrayString* self)
+        EXPORT int wxArrayString_IsEmpty(wxArrayString* self)
         {
             return self->IsEmpty();
         }
@@ -895,6 +895,53 @@ namespace kwx
         EXPORT void wxArrayString_Clear(wxArrayString* self)
         {
             self->Clear();
+        }
+
+        EXPORT void wxArrayString_Delete(wxArrayString* self)
+        {
+            delete self;
+        }
+
+        // -------------------------------------------------------------------
+        // wxArrayInt
+        //
+        // The int analogue of wxArrayString. Declared as its own TClassDef in
+        // include/kwx_classes.h; elements are plain ints.
+        // -------------------------------------------------------------------
+
+        EXPORT wxArrayInt* wxArrayInt_Create()
+        {
+            return new wxArrayInt();
+        }
+
+        EXPORT void wxArrayInt_Delete(wxArrayInt* self)
+        {
+            delete self;
+        }
+
+        EXPORT void wxArrayInt_Add(wxArrayInt* self, int item)
+        {
+            self->Add(item);
+        }
+
+        EXPORT int wxArrayInt_GetCount(wxArrayInt* self)
+        {
+            return static_cast<int>(self->GetCount());
+        }
+
+        EXPORT int wxArrayInt_Item(wxArrayInt* self, int index)
+        {
+            return self->Item(static_cast<size_t>(index));
+        }
+
+        EXPORT void wxArrayInt_Clear(wxArrayInt* self)
+        {
+            self->Clear();
+        }
+
+        EXPORT int wxArrayInt_IsEmpty(wxArrayInt* self)
+        {
+            return self->IsEmpty() ? 1 : 0;
         }
     }
 }  // namespace kwx

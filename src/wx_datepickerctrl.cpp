@@ -35,7 +35,7 @@ extern "C"
         self->SetRange(dt1 ? *dt1 : wxDefaultDateTime, dt2 ? *dt2 : wxDefaultDateTime);
     }
 
-    EXPORT bool wxDatePickerCtrl_GetRange(wxDatePickerCtrl* self, wxDateTime* dt1, wxDateTime* dt2)
+    EXPORT int wxDatePickerCtrl_GetRange(wxDatePickerCtrl* self, wxDateTime* dt1, wxDateTime* dt2)
     {
         return self->GetRange(dt1, dt2);
     }

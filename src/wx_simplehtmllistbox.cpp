@@ -106,7 +106,7 @@ extern "C"
     }
 
     // Check if empty
-    EXPORT bool wxSimpleHtmlListBox_IsEmpty(wxSimpleHtmlListBox* self)
+    EXPORT int wxSimpleHtmlListBox_IsEmpty(wxSimpleHtmlListBox* self)
     {
         return self->IsEmpty();
     }

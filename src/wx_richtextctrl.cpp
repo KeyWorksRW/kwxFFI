@@ -57,7 +57,7 @@ extern "C"
     }
 
     // Modification state
-    EXPORT bool wxRichTextCtrl_IsModified(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsModified(wxRichTextCtrl* self)
     {
         return self->IsModified();
     }
@@ -73,7 +73,7 @@ extern "C"
     }
 
     // Editable state
-    EXPORT bool wxRichTextCtrl_IsEditable(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsEditable(wxRichTextCtrl* self)
     {
         return self->IsEditable();
     }
@@ -159,12 +159,12 @@ extern "C"
     }
 
     // File operations
-    EXPORT bool wxRichTextCtrl_LoadFile(wxRichTextCtrl* self, wxString* file, int type)
+    EXPORT int wxRichTextCtrl_LoadFile(wxRichTextCtrl* self, wxString* file, int type)
     {
         return self->LoadFile(*file, type);
     }
 
-    EXPORT bool wxRichTextCtrl_SaveFile(wxRichTextCtrl* self, wxString* file, int type)
+    EXPORT int wxRichTextCtrl_SaveFile(wxRichTextCtrl* self, wxString* file, int type)
     {
         return self->SaveFile(*file, type);
     }
@@ -192,12 +192,12 @@ extern "C"
         self->Redo();
     }
 
-    EXPORT bool wxRichTextCtrl_CanUndo(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanUndo(wxRichTextCtrl* self)
     {
         return self->CanUndo();
     }
 
-    EXPORT bool wxRichTextCtrl_CanRedo(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanRedo(wxRichTextCtrl* self)
     {
         return self->CanRedo();
     }
@@ -223,39 +223,39 @@ extern "C"
         self->DeleteSelection();
     }
 
-    EXPORT bool wxRichTextCtrl_CanCopy(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanCopy(wxRichTextCtrl* self)
     {
         return self->CanCopy();
     }
 
-    EXPORT bool wxRichTextCtrl_CanCut(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanCut(wxRichTextCtrl* self)
     {
         return self->CanCut();
     }
 
-    EXPORT bool wxRichTextCtrl_CanPaste(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanPaste(wxRichTextCtrl* self)
     {
         return self->CanPaste();
     }
 
-    EXPORT bool wxRichTextCtrl_CanDeleteSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_CanDeleteSelection(wxRichTextCtrl* self)
     {
         return self->CanDeleteSelection();
     }
 
     // Text styling
-    EXPORT bool wxRichTextCtrl_SetStyle(wxRichTextCtrl* self, long start, long end,
-                                        wxTextAttr* style)
+    EXPORT int wxRichTextCtrl_SetStyle(wxRichTextCtrl* self, long start, long end,
+                                       wxTextAttr* style)
     {
         return self->SetStyle(start, end, *style);
     }
 
-    EXPORT bool wxRichTextCtrl_GetStyle(wxRichTextCtrl* self, long position, wxTextAttr* style)
+    EXPORT int wxRichTextCtrl_GetStyle(wxRichTextCtrl* self, long position, wxTextAttr* style)
     {
         return self->GetStyle(position, *style);
     }
 
-    EXPORT bool wxRichTextCtrl_SetDefaultStyle(wxRichTextCtrl* self, wxTextAttr* style)
+    EXPORT int wxRichTextCtrl_SetDefaultStyle(wxRichTextCtrl* self, wxTextAttr* style)
     {
         return self->SetDefaultStyle(*style);
     }
@@ -268,13 +268,12 @@ extern "C"
     }
 
     // Font operations (convenience methods)
-    EXPORT bool wxRichTextCtrl_SetFont(wxRichTextCtrl* self, wxFont* font)
+    EXPORT int wxRichTextCtrl_SetFont(wxRichTextCtrl* self, wxFont* font)
     {
         return self->SetFont(*font);
     }
 
-    EXPORT bool wxRichTextCtrl_SetFontStyle(wxRichTextCtrl* self, long start, long end,
-                                            wxFont* font)
+    EXPORT int wxRichTextCtrl_SetFontStyle(wxRichTextCtrl* self, long start, long end, wxFont* font)
     {
         wxTextAttr attr;
         attr.SetFont(*font);
@@ -287,7 +286,7 @@ extern "C"
         return self->XYToPosition(x, y);
     }
 
-    EXPORT bool wxRichTextCtrl_PositionToXY(wxRichTextCtrl* self, long pos, long* x, long* y)
+    EXPORT int wxRichTextCtrl_PositionToXY(wxRichTextCtrl* self, long pos, long* x, long* y)
     {
         return self->PositionToXY(pos, x, y);
     }
@@ -308,13 +307,13 @@ extern "C"
         self->SetWindowStyle(style);
     }
 
-    EXPORT bool wxRichTextCtrl_IsReadOnly(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsReadOnly(wxRichTextCtrl* self)
     {
         return (self->GetWindowStyle() & wxRE_READONLY) != 0;
     }
 
     // Layout
-    EXPORT bool wxRichTextCtrl_LayoutContent(wxRichTextCtrl* self, bool onlyVisibleRect)
+    EXPORT int wxRichTextCtrl_LayoutContent(wxRichTextCtrl* self, bool onlyVisibleRect)
     {
         return self->LayoutContent(onlyVisibleRect);
     }
@@ -361,157 +360,157 @@ extern "C"
         self->EndUnderline();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginFontSize(wxRichTextCtrl* self, int pointSize)
+    EXPORT int wxRichTextCtrl_BeginFontSize(wxRichTextCtrl* self, int pointSize)
     {
         return self->BeginFontSize(pointSize);
     }
 
-    EXPORT bool wxRichTextCtrl_EndFontSize(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndFontSize(wxRichTextCtrl* self)
     {
         return self->EndFontSize();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginFont(wxRichTextCtrl* self, wxFont* font)
+    EXPORT int wxRichTextCtrl_BeginFont(wxRichTextCtrl* self, wxFont* font)
     {
         return self->BeginFont(*font);
     }
 
-    EXPORT bool wxRichTextCtrl_EndFont(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndFont(wxRichTextCtrl* self)
     {
         return self->EndFont();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginTextColour(wxRichTextCtrl* self, wxColour* colour)
+    EXPORT int wxRichTextCtrl_BeginTextColour(wxRichTextCtrl* self, wxColour* colour)
     {
         return self->BeginTextColour(*colour);
     }
 
-    EXPORT bool wxRichTextCtrl_EndTextColour(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndTextColour(wxRichTextCtrl* self)
     {
         return self->EndTextColour();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginAlignment(wxRichTextCtrl* self, int alignment)
+    EXPORT int wxRichTextCtrl_BeginAlignment(wxRichTextCtrl* self, int alignment)
     {
         return self->BeginAlignment((wxTextAttrAlignment) alignment);
     }
 
-    EXPORT bool wxRichTextCtrl_EndAlignment(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndAlignment(wxRichTextCtrl* self)
     {
         return self->EndAlignment();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginLeftIndent(wxRichTextCtrl* self, int leftIndent,
-                                               int leftSubIndent)
+    EXPORT int wxRichTextCtrl_BeginLeftIndent(wxRichTextCtrl* self, int leftIndent,
+                                              int leftSubIndent)
     {
         return self->BeginLeftIndent(leftIndent, leftSubIndent);
     }
 
-    EXPORT bool wxRichTextCtrl_EndLeftIndent(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndLeftIndent(wxRichTextCtrl* self)
     {
         return self->EndLeftIndent();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginRightIndent(wxRichTextCtrl* self, int rightIndent)
+    EXPORT int wxRichTextCtrl_BeginRightIndent(wxRichTextCtrl* self, int rightIndent)
     {
         return self->BeginRightIndent(rightIndent);
     }
 
-    EXPORT bool wxRichTextCtrl_EndRightIndent(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndRightIndent(wxRichTextCtrl* self)
     {
         return self->EndRightIndent();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginParagraphSpacing(wxRichTextCtrl* self, int before, int after)
+    EXPORT int wxRichTextCtrl_BeginParagraphSpacing(wxRichTextCtrl* self, int before, int after)
     {
         return self->BeginParagraphSpacing(before, after);
     }
 
-    EXPORT bool wxRichTextCtrl_EndParagraphSpacing(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndParagraphSpacing(wxRichTextCtrl* self)
     {
         return self->EndParagraphSpacing();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginLineSpacing(wxRichTextCtrl* self, int lineSpacing)
+    EXPORT int wxRichTextCtrl_BeginLineSpacing(wxRichTextCtrl* self, int lineSpacing)
     {
         return self->BeginLineSpacing(lineSpacing);
     }
 
-    EXPORT bool wxRichTextCtrl_EndLineSpacing(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndLineSpacing(wxRichTextCtrl* self)
     {
         return self->EndLineSpacing();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginNumberedBullet(wxRichTextCtrl* self, int bulletNumber,
-                                                   int leftIndent, int leftSubIndent,
-                                                   int bulletStyle)
+    EXPORT int wxRichTextCtrl_BeginNumberedBullet(wxRichTextCtrl* self, int bulletNumber,
+                                                  int leftIndent, int leftSubIndent,
+                                                  int bulletStyle)
     {
         return self->BeginNumberedBullet(bulletNumber, leftIndent, leftSubIndent, bulletStyle);
     }
 
-    EXPORT bool wxRichTextCtrl_EndNumberedBullet(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndNumberedBullet(wxRichTextCtrl* self)
     {
         return self->EndNumberedBullet();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginSymbolBullet(wxRichTextCtrl* self, wxString* symbol,
-                                                 int leftIndent, int leftSubIndent, int bulletStyle)
+    EXPORT int wxRichTextCtrl_BeginSymbolBullet(wxRichTextCtrl* self, wxString* symbol,
+                                                int leftIndent, int leftSubIndent, int bulletStyle)
     {
         return self->BeginSymbolBullet(*symbol, leftIndent, leftSubIndent, bulletStyle);
     }
 
-    EXPORT bool wxRichTextCtrl_EndSymbolBullet(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndSymbolBullet(wxRichTextCtrl* self)
     {
         return self->EndSymbolBullet();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginStandardBullet(wxRichTextCtrl* self, wxString* bulletName,
-                                                   int leftIndent, int leftSubIndent,
-                                                   int bulletStyle)
+    EXPORT int wxRichTextCtrl_BeginStandardBullet(wxRichTextCtrl* self, wxString* bulletName,
+                                                  int leftIndent, int leftSubIndent,
+                                                  int bulletStyle)
     {
         return self->BeginStandardBullet(*bulletName, leftIndent, leftSubIndent, bulletStyle);
     }
 
-    EXPORT bool wxRichTextCtrl_EndStandardBullet(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndStandardBullet(wxRichTextCtrl* self)
     {
         return self->EndStandardBullet();
     }
 
     // URL handling
-    EXPORT bool wxRichTextCtrl_BeginURL(wxRichTextCtrl* self, wxString* url,
-                                        wxString* characterStyle)
+    EXPORT int wxRichTextCtrl_BeginURL(wxRichTextCtrl* self, wxString* url,
+                                       wxString* characterStyle)
     {
         return self->BeginURL(*url, characterStyle ? *characterStyle : wxString(wxEmptyString));
     }
 
-    EXPORT bool wxRichTextCtrl_EndURL(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndURL(wxRichTextCtrl* self)
     {
         return self->EndURL();
     }
 
     // List operations
-    EXPORT bool wxRichTextCtrl_WriteImage(wxRichTextCtrl* self, wxImage* image, int bitmapType,
-                                          wxRichTextAttr* textAttr)
+    EXPORT int wxRichTextCtrl_WriteImage(wxRichTextCtrl* self, wxImage* image, int bitmapType,
+                                         wxRichTextAttr* textAttr)
     {
         if (textAttr)
             return self->WriteImage(*image, (wxBitmapType) bitmapType, *textAttr);
         return self->WriteImage(*image, (wxBitmapType) bitmapType);
     }
 
-    EXPORT bool wxRichTextCtrl_WriteImageFile(wxRichTextCtrl* self, wxString* filename,
-                                              int bitmapType, wxRichTextAttr* textAttr)
+    EXPORT int wxRichTextCtrl_WriteImageFile(wxRichTextCtrl* self, wxString* filename,
+                                             int bitmapType, wxRichTextAttr* textAttr)
     {
         if (textAttr)
             return self->WriteImage(*filename, (wxBitmapType) bitmapType, *textAttr);
         return self->WriteImage(*filename, (wxBitmapType) bitmapType);
     }
 
-    EXPORT bool wxRichTextCtrl_Newline(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_Newline(wxRichTextCtrl* self)
     {
         return self->Newline();
     }
 
-    EXPORT bool wxRichTextCtrl_LineBreak(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_LineBreak(wxRichTextCtrl* self)
     {
         return self->LineBreak();
     }
@@ -527,29 +526,29 @@ extern "C"
         return self->GetFocusObject();
     }
 
-    EXPORT bool wxRichTextCtrl_SetFocusObject(wxRichTextCtrl* self,
-                                              wxRichTextParagraphLayoutBox* obj,
-                                              bool setCaretPosition)
+    EXPORT int wxRichTextCtrl_SetFocusObject(wxRichTextCtrl* self,
+                                             wxRichTextParagraphLayoutBox* obj,
+                                             bool setCaretPosition)
     {
         return self->SetFocusObject(obj, setCaretPosition);
     }
 
-    EXPORT bool wxRichTextCtrl_IsSingleLine(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsSingleLine(wxRichTextCtrl* self)
     {
         return self->IsSingleLine();
     }
 
-    EXPORT bool wxRichTextCtrl_IsMultiLine(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsMultiLine(wxRichTextCtrl* self)
     {
         return self->IsMultiLine();
     }
 
-    EXPORT bool wxRichTextCtrl_HasSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_HasSelection(wxRichTextCtrl* self)
     {
         return self->HasSelection();
     }
 
-    EXPORT bool wxRichTextCtrl_HasUnfocusedSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_HasUnfocusedSelection(wxRichTextCtrl* self)
     {
         return self->HasUnfocusedSelection();
     }
@@ -580,7 +579,7 @@ extern "C"
         self->SetInternalSelectionRange(wxRichTextRange(startPos, endPos));
     }
 
-    EXPORT bool wxRichTextCtrl_SelectWord(wxRichTextCtrl* self, long position)
+    EXPORT int wxRichTextCtrl_SelectWord(wxRichTextCtrl* self, long position)
     {
         return self->SelectWord(position);
     }
@@ -595,7 +594,7 @@ extern "C"
         self->SetDelayedLayoutThreshold(threshold);
     }
 
-    EXPORT bool wxRichTextCtrl_GetFullLayoutRequired(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_GetFullLayoutRequired(wxRichTextCtrl* self)
     {
         return self->GetFullLayoutRequired();
     }
@@ -615,7 +614,7 @@ extern "C"
         self->SetFullLayoutSavedPosition(position);
     }
 
-    EXPORT bool wxRichTextCtrl_GetCaretAtLineStart(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_GetCaretAtLineStart(wxRichTextCtrl* self)
     {
         return self->GetCaretAtLineStart();
     }
@@ -625,7 +624,7 @@ extern "C"
         self->SetCaretAtLineStart(atStart);
     }
 
-    EXPORT bool wxRichTextCtrl_GetVerticalScrollbarEnabled(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_GetVerticalScrollbarEnabled(wxRichTextCtrl* self)
     {
         return self->GetVerticalScrollbarEnabled();
     }
@@ -635,7 +634,7 @@ extern "C"
         self->EnableVerticalScrollbar(enable);
     }
 
-    EXPORT bool wxRichTextCtrl_GetVirtualAttributesEnabled(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_GetVirtualAttributesEnabled(wxRichTextCtrl* self)
     {
         return self->GetVirtualAttributesEnabled();
     }
@@ -711,8 +710,7 @@ extern "C"
         self->SetStyleSheet(styleSheet);
     }
 
-    EXPORT bool wxRichTextCtrl_PushStyleSheet(wxRichTextCtrl* self,
-                                              wxRichTextStyleSheet* styleSheet)
+    EXPORT int wxRichTextCtrl_PushStyleSheet(wxRichTextCtrl* self, wxRichTextStyleSheet* styleSheet)
     {
         return self->PushStyleSheet(styleSheet);
     }
@@ -722,13 +720,13 @@ extern "C"
         return self->PopStyleSheet();
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyStyleSheet(wxRichTextCtrl* self,
-                                               wxRichTextStyleSheet* styleSheet)
+    EXPORT int wxRichTextCtrl_ApplyStyleSheet(wxRichTextCtrl* self,
+                                              wxRichTextStyleSheet* styleSheet)
     {
         return self->ApplyStyleSheet(styleSheet);
     }
 
-    EXPORT bool wxRichTextCtrl_SetDefaultStyleToCursorStyle(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_SetDefaultStyleToCursorStyle(wxRichTextCtrl* self)
     {
         return self->SetDefaultStyleToCursorStyle();
     }
@@ -749,8 +747,8 @@ extern "C"
         *endPos = range.GetEnd();
     }
 
-    EXPORT bool wxRichTextCtrl_WriteImageBitmap(wxRichTextCtrl* self, wxBitmap* bitmap,
-                                                int bitmapType, wxRichTextAttr* textAttr)
+    EXPORT int wxRichTextCtrl_WriteImageBitmap(wxRichTextCtrl* self, wxBitmap* bitmap,
+                                               int bitmapType, wxRichTextAttr* textAttr)
     {
         if (textAttr)
         {
@@ -759,9 +757,9 @@ extern "C"
         return self->WriteImage(*bitmap, static_cast<wxBitmapType>(bitmapType));
     }
 
-    EXPORT bool wxRichTextCtrl_WriteImageBlock(wxRichTextCtrl* self,
-                                               wxRichTextImageBlock* imageBlock,
-                                               wxRichTextAttr* textAttr)
+    EXPORT int wxRichTextCtrl_WriteImageBlock(wxRichTextCtrl* self,
+                                              wxRichTextImageBlock* imageBlock,
+                                              wxRichTextAttr* textAttr)
     {
         if (textAttr)
         {
@@ -770,237 +768,237 @@ extern "C"
         return self->WriteImage(*imageBlock);
     }
 
-    EXPORT bool wxRichTextCtrl_DeleteRange(wxRichTextCtrl* self, long startPos, long endPos)
+    EXPORT int wxRichTextCtrl_DeleteRange(wxRichTextCtrl* self, long startPos, long endPos)
     {
         return self->Delete(wxRichTextRange(startPos, endPos));
     }
 
-    EXPORT bool wxRichTextCtrl_SetStyleEx(wxRichTextCtrl* self, long startPos, long endPos,
-                                          wxRichTextAttr* style, int flags)
+    EXPORT int wxRichTextCtrl_SetStyleEx(wxRichTextCtrl* self, long startPos, long endPos,
+                                         wxRichTextAttr* style, int flags)
     {
         return self->SetStyleEx(wxRichTextRange(startPos, endPos), *style, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_GetUncombinedStyle(wxRichTextCtrl* self, long position,
-                                                  wxRichTextAttr* style)
+    EXPORT int wxRichTextCtrl_GetUncombinedStyle(wxRichTextCtrl* self, long position,
+                                                 wxRichTextAttr* style)
     {
         return self->GetUncombinedStyle(position, *style);
     }
 
-    EXPORT bool wxRichTextCtrl_GetStyleForRange(wxRichTextCtrl* self, long startPos, long endPos,
-                                                wxRichTextAttr* style)
+    EXPORT int wxRichTextCtrl_GetStyleForRange(wxRichTextCtrl* self, long startPos, long endPos,
+                                               wxRichTextAttr* style)
     {
         return self->GetStyleForRange(wxRichTextRange(startPos, endPos), *style);
     }
 
-    EXPORT bool wxRichTextCtrl_BeginStyle(wxRichTextCtrl* self, wxRichTextAttr* style)
+    EXPORT int wxRichTextCtrl_BeginStyle(wxRichTextCtrl* self, wxRichTextAttr* style)
     {
         return self->BeginStyle(*style);
     }
 
-    EXPORT bool wxRichTextCtrl_EndStyle(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndStyle(wxRichTextCtrl* self)
     {
         return self->EndStyle();
     }
 
-    EXPORT bool wxRichTextCtrl_EndAllStyles(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndAllStyles(wxRichTextCtrl* self)
     {
         return self->EndAllStyles();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginCharacterStyle(wxRichTextCtrl* self, wxString* name)
+    EXPORT int wxRichTextCtrl_BeginCharacterStyle(wxRichTextCtrl* self, wxString* name)
     {
         return self->BeginCharacterStyle(*name);
     }
 
-    EXPORT bool wxRichTextCtrl_EndCharacterStyle(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndCharacterStyle(wxRichTextCtrl* self)
     {
         return self->EndCharacterStyle();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginParagraphStyle(wxRichTextCtrl* self, wxString* name)
+    EXPORT int wxRichTextCtrl_BeginParagraphStyle(wxRichTextCtrl* self, wxString* name)
     {
         return self->BeginParagraphStyle(*name);
     }
 
-    EXPORT bool wxRichTextCtrl_EndParagraphStyle(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndParagraphStyle(wxRichTextCtrl* self)
     {
         return self->EndParagraphStyle();
     }
 
-    EXPORT bool wxRichTextCtrl_BeginListStyle(wxRichTextCtrl* self, wxString* name, int level,
-                                              int number)
+    EXPORT int wxRichTextCtrl_BeginListStyle(wxRichTextCtrl* self, wxString* name, int level,
+                                             int number)
     {
         return self->BeginListStyle(*name, level, number);
     }
 
-    EXPORT bool wxRichTextCtrl_EndListStyle(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_EndListStyle(wxRichTextCtrl* self)
     {
         return self->EndListStyle();
     }
 
-    EXPORT bool wxRichTextCtrl_SetListStyle(wxRichTextCtrl* self, long startPos, long endPos,
-                                            wxString* defName, int flags, int startFrom,
-                                            int specifiedLevel)
+    EXPORT int wxRichTextCtrl_SetListStyle(wxRichTextCtrl* self, long startPos, long endPos,
+                                           wxString* defName, int flags, int startFrom,
+                                           int specifiedLevel)
     {
         return self->SetListStyle(wxRichTextRange(startPos, endPos), *defName, flags, startFrom,
                                   specifiedLevel);
     }
 
-    EXPORT bool wxRichTextCtrl_ClearListStyle(wxRichTextCtrl* self, long startPos, long endPos,
-                                              int flags)
+    EXPORT int wxRichTextCtrl_ClearListStyle(wxRichTextCtrl* self, long startPos, long endPos,
+                                             int flags)
     {
         return self->ClearListStyle(wxRichTextRange(startPos, endPos), flags);
     }
 
-    EXPORT bool wxRichTextCtrl_NumberList(wxRichTextCtrl* self, long startPos, long endPos,
-                                          wxString* defName, int flags, int startFrom,
-                                          int specifiedLevel)
+    EXPORT int wxRichTextCtrl_NumberList(wxRichTextCtrl* self, long startPos, long endPos,
+                                         wxString* defName, int flags, int startFrom,
+                                         int specifiedLevel)
     {
         return self->NumberList(wxRichTextRange(startPos, endPos), *defName, flags, startFrom,
                                 specifiedLevel);
     }
 
-    EXPORT bool wxRichTextCtrl_PromoteList(wxRichTextCtrl* self, int promoteBy, long startPos,
-                                           long endPos, wxString* defName, int flags,
-                                           int specifiedLevel)
+    EXPORT int wxRichTextCtrl_PromoteList(wxRichTextCtrl* self, int promoteBy, long startPos,
+                                          long endPos, wxString* defName, int flags,
+                                          int specifiedLevel)
     {
         return self->PromoteList(promoteBy, wxRichTextRange(startPos, endPos), *defName, flags,
                                  specifiedLevel);
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyStyle(wxRichTextCtrl* self, wxRichTextStyleDefinition* def)
+    EXPORT int wxRichTextCtrl_ApplyStyle(wxRichTextCtrl* self, wxRichTextStyleDefinition* def)
     {
         return self->ApplyStyle(def);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveCaret(wxRichTextCtrl* self, long position, bool showAtLineStart)
+    EXPORT int wxRichTextCtrl_MoveCaret(wxRichTextCtrl* self, long position, bool showAtLineStart)
     {
         return self->MoveCaret(position, showAtLineStart);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveRight(wxRichTextCtrl* self, int noPositions, int flags)
+    EXPORT int wxRichTextCtrl_MoveRight(wxRichTextCtrl* self, int noPositions, int flags)
     {
         return self->MoveRight(noPositions, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveLeft(wxRichTextCtrl* self, int noPositions, int flags)
+    EXPORT int wxRichTextCtrl_MoveLeft(wxRichTextCtrl* self, int noPositions, int flags)
     {
         return self->MoveLeft(noPositions, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveUp(wxRichTextCtrl* self, int noLines, int flags)
+    EXPORT int wxRichTextCtrl_MoveUp(wxRichTextCtrl* self, int noLines, int flags)
     {
         return self->MoveUp(noLines, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveDown(wxRichTextCtrl* self, int noLines, int flags)
+    EXPORT int wxRichTextCtrl_MoveDown(wxRichTextCtrl* self, int noLines, int flags)
     {
         return self->MoveDown(noLines, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveToLineEnd(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveToLineEnd(wxRichTextCtrl* self, int flags)
     {
         return self->MoveToLineEnd(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveToLineStart(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveToLineStart(wxRichTextCtrl* self, int flags)
     {
         return self->MoveToLineStart(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveToParagraphEnd(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveToParagraphEnd(wxRichTextCtrl* self, int flags)
     {
         return self->MoveToParagraphEnd(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveToParagraphStart(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveToParagraphStart(wxRichTextCtrl* self, int flags)
     {
         return self->MoveToParagraphStart(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveHome(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveHome(wxRichTextCtrl* self, int flags)
     {
         return self->MoveHome(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_MoveEnd(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_MoveEnd(wxRichTextCtrl* self, int flags)
     {
         return self->MoveEnd(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_PageUp(wxRichTextCtrl* self, int noPages, int flags)
+    EXPORT int wxRichTextCtrl_PageUp(wxRichTextCtrl* self, int noPages, int flags)
     {
         return self->PageUp(noPages, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_PageDown(wxRichTextCtrl* self, int noPages, int flags)
+    EXPORT int wxRichTextCtrl_PageDown(wxRichTextCtrl* self, int noPages, int flags)
     {
         return self->PageDown(noPages, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_WordLeft(wxRichTextCtrl* self, int noPages, int flags)
+    EXPORT int wxRichTextCtrl_WordLeft(wxRichTextCtrl* self, int noPages, int flags)
     {
         return self->WordLeft(noPages, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_WordRight(wxRichTextCtrl* self, int noPages, int flags)
+    EXPORT int wxRichTextCtrl_WordRight(wxRichTextCtrl* self, int noPages, int flags)
     {
         return self->WordRight(noPages, flags);
     }
 
-    EXPORT bool wxRichTextCtrl_IsSelectionBold(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsSelectionBold(wxRichTextCtrl* self)
     {
         return self->IsSelectionBold();
     }
 
-    EXPORT bool wxRichTextCtrl_IsSelectionItalics(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsSelectionItalics(wxRichTextCtrl* self)
     {
         return self->IsSelectionItalics();
     }
 
-    EXPORT bool wxRichTextCtrl_IsSelectionUnderlined(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsSelectionUnderlined(wxRichTextCtrl* self)
     {
         return self->IsSelectionUnderlined();
     }
 
-    EXPORT bool wxRichTextCtrl_DoesSelectionHaveTextEffectFlag(wxRichTextCtrl* self, int flag)
+    EXPORT int wxRichTextCtrl_DoesSelectionHaveTextEffectFlag(wxRichTextCtrl* self, int flag)
     {
         return self->DoesSelectionHaveTextEffectFlag(flag);
     }
 
-    EXPORT bool wxRichTextCtrl_IsSelectionAligned(wxRichTextCtrl* self, int alignment)
+    EXPORT int wxRichTextCtrl_IsSelectionAligned(wxRichTextCtrl* self, int alignment)
     {
         return self->IsSelectionAligned(static_cast<wxTextAttrAlignment>(alignment));
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyBoldToSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_ApplyBoldToSelection(wxRichTextCtrl* self)
     {
         return self->ApplyBoldToSelection();
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyItalicToSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_ApplyItalicToSelection(wxRichTextCtrl* self)
     {
         return self->ApplyItalicToSelection();
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyUnderlineToSelection(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_ApplyUnderlineToSelection(wxRichTextCtrl* self)
     {
         return self->ApplyUnderlineToSelection();
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyTextEffectToSelection(wxRichTextCtrl* self, int flags)
+    EXPORT int wxRichTextCtrl_ApplyTextEffectToSelection(wxRichTextCtrl* self, int flags)
     {
         return self->ApplyTextEffectToSelection(flags);
     }
 
-    EXPORT bool wxRichTextCtrl_ApplyAlignmentToSelection(wxRichTextCtrl* self, int alignment)
+    EXPORT int wxRichTextCtrl_ApplyAlignmentToSelection(wxRichTextCtrl* self, int alignment)
     {
         return self->ApplyAlignmentToSelection(static_cast<wxTextAttrAlignment>(alignment));
     }
 
-    EXPORT bool wxRichTextCtrl_ShowContextMenu(wxRichTextCtrl* self, wxMenu* menu, int x, int y,
-                                               bool addPropertyCommands)
+    EXPORT int wxRichTextCtrl_ShowContextMenu(wxRichTextCtrl* self, wxMenu* menu, int x, int y,
+                                              bool addPropertyCommands)
     {
         return self->ShowContextMenu(menu, wxPoint(x, y), addPropertyCommands);
     }
@@ -1046,7 +1044,7 @@ extern "C"
         self->Thaw();
     }
 
-    EXPORT bool wxRichTextCtrl_IsFrozen(wxRichTextCtrl* self)
+    EXPORT int wxRichTextCtrl_IsFrozen(wxRichTextCtrl* self)
     {
         return self->IsFrozen();
     }
@@ -1073,7 +1071,7 @@ extern "C"
         return self->FindNextWordPosition(direction);
     }
 
-    EXPORT bool wxRichTextCtrl_IsPositionVisible(wxRichTextCtrl* self, long position)
+    EXPORT int wxRichTextCtrl_IsPositionVisible(wxRichTextCtrl* self, long position)
     {
         return self->IsPositionVisible(position);
     }
@@ -1179,12 +1177,12 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxRichTextCtrl_BeginSuppressUndo(void* pObject)
+    EXPORT int wxRichTextCtrl_BeginSuppressUndo(void* pObject)
     {
         return ((wxRichTextCtrl*) pObject)->BeginSuppressUndo();
     }
 
-    EXPORT bool wxRichTextCtrl_EndSuppressUndo(void* pObject)
+    EXPORT int wxRichTextCtrl_EndSuppressUndo(void* pObject)
     {
         return ((wxRichTextCtrl*) pObject)->EndSuppressUndo();
     }
@@ -1194,19 +1192,23 @@ extern "C"
         return (void*) ((wxRichTextCtrl*) pObject)->GetCommandProcessor();
     }
 
-    EXPORT void* wxRichTextCtrl_WriteField(void* pObject, void* fieldType, void* properties, void* textAttr)
+    EXPORT void* wxRichTextCtrl_WriteField(void* pObject, void* fieldType, void* properties,
+                                           void* textAttr)
     {
-        return (void*) ((wxRichTextCtrl*) pObject)->WriteField(*(wxString*) fieldType, *(wxRichTextProperties*) properties, *(wxRichTextAttr*) textAttr);
+        return (void*) ((wxRichTextCtrl*) pObject)
+            ->WriteField(*(wxString*) fieldType, *(wxRichTextProperties*) properties,
+                         *(wxRichTextAttr*) textAttr);
     }
 
-    EXPORT void* wxRichTextCtrl_WriteTable(void* pObject, int rows, int cols, void* tableAttr, void* cellAttr)
+    EXPORT void* wxRichTextCtrl_WriteTable(void* pObject, int rows, int cols, void* tableAttr,
+                                           void* cellAttr)
     {
-        return (void*) ((wxRichTextCtrl*) pObject)->WriteTable(rows, cols, *(wxRichTextAttr*) tableAttr, *(wxRichTextAttr*) cellAttr);
+        return (void*) ((wxRichTextCtrl*) pObject)
+            ->WriteTable(rows, cols, *(wxRichTextAttr*) tableAttr, *(wxRichTextAttr*) cellAttr);
     }
 
     EXPORT void* wxRichTextCtrl_WriteTextBox(void* pObject, void* textAttr)
     {
         return (void*) ((wxRichTextCtrl*) pObject)->WriteTextBox(*(wxRichTextAttr*) textAttr);
     }
-
 }

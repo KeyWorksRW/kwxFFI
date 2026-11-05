@@ -209,12 +209,12 @@ extern "C"
         self->SetEvtHandlerEnabled(enabled);
     }
 
-    EXPORT bool wxEvtHandler_GetEvtHandlerEnabled(wxEvtHandler* self)
+    EXPORT int wxEvtHandler_GetEvtHandlerEnabled(wxEvtHandler* self)
     {
         return self->GetEvtHandlerEnabled();
     }
 
-    EXPORT bool wxEvtHandler_ProcessEvent(wxEvtHandler* self, wxEvent* event)
+    EXPORT int wxEvtHandler_ProcessEvent(wxEvtHandler* self, wxEvent* event)
     {
         return self->ProcessEvent(*event);
     }
@@ -314,7 +314,7 @@ extern "C"
         return nullptr;
     }
 
-    EXPORT bool wxClassInfo_IsKindOf(wxObject* self, wxString* name)
+    EXPORT int wxClassInfo_IsKindOf(wxObject* self, wxString* name)
     {
         wxClassInfo* inf = wxClassInfo::FindClass(*name);
         if (inf)

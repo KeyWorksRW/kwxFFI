@@ -18,7 +18,7 @@ extern "C"
         return (void*) new wxWizard(parent, id, *title, bmp, wxPoint(x, y), style);
     }
 
-    EXPORT bool wxWizard_RunWizard(wxWizard* self, wxWizardPage* firstPage)
+    EXPORT int wxWizard_RunWizard(wxWizard* self, wxWizardPage* firstPage)
     {
         return self->RunWizard(firstPage);
     }
@@ -79,7 +79,7 @@ extern "C"
         self->SetNext((wxWizardPage*) next);
     }
 
-    EXPORT bool wxWizardEvent_GetDirection(wxWizardEvent* self)
+    EXPORT int wxWizardEvent_GetDirection(wxWizardEvent* self)
     {
         return self->GetDirection();
     }
@@ -99,12 +99,12 @@ extern "C"
         self->FitToPage(firstPage);
     }
 
-    EXPORT bool wxWizard_HasNextPage(wxWizard* self, wxWizardPage* page)
+    EXPORT int wxWizard_HasNextPage(wxWizard* self, wxWizardPage* page)
     {
         return self->HasNextPage(page);
     }
 
-    EXPORT bool wxWizard_HasPrevPage(wxWizard* self, wxWizardPage* page)
+    EXPORT int wxWizard_HasPrevPage(wxWizard* self, wxWizardPage* page)
     {
         return self->HasPrevPage(page);
     }
@@ -123,9 +123,8 @@ extern "C"
         ((wxWizard*) pObject)->SetBitmapPlacement(placement);
     }
 
-    EXPORT bool wxWizard_ShowPage(void* pObject, void* page, bool goingForward)
+    EXPORT int wxWizard_ShowPage(void* pObject, void* page, bool goingForward)
     {
         return ((wxWizard*) pObject)->ShowPage((wxWizardPage*) page, goingForward);
     }
-
 }

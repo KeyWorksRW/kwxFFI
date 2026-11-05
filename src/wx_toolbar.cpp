@@ -46,12 +46,12 @@ extern "C"
                              data);
     }
 
-    EXPORT bool wxToolBar_DeleteTool(wxToolBar* self, int id)
+    EXPORT int wxToolBar_DeleteTool(wxToolBar* self, int id)
     {
         return self->DeleteTool(id);
     }
 
-    EXPORT bool wxToolBar_DeleteToolByPos(wxToolBar* self, int pos)
+    EXPORT int wxToolBar_DeleteToolByPos(wxToolBar* self, int pos)
     {
         return self->DeleteToolByPos(pos);
     }
@@ -87,7 +87,7 @@ extern "C"
         return (void*) self->GetToolClientData(id);
     }
 
-    EXPORT bool wxToolBar_GetToolEnabled(wxToolBar* self, int id)
+    EXPORT int wxToolBar_GetToolEnabled(wxToolBar* self, int id)
     {
         return self->GetToolEnabled(id);
     }
@@ -111,7 +111,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxToolBar_GetToolState(wxToolBar* self, int id)
+    EXPORT int wxToolBar_GetToolState(wxToolBar* self, int id)
     {
         return self->GetToolState(id);
     }
@@ -126,7 +126,7 @@ extern "C"
         self->InsertSeparator((size_t) pos);
     }
 
-    EXPORT bool wxToolBar_Realize(wxToolBar* self)
+    EXPORT int wxToolBar_Realize(wxToolBar* self)
     {
         return self->Realize();
     }
@@ -250,7 +250,7 @@ extern "C"
         return self->GetToolsCount();
     }
 
-    EXPORT bool wxToolBar_IsVertical(wxToolBar* self)
+    EXPORT int wxToolBar_IsVertical(wxToolBar* self)
     {
         return self->IsVertical();
     }
@@ -265,7 +265,7 @@ extern "C"
         self->SetToolDisabledBitmap(id, *bitmap);
     }
 
-    EXPORT bool wxToolBar_SetDropdownMenu(wxToolBar* self, int id, wxMenu* menu)
+    EXPORT int wxToolBar_SetDropdownMenu(wxToolBar* self, int id, wxMenu* menu)
     {
         return self->SetDropdownMenu(id, menu);
     }
@@ -359,7 +359,7 @@ extern "C"
                       *(wxString*) longHelp, (wxObject*) clientData);
     }
 
-    EXPORT bool wxToolBarBase_DeleteTool(void* pObject, int toolid)
+    EXPORT int wxToolBarBase_DeleteTool(void* pObject, int toolid)
     {
         return ((wxToolBarBase*) pObject)->DeleteTool(toolid);
     }
@@ -369,7 +369,7 @@ extern "C"
         ((wxToolBarBase*) pObject)->EnableTool(toolid, enable);
     }
 
-    EXPORT bool wxToolBarBase_GetToolEnabled(void* pObject, int toolid)
+    EXPORT int wxToolBarBase_GetToolEnabled(void* pObject, int toolid)
     {
         return ((wxToolBarBase*) pObject)->GetToolEnabled(toolid);
     }
@@ -379,7 +379,7 @@ extern "C"
         return ((wxToolBarBase*) pObject)->GetToolPacking();
     }
 
-    EXPORT bool wxToolBarBase_GetToolState(void* pObject, int toolid)
+    EXPORT int wxToolBarBase_GetToolState(void* pObject, int toolid)
     {
         return ((wxToolBarBase*) pObject)->GetToolState(toolid);
     }
@@ -399,12 +399,12 @@ extern "C"
                          *(wxString*) longHelp, (wxObject*) clientData);
     }
 
-    EXPORT bool wxToolBarBase_IsVertical(void* pObject)
+    EXPORT int wxToolBarBase_IsVertical(void* pObject)
     {
         return ((wxToolBarBase*) pObject)->IsVertical();
     }
 
-    EXPORT bool wxToolBarBase_Realize(void* pObject)
+    EXPORT int wxToolBarBase_Realize(void* pObject)
     {
         return ((wxToolBarBase*) pObject)->Realize();
     }
@@ -414,7 +414,7 @@ extern "C"
         return (void*) ((wxToolBarBase*) pObject)->RemoveTool(toolid);
     }
 
-    EXPORT bool wxToolBarBase_SetDropdownMenu(void* pObject, int toolid, void* menu)
+    EXPORT int wxToolBarBase_SetDropdownMenu(void* pObject, int toolid, void* menu)
     {
         return ((wxToolBarBase*) pObject)->SetDropdownMenu(toolid, (wxMenu*) menu);
     }

@@ -347,7 +347,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetDragAllowMove(void* pObject)
+    EXPORT int wxStyledTextEvent_GetDragAllowMove(void* pObject)
     {
 #if wxUSE_STC
         return ((wxStyledTextEvent*) pObject)->GetDragAllowMove();
@@ -365,7 +365,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetShift(void* pObject)
+    EXPORT int wxStyledTextEvent_GetShift(void* pObject)
     {
 #if wxUSE_STC
         return ((wxStyledTextEvent*) pObject)->GetShift();
@@ -374,7 +374,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetControl(void* pObject)
+    EXPORT int wxStyledTextEvent_GetControl(void* pObject)
     {
 #if wxUSE_STC
         return ((wxStyledTextEvent*) pObject)->GetControl();
@@ -383,7 +383,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxStyledTextEvent_GetAlt(void* pObject)
+    EXPORT int wxStyledTextEvent_GetAlt(void* pObject)
     {
 #if wxUSE_STC
         return ((wxStyledTextEvent*) pObject)->GetAlt();

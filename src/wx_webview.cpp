@@ -83,7 +83,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanGoBack(wxWebView* self)
+    EXPORT int wxWebView_CanGoBack(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->CanGoBack();
@@ -93,7 +93,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanGoForward(wxWebView* self)
+    EXPORT int wxWebView_CanGoForward(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->CanGoForward();
@@ -154,7 +154,7 @@ extern "C"
     }
 
     // Status
-    EXPORT bool wxWebView_IsBusy(wxWebView* self)
+    EXPORT int wxWebView_IsBusy(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->IsBusy();
@@ -177,7 +177,7 @@ extern "C"
     }
 
     // JavaScript execution
-    EXPORT bool wxWebView_RunScript(wxWebView* self, wxString* javascript, wxString* output)
+    EXPORT int wxWebView_RunScript(wxWebView* self, wxString* javascript, wxString* output)
     {
 #if wxUSE_WEBVIEW
         if (output)
@@ -266,7 +266,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_IsContextMenuEnabled(wxWebView* self)
+    EXPORT int wxWebView_IsContextMenuEnabled(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->IsContextMenuEnabled();
@@ -277,7 +277,7 @@ extern "C"
     }
 
     // Editing
-    EXPORT bool wxWebView_CanCut(wxWebView* self)
+    EXPORT int wxWebView_CanCut(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->CanCut();
@@ -287,7 +287,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanCopy(wxWebView* self)
+    EXPORT int wxWebView_CanCopy(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->CanCopy();
@@ -297,7 +297,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanPaste(wxWebView* self)
+    EXPORT int wxWebView_CanPaste(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->CanPaste();
@@ -368,7 +368,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_HasSelection(wxWebView* self)
+    EXPORT int wxWebView_HasSelection(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->HasSelection();
@@ -402,7 +402,7 @@ extern "C"
     }
 
     // Access control
-    EXPORT bool wxWebView_IsAccessToDevToolsEnabled(wxWebView* self)
+    EXPORT int wxWebView_IsAccessToDevToolsEnabled(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->IsAccessToDevToolsEnabled();
@@ -423,7 +423,7 @@ extern "C"
     }
 
     // Backend info
-    EXPORT bool wxWebView_IsBackendAvailable(wxString* backend)
+    EXPORT int wxWebView_IsBackendAvailable(wxString* backend)
     {
 #if wxUSE_WEBVIEW
         return wxWebView::IsBackendAvailable(*backend);
@@ -444,7 +444,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_IsEditable(wxWebView* self)
+    EXPORT int wxWebView_IsEditable(wxWebView* self)
     {
 #if wxUSE_WEBVIEW
         return self->IsEditable();
@@ -721,7 +721,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebViewEvent_IsError(void* pObject)
+    EXPORT int wxWebViewEvent_IsError(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebViewEvent*) pObject)->IsError();
@@ -731,7 +731,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebViewEvent_IsTargetMainFrame(void* pObject)
+    EXPORT int wxWebViewEvent_IsTargetMainFrame(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebViewEvent*) pObject)->IsTargetMainFrame();
@@ -741,7 +741,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_AddScriptMessageHandler(void* pObject, void* name)
+    EXPORT int wxWebView_AddScriptMessageHandler(void* pObject, void* name)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->AddScriptMessageHandler(*(wxString*) name);
@@ -752,7 +752,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_AddUserScript(void* pObject, void* javascript, int injectionTime)
+    EXPORT int wxWebView_AddUserScript(void* pObject, void* javascript, int injectionTime)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)
@@ -766,7 +766,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_AreBrowserAcceleratorKeysEnabled(void* pObject)
+    EXPORT int wxWebView_AreBrowserAcceleratorKeysEnabled(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->AreBrowserAcceleratorKeysEnabled();
@@ -776,7 +776,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanRedo(void* pObject)
+    EXPORT int wxWebView_CanRedo(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->CanRedo();
@@ -786,7 +786,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanSetZoomType(void* pObject, int type)
+    EXPORT int wxWebView_CanSetZoomType(void* pObject, int type)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->CanSetZoomType((wxWebViewZoomType) type);
@@ -797,7 +797,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_CanUndo(void* pObject)
+    EXPORT int wxWebView_CanUndo(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->CanUndo();
@@ -883,7 +883,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_SetProxy(void* pObject, void* proxy)
+    EXPORT int wxWebView_SetProxy(void* pObject, void* proxy)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->SetProxy(*(wxString*) proxy);
@@ -894,7 +894,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_SetUserAgent(void* pObject, void* userAgent)
+    EXPORT int wxWebView_SetUserAgent(void* pObject, void* userAgent)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->SetUserAgent(*(wxString*) userAgent);
@@ -905,7 +905,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxWebView_ShowDevTools(void* pObject)
+    EXPORT int wxWebView_ShowDevTools(void* pObject)
     {
 #if wxUSE_WEBVIEW
         return ((wxWebView*) pObject)->ShowDevTools();

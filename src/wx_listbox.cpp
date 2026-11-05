@@ -55,7 +55,7 @@ extern "C"
         return self->FindString(*str);
     }
 
-    EXPORT bool wxListBox_IsSelected(wxListBox* self, int index)
+    EXPORT int wxListBox_IsSelected(wxListBox* self, int index)
     {
         return self->IsSelected(index);
     }
@@ -156,7 +156,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxListBox_SetFont(void* pObject, void* font)
+    EXPORT int wxListBox_SetFont(void* pObject, void* font)
     {
         return ((wxListBox*) pObject)->SetFont(*(wxFont*) font);
     }

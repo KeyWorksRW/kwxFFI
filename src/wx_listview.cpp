@@ -41,7 +41,7 @@ extern "C"
         return self->GetNextSelected(item);
     }
 
-    EXPORT bool wxListView_IsSelected(wxListView* self, long index)
+    EXPORT int wxListView_IsSelected(wxListView* self, long index)
     {
         return self->IsSelected(index);
     }

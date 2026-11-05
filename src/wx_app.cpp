@@ -12,7 +12,7 @@ extern "C"
         return wxTheApp;
     }
 
-    EXPORT bool wxApp_Yield(wxApp* self, bool onlyIfNeeded)
+    EXPORT int wxApp_Yield(wxApp* self, bool onlyIfNeeded)
     {
         return self->Yield(onlyIfNeeded);
     }
@@ -27,7 +27,7 @@ extern "C"
         self->SetExitOnFrameDelete(flag);
     }
 
-    EXPORT bool wxApp_GetExitOnFrameDelete(wxApp* self)
+    EXPORT int wxApp_GetExitOnFrameDelete(wxApp* self)
     {
         return self->GetExitOnFrameDelete();
     }

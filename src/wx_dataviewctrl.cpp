@@ -18,7 +18,7 @@ extern "C"
     }
 
     // Model management
-    EXPORT bool wxDataViewCtrl_AssociateModel(wxDataViewCtrl* self, wxDataViewModel* model)
+    EXPORT int wxDataViewCtrl_AssociateModel(wxDataViewCtrl* self, wxDataViewModel* model)
     {
         return self->AssociateModel(model);
     }
@@ -65,18 +65,18 @@ extern "C"
                                         (wxAlignment) align, flags);
     }
 
-    EXPORT bool wxDataViewCtrl_AppendColumn(wxDataViewCtrl* self, wxDataViewColumn* col)
+    EXPORT int wxDataViewCtrl_AppendColumn(wxDataViewCtrl* self, wxDataViewColumn* col)
     {
         return self->AppendColumn(col);
     }
 
-    EXPORT bool wxDataViewCtrl_PrependColumn(wxDataViewCtrl* self, wxDataViewColumn* col)
+    EXPORT int wxDataViewCtrl_PrependColumn(wxDataViewCtrl* self, wxDataViewColumn* col)
     {
         return self->PrependColumn(col);
     }
 
-    EXPORT bool wxDataViewCtrl_InsertColumn(wxDataViewCtrl* self, unsigned int pos,
-                                            wxDataViewColumn* col)
+    EXPORT int wxDataViewCtrl_InsertColumn(wxDataViewCtrl* self, unsigned int pos,
+                                           wxDataViewColumn* col)
     {
         return self->InsertColumn(pos, col);
     }
@@ -96,12 +96,12 @@ extern "C"
         return self->GetColumnPosition(column);
     }
 
-    EXPORT bool wxDataViewCtrl_DeleteColumn(wxDataViewCtrl* self, wxDataViewColumn* column)
+    EXPORT int wxDataViewCtrl_DeleteColumn(wxDataViewCtrl* self, wxDataViewColumn* column)
     {
         return self->DeleteColumn(column);
     }
 
-    EXPORT bool wxDataViewCtrl_ClearColumns(wxDataViewCtrl* self)
+    EXPORT int wxDataViewCtrl_ClearColumns(wxDataViewCtrl* self)
     {
         return self->ClearColumns();
     }
@@ -153,7 +153,7 @@ extern "C"
         return self->GetSelectedItemsCount();
     }
 
-    EXPORT bool wxDataViewCtrl_HasSelection(wxDataViewCtrl* self)
+    EXPORT int wxDataViewCtrl_HasSelection(wxDataViewCtrl* self)
     {
         return self->HasSelection();
     }
@@ -183,7 +183,7 @@ extern "C"
         self->Unselect(*item);
     }
 
-    EXPORT bool wxDataViewCtrl_IsSelected(wxDataViewCtrl* self, wxDataViewItem* item)
+    EXPORT int wxDataViewCtrl_IsSelected(wxDataViewCtrl* self, wxDataViewItem* item)
     {
         return self->IsSelected(*item);
     }
@@ -209,7 +209,7 @@ extern "C"
         self->Collapse(*item);
     }
 
-    EXPORT bool wxDataViewCtrl_IsExpanded(wxDataViewCtrl* self, wxDataViewItem* item)
+    EXPORT int wxDataViewCtrl_IsExpanded(wxDataViewCtrl* self, wxDataViewItem* item)
     {
         return self->IsExpanded(*item);
     }
@@ -262,7 +262,7 @@ extern "C"
         return item->GetID();
     }
 
-    EXPORT bool wxDataViewItem_IsOk(wxDataViewItem* item)
+    EXPORT int wxDataViewItem_IsOk(wxDataViewItem* item)
     {
         return item->IsOk();
     }
@@ -321,12 +321,12 @@ extern "C"
         self->ExpandAncestors(*item);
     }
 
-    EXPORT bool wxDataViewCtrl_AllowMultiColumnSort(wxDataViewCtrl* self, bool allow)
+    EXPORT int wxDataViewCtrl_AllowMultiColumnSort(wxDataViewCtrl* self, bool allow)
     {
         return self->AllowMultiColumnSort(allow);
     }
 
-    EXPORT bool wxDataViewCtrl_IsMultiColumnSortAllowed(wxDataViewCtrl* self)
+    EXPORT int wxDataViewCtrl_IsMultiColumnSortAllowed(wxDataViewCtrl* self)
     {
         return self->IsMultiColumnSortAllowed();
     }
@@ -336,12 +336,12 @@ extern "C"
         self->ToggleSortByColumn(column);
     }
 
-    EXPORT bool wxDataViewCtrl_SetRowHeight(wxDataViewCtrl* self, int rowHeight)
+    EXPORT int wxDataViewCtrl_SetRowHeight(wxDataViewCtrl* self, int rowHeight)
     {
         return self->SetRowHeight(rowHeight);
     }
 
-    EXPORT bool wxDataViewCtrl_SetAlternateRowColour(wxDataViewCtrl* self, wxColour* colour)
+    EXPORT int wxDataViewCtrl_SetAlternateRowColour(wxDataViewCtrl* self, wxColour* colour)
     {
         return self->SetAlternateRowColour(*colour);
     }
@@ -418,23 +418,23 @@ extern "C"
                                          (wxAlignment) align, flags);
     }
 
-    EXPORT bool wxDataViewCtrl_SetHeaderAttr(wxDataViewCtrl* self, wxItemAttr* attr)
+    EXPORT int wxDataViewCtrl_SetHeaderAttr(wxDataViewCtrl* self, wxItemAttr* attr)
     {
         return self->SetHeaderAttr(*attr);
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxDataViewCtrl_Enable(void* pObject, bool enable)
+    EXPORT int wxDataViewCtrl_Enable(void* pObject, bool enable)
     {
         return ((wxDataViewCtrl*) pObject)->Enable(enable);
     }
 
-    EXPORT bool wxDataViewCtrl_EnableDragSource(void* pObject, void* format)
+    EXPORT int wxDataViewCtrl_EnableDragSource(void* pObject, void* format)
     {
         return ((wxDataViewCtrl*) pObject)->EnableDragSource(*(wxDataFormat*) format);
     }
 
-    EXPORT bool wxDataViewCtrl_SetBackgroundColour(void* pObject, void* colour)
+    EXPORT int wxDataViewCtrl_SetBackgroundColour(void* pObject, void* colour)
     {
         return ((wxDataViewCtrl*) pObject)->SetBackgroundColour(*(wxColour*) colour);
     }
@@ -444,9 +444,8 @@ extern "C"
         ((wxDataViewCtrl*) pObject)->SetFocus();
     }
 
-    EXPORT bool wxDataViewCtrl_SetForegroundColour(void* pObject, void* colour)
+    EXPORT int wxDataViewCtrl_SetForegroundColour(void* pObject, void* colour)
     {
         return ((wxDataViewCtrl*) pObject)->SetForegroundColour(*(wxColour*) colour);
     }
-
 }

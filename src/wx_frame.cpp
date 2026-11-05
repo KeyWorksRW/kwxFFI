@@ -9,7 +9,7 @@
 
 extern "C"
 {
-    EXPORT bool wxTopLevelWindow_EnableCloseButton(wxTopLevelWindow* self, bool enable)
+    EXPORT int wxTopLevelWindow_EnableCloseButton(wxTopLevelWindow* self, bool enable)
     {
         return self->EnableCloseButton(enable);
     }
@@ -37,23 +37,23 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTopLevelWindow_Iconize(wxTopLevelWindow* self, bool iconize)
+    EXPORT int wxTopLevelWindow_Iconize(wxTopLevelWindow* self, bool iconize)
     {
         self->Iconize(iconize);
         return true;  // wxTopLevelWindow::Iconize() returns void; a completed call is success
     }
 
-    EXPORT bool wxTopLevelWindow_IsActive(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_IsActive(wxTopLevelWindow* self)
     {
         return self->IsActive();
     }
 
-    EXPORT bool wxTopLevelWindow_IsIconized(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_IsIconized(wxTopLevelWindow* self)
     {
         return self->IsIconized();
     }
 
-    EXPORT bool wxTopLevelWindow_IsMaximized(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_IsMaximized(wxTopLevelWindow* self)
     {
         return self->IsMaximized();
     }
@@ -130,12 +130,12 @@ extern "C"
         return 1;
     }
 
-    EXPORT bool wxFrame_IsMaximized(wxFrame* self)
+    EXPORT int wxFrame_IsMaximized(wxFrame* self)
     {
         return self->IsMaximized();
     }
 
-    EXPORT bool wxFrame_IsIconized(wxFrame* self)
+    EXPORT int wxFrame_IsIconized(wxFrame* self)
     {
         return self->IsIconized();
     }
@@ -217,22 +217,22 @@ extern "C"
         self->Restore();
     }
 
-    EXPORT bool wxTopLevelWindow_ShowFullScreen(wxTopLevelWindow* self, bool show, long style)
+    EXPORT int wxTopLevelWindow_ShowFullScreen(wxTopLevelWindow* self, bool show, long style)
     {
         return self->ShowFullScreen(show, style);
     }
 
-    EXPORT bool wxTopLevelWindow_IsFullScreen(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_IsFullScreen(wxTopLevelWindow* self)
     {
         return self->IsFullScreen();
     }
 
-    EXPORT bool wxTopLevelWindow_EnableMaximizeButton(wxTopLevelWindow* self, bool enable)
+    EXPORT int wxTopLevelWindow_EnableMaximizeButton(wxTopLevelWindow* self, bool enable)
     {
         return self->EnableMaximizeButton(enable);
     }
 
-    EXPORT bool wxTopLevelWindow_EnableMinimizeButton(wxTopLevelWindow* self, bool enable)
+    EXPORT int wxTopLevelWindow_EnableMinimizeButton(wxTopLevelWindow* self, bool enable)
     {
         return self->EnableMinimizeButton(enable);
     }
@@ -242,12 +242,12 @@ extern "C"
         self->ShowWithoutActivating();
     }
 
-    EXPORT bool wxTopLevelWindow_ShouldPreventAppExit(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_ShouldPreventAppExit(wxTopLevelWindow* self)
     {
         return self->ShouldPreventAppExit();
     }
 
-    EXPORT bool wxTopLevelWindow_SetContentProtection(wxTopLevelWindow* self, int contentProtection)
+    EXPORT int wxTopLevelWindow_SetContentProtection(wxTopLevelWindow* self, int contentProtection)
     {
         return self->SetContentProtection((wxContentProtection) contentProtection);
     }
@@ -257,7 +257,7 @@ extern "C"
         self->OSXSetModified(modified);
     }
 
-    EXPORT bool wxTopLevelWindow_OSXIsModified(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_OSXIsModified(wxTopLevelWindow* self)
     {
         return self->OSXIsModified();
     }
@@ -311,7 +311,7 @@ extern "C"
         self->SetWindowModality(static_cast<wxWindowMode>(modality));
     }
 
-    EXPORT bool wxFrame_ProcessCommandItem(wxFrame* self, wxMenuItem* item)
+    EXPORT int wxFrame_ProcessCommandItem(wxFrame* self, wxMenuItem* item)
     {
         return self->ProcessCommand(item);
     }
@@ -321,12 +321,12 @@ extern "C"
         self->DoMenuUpdates(menu);
     }
 
-    EXPORT bool wxFrame_IsClientAreaChild(wxFrame* self, wxWindow* child)
+    EXPORT int wxFrame_IsClientAreaChild(wxFrame* self, wxWindow* child)
     {
         return self->IsClientAreaChild(child);
     }
 
-    EXPORT bool wxTopLevelWindow_IsAlwaysMaximized(wxTopLevelWindow* self)
+    EXPORT int wxTopLevelWindow_IsAlwaysMaximized(wxTopLevelWindow* self)
     {
         return self->IsAlwaysMaximized();
     }
@@ -336,8 +336,8 @@ extern "C"
         return const_cast<wxIconBundle*>(&self->GetIcons());
     }
 
-    EXPORT bool wxTopLevelWindow_EnableFullScreenView(wxTopLevelWindow* self, bool enable,
-                                                      long style)
+    EXPORT int wxTopLevelWindow_EnableFullScreenView(wxTopLevelWindow* self, bool enable,
+                                                     long style)
     {
         return self->EnableFullScreenView(enable, style);
     }

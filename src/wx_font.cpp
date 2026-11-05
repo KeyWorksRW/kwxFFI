@@ -13,7 +13,8 @@ extern "C"
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT int wxFontMapper_CharsetToEncoding(void* pObject, void* charset, bool interactive)
     {
-        return (int) ((wxFontMapper*) pObject)->CharsetToEncoding(*(wxString*) charset, interactive);
+        return (int) ((wxFontMapper*) pObject)
+            ->CharsetToEncoding(*(wxString*) charset, interactive);
     }
 
     EXPORT void* wxFontMapper_Get()
@@ -42,7 +43,6 @@ extern "C"
     {
         return (size_t) wxFontMapper::GetSupportedEncodingsCount();
     }
-
 }
 
 class kwxFontEnumerator : public wxFontEnumerator
@@ -62,9 +62,11 @@ public:
     {
         return func(kwxObject, (void*) facename.utf8_str().data()) != 0;
     }
-    virtual bool OnFontEncoding(const wxString& WXUNUSED(facename), const wxString& encoding)
+    virtual bool OnFontEncoding(const wxString& facename, const wxString& encoding)
     {
-        return func(kwxObject, (void*) encoding.utf8_str().data()) != 0;
+        const wxString combined = facename + "|" + encoding;
+        const wxScopedCharBuffer buffer = combined.utf8_str();
+        return func(kwxObject, (void*) buffer.data()) != 0;
     }
 };
 
@@ -87,13 +89,13 @@ extern "C"
         switch (id)
         {
             case 0:
-                return (void*) wxITALIC_FONT;
+                return (void*) new wxFont(*wxITALIC_FONT);
             case 1:
-                return (void*) wxNORMAL_FONT;
+                return (void*) new wxFont(*wxNORMAL_FONT);
             case 2:
-                return (void*) wxSMALL_FONT;
+                return (void*) new wxFont(*wxSMALL_FONT);
             case 3:
-                return (void*) wxSWISS_FONT;
+                return (void*) new wxFont(*wxSWISS_FONT);
         }
 
         return nullptr;
@@ -104,7 +106,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxFont_IsOk(wxFont* self)
+    EXPORT int wxFont_IsOk(wxFont* self)
     {
         return self->IsOk();
     }
@@ -129,7 +131,7 @@ extern "C"
         return self->GetWeight();
     }
 
-    EXPORT bool wxFont_GetUnderlined(wxFont* self)
+    EXPORT int wxFont_GetUnderlined(wxFont* self)
     {
         return self->GetUnderlined();
     }
@@ -222,15 +224,15 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxFontEnumerator_EnumerateFacenames(kwxFontEnumerator* self, int encoding,
-                                                    bool fixedWidthOnly)
+    EXPORT int wxFontEnumerator_EnumerateFacenames(kwxFontEnumerator* self, int encoding,
+                                                   bool fixedWidthOnly)
     {
         return self->EnumerateFacenames((wxFontEncoding) encoding, fixedWidthOnly);
     }
 
-    EXPORT bool wxFontEnumerator_EnumerateEncodings(kwxFontEnumerator* self, wxString* facename)
+    EXPORT int wxFontEnumerator_EnumerateEncodings(kwxFontEnumerator* self, wxString* facename)
     {
-        return self->EnumerateEncodings(*facename);
+        return self->EnumerateEncodings(facename ? *facename : wxString()) ? 1 : 0;
     }
 
     EXPORT void* wxFontMapper_Create()
@@ -238,14 +240,14 @@ extern "C"
         return wxTheFontMapper;
     }
 
-    EXPORT bool wxFontMapper_GetAltForEncoding(wxFontMapper* self, int encoding, void* alt_encoding,
-                                               wxString* facename)
+    EXPORT int wxFontMapper_GetAltForEncoding(wxFontMapper* self, int encoding, void* alt_encoding,
+                                              wxString* facename)
     {
         return self->GetAltForEncoding((wxFontEncoding) encoding, (wxFontEncoding*) alt_encoding,
                                        *facename, false);
     }
 
-    EXPORT bool wxFontMapper_IsEncodingAvailable(wxFontMapper* self, int encoding, wxString* buffer)
+    EXPORT int wxFontMapper_IsEncodingAvailable(wxFontMapper* self, int encoding, wxString* buffer)
     {
         return self->IsEncodingAvailable((wxFontEncoding) encoding, *buffer);
     }
@@ -260,8 +262,8 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxEncodingConverter_Init(wxEncodingConverter* self, int input_enc, int output_enc,
-                                         int method)
+    EXPORT int wxEncodingConverter_Init(wxEncodingConverter* self, int input_enc, int output_enc,
+                                        int method)
     {
         return self->Init((wxFontEncoding) input_enc, (wxFontEncoding) output_enc, method);
     }
@@ -306,7 +308,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxFont_IsUsingSizeInPixels(wxFont* self)
+    EXPORT int wxFont_IsUsingSizeInPixels(wxFont* self)
     {
         return self->IsUsingSizeInPixels();
     }
@@ -316,7 +318,7 @@ extern "C"
         return self->GetNumericWeight();
     }
 
-    EXPORT bool wxFont_GetStrikethrough(wxFont* self)
+    EXPORT int wxFont_GetStrikethrough(wxFont* self)
     {
         return self->GetStrikethrough();
     }
@@ -331,7 +333,7 @@ extern "C"
         return new wxString(self->GetNativeFontInfoUserDesc());
     }
 
-    EXPORT bool wxFont_IsFixedWidth(wxFont* self)
+    EXPORT int wxFont_IsFixedWidth(wxFont* self)
     {
         return self->IsFixedWidth();
     }
@@ -356,12 +358,12 @@ extern "C"
         self->SetStrikethrough(strikethrough);
     }
 
-    EXPORT bool wxFont_SetNativeFontInfo(wxFont* self, wxString* info)
+    EXPORT int wxFont_SetNativeFontInfo(wxFont* self, wxString* info)
     {
         return self->SetNativeFontInfo(*info);
     }
 
-    EXPORT bool wxFont_SetNativeFontInfoUserDesc(wxFont* self, wxString* info)
+    EXPORT int wxFont_SetNativeFontInfoUserDesc(wxFont* self, wxString* info)
     {
         return self->SetNativeFontInfoUserDesc(*info);
     }
@@ -466,7 +468,7 @@ extern "C"
         return new wxFont(self->GetBaseFont());
     }
 
-    EXPORT bool wxFont_AddPrivateFont(wxString* filename)
+    EXPORT int wxFont_AddPrivateFont(wxString* filename)
     {
 #if wxUSE_PRIVATE_FONTS
         return wxFont::AddPrivateFont(*filename);
@@ -476,8 +478,170 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxFont_IsEqual(wxFont* self, wxFont* font)
+    EXPORT int wxFont_IsEqual(wxFont* self, wxFont* font)
     {
         return *self == *font;
+    }
+
+    // ---- wxFontInfo (named-parameter font description; see issue #76 §1) ----
+    EXPORT wxFontInfo* wxFontInfo_Create(double pointSize)
+    {
+        return new wxFontInfo(pointSize);
+    }
+
+    EXPORT wxFontInfo* wxFontInfo_CreateDefault()
+    {
+        return new wxFontInfo();
+    }
+
+    EXPORT void wxFontInfo_Delete(wxFontInfo* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxFontInfo_SetFamily(wxFontInfo* self, int family)
+    {
+        self->Family(static_cast<wxFontFamily>(family));
+    }
+
+    EXPORT void wxFontInfo_SetFaceName(wxFontInfo* self, const wxString* faceName)
+    {
+        self->FaceName(*faceName);
+    }
+
+    EXPORT void wxFontInfo_SetWeight(wxFontInfo* self, int weight)
+    {
+        self->Weight(weight);
+    }
+
+    EXPORT void wxFontInfo_SetStyle(wxFontInfo* self, int style)
+    {
+        self->Style(static_cast<wxFontStyle>(style));
+    }
+
+    EXPORT void wxFontInfo_SetBold(wxFontInfo* self, int bold)
+    {
+        self->Bold(bold != 0);
+    }
+
+    EXPORT void wxFontInfo_SetLight(wxFontInfo* self, int light)
+    {
+        self->Light(light != 0);
+    }
+
+    EXPORT void wxFontInfo_SetItalic(wxFontInfo* self, int italic)
+    {
+        self->Italic(italic != 0);
+    }
+
+    EXPORT void wxFontInfo_SetSlant(wxFontInfo* self, int slant)
+    {
+        self->Slant(slant != 0);
+    }
+
+    EXPORT void wxFontInfo_SetUnderlined(wxFontInfo* self, int underlined)
+    {
+        self->Underlined(underlined != 0);
+    }
+
+    EXPORT void wxFontInfo_SetStrikethrough(wxFontInfo* self, int strikethrough)
+    {
+        self->Strikethrough(strikethrough != 0);
+    }
+
+    EXPORT void wxFontInfo_SetEncoding(wxFontInfo* self, int encoding)
+    {
+        self->Encoding(static_cast<wxFontEncoding>(encoding));
+    }
+
+    EXPORT double wxFontInfo_GetFractionalPointSize(wxFontInfo* self)
+    {
+        return self->GetFractionalPointSize();
+    }
+
+    EXPORT int wxFontInfo_GetFamily(wxFontInfo* self)
+    {
+        return static_cast<int>(self->GetFamily());
+    }
+
+    EXPORT int wxFontInfo_GetStyle(wxFontInfo* self)
+    {
+        return static_cast<int>(self->GetStyle());
+    }
+
+    EXPORT int wxFontInfo_GetNumericWeight(wxFontInfo* self)
+    {
+        return self->GetNumericWeight();
+    }
+
+    EXPORT int wxFontInfo_GetEncoding(wxFontInfo* self)
+    {
+        return static_cast<int>(self->GetEncoding());
+    }
+
+    EXPORT wxString* wxFontInfo_GetFaceName(wxFontInfo* self)
+    {
+        return new wxString(self->GetFaceName());
+    }
+
+    EXPORT int wxFontInfo_IsUnderlined(wxFontInfo* self)
+    {
+        return self->IsUnderlined() ? 1 : 0;
+    }
+
+    EXPORT int wxFontInfo_IsStrikethrough(wxFontInfo* self)
+    {
+        return self->IsStrikethrough() ? 1 : 0;
+    }
+
+    // ---- wxFont copy construction / assignment (issue #76 §2) ----
+    EXPORT wxFont* wxFont_CreateFromInfo(const wxFontInfo* info)
+    {
+        return new wxFont(*info);
+    }
+
+    EXPORT wxFont* wxFont_CreateFromFont(const wxFont* other)
+    {
+        return new wxFont(*other);
+    }
+
+    EXPORT void wxFont_Assign(wxFont* self, const wxFont* other)
+    {
+        *self = *other;
+    }
+
+    // ---- callback-free font enumeration (issue #76 §3) ----
+    // A plain wxFontEnumerator carries no callback; the *ToArray entry points use the static
+    // GetFacenames()/GetEncodings() helpers, so the receiver is not consulted.
+    EXPORT void* wxFontEnumerator_CreateDefault()
+    {
+        return (void*) new wxFontEnumerator();
+    }
+
+    EXPORT int wxFontEnumerator_EnumerateFacenamesToArray(wxFontEnumerator* self, int encoding,
+                                                          int fixedWidthOnly, wxArrayString* out)
+    {
+        (void) self;
+        const wxArrayString names = wxFontEnumerator::GetFacenames(
+            static_cast<wxFontEncoding>(encoding), fixedWidthOnly != 0);
+        if (out)
+        {
+            *out = names;
+        }
+        return static_cast<int>(names.GetCount());
+    }
+
+    EXPORT int wxFontEnumerator_EnumerateEncodingsToArray(wxFontEnumerator* self,
+                                                          const wxString* facename,
+                                                          wxArrayString* out)
+    {
+        (void) self;
+        const wxArrayString encodings =
+            wxFontEnumerator::GetEncodings(facename ? *facename : wxString());
+        if (out)
+        {
+            *out = encodings;
+        }
+        return static_cast<int>(encodings.GetCount());
     }
 }

@@ -25,8 +25,8 @@ extern "C"
     }
 
     // Check if wrap needed
-    EXPORT bool wxWrapSizer_InformFirstDirection(wxWrapSizer* self, int direction, int size,
-                                                 int availableOtherDir)
+    EXPORT int wxWrapSizer_InformFirstDirection(wxWrapSizer* self, int direction, int size,
+                                                int availableOtherDir)
     {
         return self->InformFirstDirection(direction, size, availableOtherDir);
     }

@@ -200,12 +200,12 @@ extern "C"
         return new wxString(self->GetDesktopEnvironment());
     }
 
-    EXPORT bool wxPlatformInfo_IsOk(wxPlatformInfo* self)
+    EXPORT int wxPlatformInfo_IsOk(wxPlatformInfo* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxPlatformInfo_IsUsingUniversalWidgets(wxPlatformInfo* self)
+    EXPORT int wxPlatformInfo_IsUsingUniversalWidgets(wxPlatformInfo* self)
     {
         return self->IsUsingUniversalWidgets();
     }

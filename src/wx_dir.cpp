@@ -69,7 +69,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxDir_Open(wxDir* self, wxString* directory)
+    EXPORT int wxDir_Open(wxDir* self, wxString* directory)
     {
         return self->Open(PathOrEmpty(directory));
     }
@@ -79,7 +79,7 @@ extern "C"
         self->Close();
     }
 
-    EXPORT bool wxDir_IsOpened(wxDir* self)
+    EXPORT int wxDir_IsOpened(wxDir* self)
     {
         return self->IsOpened();
     }
@@ -94,7 +94,7 @@ extern "C"
         return new wxString(self->GetNameWithSep());
     }
 
-    EXPORT bool wxDir_GetFirst(wxDir* self, wxString* filename, wxString* spec, int flags)
+    EXPORT int wxDir_GetFirst(wxDir* self, wxString* filename, wxString* spec, int flags)
     {
         wxString found;
         const bool result = self->GetFirst(&found, PathOrEmpty(spec), flags);
@@ -106,7 +106,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxDir_GetNext(wxDir* self, wxString* filename)
+    EXPORT int wxDir_GetNext(wxDir* self, wxString* filename)
     {
         wxString found;
         const bool result = self->GetNext(&found);
@@ -118,12 +118,12 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxDir_HasFiles(wxDir* self, wxString* spec)
+    EXPORT int wxDir_HasFiles(wxDir* self, wxString* spec)
     {
         return self->HasFiles(PathOrEmpty(spec));
     }
 
-    EXPORT bool wxDir_HasSubDirs(wxDir* self, wxString* spec)
+    EXPORT int wxDir_HasSubDirs(wxDir* self, wxString* spec)
     {
         return self->HasSubDirs(PathOrEmpty(spec));
     }
@@ -171,17 +171,17 @@ extern "C"
         return static_cast<double>(size.GetValue());
     }
 
-    EXPORT bool wxDir_Exists(wxString* dir)
+    EXPORT int wxDir_Exists(wxString* dir)
     {
         return wxDir::Exists(PathOrEmpty(dir));
     }
 
-    EXPORT bool wxDir_Make(wxString* dir, int perm, int flags)
+    EXPORT int wxDir_Make(wxString* dir, int perm, int flags)
     {
         return wxDir::Make(PathOrEmpty(dir), perm, flags);
     }
 
-    EXPORT bool wxDir_Remove(wxString* dir, int flags)
+    EXPORT int wxDir_Remove(wxString* dir, int flags)
     {
         return wxDir::Remove(PathOrEmpty(dir), flags);
     }

@@ -63,24 +63,24 @@ extern "C"
             delete self;
     }
 
-    EXPORT bool wxDragImage_BeginDragFullScreen(wxDragImage* self, int x_pos, int y_pos,
-                                                wxWindow* window, bool fullScreen, wxRect* rect)
+    EXPORT int wxDragImage_BeginDragFullScreen(wxDragImage* self, int x_pos, int y_pos,
+                                               wxWindow* window, bool fullScreen, wxRect* rect)
     {
         return self->BeginDrag(wxPoint(x_pos, y_pos), window, fullScreen, rect);
     }
 
-    EXPORT bool wxDragImage_BeginDrag(wxDragImage* self, int x, int y, wxWindow* window,
-                                      wxWindow* boundingWindow)
+    EXPORT int wxDragImage_BeginDrag(wxDragImage* self, int x, int y, wxWindow* window,
+                                     wxWindow* boundingWindow)
     {
         return self->BeginDrag(wxPoint(x, y), window, boundingWindow);
     }
 
-    EXPORT bool wxGenericDragImage_DoDrawImage(wxGenericDragImage* self, wxDC* dc, int x, int y)
+    EXPORT int wxGenericDragImage_DoDrawImage(wxGenericDragImage* self, wxDC* dc, int x, int y)
     {
         return self->DoDrawImage(*dc, wxPoint(x, y));
     }
 
-    EXPORT bool wxDragImage_EndDrag(wxDragImage* self)
+    EXPORT int wxDragImage_EndDrag(wxDragImage* self)
     {
         return self->EndDrag();
     }
@@ -92,25 +92,25 @@ extern "C"
         return r;
     }
 
-    EXPORT bool wxDragImage_Hide(wxDragImage* self)
+    EXPORT int wxDragImage_Hide(wxDragImage* self)
     {
         return self->Hide();
     }
 
-    EXPORT bool wxDragImage_Move(wxDragImage* self, int x, int y)
+    EXPORT int wxDragImage_Move(wxDragImage* self, int x, int y)
     {
         return self->Move(wxPoint(x, y));
     }
 
-    EXPORT bool wxDragImage_Show(wxDragImage* self)
+    EXPORT int wxDragImage_Show(wxDragImage* self)
     {
         return self->Show();
     }
 
-    EXPORT bool wxGenericDragImage_UpdateBackingFromWindow(wxGenericDragImage* self, wxDC* windowDC,
-                                                           wxMemoryDC* destDC, int x, int y,
-                                                           int width, int height, int xdest,
-                                                           int ydest, int destWidth, int destHeight)
+    EXPORT int wxGenericDragImage_UpdateBackingFromWindow(wxGenericDragImage* self, wxDC* windowDC,
+                                                          wxMemoryDC* destDC, int x, int y,
+                                                          int width, int height, int xdest,
+                                                          int ydest, int destWidth, int destHeight)
     {
         return self->UpdateBackingFromWindow(*windowDC, *destDC, wxRect(x, y, width, height),
                                              wxRect(xdest, ydest, destWidth, destHeight));

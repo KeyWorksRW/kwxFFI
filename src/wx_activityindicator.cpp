@@ -16,7 +16,7 @@ extern "C"
         return new wxActivityIndicator(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool wxActivityIndicator_IsRunning(wxActivityIndicator* self)
+    EXPORT int wxActivityIndicator_IsRunning(wxActivityIndicator* self)
     {
         return self->IsRunning();
     }

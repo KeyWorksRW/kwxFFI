@@ -40,7 +40,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxHyperlinkCtrl_GetVisited(wxHyperlinkCtrl* self)
+    EXPORT int wxHyperlinkCtrl_GetVisited(wxHyperlinkCtrl* self)
     {
         return self->GetVisited();
     }

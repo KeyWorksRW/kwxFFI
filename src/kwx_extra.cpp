@@ -69,12 +69,12 @@ extern "C"
         return (void*) wxLog::SetThreadActiveTarget((wxLog*) logger);
     }
 
-    EXPORT bool wxObject_IsSameAs(void* pObject, void* o)
+    EXPORT int wxObject_IsSameAs(void* pObject, void* o)
     {
         return ((wxObject*) pObject)->IsSameAs(*(wxObject*) o);
     }
 
-    EXPORT bool wxPoint_IsFullySpecified(void* pObject)
+    EXPORT int wxPoint_IsFullySpecified(void* pObject)
     {
         return ((wxPoint*) pObject)->IsFullySpecified();
     }
@@ -90,7 +90,7 @@ extern "C"
         return new wxRect(value);
     }
 
-    EXPORT bool wxRect_Contains(void* pObject, int x, int y)
+    EXPORT int wxRect_Contains(void* pObject, int x, int y)
     {
         return ((wxRect*) pObject)->Contains(x, y);
     }
@@ -188,7 +188,7 @@ extern "C"
         ((wxSize*) pObject)->IncTo(*(wxSize*) sz);
     }
 
-    EXPORT bool wxSize_IsFullySpecified(void* pObject)
+    EXPORT int wxSize_IsFullySpecified(void* pObject)
     {
         return ((wxSize*) pObject)->IsFullySpecified();
     }
@@ -214,17 +214,17 @@ extern "C"
         return ((wxTextAttr*) pObject)->GetParagraphSpacingAfter();
     }
 
-    EXPORT bool wxTextAttr_HasAlignment(void* pObject)
+    EXPORT int wxTextAttr_HasAlignment(void* pObject)
     {
         return ((wxTextAttr*) pObject)->HasAlignment();
     }
 
-    EXPORT bool wxTextAttr_HasFontPixelSize(void* pObject)
+    EXPORT int wxTextAttr_HasFontPixelSize(void* pObject)
     {
         return ((wxTextAttr*) pObject)->HasFontPixelSize();
     }
 
-    EXPORT bool wxTextAttr_HasLeftIndent(void* pObject)
+    EXPORT int wxTextAttr_HasLeftIndent(void* pObject)
     {
         return ((wxTextAttr*) pObject)->HasLeftIndent();
     }
@@ -283,7 +283,6 @@ extern "C"
     {
         ((wxTextAttr*) pObject)->SetRightIndent(indent);
     }
-
 }
 
 class wxTimerEx : public wxTimer
@@ -1592,17 +1591,17 @@ extern "C"
         self->SetTitle(*text);
     }
 
-    EXPORT bool wxFrame_SetShape(wxFrame* self, wxRegion* region)
+    EXPORT int wxFrame_SetShape(wxFrame* self, wxRegion* region)
     {
         return self->SetShape(*region);
     }
 
-    EXPORT bool wxFrame_ShowFullScreen(wxFrame* self, bool show, int style)
+    EXPORT int wxFrame_ShowFullScreen(wxFrame* self, bool show, int style)
     {
         return self->ShowFullScreen(show, style);
     }
 
-    EXPORT bool wxFrame_IsFullScreen(wxFrame* self)
+    EXPORT int wxFrame_IsFullScreen(wxFrame* self)
     {
         return self->IsFullScreen();
     }
@@ -1698,7 +1697,7 @@ extern "C"
         return event.GetInt();
     }
 
-    EXPORT bool wxListCtrl_SortItems2(wxListCtrl* self, wxClosure* closure)
+    EXPORT int wxListCtrl_SortItems2(wxListCtrl* self, wxClosure* closure)
     {
         SortData sortData = { self->GetId(), closure };
         return self->SortItems(sortCallBack, (wxIntPtr) &sortData);
@@ -1711,7 +1710,7 @@ extern "C"
             *col = wxNullColour;
     }
 
-    EXPORT bool wxObject_IsKindOf(wxObject* self, wxClassInfo* classInfo)
+    EXPORT int wxObject_IsKindOf(wxObject* self, wxClassInfo* classInfo)
     {
         return self->IsKindOf(classInfo);
     }
@@ -1722,7 +1721,7 @@ extern "C"
     }
 
     // optimize
-    EXPORT bool wxObject_IsScrolledWindow(wxObject* self)
+    EXPORT int wxObject_IsScrolledWindow(wxObject* self)
     {
         return self->IsKindOf(CLASSINFO(wxScrolledWindow));
     }
@@ -1758,7 +1757,7 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxClassInfo_IsKindOfEx(wxClassInfo* self, wxClassInfo* classInfo)
+    EXPORT int wxClassInfo_IsKindOfEx(wxClassInfo* self, wxClassInfo* classInfo)
     {
         return self->IsKindOf(classInfo);
     }
@@ -1893,17 +1892,17 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxTextCtrl_IsMultiLine(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_IsMultiLine(wxTextCtrl* self)
     {
         return self->IsMultiLine();
     }
 
-    EXPORT bool wxTextCtrl_IsSingleLine(wxTextCtrl* self)
+    EXPORT int wxTextCtrl_IsSingleLine(wxTextCtrl* self)
     {
         return self->IsSingleLine();
     }
 
-    EXPORT bool wxTextCtrl_SetDefaultStyle(wxTextCtrl* self, wxTextAttr* style)
+    EXPORT int wxTextCtrl_SetDefaultStyle(wxTextCtrl* self, wxTextAttr* style)
     {
         return self->SetDefaultStyle(*style);
     }
@@ -1913,7 +1912,7 @@ extern "C"
         self->SetMaxLength(len);
     }
 
-    EXPORT bool wxTextCtrl_SetStyle(wxTextCtrl* self, long start, long end, wxTextAttr* style)
+    EXPORT int wxTextCtrl_SetStyle(wxTextCtrl* self, long start, long end, wxTextAttr* style)
     {
         return self->SetStyle(start, end, *style);
     }
@@ -1948,22 +1947,22 @@ extern "C"
         *colour = self->GetTextColour();
     }
 
-    EXPORT bool wxTextAttr_HasBackgroundColour(wxTextAttr* self)
+    EXPORT int wxTextAttr_HasBackgroundColour(wxTextAttr* self)
     {
         return self->HasBackgroundColour();
     }
 
-    EXPORT bool wxTextAttr_HasFont(wxTextAttr* self)
+    EXPORT int wxTextAttr_HasFont(wxTextAttr* self)
     {
         return self->HasFont();
     }
 
-    EXPORT bool wxTextAttr_HasTextColour(wxTextAttr* self)
+    EXPORT int wxTextAttr_HasTextColour(wxTextAttr* self)
     {
         return self->HasTextColour();
     }
 
-    EXPORT bool wxTextAttr_IsDefault(wxTextAttr* self)
+    EXPORT int wxTextAttr_IsDefault(wxTextAttr* self)
     {
         return self->IsDefault();
     }
@@ -1989,13 +1988,13 @@ extern "C"
         return new wxProgressDialog(*title, *message, max, parent, style);
     }
 
-    EXPORT bool wxProgressDialog_Update(wxProgressDialog* self, int value)
+    EXPORT int wxProgressDialog_Update(wxProgressDialog* self, int value)
     {
         return self->Update(value);
     }
 
-    EXPORT bool wxProgressDialog_UpdateWithMessage(wxProgressDialog* self, int value,
-                                                   wxString* message)
+    EXPORT int wxProgressDialog_UpdateWithMessage(wxProgressDialog* self, int value,
+                                                  wxString* message)
     {
         return self->Update(value, *message);
     }
@@ -2164,7 +2163,7 @@ extern "C"
         return new kwxHtmlWindow(parent, id, wxPoint(x, y), wxSize(width, height), style, *name);
     }
 
-    EXPORT bool wxHtmlWindow_AppendToPage(wxHtmlWindow* self, wxString* source)
+    EXPORT int wxHtmlWindow_AppendToPage(wxHtmlWindow* self, wxString* source)
     {
         return self->AppendToPage(*source);
     }
@@ -2200,17 +2199,17 @@ extern "C"
         return (void*) self->GetRelatedFrame();
     }
 
-    EXPORT bool wxHtmlWindow_HistoryBack(wxHtmlWindow* self)
+    EXPORT int wxHtmlWindow_HistoryBack(wxHtmlWindow* self)
     {
         return self->HistoryBack();
     }
 
-    EXPORT bool wxHtmlWindow_HistoryCanBack(wxHtmlWindow* self)
+    EXPORT int wxHtmlWindow_HistoryCanBack(wxHtmlWindow* self)
     {
         return self->HistoryCanBack();
     }
 
-    EXPORT bool wxHtmlWindow_HistoryCanForward(wxHtmlWindow* self)
+    EXPORT int wxHtmlWindow_HistoryCanForward(wxHtmlWindow* self)
     {
         return self->HistoryCanForward();
     }
@@ -2220,12 +2219,12 @@ extern "C"
         self->HistoryClear();
     }
 
-    EXPORT bool wxHtmlWindow_HistoryForward(wxHtmlWindow* self)
+    EXPORT int wxHtmlWindow_HistoryForward(wxHtmlWindow* self)
     {
         return self->HistoryForward();
     }
 
-    EXPORT bool wxHtmlWindow_LoadPage(wxHtmlWindow* self, wxString* location)
+    EXPORT int wxHtmlWindow_LoadPage(wxHtmlWindow* self, wxString* location)
     {
         return self->LoadPage(*location);
     }
@@ -2273,7 +2272,7 @@ extern "C"
         return self->GetParser();
     }
 
-    EXPORT bool wxHtmlWindow_LoadFile(wxHtmlWindow* self, wxFileName* filename)
+    EXPORT int wxHtmlWindow_LoadFile(wxHtmlWindow* self, wxFileName* filename)
     {
         return self->LoadFile(*filename);
     }
@@ -2362,7 +2361,7 @@ extern "C"
         self->Flush();
     }
 
-    EXPORT bool wxLog_HasPendingMessages(wxLog* self)
+    EXPORT int wxLog_HasPendingMessages(wxLog* self)
     {
         return self->HasPendingMessages();
     }
@@ -2417,12 +2416,12 @@ extern "C"
         self->SetTimestamp((const char*) timestamp);
     }
 
-    EXPORT bool wxLog_GetVerbose(wxLog* self)
+    EXPORT int wxLog_GetVerbose(wxLog* self)
     {
         return self->GetVerbose();
     }
 
-    EXPORT bool wxLog_IsAllowedTraceMask(wxLog* self, void* mask)
+    EXPORT int wxLog_IsAllowedTraceMask(wxLog* self, void* mask)
     {
         return self->IsAllowedTraceMask((const char*) mask);
     }
@@ -2508,7 +2507,7 @@ extern "C"
         return (void*) new wxPropertyGrid(parent, id, wxPoint(x, y), wxSize(width, height), style);
     }
 
-    EXPORT bool wxPropertyGrid_DisableProperty(wxPropertyGrid* self, wxString const* propName)
+    EXPORT int wxPropertyGrid_DisableProperty(wxPropertyGrid* self, wxString const* propName)
     {
         return self->DisableProperty(*propName);
     }

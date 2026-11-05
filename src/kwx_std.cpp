@@ -10,7 +10,7 @@ extern "C"
         return val ? 1 : 0;
     }
 
-    EXPORT bool intToBool(int val)
+    EXPORT int intToBool(int val)
     {
         return val != 0 ? true : false;
     }

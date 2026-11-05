@@ -34,12 +34,13 @@ extern "C"
         self->Check(item, check);
     }
 
-    EXPORT bool wxCheckListBox_IsChecked(wxCheckListBox* self, int item)
+    EXPORT int wxCheckListBox_IsChecked(wxCheckListBox* self, int item)
     {
         return self->IsChecked(item);
     }
 
-    EXPORT int wxCheckListBox_GetCheckedItems(wxCheckListBox* self, int* checkedItems, int allocated)
+    EXPORT int wxCheckListBox_GetCheckedItems(wxCheckListBox* self, int* checkedItems,
+                                              int allocated)
     {
         wxArrayInt arr;
         unsigned int count = self->GetCheckedItems(arr);

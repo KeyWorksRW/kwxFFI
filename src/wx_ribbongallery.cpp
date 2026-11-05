@@ -37,7 +37,7 @@ extern "C"
         self->Clear();
     }
 
-    EXPORT bool wxRibbonGallery_IsEmpty(wxRibbonGallery* self)
+    EXPORT int wxRibbonGallery_IsEmpty(wxRibbonGallery* self)
     {
         return self->IsEmpty();
     }
@@ -86,12 +86,12 @@ extern "C"
     }
 
     // Scrolling
-    EXPORT bool wxRibbonGallery_ScrollLines(wxRibbonGallery* self, int lines)
+    EXPORT int wxRibbonGallery_ScrollLines(wxRibbonGallery* self, int lines)
     {
         return self->ScrollLines(lines);
     }
 
-    EXPORT bool wxRibbonGallery_ScrollPixels(wxRibbonGallery* self, int pixels)
+    EXPORT int wxRibbonGallery_ScrollPixels(wxRibbonGallery* self, int pixels)
     {
         return self->ScrollPixels(pixels);
     }
@@ -118,13 +118,13 @@ extern "C"
     }
 
     // State queries
-    EXPORT bool wxRibbonGallery_IsHovered(wxRibbonGallery* self)
+    EXPORT int wxRibbonGallery_IsHovered(wxRibbonGallery* self)
     {
         return self->IsHovered();
     }
 
     // Layout
-    EXPORT bool wxRibbonGallery_IsSizingContinuous(wxRibbonGallery* self)
+    EXPORT int wxRibbonGallery_IsSizingContinuous(wxRibbonGallery* self)
     {
         return self->IsSizingContinuous();
     }
@@ -200,16 +200,17 @@ extern "C"
         self->SetGalleryItem(item);
     }
 
-
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void* wxRibbonGallery_GetItemClientObject(void* pObject, void* item)
     {
-        return (void*) ((wxRibbonGallery*) pObject)->GetItemClientObject((wxRibbonGalleryItem*) item);
+        return (void*) ((wxRibbonGallery*) pObject)
+            ->GetItemClientObject((wxRibbonGalleryItem*) item);
     }
 
     EXPORT void wxRibbonGallery_SetItemClientObject(void* pObject, void* item, void* data)
     {
-        ((wxRibbonGallery*) pObject)->SetItemClientObject((wxRibbonGalleryItem*) item, (wxClientData*) data);
+        ((wxRibbonGallery*) pObject)
+            ->SetItemClientObject((wxRibbonGalleryItem*) item, (wxClientData*) data);
     }
 
     EXPORT void wxRibbonGallery_SetKeyTip(void* pObject, void* keytip)

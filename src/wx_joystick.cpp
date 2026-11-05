@@ -70,7 +70,7 @@ extern "C"
         self->SetMovementThreshold(threshold);
     }
 
-    EXPORT bool wxJoystick_IsOk(wxJoystick* self)
+    EXPORT int wxJoystick_IsOk(wxJoystick* self)
     {
         return self->IsOk();
     }
@@ -187,47 +187,47 @@ extern "C"
         return self->GetVMax();
     }
 
-    EXPORT bool wxJoystick_HasRudder(wxJoystick* self)
+    EXPORT int wxJoystick_HasRudder(wxJoystick* self)
     {
         return self->HasRudder();
     }
 
-    EXPORT bool wxJoystick_HasZ(wxJoystick* self)
+    EXPORT int wxJoystick_HasZ(wxJoystick* self)
     {
         return self->HasZ();
     }
 
-    EXPORT bool wxJoystick_HasU(wxJoystick* self)
+    EXPORT int wxJoystick_HasU(wxJoystick* self)
     {
         return self->HasU();
     }
 
-    EXPORT bool wxJoystick_HasV(wxJoystick* self)
+    EXPORT int wxJoystick_HasV(wxJoystick* self)
     {
         return self->HasV();
     }
 
-    EXPORT bool wxJoystick_HasPOV(wxJoystick* self)
+    EXPORT int wxJoystick_HasPOV(wxJoystick* self)
     {
         return self->HasPOV();
     }
 
-    EXPORT bool wxJoystick_HasPOV4Dir(wxJoystick* self)
+    EXPORT int wxJoystick_HasPOV4Dir(wxJoystick* self)
     {
         return self->HasPOV4Dir();
     }
 
-    EXPORT bool wxJoystick_HasPOVCTS(wxJoystick* self)
+    EXPORT int wxJoystick_HasPOVCTS(wxJoystick* self)
     {
         return self->HasPOVCTS();
     }
 
-    EXPORT bool wxJoystick_SetCapture(wxJoystick* self, wxWindow* win, int pollingFreq)
+    EXPORT int wxJoystick_SetCapture(wxJoystick* self, wxWindow* win, int pollingFreq)
     {
         return self->SetCapture(win, pollingFreq);
     }
 
-    EXPORT bool wxJoystick_ReleaseCapture(wxJoystick* self)
+    EXPORT int wxJoystick_ReleaseCapture(wxJoystick* self)
     {
         return self->ReleaseCapture();
     }
@@ -285,7 +285,7 @@ extern "C"
 
     EXPORT void wxJoystick_SetMovementThreshold(void* pObject, int threshold) {}
 
-    EXPORT bool wxJoystick_IsOk(wxJoystick* pObject)
+    EXPORT int wxJoystick_IsOk(wxJoystick* pObject)
     {
         return pObject->isOk();
     }

@@ -24,7 +24,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxHtmlHelpData_AddBook(wxHtmlHelpData* self, wxString* book)
+    EXPORT int wxHtmlHelpData_AddBook(wxHtmlHelpData* self, wxString* book)
     {
         InitHtmlHelpFileSystem();
         return self->AddBook(*book);
@@ -74,27 +74,27 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxHtmlHelpWindow_Display(wxHtmlHelpWindow* self, wxString* x)
+    EXPORT int wxHtmlHelpWindow_Display(wxHtmlHelpWindow* self, wxString* x)
     {
         return self->Display(*x);
     }
 
-    EXPORT bool wxHtmlHelpWindow_DisplayNumber(wxHtmlHelpWindow* self, int id)
+    EXPORT int wxHtmlHelpWindow_DisplayNumber(wxHtmlHelpWindow* self, int id)
     {
         return self->Display(id);
     }
 
-    EXPORT bool wxHtmlHelpWindow_DisplayContents(wxHtmlHelpWindow* self)
+    EXPORT int wxHtmlHelpWindow_DisplayContents(wxHtmlHelpWindow* self)
     {
         return self->DisplayContents();
     }
 
-    EXPORT bool wxHtmlHelpWindow_DisplayIndex(wxHtmlHelpWindow* self)
+    EXPORT int wxHtmlHelpWindow_DisplayIndex(wxHtmlHelpWindow* self)
     {
         return self->DisplayIndex();
     }
 
-    EXPORT bool wxHtmlHelpWindow_KeywordSearch(wxHtmlHelpWindow* self, wxString* keyword, int mode)
+    EXPORT int wxHtmlHelpWindow_KeywordSearch(wxHtmlHelpWindow* self, wxString* keyword, int mode)
     {
         return self->KeywordSearch(*keyword, static_cast<wxHelpSearchMode>(mode));
     }

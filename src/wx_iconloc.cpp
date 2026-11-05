@@ -19,7 +19,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxIconLocation_IsOk(wxIconLocation* self)
+    EXPORT int wxIconLocation_IsOk(wxIconLocation* self)
     {
         return self->IsOk();
     }

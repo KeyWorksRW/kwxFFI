@@ -41,8 +41,8 @@ extern "C"
         self->SetTempDir(*path);
     }
 
-    EXPORT bool wxHtmlHelpController_AddBook(wxHtmlHelpController* self, wxString* book,
-                                             bool show_wait_msg)
+    EXPORT int wxHtmlHelpController_AddBook(wxHtmlHelpController* self, wxString* book,
+                                            bool show_wait_msg)
     {
         return self->AddBook(*book, show_wait_msg);
     }
@@ -57,7 +57,7 @@ extern "C"
         self->Display(id);
     }
 
-    EXPORT bool wxHtmlHelpController_DisplayContents(wxHtmlHelpController* self)
+    EXPORT int wxHtmlHelpController_DisplayContents(wxHtmlHelpController* self)
     {
         return self->DisplayContents();
     }
@@ -67,8 +67,8 @@ extern "C"
         self->DisplayIndex();
     }
 
-    EXPORT bool wxHtmlHelpController_KeywordSearch(wxHtmlHelpController* self, wxString* keyword,
-                                                   int mode)
+    EXPORT int wxHtmlHelpController_KeywordSearch(wxHtmlHelpController* self, wxString* keyword,
+                                                  int mode)
     {
         return self->KeywordSearch(*keyword, (wxHelpSearchMode) mode);
     }
@@ -96,7 +96,7 @@ extern "C"
         self->WriteCustomization(cfg, *path);
     }
 
-    EXPORT bool wxHtmlHelpController_Initialize(wxHtmlHelpController* self, wxString* file)
+    EXPORT int wxHtmlHelpController_Initialize(wxHtmlHelpController* self, wxString* file)
     {
         return self->Initialize(*file);
     }
@@ -107,22 +107,22 @@ extern "C"
         self->SetViewer(*viewer, (long) flags);
     }
 
-    EXPORT bool wxHtmlHelpController_LoadFile(wxHtmlHelpController* self, wxString* file)
+    EXPORT int wxHtmlHelpController_LoadFile(wxHtmlHelpController* self, wxString* file)
     {
         return self->LoadFile(*file);
     }
 
-    EXPORT bool wxHtmlHelpController_DisplaySectionNumber(wxHtmlHelpController* self, int sectionNo)
+    EXPORT int wxHtmlHelpController_DisplaySectionNumber(wxHtmlHelpController* self, int sectionNo)
     {
         return self->DisplaySection(sectionNo);
     }
 
-    EXPORT bool wxHtmlHelpController_DisplaySection(wxHtmlHelpController* self, wxString* section)
+    EXPORT int wxHtmlHelpController_DisplaySection(wxHtmlHelpController* self, wxString* section)
     {
         return self->DisplaySection(*section);
     }
 
-    EXPORT bool wxHtmlHelpController_DisplayBlock(wxHtmlHelpController* self, int blockNo)
+    EXPORT int wxHtmlHelpController_DisplayBlock(wxHtmlHelpController* self, int blockNo)
     {
         return self->DisplayBlock((long) blockNo);
     }
@@ -153,23 +153,23 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxHtmlHelpController_Quit(wxHtmlHelpController* self)
+    EXPORT int wxHtmlHelpController_Quit(wxHtmlHelpController* self)
     {
         return self->Quit();
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxHelpControllerBase_DisplayContents(void* pObject)
+    EXPORT int wxHelpControllerBase_DisplayContents(void* pObject)
     {
         return ((wxHelpControllerBase*) pObject)->DisplayContents();
     }
 
-    EXPORT bool wxHelpControllerBase_DisplaySection(void* pObject, int sectionNo)
+    EXPORT int wxHelpControllerBase_DisplaySection(void* pObject, int sectionNo)
     {
         return ((wxHelpControllerBase*) pObject)->DisplaySection(sectionNo);
     }
 
-    EXPORT bool wxHelpControllerBase_KeywordSearch(void* pObject, void* k, int mode)
+    EXPORT int wxHelpControllerBase_KeywordSearch(void* pObject, void* k, int mode)
     {
         return ((wxHelpControllerBase*) pObject)
             ->KeywordSearch(*(wxString*) k, (wxHelpSearchMode) mode);

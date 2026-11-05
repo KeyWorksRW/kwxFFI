@@ -127,7 +127,7 @@ extern "C"
         return self->GetScrollLines(orient);
     }
 
-    EXPORT bool wxScrolledWindow_IsScrollbarShown(wxScrolledWindow* self, int orient)
+    EXPORT int wxScrolledWindow_IsScrollbarShown(wxScrolledWindow* self, int orient)
     {
         return self->IsScrollbarShown(orient);
     }

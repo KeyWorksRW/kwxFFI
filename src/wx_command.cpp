@@ -45,7 +45,7 @@ extern "C"
         return new wxString(((kwxCommand*) pObject)->GetName());
     }
 
-    EXPORT bool kwxCommand_CanUndo(kwxCommand* self)
+    EXPORT int kwxCommand_CanUndo(kwxCommand* self)
     {
         return self->CanUndo();
     }
@@ -60,28 +60,27 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxCommandProcessor_Submit(wxCommandProcessor* self, wxCommand* command,
-                                          bool storeIt)
+    EXPORT int wxCommandProcessor_Submit(wxCommandProcessor* self, wxCommand* command, bool storeIt)
     {
         return self->Submit(command, storeIt);
     }
 
-    EXPORT bool wxCommandProcessor_Undo(wxCommandProcessor* self)
+    EXPORT int wxCommandProcessor_Undo(wxCommandProcessor* self)
     {
         return self->Undo();
     }
 
-    EXPORT bool wxCommandProcessor_Redo(wxCommandProcessor* self)
+    EXPORT int wxCommandProcessor_Redo(wxCommandProcessor* self)
     {
         return self->Redo();
     }
 
-    EXPORT bool wxCommandProcessor_CanUndo(wxCommandProcessor* self)
+    EXPORT int wxCommandProcessor_CanUndo(wxCommandProcessor* self)
     {
         return self->CanUndo();
     }
 
-    EXPORT bool wxCommandProcessor_CanRedo(wxCommandProcessor* self)
+    EXPORT int wxCommandProcessor_CanRedo(wxCommandProcessor* self)
     {
         return self->CanRedo();
     }

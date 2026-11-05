@@ -41,12 +41,12 @@ extern "C"
         *bitmap = self->GetSubBitmap(wxRect(x, y, width, height));
     }
 
-    EXPORT bool wxBitmap_LoadFile(wxBitmap* self, wxString* name, int type)
+    EXPORT int wxBitmap_LoadFile(wxBitmap* self, wxString* name, int type)
     {
         return self->LoadFile(*name, (wxBitmapType) type);
     }
 
-    EXPORT bool wxBitmap_SaveFile(wxBitmap* self, wxString* name, int type, wxPalette* cmap)
+    EXPORT int wxBitmap_SaveFile(wxBitmap* self, wxString* name, int type, wxPalette* cmap)
     {
         return self->SaveFile(*name, (wxBitmapType) type, cmap);
     }
@@ -75,7 +75,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxBitmap_RemoveHandler(wxString* name)
+    EXPORT int wxBitmap_RemoveHandler(wxString* name)
     {
 #ifdef __WIN32__
         return wxBitmap::RemoveHandler(*name);
@@ -125,7 +125,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxBitmap_IsOk(wxBitmap* self)
+    EXPORT int wxBitmap_IsOk(wxBitmap* self)
     {
         return self->IsOk();
     }
@@ -177,7 +177,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxBitmap_Init(wxBitmap* self, int width, int height, int depth)
+    EXPORT int wxBitmap_Init(wxBitmap* self, int width, int height, int depth)
     {
         return self->Create(width, height, depth);
     }
@@ -223,8 +223,7 @@ extern "C"
         return self->GetLogicalHeight();
     }
 
-    EXPORT bool wxBitmap_CreateScaled(wxBitmap* self, int width, int height, int depth,
-                                      double scale)
+    EXPORT int wxBitmap_CreateScaled(wxBitmap* self, int width, int height, int depth, double scale)
     {
         return self->CreateScaled(width, height, depth, scale);
     }
@@ -255,12 +254,12 @@ extern "C"
         self->SetPalette(*palette);
     }
 
-    EXPORT bool wxBitmap_HasAlpha(wxBitmap* self)
+    EXPORT int wxBitmap_HasAlpha(wxBitmap* self)
     {
         return self->HasAlpha();
     }
 
-    EXPORT bool wxBitmap_UseAlpha(wxBitmap* self, bool use)
+    EXPORT int wxBitmap_UseAlpha(wxBitmap* self, bool use)
     {
         return self->UseAlpha(use);
     }
@@ -270,7 +269,7 @@ extern "C"
         self->ResetAlpha();
     }
 
-    EXPORT bool wxBitmap_CopyFromIcon(wxBitmap* self, wxIcon* icon)
+    EXPORT int wxBitmap_CopyFromIcon(wxBitmap* self, wxIcon* icon)
     {
         return self->CopyFromIcon(*icon);
     }
@@ -281,9 +280,8 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxBitmap_CreateWithDIPSize(void* pObject, void* sz, double scale, int depth)
+    EXPORT int wxBitmap_CreateWithDIPSize(void* pObject, void* sz, double scale, int depth)
     {
         return ((wxBitmap*) pObject)->CreateWithDIPSize(*(wxSize*) sz, scale, depth);
     }
-
 }

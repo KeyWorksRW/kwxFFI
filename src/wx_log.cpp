@@ -108,7 +108,7 @@ extern "C"
         static_cast<kwxLog*>(self)->SetOnDoLogTextAtLevel(pFunction);
     }
 
-    EXPORT bool kwxLog_IsEnabled(kwxLog* self)
+    EXPORT int kwxLog_IsEnabled(kwxLog* self)
     {
         return self->IsEnabled();
     }
@@ -188,7 +188,7 @@ extern "C"
         return (int) self->GetVerbose();
     }
 
-    EXPORT bool kwxLog_IsAllowedTraceMask(kwxLog* self, void* mask)
+    EXPORT int kwxLog_IsAllowedTraceMask(kwxLog* self, void* mask)
     {
         return self->IsAllowedTraceMask((const char*) mask);
     }
@@ -249,7 +249,7 @@ extern "C"
         self->PassMessages(bDoPass);
     }
 
-    EXPORT bool wxLogChain_IsPassingMessages(wxLogChain* self)
+    EXPORT int wxLogChain_IsPassingMessages(wxLogChain* self)
     {
         return self->IsPassingMessages();
     }
@@ -274,7 +274,7 @@ extern "C"
         return static_cast<int>(wxLog::EnableLogging(enable != 0));
     }
 
-    EXPORT bool wxLog_IsEnabled()
+    EXPORT int wxLog_IsEnabled()
     {
         return wxLog::IsEnabled();
     }
@@ -299,7 +299,7 @@ extern "C"
         wxLog::SetComponentLevel(*component, static_cast<wxLogLevel>(level));
     }
 
-    EXPORT bool wxLog_IsLevelEnabled(int level, wxString* component)
+    EXPORT int wxLog_IsLevelEnabled(int level, wxString* component)
     {
         return wxLog::IsLevelEnabled(static_cast<wxLogLevel>(level), *component);
     }

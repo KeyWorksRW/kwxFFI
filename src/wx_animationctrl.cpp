@@ -10,10 +10,11 @@
 
 extern "C"
 {
-    EXPORT wxAnimationCtrl* wxAnimationCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
-                                                   int height, int style)
+    EXPORT wxAnimationCtrl* wxAnimationCtrl_Create(wxWindow* parent, int id, int x, int y,
+                                                   int width, int height, int style)
     {
-        return new wxAnimationCtrl(parent, id, wxNullAnimation, wxPoint(x, y), wxSize(width, height), style);
+        return new wxAnimationCtrl(parent, id, wxNullAnimation, wxPoint(x, y),
+                                   wxSize(width, height), style);
     }
 
     EXPORT wxAnimationCtrl* wxAnimationCtrl_CreateWithAnimation(wxWindow* parent, int id,
@@ -33,22 +34,22 @@ extern "C"
         *bmp = self->GetInactiveBitmap();
     }
 
-    EXPORT bool wxAnimationCtrl_IsPlaying(wxAnimationCtrl* self)
+    EXPORT int wxAnimationCtrl_IsPlaying(wxAnimationCtrl* self)
     {
         return self->IsPlaying();
     }
 
-    EXPORT bool wxAnimationCtrl_LoadFile(wxAnimationCtrl* self, wxString* filename, int type)
+    EXPORT int wxAnimationCtrl_LoadFile(wxAnimationCtrl* self, wxString* filename, int type)
     {
         return self->LoadFile(*filename, static_cast<wxAnimationType>(type));
     }
 
-    EXPORT bool wxAnimationCtrl_Load(wxAnimationCtrl* self, wxInputStream* stream, int type)
+    EXPORT int wxAnimationCtrl_Load(wxAnimationCtrl* self, wxInputStream* stream, int type)
     {
         return self->Load(*stream, static_cast<wxAnimationType>(type));
     }
 
-    EXPORT bool wxAnimationCtrl_Play(wxAnimationCtrl* self)
+    EXPORT int wxAnimationCtrl_Play(wxAnimationCtrl* self)
     {
         return self->Play();
     }
@@ -112,17 +113,17 @@ extern "C"
         *height = text.GetHeight();
     }
 
-    EXPORT bool wxAnimation_IsOk(wxAnimation* self)
+    EXPORT int wxAnimation_IsOk(wxAnimation* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxAnimation_LoadFile(wxAnimation* self, wxString* filename, int type)
+    EXPORT int wxAnimation_LoadFile(wxAnimation* self, wxString* filename, int type)
     {
         return self->LoadFile(*filename, static_cast<wxAnimationType>(type));
     }
 
-    EXPORT bool wxAnimation_Load(wxAnimation* self, wxInputStream* stream, int type)
+    EXPORT int wxAnimation_Load(wxAnimation* self, wxInputStream* stream, int type)
     {
         return self->Load(*stream, static_cast<wxAnimationType>(type));
     }

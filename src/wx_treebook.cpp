@@ -36,7 +36,7 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxTreebook_SetPageText(wxTreebook* self, size_t nPage, wxString* strText)
+    EXPORT int wxTreebook_SetPageText(wxTreebook* self, size_t nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
@@ -63,46 +63,46 @@ extern "C"
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxTreebook_SetPageImage(wxTreebook* self, size_t nPage, int nImage)
+    EXPORT int wxTreebook_SetPageImage(wxTreebook* self, size_t nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
 
-    EXPORT bool wxTreebook_DeletePage(wxTreebook* self, size_t nPage)
+    EXPORT int wxTreebook_DeletePage(wxTreebook* self, size_t nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxTreebook_RemovePage(wxTreebook* self, size_t nPage)
+    EXPORT int wxTreebook_RemovePage(wxTreebook* self, size_t nPage)
     {
         return self->RemovePage(nPage);
     }
 
-    EXPORT bool wxTreebook_DeleteAllPages(wxTreebook* self)
+    EXPORT int wxTreebook_DeleteAllPages(wxTreebook* self)
     {
         return self->DeleteAllPages();
     }
 
-    EXPORT bool wxTreebook_AddPage(wxTreebook* self, wxWindow* pPage, wxString* strText,
-                                   bool bSelect, int imageId)
+    EXPORT int wxTreebook_AddPage(wxTreebook* self, wxWindow* pPage, wxString* strText,
+                                  bool bSelect, int imageId)
     {
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxTreebook_InsertPage(wxTreebook* self, size_t nPage, wxWindow* pPage,
-                                      wxString* strText, bool bSelect, int imageId)
+    EXPORT int wxTreebook_InsertPage(wxTreebook* self, size_t nPage, wxWindow* pPage,
+                                     wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxTreebook_InsertSubPage(wxTreebook* self, int nPage, wxWindow* pPage,
-                                         wxString* strText, bool bSelect, int imageId)
+    EXPORT int wxTreebook_InsertSubPage(wxTreebook* self, int nPage, wxWindow* pPage,
+                                        wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertSubPage(nPage, pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxTreebook_AddSubPage(wxTreebook* self, wxWindow* pPage, wxString* strText,
-                                      bool bSelect, int imageId)
+    EXPORT int wxTreebook_AddSubPage(wxTreebook* self, wxWindow* pPage, wxString* strText,
+                                     bool bSelect, int imageId)
     {
         return self->AddSubPage(pPage, *strText, bSelect, imageId);
     }
@@ -127,7 +127,7 @@ extern "C"
         self->ExpandNode(nPage, expand);
     }
 
-    EXPORT bool wxTreebook_IsNodeExpanded(wxTreebook* self, int nPage)
+    EXPORT int wxTreebook_IsNodeExpanded(wxTreebook* self, int nPage)
     {
         return self->IsNodeExpanded(nPage);
     }
@@ -137,7 +137,7 @@ extern "C"
         return self->HitTest(wxPoint(x, y), flags);
     }
 
-    EXPORT bool wxTreebook_CollapseNode(wxTreebook* self, int nPage)
+    EXPORT int wxTreebook_CollapseNode(wxTreebook* self, int nPage)
     {
         return self->CollapseNode(nPage);
     }

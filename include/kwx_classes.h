@@ -307,6 +307,15 @@ TClass(wxString) wxArrayString_Item(TSelf(wxArrayString) pObject, TArrayLen inde
 void wxArrayString_Sort(TSelf(wxArrayString) pObject, TBool reverse);
 void wxArrayString_Alloc(TSelf(wxArrayString) pObject, TArrayLen count);
 void wxArrayString_Clear(TSelf(wxArrayString) pObject);
+void wxArrayString_Delete(TSelf(wxArrayString) pObject);
+
+TClassDef(wxArrayInt) TClass(wxArrayInt) wxArrayInt_Create();
+void wxArrayInt_Delete(TSelf(wxArrayInt) pObject);
+void wxArrayInt_Add(TSelf(wxArrayInt) pObject, int item);
+TArrayLen wxArrayInt_GetCount(TSelf(wxArrayInt) pObject);
+int wxArrayInt_Item(TSelf(wxArrayInt) pObject, TArrayLen index);
+void wxArrayInt_Clear(TSelf(wxArrayInt) pObject);
+TBool wxArrayInt_IsEmpty(TSelf(wxArrayInt) pObject);
 
 TClassDefExtend(wxArtProvider, wxObject) TBool PopProvider();
 void PushProvider(TClass(wxArtProvider) provider);
@@ -2239,11 +2248,40 @@ void wxFocusEvent_Delete(TSelf(wxFocusEvent) pObject);
 TClass(wxWindow) wxFocusEvent_GetWindow(TSelf(wxFocusEvent) pObject);
 void wxFocusEvent_SetWindow(TSelf(wxFocusEvent) pObject, TClass(wxWindow) win);
 
+// wxFontInfo is the named-parameter helper wxWidgets uses to describe a font. Its fluent
+// setters return a reference, which cannot be chained across the FFI boundary, so each one is
+// exposed as a plain setter that mutates the handle in place.
+TClassDef(wxFontInfo) TClass(wxFontInfo) wxFontInfo_Create(double pointSize);
+TClass(wxFontInfo) wxFontInfo_CreateDefault();
+void wxFontInfo_Delete(TSelf(wxFontInfo) pObject);
+void wxFontInfo_SetFamily(TSelf(wxFontInfo) pObject, int family);
+void wxFontInfo_SetFaceName(TSelf(wxFontInfo) pObject, TClass(wxString) faceName);
+void wxFontInfo_SetWeight(TSelf(wxFontInfo) pObject, int weight);
+void wxFontInfo_SetStyle(TSelf(wxFontInfo) pObject, int style);
+void wxFontInfo_SetBold(TSelf(wxFontInfo) pObject, TBool bold);
+void wxFontInfo_SetLight(TSelf(wxFontInfo) pObject, TBool light);
+void wxFontInfo_SetItalic(TSelf(wxFontInfo) pObject, TBool italic);
+void wxFontInfo_SetSlant(TSelf(wxFontInfo) pObject, TBool slant);
+void wxFontInfo_SetUnderlined(TSelf(wxFontInfo) pObject, TBool underlined);
+void wxFontInfo_SetStrikethrough(TSelf(wxFontInfo) pObject, TBool strikethrough);
+void wxFontInfo_SetEncoding(TSelf(wxFontInfo) pObject, int encoding);
+double wxFontInfo_GetFractionalPointSize(TSelf(wxFontInfo) pObject);
+int wxFontInfo_GetFamily(TSelf(wxFontInfo) pObject);
+int wxFontInfo_GetStyle(TSelf(wxFontInfo) pObject);
+int wxFontInfo_GetNumericWeight(TSelf(wxFontInfo) pObject);
+int wxFontInfo_GetEncoding(TSelf(wxFontInfo) pObject);
+TClass(wxString) wxFontInfo_GetFaceName(TSelf(wxFontInfo) pObject);
+TBool wxFontInfo_IsUnderlined(TSelf(wxFontInfo) pObject);
+TBool wxFontInfo_IsStrikethrough(TSelf(wxFontInfo) pObject);
+
 TClassDefExtend(wxFont, wxGDIObject) TClass(wxFont)
     wxFont_Create(int pointSize, int family, int style, int weight, TBool underlined,
                   TClass(wxString) face, int enc);
 TClass(wxFont) wxFont_CreateFromStock(int id);
 TClass(wxFont) wxFont_CreateDefault();
+TClass(wxFont) wxFont_CreateFromInfo(TClass(wxFontInfo) info);
+TClass(wxFont) wxFont_CreateFromFont(TClass(wxFont) other);
+void wxFont_Assign(TSelf(wxFont) pObject, TClass(wxFont) other);
 void wxFont_Delete(TSelf(wxFont) pObject);
 int wxFont_GetDefaultEncoding(TSelf(wxFont) pObject);
 int wxFont_GetEncoding(TSelf(wxFont) pObject);
@@ -2253,7 +2291,7 @@ TClass(wxString) wxFont_GetFamilyString(TSelf(wxFont) pObject);
 int wxFont_GetPointSize(TSelf(wxFont) pObject);
 int wxFont_GetStyle(TSelf(wxFont) pObject);
 TClass(wxString) wxFont_GetStyleString(TSelf(wxFont) pObject);
-int wxFont_GetUnderlined(TSelf(wxFont) pObject);
+TBool wxFont_GetUnderlined(TSelf(wxFont) pObject);
 int wxFont_GetWeight(TSelf(wxFont) pObject);
 TClass(wxString) wxFont_GetWeightString(TSelf(wxFont) pObject);
 TBool wxFont_IsOk(TSelf(wxFont) pObject);
@@ -2295,6 +2333,12 @@ TBool wxFontEnumerator_EnumerateEncodings(TSelf(wxFontEnumerator) pObject,
                                           TClass(wxString) facename);
 TBool wxFontEnumerator_EnumerateFacenames(TSelf(wxFontEnumerator) pObject, int encoding,
                                           int fixedWidthOnly);
+TClass(wxFontEnumerator) wxFontEnumerator_CreateDefault();
+int wxFontEnumerator_EnumerateFacenamesToArray(TSelf(wxFontEnumerator) pObject, int encoding,
+                                               TBool fixedWidthOnly, TClass(wxArrayString) out);
+int wxFontEnumerator_EnumerateEncodingsToArray(TSelf(wxFontEnumerator) pObject,
+                                               TClass(wxString) facename,
+                                               TClass(wxArrayString) out);
 
 TClassDef(wxFontMapper) TClass(wxFontMapper) wxFontMapper_Create();
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
@@ -5702,14 +5746,8 @@ void wxTextEntryDialog_SetHint(TSelf(wxTextEntryDialog) pObject, TClass(wxString
 TClass(wxString) wxTextEntryDialog_GetValue(TSelf(wxTextEntryDialog) pObject);
 void wxTextEntryDialog_SetValue(TSelf(wxTextEntryDialog) pObject, TClass(wxString) value);
 
-TClassDef(wxTextFile)
-
-    TClassDef(wxTextInputStream)
-
-        TClassDef(wxTextOutputStream)
-
-            TClassDefExtend(wxTextValidator, wxValidator) TClass(wxTextValidator)
-                wxTextValidator_Create(int style, void* val);
+TClassDefExtend(wxTextValidator, wxValidator) TClass(wxTextValidator)
+    wxTextValidator_Create(int style, void* val);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxTextValidator_AddCharIncludes(TSelf(wxTextValidator) pObject, TClass(wxString) chars);
 TClass(wxString) wxTextValidator_GetCharExcludes(TSelf(wxTextValidator) pObject);

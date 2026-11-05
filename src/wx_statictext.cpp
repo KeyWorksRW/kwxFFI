@@ -22,7 +22,7 @@ extern "C"
         self->Wrap(width);
     }
 
-    EXPORT bool wxStaticText_IsEllipsized(wxStaticText* self)
+    EXPORT int wxStaticText_IsEllipsized(wxStaticText* self)
     {
         return self->IsEllipsized();
     }

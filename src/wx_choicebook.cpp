@@ -36,7 +36,7 @@ extern "C"
         return self->GetSelection();
     }
 
-    EXPORT bool wxChoicebook_SetPageText(wxChoicebook* self, size_t nPage, wxString* strText)
+    EXPORT int wxChoicebook_SetPageText(wxChoicebook* self, size_t nPage, wxString* strText)
     {
         return self->SetPageText(nPage, *strText);
     }
@@ -63,34 +63,34 @@ extern "C"
         return self->GetPageImage(nPage);
     }
 
-    EXPORT bool wxChoicebook_SetPageImage(wxChoicebook* self, size_t nPage, int nImage)
+    EXPORT int wxChoicebook_SetPageImage(wxChoicebook* self, size_t nPage, int nImage)
     {
         return self->SetPageImage(nPage, nImage);
     }
 
-    EXPORT bool wxChoicebook_DeletePage(wxChoicebook* self, size_t nPage)
+    EXPORT int wxChoicebook_DeletePage(wxChoicebook* self, size_t nPage)
     {
         return self->DeletePage(nPage);
     }
 
-    EXPORT bool wxChoicebook_RemovePage(wxChoicebook* self, size_t nPage)
+    EXPORT int wxChoicebook_RemovePage(wxChoicebook* self, size_t nPage)
     {
         return self->RemovePage(nPage);
     }
 
-    EXPORT bool wxChoicebook_DeleteAllPages(wxChoicebook* self)
+    EXPORT int wxChoicebook_DeleteAllPages(wxChoicebook* self)
     {
         return self->DeleteAllPages();
     }
 
-    EXPORT bool wxChoicebook_AddPage(wxChoicebook* self, wxWindow* pPage, wxString* strText,
-                                     bool bSelect, int imageId)
+    EXPORT int wxChoicebook_AddPage(wxChoicebook* self, wxWindow* pPage, wxString* strText,
+                                    bool bSelect, int imageId)
     {
         return self->AddPage(pPage, *strText, bSelect, imageId);
     }
 
-    EXPORT bool wxChoicebook_InsertPage(wxChoicebook* self, size_t nPage, wxWindow* pPage,
-                                        wxString* strText, bool bSelect, int imageId)
+    EXPORT int wxChoicebook_InsertPage(wxChoicebook* self, size_t nPage, wxWindow* pPage,
+                                       wxString* strText, bool bSelect, int imageId)
     {
         return self->InsertPage(nPage, pPage, *strText, bSelect, imageId);
     }

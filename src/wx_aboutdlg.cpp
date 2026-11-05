@@ -21,7 +21,7 @@ extern "C"
         return static_cast<void*>(new kwxGenericAboutDialog(*info, parent));
     }
 
-    EXPORT bool wxGenericAboutDialog_AddControl(wxGenericAboutDialog* self, wxWindow* window)
+    EXPORT int wxGenericAboutDialog_AddControl(wxGenericAboutDialog* self, wxWindow* window)
     {
         kwxGenericAboutDialog* dialog = dynamic_cast<kwxGenericAboutDialog*>(self);
         if (!dialog)

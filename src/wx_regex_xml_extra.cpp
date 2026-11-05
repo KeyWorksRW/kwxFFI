@@ -44,22 +44,22 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxRegEx_Compile(wxRegEx* self, wxString* pattern, int flags)
+    EXPORT int wxRegEx_Compile(wxRegEx* self, wxString* pattern, int flags)
     {
         return self->Compile(*pattern, flags);
     }
 
-    EXPORT bool wxRegEx_IsValid(wxRegEx* self)
+    EXPORT int wxRegEx_IsValid(wxRegEx* self)
     {
         return self->IsValid();
     }
 
-    EXPORT bool wxRegEx_Matches(wxRegEx* self, wxString* text, int flags)
+    EXPORT int wxRegEx_Matches(wxRegEx* self, wxString* text, int flags)
     {
         return self->Matches(*text, flags);
     }
 
-    EXPORT bool wxRegEx_MatchesFrom(wxRegEx* self, wxString* text, int start, int flags)
+    EXPORT int wxRegEx_MatchesFrom(wxRegEx* self, wxString* text, int start, int flags)
     {
         const size_t offset = (start < 0) ? 0U : static_cast<size_t>(start);
         return self->Matches(text->Mid(offset), flags);
@@ -142,19 +142,19 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxXmlDocument_Load(wxXmlDocument* self, wxString* file_name, int flags)
+    EXPORT int wxXmlDocument_Load(wxXmlDocument* self, wxString* file_name, int flags)
     {
         return self->Load(*file_name, flags);
     }
 
-    EXPORT bool wxXmlDocument_LoadFromString(wxXmlDocument* self, wxString* text, int flags)
+    EXPORT int wxXmlDocument_LoadFromString(wxXmlDocument* self, wxString* text, int flags)
     {
         const wxScopedCharBuffer utf8_text = text->utf8_str();
         wxMemoryInputStream stream(utf8_text.data(), utf8_text.length());
         return self->Load(stream, flags);
     }
 
-    EXPORT bool wxXmlDocument_Save(wxXmlDocument* self, wxString* file_name, int indent_step)
+    EXPORT int wxXmlDocument_Save(wxXmlDocument* self, wxString* file_name, int indent_step)
     {
         return self->Save(*file_name, indent_step);
     }
@@ -228,7 +228,7 @@ extern "C"
         self->AppendToProlog(node);
     }
 
-    EXPORT bool wxXmlDocument_AppendChild(wxXmlDocument* self, wxXmlNode* child)
+    EXPORT int wxXmlDocument_AppendChild(wxXmlDocument* self, wxXmlNode* child)
     {
         wxXmlNode* root = self->GetRoot();
         if (root == nullptr)
@@ -239,7 +239,7 @@ extern "C"
         return true;
     }
 
-    EXPORT bool wxXmlDocument_IsOk(wxXmlDocument* self)
+    EXPORT int wxXmlDocument_IsOk(wxXmlDocument* self)
     {
         return self->IsOk();
     }
@@ -263,47 +263,47 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxURI_Parse(wxURI* self, wxString* uri_text)
+    EXPORT int wxURI_Parse(wxURI* self, wxString* uri_text)
     {
         return self->Create(*uri_text);
     }
 
-    EXPORT bool wxURI_IsEmpty(wxURI* self)
+    EXPORT int wxURI_IsEmpty(wxURI* self)
     {
         return self->IsEmpty();
     }
 
-    EXPORT bool wxURI_HasScheme(wxURI* self)
+    EXPORT int wxURI_HasScheme(wxURI* self)
     {
         return self->HasScheme();
     }
 
-    EXPORT bool wxURI_HasUserInfo(wxURI* self)
+    EXPORT int wxURI_HasUserInfo(wxURI* self)
     {
         return self->HasUserInfo();
     }
 
-    EXPORT bool wxURI_HasServer(wxURI* self)
+    EXPORT int wxURI_HasServer(wxURI* self)
     {
         return self->HasServer();
     }
 
-    EXPORT bool wxURI_HasPort(wxURI* self)
+    EXPORT int wxURI_HasPort(wxURI* self)
     {
         return self->HasPort();
     }
 
-    EXPORT bool wxURI_HasPath(wxURI* self)
+    EXPORT int wxURI_HasPath(wxURI* self)
     {
         return self->HasPath();
     }
 
-    EXPORT bool wxURI_HasQuery(wxURI* self)
+    EXPORT int wxURI_HasQuery(wxURI* self)
     {
         return self->HasQuery();
     }
 
-    EXPORT bool wxURI_HasFragment(wxURI* self)
+    EXPORT int wxURI_HasFragment(wxURI* self)
     {
         return self->HasFragment();
     }
@@ -383,12 +383,12 @@ extern "C"
         self->Resolve(*base, flags);
     }
 
-    EXPORT bool wxURI_IsReference(wxURI* self)
+    EXPORT int wxURI_IsReference(wxURI* self)
     {
         return self->IsReference();
     }
 
-    EXPORT bool wxURI_IsRelative(wxURI* self)
+    EXPORT int wxURI_IsRelative(wxURI* self)
     {
         return self->IsRelative();
     }

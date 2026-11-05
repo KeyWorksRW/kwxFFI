@@ -25,7 +25,7 @@ static void InitZipFileSystem()
 
 extern "C"
 {
-    EXPORT bool wxXmlResource_Load(wxXmlResource* self, wxString* filemask)
+    EXPORT int wxXmlResource_Load(wxXmlResource* self, wxString* filemask)
     {
         InitZipFileSystem();
         return self->Load(*filemask);
@@ -138,13 +138,13 @@ extern "C"
         *ref = self->LoadIcon(*name);
     }
 
-    EXPORT bool wxXmlResource_Unload(wxXmlResource* self, wxString* name)
+    EXPORT int wxXmlResource_Unload(wxXmlResource* self, wxString* name)
     {
         return self->Unload(*name);
     }
 
-    EXPORT bool wxXmlResource_AttachUnknownControl(wxXmlResource* self, wxString* name,
-                                                   wxWindow* control, wxWindow* parent)
+    EXPORT int wxXmlResource_AttachUnknownControl(wxXmlResource* self, wxString* name,
+                                                  wxWindow* control, wxWindow* parent)
     {
         return self->AttachUnknownControl(*name, control, parent);
     }
@@ -250,7 +250,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT bool wxConnectionBase_IsTextFormat(int format)
+    EXPORT int wxConnectionBase_IsTextFormat(int format)
     {
         return wxConnectionBase::IsTextFormat((wxIPCFormat) format);
     }
@@ -261,7 +261,7 @@ extern "C"
             ->MakeConnection(*(wxString*) host, *(wxString*) server, *(wxString*) topic);
     }
 
-    EXPORT bool wxDDEConnection_StartAdvise(void* pObject, void* item)
+    EXPORT int wxDDEConnection_StartAdvise(void* pObject, void* item)
     {
 #if defined(__WXMSW__) && wxUSE_IPC
         return ((wxDDEConnection*) pObject)->StartAdvise(*(wxString*) item);
@@ -273,7 +273,7 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxDDEConnection_StopAdvise(void* pObject, void* item)
+    EXPORT int wxDDEConnection_StopAdvise(void* pObject, void* item)
     {
 #if defined(__WXMSW__) && wxUSE_IPC
         return ((wxDDEConnection*) pObject)->StopAdvise(*(wxString*) item);
@@ -284,12 +284,12 @@ extern "C"
 #endif
     }
 
-    EXPORT bool wxDDEServer_Create(void* pObject, void* server_name)
+    EXPORT int wxDDEServer_Create(void* pObject, void* server_name)
     {
         return ((wxDDEServer*) pObject)->Create(*(wxString*) server_name);
     }
 
-    EXPORT bool wxXmlResource_LoadAllFiles(void* pObject, void* dirname)
+    EXPORT int wxXmlResource_LoadAllFiles(void* pObject, void* dirname)
     {
         return ((wxXmlResource*) pObject)->LoadAllFiles(*(wxString*) dirname);
     }

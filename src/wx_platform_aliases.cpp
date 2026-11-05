@@ -119,25 +119,25 @@ extern "C"
         return static_cast<int>(self->GetNormalState());
     }
 
-    EXPORT bool wxAnyButton_DontShowLabel(wxAnyButton* self)
+    EXPORT int wxAnyButton_DontShowLabel(wxAnyButton* self)
     {
         return self->DontShowLabel();
     }
 
-    EXPORT bool wxAnyButton_ShowsLabel(wxAnyButton* self)
+    EXPORT int wxAnyButton_ShowsLabel(wxAnyButton* self)
     {
         return self->ShowsLabel();
     }
 
     // wxNonOwnedWindow
 
-    EXPORT bool wxNonOwnedWindow_SetShape(wxNonOwnedWindow* self, wxRegion* region)
+    EXPORT int wxNonOwnedWindow_SetShape(wxNonOwnedWindow* self, wxRegion* region)
     {
         return self->SetShape(*region);
     }
 
 #if wxUSE_GRAPHICS_CONTEXT
-    EXPORT bool wxNonOwnedWindow_SetPathShape(wxNonOwnedWindow* self, wxGraphicsPath* path)
+    EXPORT int wxNonOwnedWindow_SetPathShape(wxNonOwnedWindow* self, wxGraphicsPath* path)
     {
         return self->SetShape(*path);
     }
@@ -160,12 +160,12 @@ extern "C"
         return static_cast<wxGUIEventLoop*>(wxGUIEventLoop::GetActive());
     }
 
-    EXPORT bool wxGUIEventLoop_IsOk(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_IsOk(wxGUIEventLoop* self)
     {
         return self->IsOk();
     }
 
-    EXPORT bool wxGUIEventLoop_IsMain(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_IsMain(wxGUIEventLoop* self)
     {
         return self->IsMain();
     }
@@ -175,7 +175,7 @@ extern "C"
         return self->Run();
     }
 
-    EXPORT bool wxGUIEventLoop_IsRunning(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_IsRunning(wxGUIEventLoop* self)
     {
         return self->IsRunning();
     }
@@ -190,12 +190,12 @@ extern "C"
         self->ScheduleExit(rc);
     }
 
-    EXPORT bool wxGUIEventLoop_Pending(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_Pending(wxGUIEventLoop* self)
     {
         return self->Pending();
     }
 
-    EXPORT bool wxGUIEventLoop_Dispatch(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_Dispatch(wxGUIEventLoop* self)
     {
         return self->Dispatch();
     }
@@ -215,27 +215,27 @@ extern "C"
         self->WakeUpIdle();
     }
 
-    EXPORT bool wxGUIEventLoop_ProcessIdle(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_ProcessIdle(wxGUIEventLoop* self)
     {
         return self->ProcessIdle();
     }
 
-    EXPORT bool wxGUIEventLoop_Yield(wxGUIEventLoop* self, bool only_if_needed)
+    EXPORT int wxGUIEventLoop_Yield(wxGUIEventLoop* self, bool only_if_needed)
     {
         return self->Yield(only_if_needed);
     }
 
-    EXPORT bool wxGUIEventLoop_YieldFor(wxGUIEventLoop* self, long events_to_process)
+    EXPORT int wxGUIEventLoop_YieldFor(wxGUIEventLoop* self, long events_to_process)
     {
         return self->YieldFor(events_to_process);
     }
 
-    EXPORT bool wxGUIEventLoop_IsYielding(wxGUIEventLoop* self)
+    EXPORT int wxGUIEventLoop_IsYielding(wxGUIEventLoop* self)
     {
         return self->IsYielding();
     }
 
-    EXPORT bool wxGUIEventLoop_IsEventAllowedInsideYield(wxGUIEventLoop* self, int event_category)
+    EXPORT int wxGUIEventLoop_IsEventAllowedInsideYield(wxGUIEventLoop* self, int event_category)
     {
         return self->IsEventAllowedInsideYield(static_cast<wxEventCategory>(event_category));
     }

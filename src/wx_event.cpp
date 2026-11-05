@@ -110,12 +110,12 @@ extern "C"
         self->SetId(Id);
     }
 
-    EXPORT bool wxEvent_GetSkipped(wxEvent* self)
+    EXPORT int wxEvent_GetSkipped(wxEvent* self)
     {
         return self->GetSkipped();
     }
 
-    EXPORT bool wxEvent_IsCommandEvent(wxEvent* self)
+    EXPORT int wxEvent_IsCommandEvent(wxEvent* self)
     {
         return self->IsCommandEvent();
     }
@@ -167,12 +167,12 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxCommandEvent_IsChecked(wxCommandEvent* self)
+    EXPORT int wxCommandEvent_IsChecked(wxCommandEvent* self)
     {
         return self->IsChecked();
     }
 
-    EXPORT bool wxCommandEvent_IsSelection(wxCommandEvent* self)
+    EXPORT int wxCommandEvent_IsSelection(wxCommandEvent* self)
     {
         return self->IsSelection();
     }
@@ -207,7 +207,7 @@ extern "C"
         self->Allow();
     }
 
-    EXPORT bool wxNotifyEvent_IsAllowed(wxNotifyEvent* self)
+    EXPORT int wxNotifyEvent_IsAllowed(wxNotifyEvent* self)
     {
         return self->IsAllowed();
     }
@@ -232,132 +232,132 @@ extern "C"
         self->SetPosition(pos);
     }
 
-    EXPORT bool wxMouseEvent_IsButton(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_IsButton(wxMouseEvent* self)
     {
         return self->IsButton();
     }
 
-    EXPORT bool wxMouseEvent_ButtonDown(wxMouseEvent* self, int but)
+    EXPORT int wxMouseEvent_ButtonDown(wxMouseEvent* self, int but)
     {
         return self->ButtonDown((wxMouseButton) but);
     }
 
-    EXPORT bool wxMouseEvent_ButtonDClick(wxMouseEvent* self, int but)
+    EXPORT int wxMouseEvent_ButtonDClick(wxMouseEvent* self, int but)
     {
         return self->ButtonDClick((wxMouseButton) but);
     }
 
-    EXPORT bool wxMouseEvent_ButtonUp(wxMouseEvent* self, int but)
+    EXPORT int wxMouseEvent_ButtonUp(wxMouseEvent* self, int but)
     {
         return self->ButtonUp((wxMouseButton) but);
     }
 
-    EXPORT bool wxMouseEvent_Button(wxMouseEvent* self, int but)
+    EXPORT int wxMouseEvent_Button(wxMouseEvent* self, int but)
     {
         return self->Button((wxMouseButton) but);
     }
 
-    EXPORT bool wxMouseEvent_ButtonIsDown(wxMouseEvent* self, int but)
+    EXPORT int wxMouseEvent_ButtonIsDown(wxMouseEvent* self, int but)
     {
         return self->ButtonIsDown((wxMouseButton) but);
     }
 
-    EXPORT bool wxMouseEvent_ControlDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_ControlDown(wxMouseEvent* self)
     {
         return self->ControlDown();
     }
 
-    EXPORT bool wxMouseEvent_MetaDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_MetaDown(wxMouseEvent* self)
     {
         return self->MetaDown();
     }
 
-    EXPORT bool wxMouseEvent_AltDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_AltDown(wxMouseEvent* self)
     {
         return self->AltDown();
     }
 
-    EXPORT bool wxMouseEvent_ShiftDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_ShiftDown(wxMouseEvent* self)
     {
         return self->ShiftDown();
     }
 
-    EXPORT bool wxMouseEvent_LeftDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_LeftDown(wxMouseEvent* self)
     {
         return self->LeftDown();
     }
 
-    EXPORT bool wxMouseEvent_MiddleDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_MiddleDown(wxMouseEvent* self)
     {
         return self->MiddleDown();
     }
 
-    EXPORT bool wxMouseEvent_RightDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_RightDown(wxMouseEvent* self)
     {
         return self->RightDown();
     }
 
-    EXPORT bool wxMouseEvent_LeftUp(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_LeftUp(wxMouseEvent* self)
     {
         return self->LeftUp();
     }
 
-    EXPORT bool wxMouseEvent_MiddleUp(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_MiddleUp(wxMouseEvent* self)
     {
         return self->MiddleUp();
     }
 
-    EXPORT bool wxMouseEvent_RightUp(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_RightUp(wxMouseEvent* self)
     {
         return self->RightUp();
     }
 
-    EXPORT bool wxMouseEvent_LeftDClick(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_LeftDClick(wxMouseEvent* self)
     {
         return self->LeftDClick();
     }
 
-    EXPORT bool wxMouseEvent_MiddleDClick(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_MiddleDClick(wxMouseEvent* self)
     {
         return self->MiddleDClick();
     }
 
-    EXPORT bool wxMouseEvent_RightDClick(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_RightDClick(wxMouseEvent* self)
     {
         return self->RightDClick();
     }
 
-    EXPORT bool wxMouseEvent_LeftIsDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_LeftIsDown(wxMouseEvent* self)
     {
         return self->LeftIsDown();
     }
 
-    EXPORT bool wxMouseEvent_MiddleIsDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_MiddleIsDown(wxMouseEvent* self)
     {
         return self->MiddleIsDown();
     }
 
-    EXPORT bool wxMouseEvent_RightIsDown(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_RightIsDown(wxMouseEvent* self)
     {
         return self->RightIsDown();
     }
 
-    EXPORT bool wxMouseEvent_Dragging(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_Dragging(wxMouseEvent* self)
     {
         return self->Dragging();
     }
 
-    EXPORT bool wxMouseEvent_Moving(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_Moving(wxMouseEvent* self)
     {
         return self->Moving();
     }
 
-    EXPORT bool wxMouseEvent_Entering(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_Entering(wxMouseEvent* self)
     {
         return self->Entering();
     }
 
-    EXPORT bool wxMouseEvent_Leaving(wxMouseEvent* self)
+    EXPORT int wxMouseEvent_Leaving(wxMouseEvent* self)
     {
         return self->Leaving();
     }
@@ -408,32 +408,32 @@ extern "C"
         return cur;
     }
 
-    EXPORT bool wxSetCursorEvent_HasCursor(wxSetCursorEvent* self)
+    EXPORT int wxSetCursorEvent_HasCursor(wxSetCursorEvent* self)
     {
         return self->HasCursor();
     }
 
-    EXPORT bool wxKeyEvent_ControlDown(wxKeyEvent* self)
+    EXPORT int wxKeyEvent_ControlDown(wxKeyEvent* self)
     {
         return self->ControlDown();
     }
 
-    EXPORT bool wxKeyEvent_MetaDown(wxKeyEvent* self)
+    EXPORT int wxKeyEvent_MetaDown(wxKeyEvent* self)
     {
         return self->MetaDown();
     }
 
-    EXPORT bool wxKeyEvent_AltDown(wxKeyEvent* self)
+    EXPORT int wxKeyEvent_AltDown(wxKeyEvent* self)
     {
         return self->AltDown();
     }
 
-    EXPORT bool wxKeyEvent_ShiftDown(wxKeyEvent* self)
+    EXPORT int wxKeyEvent_ShiftDown(wxKeyEvent* self)
     {
         return self->ShiftDown();
     }
 
-    EXPORT bool wxKeyEvent_HasModifiers(wxKeyEvent* self)
+    EXPORT int wxKeyEvent_HasModifiers(wxKeyEvent* self)
     {
         return self->HasModifiers();
     }
@@ -489,7 +489,7 @@ extern "C"
         return self->GetDC();
     }
 
-    EXPORT bool wxActivateEvent_GetActive(wxActivateEvent* self)
+    EXPORT int wxActivateEvent_GetActive(wxActivateEvent* self)
     {
         return self->GetActive();
     }
@@ -504,7 +504,7 @@ extern "C"
         self->SetLoggingOff(logOff);
     }
 
-    EXPORT bool wxCloseEvent_GetLoggingOff(wxCloseEvent* self)
+    EXPORT int wxCloseEvent_GetLoggingOff(wxCloseEvent* self)
     {
         return self->GetLoggingOff();
     }
@@ -519,12 +519,12 @@ extern "C"
         self->SetCanVeto(canVeto);
     }
 
-    EXPORT bool wxCloseEvent_CanVeto(wxCloseEvent* self)
+    EXPORT int wxCloseEvent_CanVeto(wxCloseEvent* self)
     {
         return self->CanVeto();
     }
 
-    EXPORT bool wxCloseEvent_GetVeto(wxCloseEvent* self)
+    EXPORT int wxCloseEvent_GetVeto(wxCloseEvent* self)
     {
         return self->GetVeto();
     }
@@ -534,7 +534,7 @@ extern "C"
         self->SetShow(show);
     }
 
-    EXPORT bool wxShowEvent_IsShown(wxShowEvent* self)
+    EXPORT int wxShowEvent_IsShown(wxShowEvent* self)
     {
         return self->IsShown();
     }
@@ -592,42 +592,42 @@ extern "C"
         self->SetZPosition(zPos);
     }
 
-    EXPORT bool wxJoystickEvent_IsButton(wxJoystickEvent* self)
+    EXPORT int wxJoystickEvent_IsButton(wxJoystickEvent* self)
     {
         return self->IsButton();
     }
 
-    EXPORT bool wxJoystickEvent_IsMove(wxJoystickEvent* self)
+    EXPORT int wxJoystickEvent_IsMove(wxJoystickEvent* self)
     {
         return self->IsMove();
     }
 
-    EXPORT bool wxJoystickEvent_IsZMove(wxJoystickEvent* self)
+    EXPORT int wxJoystickEvent_IsZMove(wxJoystickEvent* self)
     {
         return self->IsZMove();
     }
 
-    EXPORT bool wxJoystickEvent_ButtonDown(wxJoystickEvent* self, int but)
+    EXPORT int wxJoystickEvent_ButtonDown(wxJoystickEvent* self, int but)
     {
         return self->ButtonDown(but);
     }
 
-    EXPORT bool wxJoystickEvent_ButtonUp(wxJoystickEvent* self, int but)
+    EXPORT int wxJoystickEvent_ButtonUp(wxJoystickEvent* self, int but)
     {
         return self->ButtonUp(but);
     }
 
-    EXPORT bool wxJoystickEvent_ButtonIsDown(wxJoystickEvent* self, int but)
+    EXPORT int wxJoystickEvent_ButtonIsDown(wxJoystickEvent* self, int but)
     {
         return self->ButtonIsDown(but);
     }
 
-    EXPORT bool wxUpdateUIEvent_GetChecked(wxUpdateUIEvent* self)
+    EXPORT int wxUpdateUIEvent_GetChecked(wxUpdateUIEvent* self)
     {
         return self->GetChecked();
     }
 
-    EXPORT bool wxUpdateUIEvent_GetEnabled(wxUpdateUIEvent* self)
+    EXPORT int wxUpdateUIEvent_GetEnabled(wxUpdateUIEvent* self)
     {
         return self->GetEnabled();
     }
@@ -639,17 +639,17 @@ extern "C"
         return result;
     }
 
-    EXPORT bool wxUpdateUIEvent_GetSetText(wxUpdateUIEvent* self)
+    EXPORT int wxUpdateUIEvent_GetSetText(wxUpdateUIEvent* self)
     {
         return self->GetSetText();
     }
 
-    EXPORT bool wxUpdateUIEvent_GetSetChecked(wxUpdateUIEvent* self)
+    EXPORT int wxUpdateUIEvent_GetSetChecked(wxUpdateUIEvent* self)
     {
         return self->GetSetChecked();
     }
 
-    EXPORT bool wxUpdateUIEvent_GetSetEnabled(wxUpdateUIEvent* self)
+    EXPORT int wxUpdateUIEvent_GetSetEnabled(wxUpdateUIEvent* self)
     {
         return self->GetSetEnabled();
     }
@@ -685,12 +685,12 @@ extern "C"
         self->SetPaletteRealized(realized);
     }
 
-    EXPORT bool wxQueryNewPaletteEvent_GetPaletteRealized(wxQueryNewPaletteEvent* self)
+    EXPORT int wxQueryNewPaletteEvent_GetPaletteRealized(wxQueryNewPaletteEvent* self)
     {
         return self->GetPaletteRealized();
     }
 
-    EXPORT bool wxNavigationKeyEvent_GetDirection(wxNavigationKeyEvent* self)
+    EXPORT int wxNavigationKeyEvent_GetDirection(wxNavigationKeyEvent* self)
     {
         return self->GetDirection();
     }
@@ -700,7 +700,7 @@ extern "C"
         self->SetDirection(bForward);
     }
 
-    EXPORT bool wxNavigationKeyEvent_IsWindowChange(wxNavigationKeyEvent* self)
+    EXPORT int wxNavigationKeyEvent_IsWindowChange(wxNavigationKeyEvent* self)
     {
         return self->IsWindowChange();
     }
@@ -710,7 +710,7 @@ extern "C"
         self->SetWindowChange(bIs);
     }
 
-    EXPORT bool wxNavigationKeyEvent_ShouldPropagate(wxNavigationKeyEvent* self)
+    EXPORT int wxNavigationKeyEvent_ShouldPropagate(wxNavigationKeyEvent* self)
     {
         return self->ShouldPropagate();
     }
@@ -740,7 +740,7 @@ extern "C"
         self->RequestMore(needMore);
     }
 
-    EXPORT bool wxIdleEvent_MoreRequested(wxIdleEvent* self)
+    EXPORT int wxIdleEvent_MoreRequested(wxIdleEvent* self)
     {
         return self->MoreRequested();
     }
@@ -775,7 +775,7 @@ extern "C"
         delete self;
     }
 
-    EXPORT bool wxIconizeEvent_IsIconized(wxIconizeEvent* self)
+    EXPORT int wxIconizeEvent_IsIconized(wxIconizeEvent* self)
     {
         return self->IsIconized();
     }
@@ -858,7 +858,7 @@ extern "C"
         return self->GetColumn();
     }
 
-    EXPORT bool wxListEvent_Cancelled(wxListEvent* self)
+    EXPORT int wxListEvent_Cancelled(wxListEvent* self)
     {
         // Cancelled() was removed in wxWidgets 2.4+
         return false;
@@ -1006,7 +1006,7 @@ extern "C"
         self->SetTarget(*target);
     }
 
-    EXPORT bool wxPropertyGridEvent_HasProperty(wxPropertyGridEvent* self)
+    EXPORT int wxPropertyGridEvent_HasProperty(wxPropertyGridEvent* self)
     {
         return self->GetProperty() != 0;
     }
@@ -1792,12 +1792,12 @@ extern "C"
         return (int) ((wxKeyEvent*) pObject)->GetUnicodeChar();
     }
 
-    EXPORT bool wxKeyEvent_IsAutoRepeat(void* pObject)
+    EXPORT int wxKeyEvent_IsAutoRepeat(void* pObject)
     {
         return ((wxKeyEvent*) pObject)->IsAutoRepeat();
     }
 
-    EXPORT bool wxKeyEvent_IsKeyInCategory(void* pObject, int category)
+    EXPORT int wxKeyEvent_IsKeyInCategory(void* pObject, int category)
     {
         return ((wxKeyEvent*) pObject)->IsKeyInCategory(category);
     }
@@ -1807,7 +1807,7 @@ extern "C"
         return ((wxListEvent*) pObject)->GetKeyCode();
     }
 
-    EXPORT bool wxListEvent_IsEditCancelled(void* pObject)
+    EXPORT int wxListEvent_IsEditCancelled(void* pObject)
     {
         return ((wxListEvent*) pObject)->IsEditCancelled();
     }
@@ -1817,47 +1817,47 @@ extern "C"
         return (void*) ((wxMenuEvent*) pObject)->GetMenu();
     }
 
-    EXPORT bool wxMenuEvent_IsPopup(void* pObject)
+    EXPORT int wxMenuEvent_IsPopup(void* pObject)
     {
         return ((wxMenuEvent*) pObject)->IsPopup();
     }
 
-    EXPORT bool wxMouseEvent_Aux1DClick(void* pObject)
+    EXPORT int wxMouseEvent_Aux1DClick(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux1DClick();
     }
 
-    EXPORT bool wxMouseEvent_Aux1Down(void* pObject)
+    EXPORT int wxMouseEvent_Aux1Down(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux1Down();
     }
 
-    EXPORT bool wxMouseEvent_Aux1IsDown(void* pObject)
+    EXPORT int wxMouseEvent_Aux1IsDown(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux1IsDown();
     }
 
-    EXPORT bool wxMouseEvent_Aux1Up(void* pObject)
+    EXPORT int wxMouseEvent_Aux1Up(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux1Up();
     }
 
-    EXPORT bool wxMouseEvent_Aux2DClick(void* pObject)
+    EXPORT int wxMouseEvent_Aux2DClick(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux2DClick();
     }
 
-    EXPORT bool wxMouseEvent_Aux2Down(void* pObject)
+    EXPORT int wxMouseEvent_Aux2Down(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux2Down();
     }
 
-    EXPORT bool wxMouseEvent_Aux2IsDown(void* pObject)
+    EXPORT int wxMouseEvent_Aux2IsDown(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux2IsDown();
     }
 
-    EXPORT bool wxMouseEvent_Aux2Up(void* pObject)
+    EXPORT int wxMouseEvent_Aux2Up(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->Aux2Up();
     }
@@ -1872,12 +1872,12 @@ extern "C"
         return (int) ((wxMouseEvent*) pObject)->GetWheelAxis();
     }
 
-    EXPORT bool wxMouseEvent_IsWheelInverted(void* pObject)
+    EXPORT int wxMouseEvent_IsWheelInverted(void* pObject)
     {
         return ((wxMouseEvent*) pObject)->IsWheelInverted();
     }
 
-    EXPORT bool wxPropertyGridEvent_CanVeto(void* pObject)
+    EXPORT int wxPropertyGridEvent_CanVeto(void* pObject)
     {
         return ((wxPropertyGridEvent*) pObject)->CanVeto();
     }
