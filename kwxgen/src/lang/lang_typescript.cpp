@@ -128,6 +128,73 @@ namespace fs = std::filesystem;
     return true;
 }
 
+// True if a class passes its object through an explicit TClass(OwnClass) first parameter
+// instead of TSelf for most of its methods (mixin/value-object shape: wxTextEntry,
+// wxItemContainer, wxDataViewItemArray).  For those the parameter is a receiver, not an
+// argument.
+[[nodiscard]] static bool UsesExplicitReceiver(const ClassInfo& cls)
+{
+    size_t receiver_count = 0;
+    size_t method_count = 0;
+    for (const auto& method: cls.methods)
+    {
+        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+        {
+            continue;
+        }
+        if (method.has_self)
+        {
+            return false;  // the class names its receiver with TSelf
+        }
+        ++method_count;
+        if (IsPseudoSelf(method))
+        {
+            ++receiver_count;
+        }
+    }
+    return receiver_count > 0 && (receiver_count * 2U) > method_count;
+}
+
+// True for a function declared inside a TClassDef block that has no receiver at all: no
+// TSelf, no TClass(own class) pseudo-self, and no receiver-named first parameter.  Such a
+// function is static in wxWidgets and must be emitted at module scope, not as an instance
+// method that forwards this._ptr.
+[[nodiscard]] static bool IsStaticClassFunction(const FunctionDecl& func,
+                                                const ClassInfo* owning_class)
+{
+    if (func.class_name.empty())
+    {
+        return false;
+    }
+    if (func.is_constructor || func.is_destructor || func.method_name == "Ctor")
+    {
+        return false;
+    }
+    if (func.has_self)
+    {
+        return false;
+    }
+    // IsPseudoSelf also matches a TClass(own class) *argument* (wxLog_SetActiveTarget takes
+    // the new target, wxArtProvider_PushBack the provider), so it only denotes a receiver in
+    // a class that declares no TSelf receiver at all.
+    if (IsPseudoSelf(func) && UsesExplicitReceiver(*owning_class))
+    {
+        return false;
+    }
+    // Hand-written wrappers (wxStyledTextCtrl and friends) pass the object pointer as an
+    // explicit first parameter; those blocks keep their instance-method shape.
+    if (!func.params.empty())
+    {
+        const Param& first = func.params[0];
+        if (first.macro_name.empty() && first.raw_type == "void*" &&
+            (first.param_name == "pObject" || first.param_name == "self"))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 // A C++ method that hides a same-named base method with an incompatible signature
 // cannot keep that name on the TypeScript side.  Rename only the TS wrapper; the
 // exported C symbol and its ABI stay unchanged.
@@ -492,6 +559,27 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     }
 
     output << indent << "return " << call_expr << ";\n";
+}
+
+// True if GenerateFreeFunctions emits a file at all: either true free functions exist, or a
+// class-block static has to be emitted at module scope.
+[[nodiscard]] static bool HasModuleLevelFunctions(const ParsedFFI& ffi)
+{
+    if (!ffi.free_functions.empty())
+    {
+        return true;
+    }
+    for (const auto& cls: ffi.classes)
+    {
+        for (const auto& func: cls.methods)
+        {
+            if (IsValidFunction(func) && IsStaticClassFunction(func, &cls))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 // The visible TypeScript signature of one member: parameter types in order, then the
@@ -871,6 +959,10 @@ struct MemberNameResolution
             {
                 continue;  // factories are module-level, not inherited statics
             }
+            if (IsStaticClassFunction(func, &parent_class))
+            {
+                continue;  // a static is not an inherited instance member
+            }
             if (IsTrueDestructor(func))
             {
                 declares_delete = true;
@@ -899,7 +991,8 @@ struct MemberNameResolution
                 }
                 for (const auto& func: mixin_class->methods)
                 {
-                    if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func))
+                    if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                        IsStaticClassFunction(func, mixin_class))
                     {
                         continue;
                     }
@@ -2089,7 +2182,7 @@ void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::
 
 void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& out_dir)
 {
-    if (ffi.free_functions.empty())
+    if (!HasModuleLevelFunctions(ffi))
     {
         return;
     }
@@ -2101,6 +2194,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
     std::ostringstream body;
     size_t func_count = 0;
+    size_t free_func_count = 0;
     for (const auto& func: ffi.free_functions)
     {
         if (!IsValidFunction(func))
@@ -2154,6 +2248,76 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
         body << "}\n\n";
         ++func_count;
+        ++free_func_count;
+    }
+
+    // Functions declared inside a class block without a receiver are static in wxWidgets, so
+    // they are emitted at module scope as <Class>_<Method> instead of instance methods.
+    std::set<std::string> emitted_static_names;
+    for (const auto& cls: ffi.classes)
+    {
+        for (const auto& func: cls.methods)
+        {
+            if (!IsValidFunction(func) || !IsStaticClassFunction(func, &cls))
+            {
+                continue;
+            }
+
+            const std::string export_name = cls.name + "_" + TsEscapeName(func.method_name);
+            if (!emitted_static_names.insert(export_name).second)
+            {
+                std::println(stderr, "  Warning: {}: dropping duplicate static {} (C symbol {})",
+                             cls.name, export_name, CFuncName(func));
+                continue;
+            }
+
+            const std::string func_name = CFuncName(func);
+            // No enclosing class, so the factory path of WrapReturnType must never trigger.
+            const std::unordered_set<std::string> no_wrapped_classes;
+            const std::string ret_type = WrapReturnType(func, "", no_wrapped_classes);
+
+            std::vector<WrapParam> wrap_params;
+            for (const auto& param: func.params)
+            {
+                const std::vector<WrapParam> params = BuildWrapParams(param);
+                wrap_params.insert(wrap_params.end(), params.begin(), params.end());
+            }
+
+            body << "export function " << export_name << "(";
+            bool first = true;
+            for (const auto& wpar: wrap_params)
+            {
+                if (wpar.is_self)
+                {
+                    continue;
+                }
+                if (!first)
+                {
+                    body << ", ";
+                }
+                body << wpar.name << ": " << wpar.ts_type;
+                first = false;
+            }
+            body << "): " << ret_type << " {\n";
+
+            std::string call = "lib.symbols." + func_name + "(";
+            bool call_first = true;
+            for (const auto& wpar: wrap_params)
+            {
+                if (!call_first)
+                {
+                    call += ", ";
+                }
+                call += wpar.ffi_expr;
+                call_first = false;
+            }
+            call += ")";
+
+            EmitWrapReturn(body, func, "", call, no_wrapped_classes);
+
+            body << "}\n\n";
+            ++func_count;
+        }
     }
 
     const std::string body_str = body.str();
@@ -2165,7 +2329,9 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     output << "\n";
     output << body_str;
 
-    std::println(stderr, "  kwx_free_functions_gen.ts: {} free functions", func_count);
+    std::println(stderr,
+                 "  kwx_free_functions_gen.ts: {} free functions, {} static class functions",
+                 free_func_count, func_count - free_func_count);
 }
 
 // -------------------------------------------------------------------------
@@ -2195,9 +2361,11 @@ void TypeScriptEmitter::EmitClassFile(
     {
         // Root class (no wrapped parent) — own the pointer field.
         body << "  protected readonly _ptr: Pointer;\n";
+        body << "  protected _borrowed: boolean = false;\n";
         body << "  protected _disposed: boolean = false;\n\n";
-        body << "  constructor(ptr: Pointer) {\n";
+        body << "  constructor(ptr: Pointer, borrowed: boolean = false) {\n";
         body << "    this._ptr = ptr;\n";
+        body << "    this._borrowed = borrowed;\n";
         body << "  }\n\n";
     }
     body << "  /** Returns the underlying native pointer. */\n";
@@ -2217,7 +2385,7 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string override_prefix = ancestors.has_delete ? "override " : "";
 
         body << "  " << override_prefix << "Delete(): void {\n";
-        body << "    if (this._disposed) return;\n";
+        body << "    if (this._disposed || this._borrowed) return;\n";
         body << "    this._disposed = true;\n";
         body << "    lib.symbols." << func_name << "(this._ptr);\n";
         body << "  }\n\n";
@@ -2242,6 +2410,11 @@ void TypeScriptEmitter::EmitClassFile(
         }
         // Skip the true destructor (emitted above)
         if (IsTrueDestructor(func))
+        {
+            continue;
+        }
+        // Skip statics (emitted at module scope in kwx_free_functions_gen.ts)
+        if (IsStaticClassFunction(func, &cls))
         {
             continue;
         }
@@ -2279,7 +2452,8 @@ void TypeScriptEmitter::EmitClassFile(
             }
             for (const auto& func: mixin_class->methods)
             {
-                if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func))
+                if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                    IsStaticClassFunction(func, mixin_class))
                 {
                     continue;
                 }
@@ -2380,6 +2554,18 @@ void TypeScriptEmitter::EmitClassFile(
         body << "}\n";
     }
 
+    // Non-owning factory: the pointer belongs to wxWidgets, so Delete() is a no-op.
+    // Dropping the wx prefix gives wrapWxWindow / wrapWxNotebook.
+    std::string wrap_suffix = cls.name;
+    if (wrap_suffix.starts_with(WX_PREFIX) && wrap_suffix.size() > WX_PREFIX.size())
+    {
+        wrap_suffix = wrap_suffix.substr(WX_PREFIX.size());
+    }
+    body << "\n/** Wraps a pointer to an object owned by wxWidgets; Delete() is a no-op. */\n";
+    body << "export function wrapWx" << wrap_suffix << "(ptr: Pointer): " << cls.name << " {\n";
+    body << "    return new " << cls.name << "(ptr, true);\n";
+    body << "}\n";
+
     const std::string body_str = body.str();
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
     if (body_str.find("Pointer") != std::string::npos)
@@ -2465,7 +2651,7 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
     output << "export { lib } from \"./kwx_ffi_gen.ts\";\n";
     output << "export * from \"./kwx_constants_gen.ts\";\n";
 
-    if (!ffi.free_functions.empty())
+    if (HasModuleLevelFunctions(ffi))
     {
         output << "export * from \"./kwx_free_functions_gen.ts\";\n";
     }

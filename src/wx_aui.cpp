@@ -1040,9 +1040,9 @@ extern "C"
         self->AdvanceSelection(forward);
     }
 
-    EXPORT int wxAuiNotebook_ChangeSelection(wxAuiNotebook* self, size_t index)
+    EXPORT int wxAuiNotebook_ChangeSelection(wxAuiNotebook* self, int index)
     {
-        return self->ChangeSelection(index);
+        return self->ChangeSelection(static_cast<size_t>(index));
     }
 
     EXPORT int wxAuiNotebook_DeleteAllPages(wxAuiNotebook* self)
@@ -1050,9 +1050,9 @@ extern "C"
         return self->DeleteAllPages();
     }
 
-    EXPORT int wxAuiNotebook_DeletePage(wxAuiNotebook* self, size_t page)
+    EXPORT int wxAuiNotebook_DeletePage(wxAuiNotebook* self, int page)
     {
-        return self->DeletePage(page);
+        return self->DeletePage(static_cast<size_t>(page));
     }
 
     EXPORT void* wxAuiNotebook_GetArtProvider(wxAuiNotebook* self)
@@ -1070,19 +1070,19 @@ extern "C"
         return self->GetHeightForPageHeight(pageHeight);
     }
 
-    EXPORT void* wxAuiNotebook_GetPage(wxAuiNotebook* self, size_t page_idx)
+    EXPORT void* wxAuiNotebook_GetPage(wxAuiNotebook* self, int page_idx)
     {
-        return (void*) self->GetPage(page_idx);
+        return (void*) self->GetPage(static_cast<size_t>(page_idx));
     }
 
-    EXPORT void wxAuiNotebook_GetPageBitmap(wxAuiNotebook* self, size_t page, wxBitmap* bmp)
+    EXPORT void wxAuiNotebook_GetPageBitmap(wxAuiNotebook* self, int page, wxBitmap* bmp)
     {
-        *bmp = self->GetPageBitmap(page);
+        *bmp = self->GetPageBitmap(static_cast<size_t>(page));
     }
 
-    EXPORT size_t wxAuiNotebook_GetPageCount(wxAuiNotebook* self)
+    EXPORT int wxAuiNotebook_GetPageCount(wxAuiNotebook* self)
     {
-        return self->GetPageCount();
+        return static_cast<int>(self->GetPageCount());
     }
 
     EXPORT int wxAuiNotebook_GetPageIndex(wxAuiNotebook* self, wxWindow* pageWnd)
@@ -1090,17 +1090,17 @@ extern "C"
         return self->GetPageIndex(pageWnd);
     }
 
-    EXPORT wxString* wxAuiNotebook_GetPageText(wxAuiNotebook* self, size_t page)
+    EXPORT wxString* wxAuiNotebook_GetPageText(wxAuiNotebook* self, int page)
     {
         wxString* result = new wxString();
-        *result = self->GetPageText(page);
+        *result = self->GetPageText(static_cast<size_t>(page));
         return result;
     }
 
-    EXPORT wxString* wxAuiNotebook_GetPageToolTip(wxAuiNotebook* self, size_t pageIdx)
+    EXPORT wxString* wxAuiNotebook_GetPageToolTip(wxAuiNotebook* self, int pageIdx)
     {
         wxString* result = new wxString();
-        *result = self->GetPageToolTip(pageIdx);
+        *result = self->GetPageToolTip(static_cast<size_t>(pageIdx));
         return result;
     }
 
@@ -1114,22 +1114,21 @@ extern "C"
         return self->GetTabCtrlHeight();
     }
 
-    EXPORT int wxAuiNotebook_InsertPageWithBitmap(wxAuiNotebook* self, size_t page_idx,
-                                                  wxWindow* page, wxString* caption, bool select,
-                                                  wxBitmap* bitmap)
+    EXPORT int wxAuiNotebook_InsertPageWithBitmap(wxAuiNotebook* self, int page_idx, wxWindow* page,
+                                                  wxString* caption, bool select, wxBitmap* bitmap)
     {
-        return self->InsertPage(page_idx, page, *caption, select, *bitmap);
+        return self->InsertPage(static_cast<size_t>(page_idx), page, *caption, select, *bitmap);
     }
 
-    EXPORT int wxAuiNotebook_InsertPage(wxAuiNotebook* self, size_t index, wxWindow* page,
+    EXPORT int wxAuiNotebook_InsertPage(wxAuiNotebook* self, int index, wxWindow* page,
                                         wxString* text, bool select, int imageId)
     {
-        return self->InsertPage(index, page, *text, select, imageId);
+        return self->InsertPage(static_cast<size_t>(index), page, *text, select, imageId);
     }
 
-    EXPORT int wxAuiNotebook_RemovePage(wxAuiNotebook* self, size_t page)
+    EXPORT int wxAuiNotebook_RemovePage(wxAuiNotebook* self, int page)
     {
-        return self->RemovePage(page);
+        return self->RemovePage(static_cast<size_t>(page));
     }
 
     EXPORT void wxAuiNotebook_SetArtProvider(wxAuiNotebook* self, wxAuiTabArt* artId)
@@ -1152,24 +1151,24 @@ extern "C"
         self->SetNormalFont(*font);
     }
 
-    EXPORT int wxAuiNotebook_SetPageBitmap(wxAuiNotebook* self, size_t page, wxBitmap* bitmap)
+    EXPORT int wxAuiNotebook_SetPageBitmap(wxAuiNotebook* self, int page, wxBitmap* bitmap)
     {
-        return self->SetPageBitmap(page, *bitmap);
+        return self->SetPageBitmap(static_cast<size_t>(page), *bitmap);
     }
 
-    EXPORT int wxAuiNotebook_SetPageImage(wxAuiNotebook* self, size_t index, int imageId)
+    EXPORT int wxAuiNotebook_SetPageImage(wxAuiNotebook* self, int index, int imageId)
     {
-        return self->SetPageImage(index, imageId);
+        return self->SetPageImage(static_cast<size_t>(index), imageId);
     }
 
-    EXPORT int wxAuiNotebook_SetPageText(wxAuiNotebook* self, size_t page, wxString* text)
+    EXPORT int wxAuiNotebook_SetPageText(wxAuiNotebook* self, int page, wxString* text)
     {
-        return self->SetPageText(page, *text);
+        return self->SetPageText(static_cast<size_t>(page), *text);
     }
 
-    EXPORT int wxAuiNotebook_SetPageToolTip(wxAuiNotebook* self, size_t page, wxString* text)
+    EXPORT int wxAuiNotebook_SetPageToolTip(wxAuiNotebook* self, int page, wxString* text)
     {
-        return self->SetPageToolTip(page, *text);
+        return self->SetPageToolTip(static_cast<size_t>(page), *text);
     }
 
     EXPORT void wxAuiNotebook_SetSelectedFont(wxAuiNotebook* self, wxFont* font)
@@ -1177,9 +1176,9 @@ extern "C"
         self->SetSelectedFont(*font);
     }
 
-    EXPORT int wxAuiNotebook_SetSelection(wxAuiNotebook* self, size_t new_page)
+    EXPORT int wxAuiNotebook_SetSelection(wxAuiNotebook* self, int new_page)
     {
-        return self->SetSelection(new_page);
+        return self->SetSelection(static_cast<size_t>(new_page));
     }
 
     EXPORT void wxAuiNotebook_SetTabCtrlHeight(wxAuiNotebook* self, int height)
@@ -1197,9 +1196,9 @@ extern "C"
         self->SetUniformBitmapSize(wxSize(width, height));
     }
 
-    EXPORT void wxAuiNotebook_Split(wxAuiNotebook* self, size_t page, int direction)
+    EXPORT void wxAuiNotebook_Split(wxAuiNotebook* self, int page, int direction)
     {
-        self->Split(page, direction);
+        self->Split(static_cast<size_t>(page), direction);
     }
 
     // wxAuiNotebookEvent
@@ -2590,26 +2589,34 @@ extern "C"
         return self->HitTest(wxPoint(x, y), flags);
     }
 
-    EXPORT int wxBookCtrlBase_GetPageImage(wxBookCtrlBase* self, size_t nPage)
+    EXPORT int wxBookCtrlBase_HitTestFlags(wxBookCtrlBase* self, int x, int y, int* flags)
     {
-        return self->GetPageImage(nPage);
+        long lflags = 0;
+        const int page = self->HitTest(wxPoint(x, y), &lflags);
+        *flags = static_cast<int>(lflags);
+        return page;
     }
 
-    EXPORT int wxBookCtrlBase_SetPageImage(wxBookCtrlBase* self, size_t page, int image)
+    EXPORT int wxBookCtrlBase_GetPageImage(wxBookCtrlBase* self, int nPage)
     {
-        return self->SetPageImage(page, image);
+        return self->GetPageImage(static_cast<size_t>(nPage));
     }
 
-    EXPORT wxString* wxBookCtrlBase_GetPageText(wxBookCtrlBase* self, size_t nPage)
+    EXPORT int wxBookCtrlBase_SetPageImage(wxBookCtrlBase* self, int page, int image)
+    {
+        return self->SetPageImage(static_cast<size_t>(page), image);
+    }
+
+    EXPORT wxString* wxBookCtrlBase_GetPageText(wxBookCtrlBase* self, int nPage)
     {
         wxString* result = new wxString();
-        *result = self->GetPageText(nPage);
+        *result = self->GetPageText(static_cast<size_t>(nPage));
         return result;
     }
 
-    EXPORT int wxBookCtrlBase_SetPageText(wxBookCtrlBase* self, size_t page, wxString* text)
+    EXPORT int wxBookCtrlBase_SetPageText(wxBookCtrlBase* self, int page, wxString* text)
     {
-        return self->SetPageText(page, *text);
+        return self->SetPageText(static_cast<size_t>(page), *text);
     }
 
     EXPORT int wxBookCtrlBase_GetSelection(wxBookCtrlBase* self)
@@ -2622,9 +2629,9 @@ extern "C"
         return (void*) self->GetCurrentPage();
     }
 
-    EXPORT int wxBookCtrlBase_SetSelection(wxBookCtrlBase* self, size_t page)
+    EXPORT int wxBookCtrlBase_SetSelection(wxBookCtrlBase* self, int page)
     {
-        return self->SetSelection(page);
+        return self->SetSelection(static_cast<size_t>(page));
     }
 
     EXPORT void wxBookCtrlBase_AdvanceSelection(wxBookCtrlBase* self, bool forward)
@@ -2632,9 +2639,9 @@ extern "C"
         self->AdvanceSelection(forward);
     }
 
-    EXPORT int wxBookCtrlBase_ChangeSelection(wxBookCtrlBase* self, size_t page)
+    EXPORT int wxBookCtrlBase_ChangeSelection(wxBookCtrlBase* self, int page)
     {
-        return self->ChangeSelection(page);
+        return self->ChangeSelection(static_cast<size_t>(page));
     }
 
     EXPORT int wxBookCtrlBase_FindPage(wxBookCtrlBase* self, wxWindow* page)
@@ -2653,30 +2660,30 @@ extern "C"
         return self->DeleteAllPages();
     }
 
-    EXPORT int wxBookCtrlBase_DeletePage(wxBookCtrlBase* self, size_t page)
+    EXPORT int wxBookCtrlBase_DeletePage(wxBookCtrlBase* self, int page)
     {
-        return self->DeletePage(page);
+        return self->DeletePage(static_cast<size_t>(page));
     }
 
-    EXPORT int wxBookCtrlBase_InsertPage(wxBookCtrlBase* self, size_t index, wxWindow* page,
+    EXPORT int wxBookCtrlBase_InsertPage(wxBookCtrlBase* self, int index, wxWindow* page,
                                          wxString* text, bool select, int imageId)
     {
-        return self->InsertPage(index, page, *text, select, imageId);
+        return self->InsertPage(static_cast<size_t>(index), page, *text, select, imageId);
     }
 
-    EXPORT int wxBookCtrlBase_RemovePage(wxBookCtrlBase* self, size_t page)
+    EXPORT int wxBookCtrlBase_RemovePage(wxBookCtrlBase* self, int page)
     {
-        return self->RemovePage(page);
+        return self->RemovePage(static_cast<size_t>(page));
     }
 
-    EXPORT size_t wxBookCtrlBase_GetPageCount(wxBookCtrlBase* self)
+    EXPORT int wxBookCtrlBase_GetPageCount(wxBookCtrlBase* self)
     {
-        return self->GetPageCount();
+        return static_cast<int>(self->GetPageCount());
     }
 
-    EXPORT void* wxBookCtrlBase_GetPage(wxBookCtrlBase* self, size_t page)
+    EXPORT void* wxBookCtrlBase_GetPage(wxBookCtrlBase* self, int page)
     {
-        return (void*) self->GetPage(page);
+        return (void*) self->GetPage(static_cast<size_t>(page));
     }
 
     EXPORT void wxBookCtrlBase_AssignImageList(wxBookCtrlBase* self, wxImageList* imageList)
@@ -2872,16 +2879,16 @@ extern "C"
         return (void*) ((wxAuiNotebook*) pObject)->GetMainTabCtrl();
     }
 
-    EXPORT int wxAuiNotebook_GetPageKind(void* pObject, size_t pageIdx)
+    EXPORT int wxAuiNotebook_GetPageKind(void* pObject, int pageIdx)
     {
         return (int) ((wxAuiNotebook*) pObject)->GetPageKind((size_t) pageIdx);
     }
 
-    EXPORT int wxAuiNotebook_GetPagePosition(void* pObject, size_t page)
+    EXPORT int wxAuiNotebook_GetPagePosition(void* pObject, int page)
     {
         // wxAuiNotebookPosition also carries the tab control; this FFI shape
         // only exposes the visual position within that control.
-        wxAuiNotebookPosition position = ((wxAuiNotebook*) pObject)->GetPagePosition(page);
+        wxAuiNotebookPosition position = ((wxAuiNotebook*) pObject)->GetPagePosition((size_t) page);
         return position.tabIdx;
     }
 
@@ -2890,7 +2897,7 @@ extern "C"
         ((wxAuiNotebook*) pObject)->SetManagerFlags(flags);
     }
 
-    EXPORT int wxAuiNotebook_SetPageKind(void* pObject, size_t pageIdx, int kind)
+    EXPORT int wxAuiNotebook_SetPageKind(void* pObject, int pageIdx, int kind)
     {
         return ((wxAuiNotebook*) pObject)->SetPageKind((size_t) pageIdx, (wxAuiTabKind) kind);
     }
