@@ -102,7 +102,7 @@ TClassDefExtend(kwxGridTable, wxGridTableBase) TClass(kwxGridTable)
                         void* fnSetRowLabelValue, void* fnSetColLabelValue,
                         void* fnGetRowLabelValue, void* fnGetColLabelValue);
 void kwxGridTable_Delete(TSelf(kwxGridTable) pObject);
-TClass(wxView) kwxGridTable_GetView(TSelf(kwxGridTable) pObject);
+TClass(wxGrid) kwxGridTable_GetView(TSelf(kwxGridTable) pObject);
 void* kwxGridTable_SendTableMessage(TSelf(kwxGridTable) pObject, int id, int val1, int val2);
 // ---- Phase 6: typed-value override hooks ----
 // These extend the one existing kwxGridTable helper with the seven typed-value
@@ -1205,7 +1205,18 @@ void wxBusyCursor_Delete(TSelf(wxBusyCursor) pObject);
 
 TClassDef(wxBusyInfo) TClass(wxBusyInfo)
     wxBusyInfo_Create(TClass(wxString) text, TClass(wxWindow) parent);
+TClass(wxBusyInfo) wxBusyInfo_CreateWithFlags(TClass(wxBusyInfoFlags) flags);
 void wxBusyInfo_Delete(TSelf(wxBusyInfo) pObject);
+
+TClassDef(wxBusyInfoFlags) TClass(wxBusyInfoFlags) wxBusyInfoFlags_Create();
+void wxBusyInfoFlags_SetParent(TSelf(wxBusyInfoFlags) pObject, TClass(wxWindow) parent);
+void wxBusyInfoFlags_SetIcon(TSelf(wxBusyInfoFlags) pObject, TClass(wxBitmapBundle) icon);
+void wxBusyInfoFlags_SetTitle(TSelf(wxBusyInfoFlags) pObject, TClass(wxString) title);
+void wxBusyInfoFlags_SetText(TSelf(wxBusyInfoFlags) pObject, TClass(wxString) text);
+void wxBusyInfoFlags_SetForeground(TSelf(wxBusyInfoFlags) pObject, TClass(wxColour) colour);
+void wxBusyInfoFlags_SetBackground(TSelf(wxBusyInfoFlags) pObject, TClass(wxColour) colour);
+void wxBusyInfoFlags_SetTransparency(TSelf(wxBusyInfoFlags) pObject, TUInt8 alpha);
+void wxBusyInfoFlags_Delete(TSelf(wxBusyInfoFlags) pObject);
 
 TClassDefExtend(wxBannerWindow, wxWindow) TClass(wxBannerWindow)
     wxBannerWindow_Create(TClass(wxWindow) parent, int id, int dir, TRect(x, y, width, height),
@@ -1966,7 +1977,7 @@ TClass(wxStatusBar) wxAuiMDIChildFrame_CreateStatusBar(TSelf(wxAuiMDIChildFrame)
                                                        int style, int id);
 TClass(wxToolBar) wxAuiMDIChildFrame_GetToolBar(TSelf(wxAuiMDIChildFrame) self);
 TClass(wxToolBar)
-    wxAuiMDIChildFrame_CreateToolBar(TSelf(wxAuiMDIChildFrame) self, int style, int id);
+    wxAuiMDIChildFrame_CreateToolBar(TSelf(wxAuiMDIChildFrame) self, long style, int id);
 void wxAuiMDIChildFrame_SetTitle(TSelf(wxAuiMDIChildFrame) self, TClass(wxString) title);
 TClass(wxString) wxAuiMDIChildFrame_GetTitle(TSelf(wxAuiMDIChildFrame) self);
 void wxAuiMDIChildFrame_SetIcons(TSelf(wxAuiMDIChildFrame) self, TClass(wxIconBundle) icons);
@@ -2080,7 +2091,7 @@ TClassDefExtend(wxEvtHandler, wxObject) void wxEvtHandler_AddPendingEvent(TSelf(
                                                                               pObject,
                                                                           TClass(wxEvent) event);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void* wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
+TClass(wxClientData) wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
 int wxEvtHandler_Connect(TSelf(wxEvtHandler) pObject, int first, int last, int type, void* data);
 TClass(wxEvtHandler) wxEvtHandler_Create();
 void wxEvtHandler_Delete(TSelf(wxEvtHandler) pObject);
@@ -2404,9 +2415,13 @@ TBool wxGauge_IsVertical(TSelf(wxGauge) self);
 
 TClassDefExtend(wxGenericDirCtrl, wxControl)
 
-    TClassDefExtend(wxGenericValidator, wxValidator)
+    TClassDefExtend(wxGenericValidator, wxValidator) TClass(wxGenericValidator)
+        wxGenericValidator_CreateInt(int* value);
+TClass(wxGenericValidator) wxGenericValidator_CreateBool(TBool* value);
+TClass(wxGenericValidator) wxGenericValidator_CreateString(TClass(wxString) value);
+void wxGenericValidator_Delete(TSelf(wxGenericValidator) pObject);
 
-        TClassDefExtend(wxGrid, wxScrolledWindow) TBool
+TClassDefExtend(wxGrid, wxScrolledWindow) TBool
     wxGrid_AppendCols(TSelf(wxGrid) pObject, int numCols, TBool updateLabels);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxGrid_HideRowLabels(TSelf(wxGrid) pObject);
@@ -3101,7 +3116,9 @@ TBool wxImageList_Replace(TSelf(wxImageList) pObject, int index, TClass(wxBitmap
                           TClass(wxBitmap) mask);
 TBool wxImageList_ReplaceIcon(TSelf(wxImageList) pObject, int index, TClass(wxIcon) icon);
 
-TClassDef(wxInfoBar) TClass(wxInfoBar) wxInfoBar_Create(TClass(wxWindow) parent, int id);
+TClassDefExtend(wxInfoBar, wxControl) TClass(wxInfoBar)
+    wxInfoBar_Create(TClass(wxWindow) parent, int id);
+TClass(wxInfoBar) wxInfoBar_CreateEx(TClass(wxWindow) parent, int id, int style);
 void wxInfoBar_AddButton(TSelf(wxInfoBar) self, int btnid, TClass(wxString) label);
 void wxInfoBar_Dismiss(TSelf(wxInfoBar) self);
 size_t wxInfoBar_GetButtonCount(TSelf(wxInfoBar) self);
@@ -3114,6 +3131,12 @@ void wxInfoBar_RemoveButton(TSelf(wxInfoBar) self, int btnid);
 void wxInfoBar_SetEffectDuration(TSelf(wxInfoBar) self, int duration);
 void wxInfoBar_SetShowHideEffects(TSelf(wxInfoBar) self, int showEffect, int hideEffect);
 void wxInfoBar_ShowMessage(TSelf(wxInfoBar) self, TClass(wxString) msg, int flags);
+void wxInfoBar_ShowCheckBox(TSelf(wxInfoBar) pObject, TClass(wxString) checkBoxText, TBool checked);
+TBool wxInfoBar_IsCheckBoxChecked(TSelf(wxInfoBar) pObject);
+void wxInfoBar_ShowMessageFor(TSelf(wxInfoBar) pObject, TClass(wxString) msg, int timeoutInSeconds,
+                              int flags);
+void wxInfoBar_RemoveAllButtons(TSelf(wxInfoBar) pObject);
+void wxInfoBar_ShowCloseButton(TSelf(wxInfoBar) pObject, int show);
 
 TClassDefExtend(wxInitDialogEvent, wxEvent) TClass(wxInitDialogEvent)
     wxInitDialogEvent_Create(int id);
@@ -4595,6 +4618,10 @@ int expPGMAN_DEFAULT_STYLE();
 TClassDefExtend(wxPropertySheetDialog, wxDialog) TClass(wxPropertySheetDialog)
     wxPropertySheetDialog_Create(TClass(wxWindow) parent, int id, TClass(wxString) title, int x,
                                  int y, int width, int height, int style);
+TClass(wxPropertySheetDialog) wxPropertySheetDialog_CreateDefault();
+TBool wxPropertySheetDialog_CreateEx(TSelf(wxPropertySheetDialog) pObject, TClass(wxWindow) parent,
+                                     int id, TClass(wxString) title, TPoint(x, y),
+                                     TSize(width, height), int style);
 void wxPropertySheetDialog_CreateButtons(TSelf(wxPropertySheetDialog) pObject, int flags);
 TClass(wxBookCtrlBase) wxPropertySheetDialog_GetBookCtrl(TSelf(wxPropertySheetDialog) pObject);
 TClass(wxSizer) wxPropertySheetDialog_GetInnerSizer(TSelf(wxPropertySheetDialog) pObject);
@@ -4618,7 +4645,7 @@ int expPROPSHEET_BUTTONTOOLBOOK();
 int expPROPSHEET_TREEBOOK();
 int expPROPSHEET_SHRINKTOFIT();
 
-TClassDefExtend(wxProgressDialog, wxFrame)
+TClassDefExtend(wxProgressDialog, wxDialog)
 
     TClassDefExtend(wxProtocol, wxSocketClient)
 
@@ -5669,6 +5696,10 @@ int wxSystemSettings_GetMetric(int index);
 int wxSystemSettings_GetScreenType();
 TClass(wxColour)
     wxSystemSettings_SelectLightDark(TClass(wxColour) colForLight, TClass(wxColour) colForDark);
+
+TClassDef(wxSystemAppearance) TBool wxSystemAppearance_IsDark(TSelf(wxSystemAppearance) pObject);
+TBool wxSystemAppearance_IsUsingDarkBackground(TSelf(wxSystemAppearance) pObject);
+TClass(wxString) wxSystemAppearance_GetName(TSelf(wxSystemAppearance) pObject);
 
 TClassDefExtend(wxTabCtrl, wxControl)
 

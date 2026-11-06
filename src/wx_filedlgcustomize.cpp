@@ -42,6 +42,11 @@ extern "C"
         return static_cast<void*>(self->AddChoice(items.size(), items.data()));
     }
 
+    EXPORT void* wxFileDialogCustomize_AddRadioButton(wxFileDialogCustomize* self, wxString* label)
+    {
+        return static_cast<void*>(self->AddRadioButton(*label));
+    }
+
     EXPORT void* wxFileDialogCustomize_AddStaticText(wxFileDialogCustomize* self, wxString* label)
     {
         return static_cast<void*>(self->AddStaticText(*label));

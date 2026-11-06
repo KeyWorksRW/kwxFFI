@@ -18,4 +18,9 @@ extern "C"
     {
         *((wxFontData*) ref) = ((wxFontDialog*) pObject)->GetFontData();
     }
+
+    EXPORT void wxFontDialog_Delete(wxFontDialog* self)
+    {
+        delete self;
+    }
 }

@@ -313,9 +313,10 @@ extern "C"
         return self->Insert(*item, pos, clientData);
     }
 
-    EXPORT void* wxOwnerDrawnComboBox_GetClientData(wxOwnerDrawnComboBox* self, unsigned int index)
+    EXPORT wxClientData* wxOwnerDrawnComboBox_GetClientData(wxOwnerDrawnComboBox* self,
+                                                            unsigned int index)
     {
-        return self->GetClientData(index);
+        return static_cast<wxClientData*>(self->GetClientData(index));
     }
 
     EXPORT void wxOwnerDrawnComboBox_SetClientData(wxOwnerDrawnComboBox* self, unsigned int index,

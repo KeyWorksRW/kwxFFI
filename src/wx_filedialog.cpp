@@ -155,4 +155,12 @@ extern "C"
         return ((wxFileDialog*) pObject)
             ->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
     }
+
+    EXPORT int wxFileDialog_SetExtraControlCreator(wxFileDialog* self, void* pFunction)
+    {
+        // The FFI hands over an untyped function pointer and the wx typedef is
+        // the only legal target type for it.
+        return self->SetExtraControlCreator(
+            reinterpret_cast<wxFileDialog::ExtraControlCreatorFunction>(pFunction));
+    }
 }

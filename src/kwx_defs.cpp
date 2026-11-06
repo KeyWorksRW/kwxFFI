@@ -14,6 +14,7 @@
 #include <wx/numformatter.h>
 #include <wx/power.h>
 #include <wx/process.h>
+#include <wx/progdlg.h>
 #include <wx/richtext/richtextbuffer.h>
 #include <wx/url.h>
 #include <wx/xrc/xmlres.h>
@@ -6185,6 +6186,10 @@ extern "C"
     {
         return static_cast<int>(wxALIGN_MASK);
     }
+    EXPORT int expwxAPPLY()
+    {
+        return static_cast<int>(wxAPPLY);
+    }
     EXPORT int expwxANTIALIAS_DEFAULT()
     {
         return static_cast<int>(wxANTIALIAS_DEFAULT);
@@ -6545,6 +6550,10 @@ extern "C"
     {
         return static_cast<int>(wxCLRP_USE_TEXTCTRL);
     }
+    EXPORT int expwxCLOSE()
+    {
+        return static_cast<int>(wxCLOSE);
+    }
     EXPORT int expwxCMD_LINE_HIDDEN()
     {
         return static_cast<int>(wxCMD_LINE_HIDDEN);
@@ -6672,6 +6681,10 @@ extern "C"
     EXPORT int expwxCURSOR_ARROWWAIT()
     {
         return static_cast<int>(wxCURSOR_ARROWWAIT);
+    }
+    EXPORT int expwxColourData_NUM_CUSTOM()
+    {
+        return static_cast<int>(wxColourData::NUM_CUSTOM);
     }
     EXPORT int expwxDATAVIEW_CELL_ACTIVATABLE()
     {
@@ -7073,6 +7086,14 @@ extern "C"
     {
         return static_cast<int>(wxHTML_OPEN);
     }
+    EXPORT int expwxICON_AUTH_NEEDED()
+    {
+        return static_cast<int>(wxICON_AUTH_NEEDED);
+    }
+    EXPORT int expwxICON_NONE()
+    {
+        return static_cast<int>(wxICON_NONE);
+    }
     EXPORT int expwxID_ABORT()
     {
         return static_cast<int>(wxID_ABORT);
@@ -7361,6 +7382,14 @@ extern "C"
     {
         return static_cast<int>(wxITEM_DROPDOWN);
     }
+    EXPORT int expwxInfoBar_Timeout_Auto()
+    {
+        return static_cast<int>(wxInfoBar::Timeout_Auto);
+    }
+    EXPORT int expwxInfoBar_Timeout_Never()
+    {
+        return static_cast<int>(wxInfoBar::Timeout_Never);
+    }
     EXPORT int expwxLC_MASK_TYPE()
     {
         return static_cast<int>(wxLC_MASK_TYPE);
@@ -7449,6 +7478,14 @@ extern "C"
     {
         return static_cast<int>(wxNUM_VAL_ZERO_AS_BLANK);
     }
+    EXPORT int expwxNotificationMessage_Timeout_Auto()
+    {
+        return static_cast<int>(wxNotificationMessage::Timeout_Auto);
+    }
+    EXPORT int expwxNotificationMessage_Timeout_Never()
+    {
+        return static_cast<int>(wxNotificationMessage::Timeout_Never);
+    }
     EXPORT int expwxODCB_DCLICK_CYCLES()
     {
         return static_cast<int>(wxODCB_DCLICK_CYCLES);
@@ -7464,6 +7501,38 @@ extern "C"
     EXPORT int expwxPATH_UNIX()
     {
         return static_cast<int>(wxPATH_UNIX);
+    }
+    EXPORT int expwxPD_APP_MODAL()
+    {
+        return static_cast<int>(wxPD_APP_MODAL);
+    }
+    EXPORT int expwxPD_AUTO_HIDE()
+    {
+        return static_cast<int>(wxPD_AUTO_HIDE);
+    }
+    EXPORT int expwxPD_CAN_ABORT()
+    {
+        return static_cast<int>(wxPD_CAN_ABORT);
+    }
+    EXPORT int expwxPD_CAN_SKIP()
+    {
+        return static_cast<int>(wxPD_CAN_SKIP);
+    }
+    EXPORT int expwxPD_ELAPSED_TIME()
+    {
+        return static_cast<int>(wxPD_ELAPSED_TIME);
+    }
+    EXPORT int expwxPD_ESTIMATED_TIME()
+    {
+        return static_cast<int>(wxPD_ESTIMATED_TIME);
+    }
+    EXPORT int expwxPD_REMAINING_TIME()
+    {
+        return static_cast<int>(wxPD_REMAINING_TIME);
+    }
+    EXPORT int expwxPD_SMOOTH()
+    {
+        return static_cast<int>(wxPD_SMOOTH);
     }
     EXPORT int expwxPG_AUTO_SORT()
     {

@@ -2004,6 +2004,76 @@ extern "C"
         self->Resume();
     }
 
+    // wxProgressDialog takes a bool* for the skip flag; the binding passes an
+    // int* so the flag crosses the FFI boundary as 0/1.
+    EXPORT int wxProgressDialog_UpdateWithSkip(wxProgressDialog* self, int value, wxString* message,
+                                               int* skip)
+    {
+        bool skip_value = false;
+        const bool result = self->Update(value, *message, &skip_value);
+        if (skip)
+        {
+            *skip = skip_value ? 1 : 0;
+        }
+        return result;
+    }
+
+    EXPORT int wxProgressDialog_Pulse(wxProgressDialog* self, wxString* message, int* skip)
+    {
+        bool skip_value = false;
+        const bool result = self->Pulse(*message, &skip_value);
+        if (skip)
+        {
+            *skip = skip_value ? 1 : 0;
+        }
+        return result;
+    }
+
+    EXPORT void wxProgressDialog_Delete(wxProgressDialog* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxGenericProgressDialog* wxGenericProgressDialog_Create(wxString* title,
+                                                                   wxString* message, int maximum,
+                                                                   wxWindow* parent, int style)
+    {
+        return new wxGenericProgressDialog(*title, *message, maximum, parent, style);
+    }
+
+    EXPORT int wxGenericProgressDialog_Update(wxGenericProgressDialog* self, int value, int* skip)
+    {
+        bool skip_value = false;
+        const bool result = self->Update(value, wxEmptyString, &skip_value);
+        if (skip)
+        {
+            *skip = skip_value ? 1 : 0;
+        }
+        return result;
+    }
+
+    EXPORT int wxGenericProgressDialog_Pulse(wxGenericProgressDialog* self, wxString* message,
+                                             int* skip)
+    {
+        bool skip_value = false;
+        const bool result = self->Pulse(*message, &skip_value);
+        if (skip)
+        {
+            *skip = skip_value ? 1 : 0;
+        }
+        return result;
+    }
+
+    EXPORT void wxGenericProgressDialog_Resume(wxGenericProgressDialog* self)
+    {
+        self->Resume();
+    }
+
+    EXPORT void wxGenericProgressDialog_Delete(wxGenericProgressDialog* self)
+    {
+        delete self;
+    }
+
     EXPORT void wxGetColourFromUser(wxWindow* parent, wxColour* colInit, wxColour* colour)
     {
         *colour = wxGetColourFromUser(parent, *colInit);

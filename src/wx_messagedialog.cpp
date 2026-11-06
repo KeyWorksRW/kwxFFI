@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/richmsgdlg.h>
+
 // wxMessageDialog inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:
 //   wxWindow_* — base window methods (see wx_window.cpp)
@@ -80,5 +82,43 @@ extern "C"
     EXPORT int wxMessageDialog_SetHelpLabel(wxMessageDialog* self, wxString* label)
     {
         return self->SetHelpLabel(*label);
+    }
+
+    // ---- wxRichMessageDialog (wxMessageDialog with a checkbox and details) ----
+    EXPORT void* wxRichMessageDialog_Create(wxWindow* parent, wxString* message, wxString* caption,
+                                            int style)
+    {
+        return new wxRichMessageDialog(parent, *message, *caption, style);
+    }
+
+    EXPORT void wxRichMessageDialog_ShowCheckBox(wxRichMessageDialog* self, wxString* checkBoxText,
+                                                 bool checked)
+    {
+        self->ShowCheckBox(*checkBoxText, checked);
+    }
+
+    EXPORT int wxRichMessageDialog_IsCheckBoxChecked(wxRichMessageDialog* self)
+    {
+        return self->IsCheckBoxChecked();
+    }
+
+    EXPORT void wxRichMessageDialog_ShowDetailedText(wxRichMessageDialog* self, wxString* text)
+    {
+        self->ShowDetailedText(*text);
+    }
+
+    EXPORT void wxRichMessageDialog_SetFooterText(wxRichMessageDialog* self, wxString* text)
+    {
+        self->SetFooterText(*text);
+    }
+
+    EXPORT void wxRichMessageDialog_SetFooterIcon(wxRichMessageDialog* self, int icon)
+    {
+        self->SetFooterIcon(icon);
+    }
+
+    EXPORT void wxRichMessageDialog_Delete(wxRichMessageDialog* self)
+    {
+        delete self;
     }
 }

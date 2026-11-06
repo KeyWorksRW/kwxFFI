@@ -725,6 +725,65 @@ void kwxModalDialogHook::Exit(wxDialog* dialog)
 }
 
 // ---------------------------------------------------------------------------
+// wxAddRemoveAdaptor
+// ---------------------------------------------------------------------------
+
+kwxAddRemoveAdaptor::kwxAddRemoveAdaptor(void* pObject)
+{
+    m_object = pObject;
+    m_get_items_ctrl_func = nullptr;
+    m_can_add_func = nullptr;
+    m_can_remove_func = nullptr;
+    m_on_add_func = nullptr;
+    m_on_remove_func = nullptr;
+}
+
+wxWindow* kwxAddRemoveAdaptor::GetItemsCtrl() const
+{
+    if (!m_get_items_ctrl_func)
+    {
+        return nullptr;
+    }
+    return static_cast<wxWindow*>(m_get_items_ctrl_func(m_object, nullptr, nullptr));
+}
+
+bool kwxAddRemoveAdaptor::CanAdd() const
+{
+    if (!m_can_add_func)
+    {
+        return false;
+    }
+    return m_can_add_func(m_object, nullptr, nullptr) != 0;
+}
+
+bool kwxAddRemoveAdaptor::CanRemove() const
+{
+    if (!m_can_remove_func)
+    {
+        return false;
+    }
+    return m_can_remove_func(m_object, nullptr, nullptr) != 0;
+}
+
+void kwxAddRemoveAdaptor::OnAdd()
+{
+    if (!m_on_add_func)
+    {
+        return;
+    }
+    m_on_add_func(m_object, nullptr, nullptr);
+}
+
+void kwxAddRemoveAdaptor::OnRemove()
+{
+    if (!m_on_remove_func)
+    {
+        return;
+    }
+    m_on_remove_func(m_object, nullptr, nullptr);
+}
+
+// ---------------------------------------------------------------------------
 // wxTextCompleterSimple
 // ---------------------------------------------------------------------------
 
@@ -1790,6 +1849,58 @@ extern "C"
     EXPORT void wxModalDialogHook_SetOnExit(wxModalDialogHook* self, void* pFunction)
     {
         static_cast<kwxModalDialogHook*>(self)->SetOnExit(pFunction);
+    }
+
+    EXPORT void wxModalDialogHook_Register(wxModalDialogHook* self)
+    {
+        self->Register();
+    }
+
+    EXPORT void wxModalDialogHook_Unregister(wxModalDialogHook* self)
+    {
+        self->Unregister();
+    }
+
+    EXPORT void wxModalDialogHook_Delete(wxModalDialogHook* self)
+    {
+        delete self;
+    }
+
+    // kwxAddRemoveAdaptor ----------------------------------------------------
+
+    EXPORT kwxAddRemoveAdaptor* kwxAddRemoveAdaptor_Create(void* pObject)
+    {
+        return new kwxAddRemoveAdaptor(pObject);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetOnGetItemsCtrl(kwxAddRemoveAdaptor* self, void* pFunction)
+    {
+        self->SetOnGetItemsCtrl(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetOnCanAdd(kwxAddRemoveAdaptor* self, void* pFunction)
+    {
+        self->SetOnCanAdd(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetOnCanRemove(kwxAddRemoveAdaptor* self, void* pFunction)
+    {
+        self->SetOnCanRemove(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetOnAdd(kwxAddRemoveAdaptor* self, void* pFunction)
+    {
+        self->SetOnAdd(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetOnRemove(kwxAddRemoveAdaptor* self, void* pFunction)
+    {
+        self->SetOnRemove(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_Delete(kwxAddRemoveAdaptor* self)
+    {
+        delete self;
     }
 
     // kwxTextCompleterSimple -------------------------------------------------

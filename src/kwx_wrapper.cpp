@@ -131,9 +131,9 @@ extern "C"
     }
 
     // client data
-    EXPORT void* wxEvtHandler_GetClientClosure(void* pObject)
+    EXPORT wxClosure* wxEvtHandler_GetClientClosure(void* pObject)
     {
-        return (void*) ((wxEvtHandler*) pObject)->GetClientObject();
+        return static_cast<wxClosure*>(((wxEvtHandler*) pObject)->GetClientObject());
     }
 
     EXPORT void wxEvtHandler_SetClientClosure(void* pObject, wxClosure* closure)
@@ -328,8 +328,8 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT void* wxEvtHandler_GetClientData(void* pObject)
+    EXPORT wxClientData* wxEvtHandler_GetClientData(void* pObject)
     {
-        return static_cast<wxEvtHandler*>(pObject)->GetClientData();
+        return static_cast<wxClientData*>(static_cast<wxEvtHandler*>(pObject)->GetClientData());
     }
 }

@@ -2,6 +2,37 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/valgen.h>
+
+// wxGenericValidator stores a bool*, but the FFI transfers TBool (an int). This
+// adapter keeps the caller's int-backed flag in sync in both directions.
+class kwxGenericValidatorBool : public wxGenericValidator
+{
+public:
+    explicit kwxGenericValidatorBool(int* value) : wxGenericValidator(&m_value), m_intValue(value)
+    {
+    }
+
+    bool TransferToWindow() override
+    {
+        m_value = (*m_intValue) != 0;
+        return wxGenericValidator::TransferToWindow();
+    }
+
+    bool TransferFromWindow() override
+    {
+        const bool ok = wxGenericValidator::TransferFromWindow();
+        if (ok)
+        {
+            *m_intValue = m_value ? 1 : 0;
+        }
+        return ok;
+    }
+
+private:
+    int* m_intValue;
+    bool m_value = false;
+};
 
 extern "C"
 {
@@ -186,6 +217,26 @@ extern "C"
     EXPORT int wxValidator_IsSilent()
     {
         return wxValidator::IsSilent();
+    }
+
+    EXPORT void* wxGenericValidator_CreateInt(int* value)
+    {
+        return new wxGenericValidator(value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateBool(int* value)
+    {
+        return new kwxGenericValidatorBool(value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateString(wxString* value)
+    {
+        return new wxGenericValidator(value);
+    }
+
+    EXPORT void wxGenericValidator_Delete(wxGenericValidator* pObject)
+    {
+        delete pObject;
     }
 }
 

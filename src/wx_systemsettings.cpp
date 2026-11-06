@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/settings.h>
 
 extern "C"
 {
@@ -36,5 +37,20 @@ extern "C"
         // wxSystemAppearance is only obtainable by value and has a private constructor.
         wxSystemAppearance const value = wxSystemSettings::GetAppearance();
         return new wxSystemAppearance(value);
+    }
+
+    EXPORT int wxSystemAppearance_IsDark(wxSystemAppearance* pObject)
+    {
+        return pObject->IsDark();
+    }
+
+    EXPORT int wxSystemAppearance_IsUsingDarkBackground(wxSystemAppearance* pObject)
+    {
+        return pObject->IsUsingDarkBackground();
+    }
+
+    EXPORT wxString* wxSystemAppearance_GetName(wxSystemAppearance* pObject)
+    {
+        return new wxString(pObject->GetName());
     }
 }

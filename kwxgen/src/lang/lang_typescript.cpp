@@ -4,7 +4,7 @@
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 /////////////////////////////////////////////////////////////////////////////
-// CR: [10-19-2026]
+// CR: [11-06-2026]
 
 // Generated file structure:
 //   kwx_ffi_gen.ts          — dlopen with every C symbol (classes + free functions +
@@ -464,6 +464,17 @@ struct WrapParam
     return class_name;
 }
 
+// True when a non-factory method returns TClass(SomeClass) and SomeClass is a generated
+// wrapper class.  Such a return is wrapped into a non-owning wrapper instance instead of
+// being handed back as a raw pointer.
+[[nodiscard]] static bool
+    IsWrappedClassReturn(const FunctionDecl& func,
+                         const std::unordered_set<std::string>& wrapped_classes)
+{
+    return func.return_macro == "TClass" && !func.return_arg.empty() &&
+           wrapped_classes.contains(func.return_arg);
+}
+
 // Return the TypeScript return type annotation for a method in the class wrapper layer.
 // class_name is the enclosing class (used when return is TClass/TSelf → ClassName | null).
 [[nodiscard]] static std::string
@@ -482,6 +493,12 @@ struct WrapParam
         if (IsFactoryMethod(func) && !class_name.empty())
         {
             return EffectiveFactoryClass(func, class_name, wrapped_classes) + " | null";
+        }
+        // Non-factory TClass(SomeClass) returns a wrapper around a pointer wxWidgets owns.
+        // TSelf/TClassRef keep the raw Pointer contract.
+        if (IsWrappedClassReturn(func, wrapped_classes))
+        {
+            return func.return_arg + " | null";
         }
         return "Pointer";
     }
@@ -543,6 +560,16 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
         output << indent << "if (rawPtr === null) return null;\n";
         output << indent << "return new "
                << EffectiveFactoryClass(func, class_name, wrapped_classes) << "(rawPtr);\n";
+        return;
+    }
+
+    // Non-factory TClass(SomeClass) method: wrap the raw pointer non-owningly, matching the
+    // wrapWx<Class> factory semantics.
+    if (!class_name.empty() && IsWrappedClassReturn(func, wrapped_classes))
+    {
+        output << indent << "const rawPtr = " << call_expr << ";\n";
+        output << indent << "if (rawPtr === null) return null;\n";
+        output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
         return;
     }
 
@@ -877,14 +904,14 @@ struct MemberNameResolution
 
 // Compute the member signature exactly as EmitInstanceMethod emits it.
 // (TSelf, or a TClass(ClassName) pseudo-self first parameter) are not visible parameters.
-[[nodiscard]] static AncestorMemberInfo BuildAncestorMemberInfo(const FunctionDecl& func,
-                                                                const std::string& owner)
+[[nodiscard]] static AncestorMemberInfo
+    BuildAncestorMemberInfo(const FunctionDecl& func, const std::string& owner,
+                            const std::unordered_set<std::string>& wrapped_classes)
 {
     AncestorMemberInfo info;
-    // Factory methods never reach this point (callers skip them), so the wrapped-class
-    // filter is irrelevant here.
-    const std::unordered_set<std::string> no_wrapped_classes;
-    info.return_type = WrapReturnType(func, owner, no_wrapped_classes);
+    // Map the return exactly as the owning method does: an inherited stub whose annotation
+    // disagrees with the base class breaks TypeScript's override compatibility (TS2416).
+    info.return_type = WrapReturnType(func, owner, wrapped_classes);
 
     const bool pseudo_self = IsPseudoSelf(func);
     for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
@@ -968,7 +995,8 @@ struct MemberNameResolution
                 declares_delete = true;
                 continue;
             }
-            AncestorMemberInfo info = BuildAncestorMemberInfo(func, parent_class.name);
+            AncestorMemberInfo info =
+                BuildAncestorMemberInfo(func, parent_class.name, wrapped_classes);
             info.origin_name = TsMethodName(parent_class.name, func);
             candidates.emplace_back(info.origin_name, std::move(info));
         }
@@ -1014,7 +1042,8 @@ struct MemberNameResolution
                     {
                         continue;  // this ancestor already exposes (or re-emits) the name
                     }
-                    AncestorMemberInfo info = BuildAncestorMemberInfo(func, mixin_name);
+                    AncestorMemberInfo info =
+                        BuildAncestorMemberInfo(func, mixin_name, wrapped_classes);
                     info.origin_name = member_name;
                     candidates.emplace_back(member_name, std::move(info));
                 }
@@ -1592,7 +1621,7 @@ static std::string EmitInstanceMethod(std::ostream& output, const AncestorMember
         }
     }
 
-    AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, method_owner);
+    AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, method_owner, wrapped_classes);
     own_info.origin_name = original_name;
     const std::vector<AncestorMemberInfo> own_overloads { own_info };
     const MemberNameResolution resolution =
@@ -2396,6 +2425,9 @@ void TypeScriptEmitter::EmitClassFile(
     }
 
     // --- Regular methods ---
+    // Classes named by an emitted return type must be imported at the top of the file.
+    // Both the method wrappers here and the factories below append to this set.
+    std::set<std::string> return_imports;
     std::set<std::string> emitted_instance_names;
     for (const auto& func: cls.methods)
     {
@@ -2429,6 +2461,10 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string emitted_name = EmitInstanceMethod(
             body, ancestors, cls.name, func, emitted_instance_names, wrapped_classes);
         emitted_instance_names.insert(emitted_name);
+        if (IsWrappedClassReturn(func, wrapped_classes))
+        {
+            return_imports.insert(func.return_arg);
+        }
     }
 
     // --- Mixin methods ---
@@ -2471,6 +2507,10 @@ void TypeScriptEmitter::EmitClassFile(
                 const std::string emitted_name = EmitInstanceMethod(
                     body, ancestors, mixin_name, func, emitted_instance_names, wrapped_classes);
                 emitted_instance_names.insert(emitted_name);
+                if (IsWrappedClassReturn(func, wrapped_classes))
+                {
+                    return_imports.insert(func.return_arg);
+                }
             }
         }
     }
@@ -2482,7 +2522,6 @@ void TypeScriptEmitter::EmitClassFile(
     // member to be assignable to the ancestor's static side (TS2417), which is
     // impossible when each class declares a different Create() signature.
     std::set<std::string> emitted_factory_names;
-    std::set<std::string> factory_return_imports;
     for (const auto& func: cls.methods)
     {
         if (!IsValidFunction(func))
@@ -2510,7 +2549,7 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string created_class = EffectiveFactoryClass(func, cls.name, wrapped_classes);
         if (created_class != cls.name && created_class != parent_name)
         {
-            factory_return_imports.insert(created_class);
+            return_imports.insert(created_class);
         }
 
         std::vector<WrapParam> wrap_params;
@@ -2577,8 +2616,13 @@ void TypeScriptEmitter::EmitClassFile(
         output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
                << "\";\n";
     }
-    for (const std::string& imported_class: factory_return_imports)
+    for (const std::string& imported_class: return_imports)
     {
+        // A class file never imports itself, and the extends target is imported above.
+        if (imported_class == cls.name || imported_class == parent_name)
+        {
+            continue;
+        }
         output << "import { " << imported_class << " } from \"" << TsClassImportPath(imported_class)
                << "\";\n";
     }

@@ -12,10 +12,25 @@ extern "C"
 {
     // Constructor
     EXPORT wxPropertySheetDialog* wxPropertySheetDialog_Create(wxWindow* parent, int id,
-                                                               wxString* title, int x, int y, int width,
-                                                               int height, int style)
+                                                               wxString* title, int x, int y,
+                                                               int width, int height, int style)
     {
-        return new wxPropertySheetDialog(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
+        return new wxPropertySheetDialog(parent, id, *title, wxPoint(x, y), wxSize(width, height),
+                                         style);
+    }
+
+    // Default constructor for two-phase construction: allows SetSheetStyle before CreateEx
+    EXPORT wxPropertySheetDialog* wxPropertySheetDialog_CreateDefault()
+    {
+        return new wxPropertySheetDialog();
+    }
+
+    // Second phase of two-phase construction
+    EXPORT int wxPropertySheetDialog_CreateEx(wxPropertySheetDialog* self, wxWindow* parent, int id,
+                                              wxString* title, int x, int y, int width, int height,
+                                              int style)
+    {
+        return self->Create(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
     }
 
     // Create buttons

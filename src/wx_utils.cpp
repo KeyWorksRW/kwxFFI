@@ -544,6 +544,23 @@ namespace kwx
             return ::wxGetSingleChoiceIndex(*message, *caption, count, choices, parent);
         }
 
+        EXPORT int wxGetSingleChoiceIndexEx(const wxString* message, const wxString* caption, int n,
+                                            const wxArrayString* choices, wxWindow* parent, int x,
+                                            int y, int centre, int width, int height,
+                                            int initialSelection)
+        {
+            std::vector<wxString> items;
+            const size_t item_count = choices->GetCount();
+            items.reserve(item_count);
+            for (size_t index = 0; index < item_count; ++index)
+            {
+                items.push_back((*choices)[index]);
+            }
+            const wxString* strings = items.empty() ? nullptr : items.data();
+            return ::wxGetSingleChoiceIndex(*message, *caption, n, strings, parent, x, y,
+                                            centre != 0, width, height, initialSelection);
+        }
+
         EXPORT void wxBeginBusyCursor()
         {
             ::wxBeginBusyCursor();
@@ -709,6 +726,23 @@ namespace kwx
                                           count, choices, parent);
         }
 
+        EXPORT int wxGetSelectedChoicesEx(void* selections, const wxString* message,
+                                          const wxString* caption, int n,
+                                          const wxArrayString* choices, wxWindow* parent, int x,
+                                          int y, int centre, int width, int height)
+        {
+            std::vector<wxString> items;
+            const size_t item_count = choices->GetCount();
+            items.reserve(item_count);
+            for (size_t index = 0; index < item_count; ++index)
+            {
+                items.push_back((*choices)[index]);
+            }
+            const wxString* strings = items.empty() ? nullptr : items.data();
+            return ::wxGetSelectedChoices(*static_cast<wxArrayInt*>(selections), *message, *caption,
+                                          n, strings, parent, x, y, centre != 0, width, height);
+        }
+
         EXPORT wxString* wxGetSingleChoice(const wxString* message, const wxString* caption,
                                            const wxString* choices, int count, wxWindow* parent)
         {
@@ -721,6 +755,23 @@ namespace kwx
         {
             return ::wxGetSingleChoiceData(*message, *caption, count, choices, &client_data,
                                            parent);
+        }
+
+        EXPORT void* wxGetSingleChoiceDataEx(const wxString* message, const wxString* caption,
+                                             int n, const wxArrayString* choices, void* client_data,
+                                             wxWindow* parent, int x, int y, int centre, int width,
+                                             int height, int initialSelection)
+        {
+            std::vector<wxString> items;
+            const size_t item_count = choices->GetCount();
+            items.reserve(item_count);
+            for (size_t index = 0; index < item_count; ++index)
+            {
+                items.push_back((*choices)[index]);
+            }
+            const wxString* strings = items.empty() ? nullptr : items.data();
+            return ::wxGetSingleChoiceData(*message, *caption, n, strings, &client_data, parent, x,
+                                           y, centre != 0, width, height, initialSelection);
         }
 
         EXPORT wxString* wxGetTranslation(const wxString* str)

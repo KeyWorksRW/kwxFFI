@@ -14,9 +14,19 @@ extern "C"
         self->SetBackgroundColour(*colour, end_colour);
     }
 
+    EXPORT void wxRichToolTip_SetBackgroundColourSingle(wxRichToolTip* self, wxColour* colour)
+    {
+        self->SetBackgroundColour(*colour);
+    }
+
     EXPORT void wxRichToolTip_SetIcon(wxRichToolTip* self, int icon)
     {
         self->SetIcon(icon);
+    }
+
+    EXPORT void wxRichToolTip_SetIconBitmap(wxRichToolTip* self, wxBitmap* icon)
+    {
+        self->SetIcon(*icon);
     }
 
     EXPORT void wxRichToolTip_SetTimeout(wxRichToolTip* self, unsigned milliseconds,

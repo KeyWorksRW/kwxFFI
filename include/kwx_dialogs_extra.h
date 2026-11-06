@@ -65,6 +65,9 @@ TClass(wxFileDialogCustomControl)
 TClass(wxFileDialogCustomControl)
     wxFileDialogCustomize_AddChoice(TSelf(wxFileDialogCustomize) pObject, TArrayString(n, strings));
 TClass(wxFileDialogCustomControl)
+    wxFileDialogCustomize_AddRadioButton(TSelf(wxFileDialogCustomize) pObject,
+                                         TClass(wxString) label);
+TClass(wxFileDialogCustomControl)
     wxFileDialogCustomize_AddStaticText(TSelf(wxFileDialogCustomize) pObject,
                                         TClass(wxString) label);
 TClass(wxFileDialogCustomControl)
@@ -78,6 +81,8 @@ void wxFileDialogCustomizeHook_Delete(TSelf(wxFileDialogCustomizeHook) pObject);
 TClassDefExtend(wxGenericAboutDialog, wxDialog) TClass(wxGenericAboutDialog)
     wxGenericAboutDialog_Create(TClass(wxAboutDialogInfo) info, TClass(wxWindow) parent);
 TBool wxGenericAboutDialog_AddControl(TSelf(wxGenericAboutDialog) pObject, TClass(wxWindow) win);
+TClass(wxWindow) wxGenericAboutDialog_GetCustomControlParent(TSelf(wxGenericAboutDialog) pObject);
+TBool wxGenericAboutDialog_AddText(TSelf(wxGenericAboutDialog) pObject, TClass(wxString) text);
 int wxGenericAboutDialog_ShowModal(TSelf(wxGenericAboutDialog) pObject);
 void wxGenericAboutDialog_Delete(TSelf(wxGenericAboutDialog) pObject);
 
@@ -128,7 +133,9 @@ TClassDef(wxRichToolTip) TClass(wxRichToolTip)
 void wxRichToolTip_SetTipKind(TSelf(wxRichToolTip) pObject, int tipKind);
 void wxRichToolTip_SetBackgroundColour(TSelf(wxRichToolTip) pObject, TClass(wxColour) colour,
                                        TClass(wxColour) colour_end);
+void wxRichToolTip_SetBackgroundColourSingle(TSelf(wxRichToolTip) pObject, TClass(wxColour) colour);
 void wxRichToolTip_SetIcon(TSelf(wxRichToolTip) pObject, int icon);
+void wxRichToolTip_SetIconBitmap(TSelf(wxRichToolTip) pObject, TClass(wxBitmap) icon);
 void wxRichToolTip_SetTimeout(TSelf(wxRichToolTip) pObject, unsigned milliseconds,
                               unsigned show_delay);
 void wxRichToolTip_ShowFor(TSelf(wxRichToolTip) pObject, TClass(wxWindow) win, TClass(wxRect) rect);
@@ -150,3 +157,55 @@ void wxTaskBarButton_SetThumbnailClip(TSelf(wxTaskBarButton) pObject, TRect(x, y
 void wxTaskBarButton_SetThumbnailTooltip(TSelf(wxTaskBarButton) pObject, TClass(wxString) tooltip);
 void wxTaskBarButton_Show(TSelf(wxTaskBarButton) pObject, TBool show);
 void wxTaskBarButton_Delete(TSelf(wxTaskBarButton) pObject);
+
+TClassDefExtend(wxRichMessageDialog, wxMessageDialog) TClass(wxRichMessageDialog)
+    wxRichMessageDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
+                               TClass(wxString) caption, int style);
+void wxRichMessageDialog_ShowCheckBox(TSelf(wxRichMessageDialog) pObject,
+                                      TClass(wxString) checkBoxText, TBool checked);
+TBool wxRichMessageDialog_IsCheckBoxChecked(TSelf(wxRichMessageDialog) pObject);
+void wxRichMessageDialog_ShowDetailedText(TSelf(wxRichMessageDialog) pObject,
+                                          TClass(wxString) text);
+void wxRichMessageDialog_SetFooterText(TSelf(wxRichMessageDialog) pObject, TClass(wxString) text);
+void wxRichMessageDialog_SetFooterIcon(TSelf(wxRichMessageDialog) pObject, int icon);
+void wxRichMessageDialog_Delete(TSelf(wxRichMessageDialog) pObject);
+
+TClassDefExtend(wxAddRemoveCtrl, wxPanel) TClass(wxAddRemoveCtrl)
+    wxAddRemoveCtrl_Create(TClass(wxWindow) parent, int id, TPoint(x, y), TSize(width, height),
+                           int style);
+void wxAddRemoveCtrl_SetAdaptor(TSelf(wxAddRemoveCtrl) pObject, void* adaptor);
+void wxAddRemoveCtrl_SetButtonsToolTips(TSelf(wxAddRemoveCtrl) pObject, TClass(wxString) addtip,
+                                        TClass(wxString) removetip);
+void wxAddRemoveCtrl_Delete(TSelf(wxAddRemoveCtrl) pObject);
+
+TClassDef(wxAppProgressIndicator) TClass(wxAppProgressIndicator)
+    wxAppProgressIndicator_Create(TClass(wxWindow) parent, int maxValue);
+TBool wxAppProgressIndicator_IsAvailable(TSelf(wxAppProgressIndicator) pObject);
+void wxAppProgressIndicator_SetValue(TSelf(wxAppProgressIndicator) pObject, int value);
+void wxAppProgressIndicator_SetRange(TSelf(wxAppProgressIndicator) pObject, int range);
+void wxAppProgressIndicator_Pulse(TSelf(wxAppProgressIndicator) pObject);
+void wxAppProgressIndicator_Delete(TSelf(wxAppProgressIndicator) pObject);
+
+TClassDefExtend(wxRearrangeDialog, wxDialog) TClass(wxRearrangeDialog)
+    wxRearrangeDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
+                             TClass(wxString) title, TClass(wxArrayInt) order,
+                             TClass(wxArrayString) items, TPoint(x, y));
+TClass(wxArrayInt) wxRearrangeDialog_GetOrder(TSelf(wxRearrangeDialog) pObject);
+TClass(wxRearrangeList) wxRearrangeDialog_GetList(TSelf(wxRearrangeDialog) pObject);
+void wxRearrangeDialog_AddExtraControls(TSelf(wxRearrangeDialog) pObject, TClass(wxWindow) win);
+void wxRearrangeDialog_Delete(TSelf(wxRearrangeDialog) pObject);
+
+TClassDefExtend(wxColourDialogEvent, wxCommandEvent) TClass(wxColourDialogEvent)
+    wxColourDialogEvent_Create(int id, TClass(wxColourDialog) dialog, TClass(wxColour) colour);
+TClass(wxColour) wxColourDialogEvent_GetColour(TSelf(wxColourDialogEvent) pObject);
+TClass(wxColourDialog) wxColourDialogEvent_GetDialog(TSelf(wxColourDialogEvent) pObject);
+void wxColourDialogEvent_Delete(TSelf(wxColourDialogEvent) pObject);
+void wxColourDialog_Delete(TSelf(wxColourDialog) pObject);
+
+TClassDefExtend(wxWindowModalDialogEvent, wxCommandEvent) TClass(wxWindowModalDialogEvent)
+    wxWindowModalDialogEvent_Create(int id, TClass(wxDialog) dialog);
+TClass(wxDialog) wxWindowModalDialogEvent_GetDialog(TSelf(wxWindowModalDialogEvent) pObject);
+void wxWindowModalDialogEvent_Delete(TSelf(wxWindowModalDialogEvent) pObject);
+
+TBool wxFileDialog_SetExtraControlCreator(TSelf(wxFileDialog) pObject, void* pFunction);
+void wxFontDialog_Delete(TSelf(wxFontDialog) pObject);

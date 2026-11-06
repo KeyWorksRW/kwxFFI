@@ -222,7 +222,8 @@ TBool wxDragImage_Show(TSelf(wxDragImage) pObject);
 TClassDef(wxEvent) void* wxEvent_GetCallbackUserData(TSelf(wxEvent) pObject);
 void wxEvent_SetCallbackUserData(TSelf(wxEvent) pObject, TClass(wxObject) obj);
 
-TClassDef(wxEvtHandler) void* wxEvtHandler_GetClientClosure(TSelf(wxEvtHandler) pObject);
+TClassDef(wxEvtHandler) TClass(wxClosure)
+    wxEvtHandler_GetClientClosure(TSelf(wxEvtHandler) pObject);
 void wxEvtHandler_SetClientClosure(TSelf(wxEvtHandler) pObject, TClass(wxClosure) closure);
 
 // Phase 5: the <Base>_SetOn spellings the portability matrix resolves an ovh
@@ -245,7 +246,7 @@ void wxFileOutputStream_Delete(TSelf(wxFileOutputStream) pObject);
 TBool wxFileOutputStream_IsOk(TSelf(wxFileOutputStream) pObject);
 
 TClassDef(wxFrame) void wxFrame_Centre(TSelf(wxFrame) pObject, int orientation);
-void* wxFrame_GetIcon(TSelf(wxFrame) pObject);
+TClass(wxIcon) wxFrame_GetIcon(TSelf(wxFrame) pObject);
 TClass(wxString) wxFrame_GetTitle(TSelf(wxFrame) pObject);
 TBool wxFrame_Iconize(TSelf(wxFrame) pObject);
 TBool wxFrame_IsFullScreen(TSelf(wxFrame) pObject);
@@ -703,22 +704,30 @@ int wxMouseEvent_GetWheelRotation(TSelf(wxMouseEvent) pObject);
 TClassDef(wxNotebook) void wxNotebook_AssignImageList(TSelf(wxNotebook) pObject,
                                                       TClass(wxImageList) imageList);
 
-TClassDef(wxNotificationMessage) TBool
+TClassDefExtend(wxNotificationMessage, wxEvtHandler) TBool
     wxNotificationMessage_AddAction(TSelf(wxNotificationMessage) pObject, int actionid,
                                     TClass(wxString) label);
 TBool wxNotificationMessage_Close(TSelf(wxNotificationMessage) pObject);
-void* wxNotificationMessage_Create(TClass(wxString) title, TClass(wxString) message,
-                                   TClass(wxWindow) parent, int flags);
+TClass(wxNotificationMessage)
+    wxNotificationMessage_Create(TClass(wxString) title, TClass(wxString) message,
+                                 TClass(wxWindow) parent, int flags);
 void wxNotificationMessage_Delete(TSelf(wxNotificationMessage) pObject);
 TBool wxNotificationMessage_MSWUseToasts(TClass(wxString) shortcutPath, TClass(wxString) appId);
 void wxNotificationMessage_SetFlags(TSelf(wxNotificationMessage) pObject, int flags);
 void wxNotificationMessage_SetIcon(TSelf(wxNotificationMessage) pObject, TClass(wxIcon) icon);
+void wxNotificationMessage_SetIconBitmap(TSelf(wxNotificationMessage) pObject,
+                                         TClass(wxBitmap) icon);
 void wxNotificationMessage_SetMessage(TSelf(wxNotificationMessage) pObject,
                                       TClass(wxString) message);
 void wxNotificationMessage_SetParent(TSelf(wxNotificationMessage) pObject, TClass(wxWindow) parent);
 void wxNotificationMessage_SetTitle(TSelf(wxNotificationMessage) pObject, TClass(wxString) title);
 TBool wxNotificationMessage_Show(TSelf(wxNotificationMessage) pObject, int timeout);
 TBool wxNotificationMessage_UseTaskBarIcon(TClass(wxTaskBarIcon) icon);
+
+TClassDefExtend(wxGenericNotificationMessage, wxNotificationMessage)
+    TClass(wxGenericNotificationMessage)
+        wxGenericNotificationMessage_Create(TClass(wxString) title, TClass(wxString) message,
+                                            TClass(wxWindow) parent);
 
 TClassDef(wxObject) void wxObject_Delete(TSelf(wxObject) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
@@ -748,7 +757,8 @@ void* wxOwnerDrawnComboBox_CreateWithChoices(TClass(wxWindow) parent, int id,
 void wxOwnerDrawnComboBox_Delete(TSelf(wxOwnerDrawnComboBox) pObject, unsigned int index);
 int wxOwnerDrawnComboBox_FindString(TSelf(wxOwnerDrawnComboBox) pObject, TClass(wxString) str,
                                     TBool caseSensitive);
-void* wxOwnerDrawnComboBox_GetClientData(TSelf(wxOwnerDrawnComboBox) pObject, unsigned int index);
+TClass(wxClientData)
+    wxOwnerDrawnComboBox_GetClientData(TSelf(wxOwnerDrawnComboBox) pObject, unsigned int index);
 unsigned int wxOwnerDrawnComboBox_GetCount(TSelf(wxOwnerDrawnComboBox) pObject);
 int wxOwnerDrawnComboBox_GetSelection(TSelf(wxOwnerDrawnComboBox) pObject);
 TClass(wxString)
@@ -811,15 +821,28 @@ void wxPrintout_SetPageSizePixels(void* pObject, int width, int height);
 void wxPrintout_SetPPIPrinter(void* pObject, int x, int y);
 void wxPrintout_SetPPIScreen(void* pObject, int x, int y);
 
-TClassDef(wxProgressDialog) TClass(wxProgressDialog)
+TClassDefExtend(wxProgressDialog, wxDialog) TClass(wxProgressDialog)
     wxProgressDialog_Create(TClass(wxString) title, TClass(wxString) message, int max,
                             TClass(wxWindow) parent, int style);
+void wxProgressDialog_Delete(TSelf(wxProgressDialog) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxProgressDialog_Fit(TSelf(wxProgressDialog) pObject);
 void wxProgressDialog_Resume(TSelf(wxProgressDialog) pObject);
 TBool wxProgressDialog_Update(TSelf(wxProgressDialog) pObject, int value);
 TBool wxProgressDialog_UpdateWithMessage(TSelf(wxProgressDialog) pObject, int value,
                                          TClass(wxString) message);
+TBool wxProgressDialog_UpdateWithSkip(TSelf(wxProgressDialog) pObject, int value,
+                                      TClass(wxString) message, int* skip);
+TBool wxProgressDialog_Pulse(TSelf(wxProgressDialog) pObject, TClass(wxString) message, int* skip);
+
+TClassDefExtend(wxGenericProgressDialog, wxDialog) TClass(wxGenericProgressDialog)
+    wxGenericProgressDialog_Create(TClass(wxString) title, TClass(wxString) message, int maximum,
+                                   TClass(wxWindow) parent, int style);
+TBool wxGenericProgressDialog_Update(TSelf(wxGenericProgressDialog) pObject, int value, int* skip);
+TBool wxGenericProgressDialog_Pulse(TSelf(wxGenericProgressDialog) pObject,
+                                    TClass(wxString) message, int* skip);
+void wxGenericProgressDialog_Resume(TSelf(wxGenericProgressDialog) pObject);
+void wxGenericProgressDialog_Delete(TSelf(wxGenericProgressDialog) pObject);
 
 TClassDef(wxRect) void* wxRect_Create(int x, int y, int width, int height);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
