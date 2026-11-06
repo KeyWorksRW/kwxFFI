@@ -25,6 +25,8 @@ private:
     static void GenerateConstants(const ParsedFFI& parsed_ffi,
                                   const std::filesystem::path& out_dir);
     static void GenerateEvents(const ParsedFFI& parsed_ffi, const std::filesystem::path& out_dir);
+    static void GenerateEventTypes(const ParsedFFI& parsed_ffi,
+                                   const std::filesystem::path& out_dir);
     static void GenerateKeys(const ParsedFFI& parsed_ffi, const std::filesystem::path& out_dir);
     static size_t GenerateClassFiles(const ParsedFFI& parsed_ffi,
                                      const std::filesystem::path& out_dir);

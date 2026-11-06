@@ -28,7 +28,8 @@ constexpr std::size_t COMMENT_BANNER_WIDTH = 70;
 // File header / preamble helpers
 // -------------------------------------------------------------------------
 
-constexpr size_t kFixedFileCount = 6;  // cgo_glue, helpers, constants, events, keys, functions
+constexpr size_t kFixedFileCount =
+    7;  // cgo_glue, helpers, constants, events, event_types, keys, functions
 
 // Determine the Go type expression for a constant's return type.
 // Returns the Go wrapper around the C call, e.g., "int(C.expwxFOO())"
@@ -108,7 +109,8 @@ static const std::unordered_set<std::string> kHandMaintainedFreeFunctions = {
 {
     return filename == "cgo_glue_gen.go" || filename == "helpers_gen.go" ||
            filename == "constants_gen.go" || filename == "events_gen.go" ||
-           filename == "keys_gen.go" || filename == "functions_gen.go";
+           filename == "event_types_gen.go" || filename == "keys_gen.go" ||
+           filename == "functions_gen.go";
 }
 
 [[nodiscard]] static bool EndsWith(const std::string& value, const std::string& suffix)
@@ -880,6 +882,23 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
         return "string";
     }
 
+    // TClass(wxSize|wxPoint|wxRect) → owning Go value types
+    if (func_decl.return_macro == "TClass")
+    {
+        if (func_decl.return_arg == "wxSize")
+        {
+            return "Size";
+        }
+        if (func_decl.return_arg == "wxPoint")
+        {
+            return "Point";
+        }
+        if (func_decl.return_arg == "wxRect")
+        {
+            return "Rect";
+        }
+    }
+
     // TClass(wxFoo) → unsafe.Pointer
     if (func_decl.return_macro == "TClass" || func_decl.return_macro == "TSelf")
     {
@@ -961,11 +980,42 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
     return "int";
 }
 
+// Go converter for heap-allocated value-class returns. The C wrapper hands back a
+// new wxSize/wxPoint/wxRect, so the converter copies the fields and frees it.
+// Returns an empty string for every other return type.
+[[nodiscard]] static std::string ValueClassFromPtrConverter(const FunctionDecl& func_decl)
+{
+    if (func_decl.return_macro != "TClass")
+    {
+        return "";
+    }
+    if (func_decl.return_arg == "wxSize")
+    {
+        return "sizeFromPtr";
+    }
+    if (func_decl.return_arg == "wxPoint")
+    {
+        return "pointFromPtr";
+    }
+    if (func_decl.return_arg == "wxRect")
+    {
+        return "rectFromPtr";
+    }
+    return "";
+}
+
 // Check if a return type needs the "unsafe" import
 [[nodiscard]] static bool ReturnNeedsUnsafe(const FunctionDecl& func_decl)
 {
     // TClass(wxString) → Go "string", not unsafe.Pointer
     if (func_decl.return_macro == "TClass" && func_decl.return_arg == "wxString")
+    {
+        return false;
+    }
+    // TClass(wxSize|wxPoint|wxRect) → Go value type, no unsafe.Pointer in the signature
+    if (func_decl.return_macro == "TClass" &&
+        (func_decl.return_arg == "wxSize" || func_decl.return_arg == "wxPoint" ||
+         func_decl.return_arg == "wxRect"))
     {
         return false;
     }
@@ -980,50 +1030,6 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
     if (func_decl.return_type.find('*') != std::string::npos)
     {
         return true;
-    }
-    return false;
-}
-
-// Check if any method in the class needs the "unsafe" import
-[[nodiscard]] static bool ClassNeedsUnsafe(const ClassInfo& class_info)
-{
-    for (auto& method: class_info.methods)
-    {
-        // True constructors emit *ClassName in the class file (not unsafe.Pointer)
-        // — no explicit unsafe.Pointer in source text, so don't count them.
-        const bool is_true_constructor =
-            method.is_constructor && !method.has_self && method.return_type != "TBool";
-        if (!is_true_constructor && ReturnNeedsUnsafe(method))
-        {
-            return true;
-        }
-        const bool pseudo_self = IsPseudoSelf(method);
-        bool seen_self = false;
-        for (size_t param_index = 0; param_index < method.params.size(); ++param_index)
-        {
-            const Param& param = method.params[param_index];
-            if (param.macro_name == "TSelf")
-            {
-                if (!seen_self)
-                {
-                    seen_self = true;
-                    continue;  // first TSelf is receiver, not a param
-                }
-                return true;  // additional TSelf emitted as unsafe.Pointer
-            }
-            if (param_index == 0 && pseudo_self)
-            {
-                continue;  // TClass(OwnClass) receiver, not a param
-            }
-            const std::vector<GoParam> go_params = ConvertParam(param);
-            for (const auto& go_param: go_params)
-            {
-                if (go_param.needs_unsafe)
-                {
-                    return true;
-                }
-            }
-        }
     }
     return false;
 }
@@ -1484,6 +1490,14 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
         output << "\tretPtr := " << glue_call << "\n";
         output << "\treturn WxStringToGoAndFree(retPtr)\n";
     }
+    else if (const std::string value_converter = ValueClassFromPtrConverter(func_decl);
+             !value_converter.empty())
+    {
+        // Glue returns a heap-allocated wxSize/wxPoint/wxRect*; the converter
+        // copies its fields and frees it, so no pointer escapes to Go.
+        output << "\tretPtr := " << glue_call << "\n";
+        output << "\treturn " << value_converter << "(retPtr)\n";
+    }
     else
     {
         // Glue already returns the correct Go type
@@ -1553,6 +1567,14 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
     {
         output << "\tretPtr := " << glue_call << "\n";
         output << "\treturn WxStringToGoAndFree(retPtr)\n";
+    }
+    else if (const std::string value_converter = ValueClassFromPtrConverter(func_decl);
+             !value_converter.empty())
+    {
+        // Glue returns a heap-allocated wxSize/wxPoint/wxRect*; the converter
+        // copies its fields and frees it, so no pointer escapes to Go.
+        output << "\tretPtr := " << glue_call << "\n";
+        output << "\treturn " << value_converter << "(retPtr)\n";
     }
     else
     {
@@ -1670,6 +1692,7 @@ void GoEmitter::Generate(const ParsedFFI& parsed_ffi, const fs::path& out_dir)
     GenerateHelpers(out_dir);
     GenerateConstants(parsed_ffi, out_dir);
     GenerateEvents(parsed_ffi, out_dir);
+    GenerateEventTypes(parsed_ffi, out_dir);
     GenerateKeys(parsed_ffi, out_dir);
     GenerateFreeFunctions(parsed_ffi, out_dir);
     const size_t class_file_count = GenerateClassFiles(parsed_ffi, out_dir);
@@ -1709,7 +1732,8 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "// All generated non-window class structs embed this type directly or "
               "indirectly.\n";
     writer << "type BaseObject struct {\n";
-    writer << "\tptr unsafe.Pointer\n";
+    writer << "\tptr      unsafe.Pointer\n";
+    writer << "\tborrowed bool\n";
     writer << "}\n";
     writer << "\n";
     writer << "// Ptr returns the underlying wxWidgets object pointer.\n";
@@ -1717,6 +1741,13 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "\n";
     writer << "// SetPtr sets the underlying wxWidgets object pointer.\n";
     writer << "func (o *BaseObject) SetPtr(p unsafe.Pointer) { o.ptr = p }\n";
+    writer << "\n";
+    writer << "// Borrowed reports whether this wrapper is a non-owning view of a native "
+              "object.\n";
+    writer << "func (o *BaseObject) Borrowed() bool { return o.borrowed }\n";
+    writer << "\n";
+    writer << "// SetBorrowed marks the wrapper as non-owning, so Delete() does not free it.\n";
+    writer << "func (o *BaseObject) SetBorrowed(b bool) { o.borrowed = b }\n";
     writer << "\n";
     writer << "// BaseWindow is the root type for all window-derived wxWidgets objects.\n";
     writer << "// All generated window class structs embed this type directly or "
@@ -1891,6 +1922,96 @@ void GoEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& out_
 }
 
 // -------------------------------------------------------------------------
+// event_types_gen.go — downcast helpers from *Event to a concrete event type
+// -------------------------------------------------------------------------
+
+// True when walking parent_map from `class_name` reaches "wxEvent".
+[[nodiscard]] static bool
+    IsEventDerived(const std::string& class_name,
+                   const std::unordered_map<std::string, std::string>& parent_map)
+{
+    std::unordered_set<std::string> visited;
+    std::string current = class_name;
+    while (visited.insert(current).second)
+    {
+        const auto iter = parent_map.find(current);
+        if (iter == parent_map.end())
+        {
+            return false;
+        }
+        if (iter->second == "wxEvent")
+        {
+            return true;
+        }
+        current = iter->second;
+    }
+    return false;
+}
+
+void GoEmitter::GenerateEventTypes(const ParsedFFI& parsed_ffi, const fs::path& out_dir)
+{
+    const fs::path path = out_dir / "event_types_gen.go";
+    ConditionalFileWriter writer(path);
+    if (!writer.is_open())
+    {
+        std::println(stderr, "Error: cannot create {}", path.string());
+        return;
+    }
+
+    const std::unordered_set<std::string> class_types = CollectClassTypeNames(parsed_ffi);
+
+    std::vector<std::string> go_names;
+    for (const auto& class_decl: parsed_ffi.classes)
+    {
+        const std::string& c_name = class_decl.name;
+        if (c_name == "wxEvent" || kHandMaintainedClasses.contains(c_name))
+        {
+            continue;
+        }
+        if (!IsEventDerived(c_name, parsed_ffi.parent_map))
+        {
+            continue;
+        }
+        if (!class_types.contains(StripPrefix(c_name)))
+        {
+            continue;
+        }
+        go_names.push_back(StripPrefix(c_name));
+    }
+
+    std::ranges::sort(go_names);
+    go_names.erase(std::unique(go_names.begin(), go_names.end()), go_names.end());
+
+    WriteGeneratedHeader(writer);
+    writer << "package wx\n";
+
+    for (const auto& go_name: go_names)
+    {
+        writer << "\n";
+        writer << "// As" << go_name << " reinterprets evt as a *" << go_name
+               << " without taking ownership.\n";
+        writer << "// The event must really be of that class; check GetEventType() first.\n";
+        writer << "func As" << go_name << "(evt *Event) *" << go_name << " {\n";
+        writer << "\tif evt == nil {\n";
+        writer << "\t\treturn nil\n";
+        writer << "\t}\n";
+        writer << "\tobj := &" << go_name << "{}\n";
+        writer << "\tobj.SetPtr(evt.Ptr())\n";
+        writer << "\tobj.SetBorrowed(true)\n";
+        writer << "\treturn obj\n";
+        writer << "}\n";
+    }
+
+    std::ignore = writer.Flush();
+    std::print(stderr, "  event_types_gen.go: {:L} event classes", go_names.size());
+    if (!writer.WasWritten())
+    {
+        std::print(stderr, " (unchanged)");
+    }
+    std::println(stderr, "");
+}
+
+// -------------------------------------------------------------------------
 // keys_gen.go
 // -------------------------------------------------------------------------
 
@@ -2024,17 +2145,13 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
 {
     const std::string go_class_name = StripPrefix(class_info.name);
     const bool is_window_derived = class_info.is_window_derived;
-    const bool needs_unsafe = ClassNeedsUnsafe(class_info);
 
     // Header
     WriteGeneratedHeader(output);
     output << "package wx\n\n";
 
     // Pure Go — no CGo preamble (all C calls go through cgo_glue_gen.go)
-    if (needs_unsafe)
-    {
-        output << "import \"unsafe\"\n\n";
-    }
+    output << "import \"unsafe\"\n\n";
 
     // Type definition — embed actual parent type from class hierarchy.
     // Both window-derived and non-window classes use the same logic: prefer the
@@ -2048,6 +2165,23 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         }
         output << "type " << go_class_name << " struct{ " << embed_type << " }\n\n";
     }
+
+    // Non-owning factory: a pointer returned by e.g. wxBookCtrlBase_GetPage() is
+    // borrowed, so wrapping it with the owning Delete() would double-free.
+    output << "// " << go_class_name
+           << "FromPtr wraps ptr without taking ownership of the "
+              "native object:\n";
+    output << "// Delete() is a no-op for the returned wrapper.\n";
+    output << "func " << go_class_name << "FromPtr(ptr unsafe.Pointer) *" << go_class_name
+           << " {\n";
+    output << "\tif ptr == nil {\n";
+    output << "\t\treturn nil\n";
+    output << "\t}\n";
+    output << "\tobj := &" << go_class_name << "{}\n";
+    output << "\tobj.SetPtr(ptr)\n";
+    output << "\tobj.SetBorrowed(true)\n";
+    output << "\treturn obj\n";
+    output << "}\n\n";
 
     // Emit methods. The public headers sometimes declare the same operation twice
     // under two C symbols (wxTextDataObject_GetText and TextDataObject_GetText);
@@ -2067,10 +2201,20 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         const bool is_true_constructor =
             func.is_constructor && !func.has_self && func.return_type != "TBool";
 
+        // wxWidgets statics (e.g. ArtProvider_GetBitmap) live in the class block but
+        // take no receiver.  Emitting them as methods would force callers to fabricate
+        // a zero-value wrapper, so they become package-level Class_Method functions.
+        const bool is_class_static = !is_free_function && !is_true_constructor &&
+                                     !func.is_destructor && !func.has_self && !IsPseudoSelf(func);
+
         std::string member_name;
         if (is_free_function)
         {
             member_name = GoFreeFunctionName(func);
+        }
+        else if (is_class_static)
+        {
+            member_name = StripPrefix(class_info.name) + "_" + SafeGoIdentifier(func.method_name);
         }
         else if (is_true_constructor)
         {
@@ -2086,7 +2230,7 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
             continue;  // second C wrapper for the same Go member name
         }
 
-        if (is_free_function)
+        if (is_free_function || is_class_static)
         {
             EmitFreeFunction(output, func, member_name);
             continue;
@@ -2101,9 +2245,17 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
             // Only treat as a true class destructor if there are no non-self parameters.
             // e.g. wxChoice_Delete(self, int index) is a list-item method, not a
             // destructor.
+            // A TClass(OwnClass) receiver (e.g. wxDataViewItem_Delete) is the receiver,
+            // not a parameter, so it does not turn Delete into a list-item method.
+            const bool pseudo_self = IsPseudoSelf(func);
             bool has_non_self_params = false;
-            for (const auto& param: func.params)
+            for (size_t param_index = 0; param_index < func.params.size(); ++param_index)
             {
+                const Param& param = func.params[param_index];
+                if (param_index == 0 && pseudo_self)
+                {
+                    continue;
+                }
                 if (param.macro_name != "TSelf")
                 {
                     has_non_self_params = true;
@@ -2118,6 +2270,9 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
             {
                 const std::string recv(kReceiverVar);
                 output << "func (" << recv << " *" << go_class_name << ") Delete() {\n";
+                output << "\tif " << recv << ".Borrowed() {\n";
+                output << "\t\treturn\n";
+                output << "\t}\n";
                 output << "\tcgo_" << CFuncName(func) << "(" << recv << ".Ptr())\n";
                 output << "}\n\n";
             }

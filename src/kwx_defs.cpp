@@ -637,6 +637,42 @@ extern "C"
     {
         return (int) wxNB_BOTTOM;
     }
+#if wxUSE_NOTEBOOK
+    EXPORT int expwxNB_NOPAGETHEME()
+    {
+        return (int) wxNB_NOPAGETHEME;
+    }
+#endif
+    EXPORT int expwxBK_DEFAULT()
+    {
+        return (int) wxBK_DEFAULT;
+    }
+    EXPORT int expwxBK_TOP()
+    {
+        return (int) wxBK_TOP;
+    }
+    EXPORT int expwxBK_BOTTOM()
+    {
+        return (int) wxBK_BOTTOM;
+    }
+    EXPORT int expwxBK_LEFT()
+    {
+        return (int) wxBK_LEFT;
+    }
+    EXPORT int expwxBK_RIGHT()
+    {
+        return (int) wxBK_RIGHT;
+    }
+#if wxUSE_TOOLBOOK
+    EXPORT int expwxTBK_BUTTONBAR()
+    {
+        return (int) wxTBK_BUTTONBAR;
+    }
+    EXPORT int expwxTBK_HORZ_LAYOUT()
+    {
+        return (int) wxTBK_HORZ_LAYOUT;
+    }
+#endif
     EXPORT int expwxST_SIZEGRIP()
     {
         return (int) wxST_SIZEGRIP;
