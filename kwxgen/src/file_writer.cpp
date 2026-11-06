@@ -27,10 +27,11 @@ bool ConditionalFileWriter::Flush()
 
     const std::string content = str();
 
-    // Read existing file (text mode — so \r\n → \n on Windows).
+    // Read the existing file in binary mode so the comparison is byte-exact: a CRLF file
+    // left on disk by an earlier build must not compare equal to the LF content below.
     if (std::filesystem::exists(m_path))
     {
-        std::ifstream existing(m_path);
+        std::ifstream existing(m_path, std::ios::binary);
         if (existing.is_open())
         {
             const std::string old_content((std::istreambuf_iterator<char>(existing)),
@@ -42,8 +43,9 @@ bool ConditionalFileWriter::Flush()
         }
     }
 
-    // Content differs or file is new — write it out.
-    std::ofstream file(m_path);
+    // Content differs or file is new. Binary mode suppresses newline translation, so the
+    // buffered bytes are written verbatim and generated files always use LF.
+    std::ofstream file(m_path, std::ios::binary | std::ios::trunc);
     if (!file.is_open())
     {
         std::cerr << "Error: cannot write " << m_path << "\n";

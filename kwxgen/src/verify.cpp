@@ -20,8 +20,8 @@ namespace fs = std::filesystem;
 
 static std::string ReadFileContents(const fs::path& path)
 {
-    // Text mode: ConditionalFileWriter compares normalized text, so CRLF/LF differences
-    // must not be reported as a content mismatch.
+    // Text mode on purpose: generated files are written with LF, but a reference checkout
+    // may still have CRLF files, and those must not be reported as a content mismatch.
     const std::ifstream input_file(path);
     if (!input_file.is_open())
     {
