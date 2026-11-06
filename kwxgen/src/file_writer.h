@@ -11,6 +11,10 @@
 // all output in memory and only writes the file to disk if the content differs
 // from what is already there.  This avoids unnecessary file-system writes that
 // trigger downstream rebuilds (e.g., CMake custom-command stamps, Go compiler).
+//
+// The buffered content is compared and written byte-for-byte — both the existing file and
+// the output file are opened in binary mode, so no newline translation ever happens and
+// generated files always use LF even when the generator runs on Windows.
 
 #include <filesystem>
 #include <sstream>

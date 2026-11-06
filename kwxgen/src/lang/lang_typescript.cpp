@@ -2142,7 +2142,7 @@ void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::
         {
             continue;
         }
-        output << entry.c_type << " " << entry.c_name << "();\n";
+        output << "    " << entry.c_type << " " << entry.c_name << "();\n";
     }
     output << "\n";
 
@@ -2152,52 +2152,54 @@ void TypeScriptEmitter::GenerateConstantsTableC(const ParsedFFI& ffi, const fs::
 
     if (table.empty())
     {
-        output << "static int s_values[1];\n";
+        output << "    static int s_values[1];\n";
     }
     else
     {
-        output << "static int s_values[" << table_size << "];\n";
+        output << "    static int s_values[" << table_size << "];\n";
     }
-    output << "static std::once_flag s_once;\n\n";
+    output << "    static std::once_flag s_once;\n\n";
 
-    output << "WXFFI_EXPORT(int, kwxConstants_IntCount)()\n{\n";
-    output << "    return " << table_size << ";\n";
-    output << "}\n\n";
+    output << "    WXFFI_EXPORT(int, kwxConstants_IntCount)()\n    {\n";
+    output << "        return " << table_size << ";\n";
+    output << "    }\n\n";
 
-    output << "WXFFI_EXPORT(const int*, kwxConstants_IntTable)()\n{\n";
-    output << "    std::call_once(s_once, [] {\n";
+    output << "    WXFFI_EXPORT(const int*, kwxConstants_IntTable)()\n    {\n";
+    output << "        std::call_once(s_once,\n";
+    output << "                       []\n";
+    output << "                       {\n";
     if (!table.empty())
     {
-        output << "        int i = 0;\n";
+        output << "                           int i = 0;\n";
         for (const auto& entry: table)
         {
-            output << "        s_values[i++] = " << entry.c_name << "();\n";
+            output << "                           s_values[i++] = " << entry.c_name << "();\n";
         }
     }
-    output << "    });\n";
-    output << "    return s_values;\n";
-    output << "}\n\n";
+    output << "                       });\n";
+    output << "        return s_values;\n";
+    output << "    }\n\n";
 
     // Name table: one entry per value, in the same order and cardinality so callers can
     // pair kwxConstants_IntTable()[i] with kwxConstants_NameTable()[i].
     if (table.empty())
     {
-        output << "WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n{\n";
-        output << "    static const char* const s_names[1] = { nullptr };\n";
-        output << "    return s_names;\n";
-        output << "}\n";
+        output << "    WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n    {\n";
+        output << "        static const char* const s_names[1] = { nullptr };\n";
+        output << "        return s_names;\n";
+        output << "    }\n";
     }
     else
     {
-        output << "WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n{\n";
-        output << "    static const char* const s_names[" << table_size << "] = {\n";
+        output << "    WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()\n    {\n";
+        output << "        static const char* const s_names[" << table_size << "] = {\n";
         for (const auto& entry: table)
         {
-            output << "        \"" << entry.ts_name << "\",\n";
+            output << "            \"" << entry.ts_name << "\",\n";
         }
-        output << "    };\n";
-        output << "    return s_names;\n";
-        output << "}\n";
+        output << "        };\n";
+        output << "        return s_names;\n";
+        output << "    }\n";
     }
 
     output << "}\n";
