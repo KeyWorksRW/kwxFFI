@@ -2586,4 +2586,136 @@ extern "C"
         return new wxPropertyCategory(*label);
     }
 
+    EXPORT wxSizerFlags* wxSizerFlags_Create(int proportion)
+    {
+        return new wxSizerFlags(proportion);
+    }
+
+    EXPORT void wxSizerFlags_Delete(void* pObject)
+    {
+        delete static_cast<wxSizerFlags*>(pObject);
+    }
+
+    EXPORT void wxSizerFlags_Proportion(void* pObject, int proportion)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Proportion(proportion);
+    }
+
+    EXPORT void wxSizerFlags_Expand(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Expand();
+    }
+
+    EXPORT void wxSizerFlags_Align(void* pObject, int alignment)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Align(alignment);
+    }
+
+    EXPORT void wxSizerFlags_Border(void* pObject, int direction)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Border(direction);
+    }
+
+    EXPORT void wxSizerFlags_BorderSize(void* pObject, int direction, int borderInPixels)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Border(direction, borderInPixels);
+    }
+
+    EXPORT void wxSizerFlags_DoubleBorder(void* pObject, int direction)
+    {
+        static_cast<wxSizerFlags*>(pObject)->DoubleBorder(direction);
+    }
+
+    EXPORT void wxSizerFlags_TripleBorder(void* pObject, int direction)
+    {
+        static_cast<wxSizerFlags*>(pObject)->TripleBorder(direction);
+    }
+
+    EXPORT void wxSizerFlags_Center(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Center();
+    }
+
+    EXPORT void wxSizerFlags_Left(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Left();
+    }
+
+    EXPORT void wxSizerFlags_Right(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Right();
+    }
+
+    EXPORT void wxSizerFlags_Top(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Top();
+    }
+
+    EXPORT void wxSizerFlags_Bottom(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Bottom();
+    }
+
+    // wxSizerFlags exposes only GetFlags() (no raw flag setter), so Flag() rebuilds
+    // the object from a fresh copy and re-applies the subsets the public modifiers
+    // can express. Flags outside alignment/border/expand are therefore dropped.
+    EXPORT void wxSizerFlags_Flag(void* pObject, int flag)
+    {
+        wxSizerFlags* flags = static_cast<wxSizerFlags*>(pObject);
+        wxSizerFlags updated(flags->GetProportion());
+        updated.Align(flag & wxALIGN_MASK).Border(flag & wxALL);
+        if ((flag & wxEXPAND) != 0)
+        {
+            updated.Expand();
+        }
+        *flags = updated;
+    }
+
+    EXPORT int wxSizerFlags_GetProportion(void* pObject)
+    {
+        return static_cast<wxSizerFlags*>(pObject)->GetProportion();
+    }
+
+    EXPORT void wxSizer_AddWindowFlags(wxSizer* self, wxWindow* window, wxSizerFlags* flags)
+    {
+        self->Add(window, *flags);
+    }
+
+    EXPORT void wxSizer_AddSizerFlags(wxSizer* self, wxSizer* sizer, wxSizerFlags* flags)
+    {
+        self->Add(sizer, *flags);
+    }
+
+    EXPORT void wxSizer_InsertWindowFlags(wxSizer* self, int before, wxWindow* window,
+                                          wxSizerFlags* flags)
+    {
+        self->Insert(static_cast<size_t>(before), window, *flags);
+    }
+
+    EXPORT void wxSizer_InsertSizerFlags(wxSizer* self, int before, wxSizer* sizer,
+                                         wxSizerFlags* flags)
+    {
+        self->Insert(static_cast<size_t>(before), sizer, *flags);
+    }
+
+    EXPORT wxIcon* wxIcon_CreateFromXPMData(void* xpm)
+    {
+        const char* const* lines = static_cast<const char* const*>(xpm);
+        wxBitmap bmp(lines);
+        wxIcon* icon = new wxIcon();
+        icon->CopyFromBitmap(bmp);
+        return icon;
+    }
+
+    EXPORT wxPoint* kwxGetMousePositionPoint()
+    {
+        wxPoint* pt = new wxPoint(wxGetMousePosition());
+        return pt;
+    }
+
+    EXPORT void* kwxSetActiveLogTarget(void* pLogger)
+    {
+        return wxLog::SetActiveTarget(static_cast<wxLog*>(pLogger));
+    }
+
 }  // extern "C"

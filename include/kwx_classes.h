@@ -2954,6 +2954,7 @@ TClass(wxIcon) wxIcon_CreateLoad(TClass(wxString) name, long type, TSize(width, 
 void wxIcon_Delete(TSelf(wxIcon) pObject);
 TClass(wxIcon) wxIcon_FromRaw(TSelf(wxIcon) data, TSize(width, height));
 TClass(wxIcon) wxIcon_FromXPM(TSelf(wxIcon) data);
+TClass(wxIcon) wxIcon_CreateFromXPMData(void* xpm);
 int wxIcon_GetDepth(TSelf(wxIcon) pObject);
 int wxIcon_GetHeight(TSelf(wxIcon) pObject);
 int wxIcon_GetWidth(TSelf(wxIcon) pObject);
@@ -5318,6 +5319,14 @@ TClass(wxSizerItem)
 TClass(wxSizerItem)
     wxSizer_GetItemSizer(TSelf(wxSizer) pObject, TClass(wxSizer) window, TBool recursive);
 TClass(wxSizerItem) wxSizer_GetItem(TSelf(wxSizer) pObject, int index);
+void wxSizer_AddWindowFlags(TSelf(wxSizer) pObject, TClass(wxWindow) window,
+                            TClass(wxSizerFlags) flags);
+void wxSizer_AddSizerFlags(TSelf(wxSizer) pObject, TClass(wxSizer) sizer,
+                           TClass(wxSizerFlags) flags);
+void wxSizer_InsertWindowFlags(TSelf(wxSizer) pObject, int before, TClass(wxWindow) window,
+                               TClass(wxSizerFlags) flags);
+void wxSizer_InsertSizerFlags(TSelf(wxSizer) pObject, int before, TClass(wxSizer) sizer,
+                              TClass(wxSizerFlags) flags);
 TBool wxSizer_HideWindow(TSelf(wxWindow) pObject, TClass(wxWindow) window);
 TBool wxSizer_HideSizer(TSelf(wxWindow) pObject, TClass(wxSizer) sizer);
 TBool wxSizer_Hide(TSelf(wxWindow) pObject, int index);
@@ -5340,6 +5349,28 @@ TBool wxSizer_ShowWindow(TSelf(wxSizer) pObject, TClass(wxWindow) window, TBool 
                          TBool recursive);
 TBool wxSizer_ShowSizer(TSelf(wxSizer) pObject, TClass(wxSizer) sizer, TBool show, TBool recursive);
 TBool wxSizer_Show(TSelf(wxSizer) pObject, TClass(wxSizer) sizer, int index, TBool show);
+
+/** wxSizerFlags **/
+TClassDef(wxSizerFlags) TClass(wxSizerFlags) wxSizerFlags_Create(int proportion);
+void wxSizerFlags_Delete(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Proportion(TSelf(wxSizerFlags) pObject, int proportion);
+void wxSizerFlags_Expand(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Align(TSelf(wxSizerFlags) pObject, int alignment);
+void wxSizerFlags_Border(TSelf(wxSizerFlags) pObject, int direction);
+void wxSizerFlags_BorderSize(TSelf(wxSizerFlags) pObject, int direction, int borderInPixels);
+void wxSizerFlags_DoubleBorder(TSelf(wxSizerFlags) pObject, int direction);
+void wxSizerFlags_TripleBorder(TSelf(wxSizerFlags) pObject, int direction);
+void wxSizerFlags_Center(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Left(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Right(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Top(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Bottom(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Flag(TSelf(wxSizerFlags) pObject, int flag);
+int wxSizerFlags_GetProportion(TSelf(wxSizerFlags) pObject);
+
+TClass(wxPoint) kwxGetMousePositionPoint();
+void* kwxSetActiveLogTarget(void* pLogger);
+
 TClassDefExtend(wxSizerItem, wxObject) TClass(wxSize)
     wxSizerItem_CalcMin(TSelf(wxSizerItem) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
