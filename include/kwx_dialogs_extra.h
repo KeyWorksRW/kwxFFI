@@ -6,7 +6,7 @@
 //   src/wx_numvalidator.cpp, src/wx_numberdlg.cpp, src/wx_choicedlg.cpp,
 //   src/wx_aboutdlg.cpp, src/wx_credentialdlg.cpp, src/wx_richtooltip.cpp,
 //   src/wx_filedlgcustomize.cpp, src/wx_exthelp.cpp, src/wx_genericdirctrl.cpp,
-//   src/wx_taskbarbutton.cpp
+//   src/wx_genericdialogs.cpp, src/wx_taskbarbutton.cpp
 
 TClassDefExtend(wxCredentialEntryDialog, wxDialog) TClass(wxCredentialEntryDialog)
     wxCredentialEntryDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
@@ -85,6 +85,43 @@ TClass(wxWindow) wxGenericAboutDialog_GetCustomControlParent(TSelf(wxGenericAbou
 TBool wxGenericAboutDialog_AddText(TSelf(wxGenericAboutDialog) pObject, TClass(wxString) text);
 int wxGenericAboutDialog_ShowModal(TSelf(wxGenericAboutDialog) pObject);
 void wxGenericAboutDialog_Delete(TSelf(wxGenericAboutDialog) pObject);
+
+TClassDefExtend(wxGenericColourDialog, wxDialog) TClass(wxGenericColourDialog)
+    wxGenericColourDialog_Create(TClass(wxWindow) parent, TClass(wxColourData) data);
+void wxGenericColourDialog_GetColourData(TSelf(wxGenericColourDialog) pObject,
+                                         TClassRef(wxColourData) ref);
+void wxGenericColourDialog_Delete(TSelf(wxGenericColourDialog) pObject);
+
+TClassDefExtend(wxGenericDirDialog, wxDialog) TClass(wxGenericDirDialog)
+    wxGenericDirDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
+                              TClass(wxString) directory, int style);
+TClass(wxString) wxGenericDirDialog_GetMessage(TSelf(wxGenericDirDialog) pObject);
+TClass(wxString) wxGenericDirDialog_GetPath(TSelf(wxGenericDirDialog) pObject);
+TArrayLen wxGenericDirDialog_GetPaths(TSelf(wxGenericDirDialog) pObject, TArrayStringOutVoid paths);
+void wxGenericDirDialog_SetMessage(TSelf(wxGenericDirDialog) pObject, TClass(wxString) msg);
+void wxGenericDirDialog_SetPath(TSelf(wxGenericDirDialog) pObject, TClass(wxString) pth);
+void wxGenericDirDialog_Delete(TSelf(wxGenericDirDialog) pObject);
+
+TClassDefExtend(wxGenericFileDialog, wxDialog) TClass(wxGenericFileDialog)
+    wxGenericFileDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
+                               TClass(wxString) directory, TClass(wxString) filename,
+                               TClass(wxString) wildcard, int style);
+TClass(wxString) wxGenericFileDialog_GetPath(TSelf(wxGenericFileDialog) pObject);
+void wxGenericFileDialog_SetPath(TSelf(wxGenericFileDialog) pObject, TClass(wxString) path);
+TClass(wxString) wxGenericFileDialog_GetFilename(TSelf(wxGenericFileDialog) pObject);
+void wxGenericFileDialog_SetFilename(TSelf(wxGenericFileDialog) pObject, TClass(wxString) name);
+TClass(wxString) wxGenericFileDialog_GetWildcard(TSelf(wxGenericFileDialog) pObject);
+void wxGenericFileDialog_SetWildcard(TSelf(wxGenericFileDialog) pObject, TClass(wxString) wildCard);
+int wxGenericFileDialog_GetFilterIndex(TSelf(wxGenericFileDialog) pObject);
+void wxGenericFileDialog_SetFilterIndex(TSelf(wxGenericFileDialog) pObject, int filterIndex);
+TBool wxGenericFileDialog_SetCustomizeHook(TSelf(wxGenericFileDialog) pObject,
+                                           TClass(wxFileDialogCustomizeHook) customizeHook);
+void wxGenericFileDialog_Delete(TSelf(wxGenericFileDialog) pObject);
+
+TClassDefExtend(wxGenericFontDialog, wxDialog) TClass(wxGenericFontDialog)
+    wxGenericFontDialog_Create(TClass(wxWindow) parent, TClass(wxFontData) data);
+void wxGenericFontDialog_GetFontData(TSelf(wxGenericFontDialog) pObject, TClassRef(wxFontData) ref);
+void wxGenericFontDialog_Delete(TSelf(wxGenericFontDialog) pObject);
 
 TClassDefExtend(wxMultiChoiceDialog, wxDialog) TClass(wxMultiChoiceDialog)
     wxMultiChoiceDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,

@@ -285,6 +285,19 @@ FetchContent_MakeAvailable(wxWidgets)
 message(NOTICE "wxWidgets has been fetched and configured.")
 message(STATUS "wxWidgets sources: " ${wxWidgets_SOURCE_DIR})
 
+# The generic colour/font/file/dir dialog implementations are only part of the
+# wxWidgets wxcore target on macOS (OSX_COMMON_SRC) and wxUniversal (UNIV_SRC).
+# The MSW and GTK builds compile their native counterparts instead, so add the
+# portable implementations here to give the FFI one platform-independent
+# wxGeneric*Dialog surface. macOS already builds them and must not get them twice.
+if(NOT APPLE)
+    target_sources(wxcore PRIVATE
+        ${wxWidgets_SOURCE_DIR}/src/generic/colrdlgg.cpp
+        ${wxWidgets_SOURCE_DIR}/src/generic/fontdlgg.cpp
+        ${wxWidgets_SOURCE_DIR}/src/generic/filedlgg.cpp
+        ${wxWidgets_SOURCE_DIR}/src/generic/dirdlgg.cpp)
+endif()
+
 # Set the library directory based on platform
 if(WIN32)
     set(WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib)
