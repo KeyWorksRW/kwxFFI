@@ -75,6 +75,35 @@ extern "C"
         self->Skip(skip);
     }
 
+    // Returns non-zero when self is an instance of the wxWidgets class named
+    // className.  Classes with RTTI information (the normal case) are checked
+    // through wxClassInfo; wxTaskBarIconEvent declares no dynamic class, so it
+    // is handled with a direct dynamic_cast below.
+    EXPORT int wxEvent_IsOfClass(wxEvent* self, char* className)
+    {
+        if (!self || !className)
+        {
+            return 0;
+        }
+
+        const wxString name = wxString::FromUTF8(className);
+        if (const wxClassInfo* info = wxClassInfo::FindClass(name))
+        {
+            return self->IsKindOf(info) ? 1 : 0;
+        }
+
+#if wxUSE_TASKBARICON
+        if (name == wxS("wxTaskBarIconEvent"))
+        {
+            return dynamic_cast<wxTaskBarIconEvent*>(self) != nullptr ? 1 : 0;
+        }
+#endif
+
+        // The class is not compiled in or carries no RTTI information, so the
+        // event cannot be an instance of it.
+        return 0;
+    }
+
     EXPORT int wxEvent_GetEventType(wxEvent* self)
     {
         return (int) self->GetEventType();

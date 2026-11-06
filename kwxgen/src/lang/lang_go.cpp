@@ -1960,7 +1960,16 @@ void GoEmitter::GenerateEventTypes(const ParsedFFI& parsed_ffi, const fs::path& 
 
     const std::unordered_set<std::string> class_types = CollectClassTypeNames(parsed_ffi);
 
-    std::vector<std::string> go_names;
+    // Keep the C++ class name alongside the Go type name: the generated
+    // downcast helper passes the class name to wxEvent_IsOfClass so the cast is
+    // verified at runtime instead of being a blind reinterpretation.
+    struct EventTypeName
+    {
+        std::string c_name;
+        std::string go_name;
+    };
+
+    std::vector<EventTypeName> event_types;
     for (const auto& class_decl: parsed_ffi.classes)
     {
         const std::string& c_name = class_decl.name;
@@ -1976,23 +1985,35 @@ void GoEmitter::GenerateEventTypes(const ParsedFFI& parsed_ffi, const fs::path& 
         {
             continue;
         }
-        go_names.push_back(StripPrefix(c_name));
+        event_types.push_back({ c_name, StripPrefix(c_name) });
     }
 
-    std::ranges::sort(go_names);
-    go_names.erase(std::unique(go_names.begin(), go_names.end()), go_names.end());
+    std::ranges::sort(event_types,
+                      [](const EventTypeName& left, const EventTypeName& right)
+                      {
+                          return left.go_name < right.go_name;
+                      });
+    event_types.erase(std::unique(event_types.begin(), event_types.end(),
+                                  [](const EventTypeName& left, const EventTypeName& right)
+                                  {
+                                      return left.go_name == right.go_name;
+                                  }),
+                      event_types.end());
 
     WriteGeneratedHeader(writer);
     writer << "package wx\n";
 
-    for (const auto& go_name: go_names)
+    for (const auto& event_type: event_types)
     {
+        const std::string& c_name = event_type.c_name;
+        const std::string& go_name = event_type.go_name;
+
         writer << "\n";
         writer << "// As" << go_name << " reinterprets evt as a *" << go_name
                << " without taking ownership.\n";
-        writer << "// The event must really be of that class; check GetEventType() first.\n";
+        writer << "// Returns nil when evt is not a " << c_name << " (runtime class check).\n";
         writer << "func As" << go_name << "(evt *Event) *" << go_name << " {\n";
-        writer << "\tif evt == nil {\n";
+        writer << "\tif evt == nil || !cgo_wxEvent_IsOfClass(evt.Ptr(), \"" << c_name << "\") {\n";
         writer << "\t\treturn nil\n";
         writer << "\t}\n";
         writer << "\tobj := &" << go_name << "{}\n";
@@ -2003,7 +2024,7 @@ void GoEmitter::GenerateEventTypes(const ParsedFFI& parsed_ffi, const fs::path& 
     }
 
     std::ignore = writer.Flush();
-    std::print(stderr, "  event_types_gen.go: {:L} event classes", go_names.size());
+    std::print(stderr, "  event_types_gen.go: {:L} event classes", event_types.size());
     if (!writer.WasWritten())
     {
         std::print(stderr, " (unchanged)");

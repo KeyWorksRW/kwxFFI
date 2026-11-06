@@ -810,6 +810,8 @@ wxRendererNative* kwxAppTraits::CreateRenderer()
 // wxEvent
 // ---------------------------------------------------------------------------
 
+wxIMPLEMENT_ABSTRACT_CLASS(kwxEvent, wxEvent);
+
 kwxEvent::kwxEvent(void* pObject) : wxEvent()
 {
     m_object = pObject;
