@@ -15,11 +15,11 @@ script proves the parts that were implemented:
      every new symbol resolves and the new constants carry the real wxWidgets
      values (not invented ones).
 
-Known platform limitation, deliberately NOT asserted: wxGenericColourDialog,
-wxGenericFontDialog, wxGenericFileDialog and wxGenericDirDialog are not compiled
-into the MSW wxWidgets build (their sources are in the OSX/wxUniversal lists
-only), so issue 89 sections 1.11-1.14 cannot be exported portably. Their
-absence is checked so a partial re-addition cannot slip in silently.
+Issue 89 sections 1.11-1.14 (wxGenericColourDialog, wxGenericFontDialog,
+wxGenericFileDialog and wxGenericDirDialog) are no longer a platform
+limitation: issue 94 added the generic dialog sources to the wxcore target on
+every platform. Their generated surface is verified by
+tests/issue_tests/verify_94/repro.py.
 
 Usage:
     python tests/issue_tests/verify_89/repro.py [--root <repo>]
@@ -208,15 +208,6 @@ EXPECTED_IN_GENERATED = (
      "export const NotificationMessage_Timeout_Auto:"),
     ("NotificationMessage_Timeout_Never", "kwx_constants_gen.ts",
      "export const NotificationMessage_Timeout_Never:"),
-)
-
-# Generated files that must NOT exist: these wx classes are not compiled into
-# the MSW wxWidgets build, so exporting them would break every Windows link.
-FORBIDDEN_GENERATED_FILES = (
-    "wxGenericColourDialog_gen.ts",
-    "wxGenericFontDialog_gen.ts",
-    "wxGenericFileDialog_gen.ts",
-    "wxGenericDirDialog_gen.ts",
 )
 
 # --- Mechanism B: the exported C surface ------------------------------------
@@ -419,12 +410,6 @@ def check_generated_surface(root, kwxgen, work_dir):
             continue
         failures += expect(label, needle in text,
                            "present" if needle in text else "missing: " + needle)
-
-    for filename in FORBIDDEN_GENERATED_FILES:
-        exists = (out_dir / filename).is_file()
-        failures += expect("%s is not generated (not available in the MSW wx build)"
-                           % filename, not exists,
-                           "absent" if not exists else "still generated")
 
     # The compiled constant table must match the generated one exactly.
     generated_table = out_dir / "kwx_constants_table_gen.cpp"

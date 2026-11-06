@@ -101,6 +101,7 @@ set( FFI_SRC_FILES
     src/wx_frame.cpp
     src/wx_gauge.cpp
 
+    src/wx_genericdialogs.cpp
     src/wx_genericdirctrl.cpp
     src/wx_grid.cpp
     src/wx_gridbagsizer.cpp
