@@ -743,6 +743,9 @@ public:
     void SetOnClone(void* pFunction) { m_clone_func = (kwxEventCloneFunc) pFunction; }
 
     wxEvent* Clone() const override;
+
+    // No default constructor, so register the class info without a factory.
+    wxDECLARE_ABSTRACT_CLASS(kwxEvent);
 };
 
 // ---------------------------------------------------------------------------

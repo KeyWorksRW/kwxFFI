@@ -2064,6 +2064,7 @@ int wxEvent_GetId(TSelf(wxEvent) pObject);
 TBool wxEvent_GetSkipped(TSelf(wxEvent) pObject);
 int wxEvent_GetTimestamp(TSelf(wxEvent) pObject);
 TBool wxEvent_IsCommandEvent(TSelf(wxEvent) pObject);
+TBool wxEvent_IsOfClass(TSelf(wxEvent) pObject, TString className);
 int wxEvent_NewEventType();
 void wxEvent_SetEventObject(TSelf(wxEvent) pObject, TClass(wxObject) obj);
 void wxEvent_SetEventType(TSelf(wxEvent) pObject, int typ);
@@ -5360,13 +5361,28 @@ void wxSizerFlags_Border(TSelf(wxSizerFlags) pObject, int direction);
 void wxSizerFlags_BorderSize(TSelf(wxSizerFlags) pObject, int direction, int borderInPixels);
 void wxSizerFlags_DoubleBorder(TSelf(wxSizerFlags) pObject, int direction);
 void wxSizerFlags_TripleBorder(TSelf(wxSizerFlags) pObject, int direction);
+void wxSizerFlags_HorzBorder(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_DoubleHorzBorder(TSelf(wxSizerFlags) pObject);
 void wxSizerFlags_Center(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_CenterHorizontal(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_CenterVertical(TSelf(wxSizerFlags) pObject);
 void wxSizerFlags_Left(TSelf(wxSizerFlags) pObject);
 void wxSizerFlags_Right(TSelf(wxSizerFlags) pObject);
 void wxSizerFlags_Top(TSelf(wxSizerFlags) pObject);
 void wxSizerFlags_Bottom(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_Shaped(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_FixedMinSize(TSelf(wxSizerFlags) pObject);
+void wxSizerFlags_ReserveSpaceEvenIfHidden(TSelf(wxSizerFlags) pObject);
+// Exact: replaces every flag bit wxSizerFlags can hold, preserving the
+// proportion and the border width in pixels.
 void wxSizerFlags_Flag(TSelf(wxSizerFlags) pObject, int flag);
 int wxSizerFlags_GetProportion(TSelf(wxSizerFlags) pObject);
+int wxSizerFlags_GetFlags(TSelf(wxSizerFlags) pObject);
+int wxSizerFlags_GetBorderInPixels(TSelf(wxSizerFlags) pObject);
+// Fractional, DPI-scaled default border width: multiply by N and pass the
+// result to wxSizerFlags_BorderSize to get N times the default border.
+double wxSizerFlags_GetDefaultBorderFractional();
+void wxSizerFlags_DisableConsistencyChecks();
 
 TClass(wxPoint) kwxGetMousePositionPoint();
 void* kwxSetActiveLogTarget(void* pLogger);

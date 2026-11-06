@@ -2631,9 +2631,29 @@ extern "C"
         static_cast<wxSizerFlags*>(pObject)->TripleBorder(direction);
     }
 
+    EXPORT void wxSizerFlags_HorzBorder(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->HorzBorder();
+    }
+
+    EXPORT void wxSizerFlags_DoubleHorzBorder(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->DoubleHorzBorder();
+    }
+
     EXPORT void wxSizerFlags_Center(void* pObject)
     {
         static_cast<wxSizerFlags*>(pObject)->Center();
+    }
+
+    EXPORT void wxSizerFlags_CenterHorizontal(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->CenterHorizontal();
+    }
+
+    EXPORT void wxSizerFlags_CenterVertical(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->CenterVertical();
     }
 
     EXPORT void wxSizerFlags_Left(void* pObject)
@@ -2656,24 +2676,82 @@ extern "C"
         static_cast<wxSizerFlags*>(pObject)->Bottom();
     }
 
-    // wxSizerFlags exposes only GetFlags() (no raw flag setter), so Flag() rebuilds
-    // the object from a fresh copy and re-applies the subsets the public modifiers
-    // can express. Flags outside alignment/border/expand are therefore dropped.
+    EXPORT void wxSizerFlags_Shaped(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->Shaped();
+    }
+
+    EXPORT void wxSizerFlags_FixedMinSize(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->FixedMinSize();
+    }
+
+    EXPORT void wxSizerFlags_ReserveSpaceEvenIfHidden(void* pObject)
+    {
+        static_cast<wxSizerFlags*>(pObject)->ReserveSpaceEvenIfHidden();
+    }
+
+    // wxSizerFlags has no raw flag setter, but GetFlags(), GetBorderInPixels()
+    // and the public modifiers together can reproduce every bit the class can
+    // hold.  The masks are disjoint, so rebuilding is exact:
+    //   wxALIGN_MASK, wxALL, wxEXPAND, wxSHAPED, wxFIXED_MINSIZE,
+    //   wxRESERVE_SPACE_EVEN_IF_HIDDEN
+    // Bits outside that set are not representable in a wxSizerFlags at all;
+    // use wxSizer_AddWindow with an explicit flag for those.
     EXPORT void wxSizerFlags_Flag(void* pObject, int flag)
     {
-        wxSizerFlags* flags = static_cast<wxSizerFlags*>(pObject);
+        wxSizerFlags* const flags = static_cast<wxSizerFlags*>(pObject);
+
         wxSizerFlags updated(flags->GetProportion());
-        updated.Align(flag & wxALIGN_MASK).Border(flag & wxALL);
+        updated.Border(flag & wxALL, flags->GetBorderInPixels());
+        updated.Align(flag & wxALIGN_MASK);
+
         if ((flag & wxEXPAND) != 0)
         {
             updated.Expand();
         }
+        if ((flag & wxSHAPED) != 0)
+        {
+            updated.Shaped();
+        }
+        if ((flag & wxFIXED_MINSIZE) != 0)
+        {
+            updated.FixedMinSize();
+        }
+        if ((flag & wxRESERVE_SPACE_EVEN_IF_HIDDEN) != 0)
+        {
+            updated.ReserveSpaceEvenIfHidden();
+        }
+
         *flags = updated;
     }
 
     EXPORT int wxSizerFlags_GetProportion(void* pObject)
     {
         return static_cast<wxSizerFlags*>(pObject)->GetProportion();
+    }
+
+    EXPORT int wxSizerFlags_GetFlags(void* pObject)
+    {
+        return static_cast<wxSizerFlags*>(pObject)->GetFlags();
+    }
+
+    EXPORT int wxSizerFlags_GetBorderInPixels(void* pObject)
+    {
+        return static_cast<wxSizerFlags*>(pObject)->GetBorderInPixels();
+    }
+
+    // The fractional default border is DPI-scaled on MSW.  Multiply it by the
+    // desired factor and pass the result to wxSizerFlags_BorderSize to get a
+    // border of any width.
+    EXPORT double wxSizerFlags_GetDefaultBorderFractional()
+    {
+        return static_cast<double>(wxSizerFlags::GetDefaultBorderFractional());
+    }
+
+    EXPORT void wxSizerFlags_DisableConsistencyChecks()
+    {
+        wxSizerFlags::DisableConsistencyChecks();
     }
 
     EXPORT void wxSizer_AddWindowFlags(wxSizer* self, wxWindow* window, wxSizerFlags* flags)
