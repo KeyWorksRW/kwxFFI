@@ -23,7 +23,6 @@
 #include "kwx_def.h"
 #include "kwx_types.h"
 
-
 TClassDefExtend(kwxAppConsole, wxAppConsole) EXPORT void* kwxAppConsole_Create(void* pObject);
 EXPORT void kwxAppConsole_Delete(TSelf(kwxAppConsole) pObject);
 EXPORT void kwxAppConsole_SetOnOnCmdLineParsed(TSelf(kwxAppConsole) pObject, void* pFunction);
@@ -182,6 +181,24 @@ EXPORT void kwxModalDialogHook_SetOnExit(TSelf(kwxModalDialogHook) pObject, void
 TClassDef(wxModalDialogHook) EXPORT
     void wxModalDialogHook_SetOnEnter(TSelf(wxModalDialogHook) pObject, void* pFunction);
 EXPORT void wxModalDialogHook_SetOnExit(TSelf(wxModalDialogHook) pObject, void* pFunction);
+EXPORT void wxModalDialogHook_Register(TSelf(wxModalDialogHook) pObject);
+EXPORT void wxModalDialogHook_Unregister(TSelf(wxModalDialogHook) pObject);
+EXPORT void wxModalDialogHook_Delete(TSelf(wxModalDialogHook) pObject);
+
+// wxAddRemoveAdaptor has no wxWidgets block of its own, so its C++ helper
+// class (include/kwx_helper_hooks.h) and the functions below form its block
+// here.  wxAddRemoveCtrl::SetAdaptor() takes ownership of the adaptor, so
+// kwxAddRemoveAdaptor_Delete is only for an adaptor that was never handed to a
+// control.
+TClassDef(kwxAddRemoveAdaptor) EXPORT TClass(kwxAddRemoveAdaptor)
+    kwxAddRemoveAdaptor_Create(void* pObject);
+EXPORT void kwxAddRemoveAdaptor_SetOnGetItemsCtrl(TSelf(kwxAddRemoveAdaptor) pObject,
+                                                  void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_SetOnCanAdd(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_SetOnCanRemove(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_SetOnAdd(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_SetOnRemove(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_Delete(TSelf(kwxAddRemoveAdaptor) pObject);
 
 TClassDefExtend(kwxTextCompleterSimple, wxTextCompleterSimple) EXPORT
     void* kwxTextCompleterSimple_Create(void* pObject);
@@ -268,4 +285,3 @@ EXPORT void kwxPopupTransientWindow_SetOnProcessLeftDown(TSelf(kwxPopupTransient
                                                          void* pFunction);
 EXPORT void kwxPopupTransientWindow_SetOnOnDismiss(TSelf(kwxPopupTransientWindow) pObject,
                                                    void* pFunction);
-

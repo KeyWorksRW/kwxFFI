@@ -212,6 +212,9 @@ void wxInitAllImageHandlers();
 void wxUnusedVar(void* value);
 int wxGetSingleChoiceIndex(TClass(wxString) message, TClass(wxString) caption,
                            TClass(wxString) choices, int count, TClass(wxWindow) parent);
+int wxGetSingleChoiceIndexEx(TClass(wxString) message, TClass(wxString) caption, int n,
+                             TClass(wxArrayString) choices, TClass(wxWindow) parent, int x, int y,
+                             TBool centre, int width, int height, int initialSelection);
 void wxBeginBusyCursor();
 void wxEndBusyCursor();
 TClass(wxString) wxJoin(TClass(wxArrayString) array, int separator);
@@ -245,11 +248,18 @@ int wxGetPowerType();
 int wxGetSelectedChoices(void* selections, TClass(wxString) choices, int count,
                          TClass(wxString) message, TClass(wxString) caption,
                          TClass(wxWindow) parent);
+int wxGetSelectedChoicesEx(void* selections, TClass(wxString) message, TClass(wxString) caption,
+                           int n, TClass(wxArrayString) choices, TClass(wxWindow) parent, int x,
+                           int y, TBool centre, int width, int height);
 TClass(wxString) wxGetSingleChoice(TClass(wxString) message, TClass(wxString) caption,
                                    TClass(wxString) choices, int count, TClass(wxWindow) parent);
 void* wxGetSingleChoiceData(TClass(wxString) message, TClass(wxString) caption,
                             TClass(wxString) choices, int count, void* client_data,
                             TClass(wxWindow) parent);
+void* wxGetSingleChoiceDataEx(TClass(wxString) message, TClass(wxString) caption, int n,
+                              TClass(wxArrayString) choices, void* client_data,
+                              TClass(wxWindow) parent, int x, int y, TBool centre, int width,
+                              int height, int initialSelection);
 TClass(wxString) wxGetTranslation(TClass(wxString) str);
 TClass(wxString) wxGetZlibVersionInfo();
 void* wxGet_wxConvLibc();

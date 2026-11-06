@@ -2,24 +2,36 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/bitmap.h>
+#include <wx/icon.h>
 #include <wx/notifmsg.h>
+// wx/generic/notifmsg.h declares wxGenericNotificationMessage on top of the
+// wxNotificationMessageBase that wx/notifmsg.h defines, so it must come second:
+// wx/notifmsg.h only includes it itself when there is no native implementation.
+#include <wx/generic/notifmsg.h>
 // wx/notifmsg.h only forward-declares wxTaskBarIcon for MSW; the other platforms
 // need the real declaration for the UseTaskBarIcon() wrapper signature.
 #include <wx/taskbar.h>
 
 extern "C"
 {
-    EXPORT void* wxNotificationMessage_Create(wxString* title, wxString* message, wxWindow* parent,
-                                              int flags)
+    EXPORT wxNotificationMessage* wxNotificationMessage_Create(wxString* title, wxString* message,
+                                                               wxWindow* parent, int flags)
     {
-        wxString t = title ? *title : wxString();
-        wxString m = message ? *message : wxString();
-        return (void*) new wxNotificationMessage(t, m, parent, flags);
+        return new wxNotificationMessage(*title, *message, parent, flags);
     }
 
     EXPORT void wxNotificationMessage_Delete(wxNotificationMessage* self)
     {
         delete self;
+    }
+
+    // wxNotificationMessage_Delete also covers wxGenericNotificationMessage:
+    // the destructor in wxNotificationMessageBase is virtual.
+    EXPORT wxGenericNotificationMessage*
+        wxGenericNotificationMessage_Create(wxString* title, wxString* message, wxWindow* parent)
+    {
+        return new wxGenericNotificationMessage(*title, *message, parent);
     }
 
     EXPORT int wxNotificationMessage_Show(wxNotificationMessage* self, int timeout)
@@ -55,6 +67,15 @@ extern "C"
     EXPORT void wxNotificationMessage_SetIcon(wxNotificationMessage* self, wxIcon* icon)
     {
         self->SetIcon(*icon);
+    }
+
+    // wxIcon has no bitmap constructor; CopyFromBitmap() is the supported
+    // conversion, and SetIcon() itself only takes a wxIcon.
+    EXPORT void wxNotificationMessage_SetIconBitmap(wxNotificationMessage* self, wxBitmap* icon)
+    {
+        wxIcon icon_obj;
+        icon_obj.CopyFromBitmap(*icon);
+        self->SetIcon(icon_obj);
     }
 
     EXPORT int wxNotificationMessage_AddAction(wxNotificationMessage* self, int actionid,

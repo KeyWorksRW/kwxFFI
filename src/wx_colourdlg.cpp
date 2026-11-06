@@ -18,4 +18,33 @@ extern "C"
     {
         *col = self->GetColourData();
     }
+
+    EXPORT void wxColourDialog_Delete(wxColourDialog* self)
+    {
+        delete self;
+    }
+
+    // ---- wxColourDialogEvent ----
+    EXPORT void* wxColourDialogEvent_Create(int id, wxColourDialog* dialog, wxColour* colour)
+    {
+        wxColourDialogEvent* event = new wxColourDialogEvent(wxEVT_COLOUR_CHANGED, dialog, *colour);
+        // The wx event class has no int-id ctor, so apply the requested id here.
+        event->SetId(id);
+        return event;
+    }
+
+    EXPORT wxColour* wxColourDialogEvent_GetColour(wxColourDialogEvent* self)
+    {
+        return new wxColour(self->GetColour());
+    }
+
+    EXPORT wxColourDialog* wxColourDialogEvent_GetDialog(wxColourDialogEvent* self)
+    {
+        return wxDynamicCast(self->GetEventObject(), wxColourDialog);
+    }
+
+    EXPORT void wxColourDialogEvent_Delete(wxColourDialogEvent* self)
+    {
+        delete self;
+    }
 }

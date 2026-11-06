@@ -16,6 +16,56 @@ extern "C"
         delete pObject;
     }
 
+    EXPORT void* wxBusyInfo_CreateWithFlags(wxBusyInfoFlags* flags)
+    {
+        return new wxBusyInfo(*flags);
+    }
+
+    EXPORT void* wxBusyInfoFlags_Create()
+    {
+        return new wxBusyInfoFlags();
+    }
+
+    EXPORT void wxBusyInfoFlags_SetParent(wxBusyInfoFlags* pObject, wxWindow* parent)
+    {
+        pObject->Parent(parent);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetIcon(wxBusyInfoFlags* pObject, wxBitmapBundle* icon)
+    {
+        pObject->Icon(*icon);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetTitle(wxBusyInfoFlags* pObject, wxString* title)
+    {
+        pObject->Title(*title);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetText(wxBusyInfoFlags* pObject, wxString* text)
+    {
+        pObject->Text(*text);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetForeground(wxBusyInfoFlags* pObject, wxColour* colour)
+    {
+        pObject->Foreground(*colour);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetBackground(wxBusyInfoFlags* pObject, wxColour* colour)
+    {
+        pObject->Background(*colour);
+    }
+
+    EXPORT void wxBusyInfoFlags_SetTransparency(wxBusyInfoFlags* pObject, uint8_t alpha)
+    {
+        pObject->Transparency(alpha);
+    }
+
+    EXPORT void wxBusyInfoFlags_Delete(wxBusyInfoFlags* pObject)
+    {
+        delete pObject;
+    }
+
     EXPORT void* wxBusyCursor_Create()
     {
         return (void*) new wxBusyCursor();

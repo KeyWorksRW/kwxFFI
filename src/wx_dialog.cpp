@@ -159,4 +159,23 @@ extern "C"
     {
         return ((wxDialog*) pObject)->Show(show);
     }
+
+    // ---- wxWindowModalDialogEvent ----
+    EXPORT void* wxWindowModalDialogEvent_Create(int id, wxDialog* dialog)
+    {
+        wxWindowModalDialogEvent* event =
+            new wxWindowModalDialogEvent(wxEVT_WINDOW_MODAL_DIALOG_CLOSED, id);
+        event->SetEventObject(dialog);
+        return event;
+    }
+
+    EXPORT wxDialog* wxWindowModalDialogEvent_GetDialog(wxWindowModalDialogEvent* self)
+    {
+        return self->GetDialog();
+    }
+
+    EXPORT void wxWindowModalDialogEvent_Delete(wxWindowModalDialogEvent* self)
+    {
+        delete self;
+    }
 }

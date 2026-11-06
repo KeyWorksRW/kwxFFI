@@ -140,11 +140,9 @@ extern "C"
         return self->IsIconized();
     }
 
-    EXPORT void* wxFrame_GetIcon(wxFrame* self)
+    EXPORT wxIcon* wxFrame_GetIcon(wxFrame* self)
     {
-        static wxIcon icon;
-        icon = self->GetIcon();
-        return (void*) &icon;
+        return new wxIcon(self->GetIcon());
     }
 
     EXPORT void wxFrame_SetIcon(wxFrame* self, wxIcon* icon)

@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/addremovectrl.h>
+
 // wxPanel inherits from wxWindow (not wxControl).
 // Additional methods available via:
 //   wxWindow_* — base window methods (see wx_window.cpp)
@@ -38,5 +40,29 @@ extern "C"
     EXPORT void wxPanel_SetFocusIgnoringChildren(wxPanel* self)
     {
         self->SetFocusIgnoringChildren();
+    }
+
+    // ---- wxAddRemoveCtrl (wxPanel with adaptor-driven add/remove buttons) ----
+    EXPORT void* wxAddRemoveCtrl_Create(wxWindow* parent, int id, int x, int y, int width,
+                                        int height, int style)
+    {
+        return new wxAddRemoveCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style);
+    }
+
+    EXPORT void wxAddRemoveCtrl_SetAdaptor(wxAddRemoveCtrl* self, void* adaptor)
+    {
+        // wxAddRemoveCtrl takes ownership of the adaptor.
+        self->SetAdaptor(static_cast<wxAddRemoveAdaptor*>(adaptor));
+    }
+
+    EXPORT void wxAddRemoveCtrl_SetButtonsToolTips(wxAddRemoveCtrl* self, wxString* addtip,
+                                                   wxString* removetip)
+    {
+        self->SetButtonsToolTips(*addtip, *removetip);
+    }
+
+    EXPORT void wxAddRemoveCtrl_Delete(wxAddRemoveCtrl* self)
+    {
+        delete self;
     }
 }

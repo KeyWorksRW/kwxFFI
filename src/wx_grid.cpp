@@ -1208,9 +1208,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT void* kwxGridTable_GetView(kwxGridTable* self)
+    EXPORT wxGrid* kwxGridTable_GetView(kwxGridTable* self)
     {
-        return (void*) self->GetView();
+        return self->GetView();
     }
 
     EXPORT void kwxGridTable_SendTableMessage(kwxGridTable* self, int id, int val1, int val2)

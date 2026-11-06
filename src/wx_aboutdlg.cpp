@@ -12,6 +12,8 @@ public:
     }
 
     using wxGenericAboutDialog::AddControl;
+    using wxGenericAboutDialog::AddText;
+    using wxGenericAboutDialog::GetCustomControlParent;
 };
 
 extern "C"
@@ -30,6 +32,26 @@ extern "C"
         }
         dialog->AddControl(window);
         return true;
+    }
+
+    EXPORT wxWindow* wxGenericAboutDialog_GetCustomControlParent(wxGenericAboutDialog* self)
+    {
+        kwxGenericAboutDialog* dialog = dynamic_cast<kwxGenericAboutDialog*>(self);
+        if (!dialog)
+        {
+            return nullptr;
+        }
+        return dialog->GetCustomControlParent();
+    }
+
+    EXPORT int wxGenericAboutDialog_AddText(wxGenericAboutDialog* self, wxString* text)
+    {
+        kwxGenericAboutDialog* dialog = dynamic_cast<kwxGenericAboutDialog*>(self);
+        if (!dialog)
+        {
+            return false;
+        }
+        return dialog->AddText(*text) != nullptr;
     }
 
     EXPORT int wxGenericAboutDialog_ShowModal(wxGenericAboutDialog* self)

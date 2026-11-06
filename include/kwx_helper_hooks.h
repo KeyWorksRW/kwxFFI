@@ -32,6 +32,9 @@
 // An application port owns exactly one application object for the process
 // lifetime; create it once and destroy it at shutdown.
 
+#include "kwx_types.h"
+
+#include <wx/addremovectrl.h>
 #include <wx/app.h>
 #include <wx/apptrait.h>
 #include <wx/cmdline.h>
@@ -1004,6 +1007,66 @@ public:
 
     wxString GetSupportedTags() override;
     bool HandleTag(const wxHtmlTag& tag) override;
+};
+
+// ---------------------------------------------------------------------------
+// wxAddRemoveAdaptor callbacks
+// ---------------------------------------------------------------------------
+
+// Every callback takes three pointers so the runtime's fixed three-argument
+// thunk can be used for all of them.  Only pObject carries information; the two
+// trailing pointers are always null.
+using kwxAddRemoveGetItemsCtrlFn = void* (*) (void* pObject, void* arg1, void* arg2);
+using kwxAddRemoveBoolFn = TBool (*)(void* pObject, void* arg1, void* arg2);
+using kwxAddRemoveVoidFn = void (*)(void* pObject, void* arg1, void* arg2);
+
+// Every member of wxAddRemoveAdaptor is pure virtual, so all five are overridden
+// to make this class concrete.  An unset callback keeps the inert behaviour:
+// no control, nothing can be added or removed, and the actions do nothing.  That
+// null check belongs here, in the override, not at the FFI boundary.
+//
+// wxAddRemoveCtrl::SetAdaptor() takes ownership of the adaptor and deletes it
+// with the control, so kwxAddRemoveAdaptor_Delete is only for an adaptor that
+// was never handed to a control.
+class kwxAddRemoveAdaptor : public wxAddRemoveAdaptor
+{
+private:
+    void* m_object;
+    kwxAddRemoveGetItemsCtrlFn m_get_items_ctrl_func;
+    kwxAddRemoveBoolFn m_can_add_func;
+    kwxAddRemoveBoolFn m_can_remove_func;
+    kwxAddRemoveVoidFn m_on_add_func;
+    kwxAddRemoveVoidFn m_on_remove_func;
+
+public:
+    explicit kwxAddRemoveAdaptor(void* pObject);
+
+    void SetOnGetItemsCtrl(void* pFunction)
+    {
+        m_get_items_ctrl_func = reinterpret_cast<kwxAddRemoveGetItemsCtrlFn>(pFunction);
+    }
+    void SetOnCanAdd(void* pFunction)
+    {
+        m_can_add_func = reinterpret_cast<kwxAddRemoveBoolFn>(pFunction);
+    }
+    void SetOnCanRemove(void* pFunction)
+    {
+        m_can_remove_func = reinterpret_cast<kwxAddRemoveBoolFn>(pFunction);
+    }
+    void SetOnAdd(void* pFunction)
+    {
+        m_on_add_func = reinterpret_cast<kwxAddRemoveVoidFn>(pFunction);
+    }
+    void SetOnRemove(void* pFunction)
+    {
+        m_on_remove_func = reinterpret_cast<kwxAddRemoveVoidFn>(pFunction);
+    }
+
+    wxWindow* GetItemsCtrl() const override;
+    bool CanAdd() const override;
+    bool CanRemove() const override;
+    void OnAdd() override;
+    void OnRemove() override;
 };
 
 // The exported kwx<Base>_* / <Base>_* declarations are NOT in this header.

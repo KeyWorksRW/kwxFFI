@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/infobar.h>
 
 // wxInfoBar inherits from wxControl.
 // Additional methods available via:
@@ -74,5 +75,36 @@ extern "C"
     EXPORT void wxInfoBar_ShowMessage(wxInfoBar* self, wxString* msg, int flags)
     {
         self->ShowMessage(*msg, flags);
+    }
+
+    EXPORT wxInfoBar* wxInfoBar_CreateEx(wxWindow* parent, int id, int style)
+    {
+        return new wxInfoBar(parent, id, style);
+    }
+
+    EXPORT void wxInfoBar_ShowCheckBox(wxInfoBar* pObject, wxString* checkBoxText, int checked)
+    {
+        pObject->ShowCheckBox(*checkBoxText, checked != 0);
+    }
+
+    EXPORT int wxInfoBar_IsCheckBoxChecked(wxInfoBar* pObject)
+    {
+        return pObject->IsCheckBoxChecked();
+    }
+
+    EXPORT void wxInfoBar_ShowMessageFor(wxInfoBar* pObject, wxString* msg, int timeoutInSeconds,
+                                         int flags)
+    {
+        pObject->ShowMessageFor(*msg, timeoutInSeconds, flags);
+    }
+
+    EXPORT void wxInfoBar_RemoveAllButtons(wxInfoBar* pObject)
+    {
+        pObject->RemoveAllButtons();
+    }
+
+    EXPORT void wxInfoBar_ShowCloseButton(wxInfoBar* pObject, int show)
+    {
+        pObject->ShowCloseButton(static_cast<wxInfoBar::ShowButton>(show));
     }
 }

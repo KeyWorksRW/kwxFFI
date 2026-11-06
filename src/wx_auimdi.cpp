@@ -133,7 +133,7 @@ extern "C"
         return self->GetToolBar();
     }
 
-    EXPORT wxToolBar* wxAuiMDIChildFrame_CreateToolBar(wxAuiMDIChildFrame* self, int style, int id)
+    EXPORT wxToolBar* wxAuiMDIChildFrame_CreateToolBar(wxAuiMDIChildFrame* self, long style, int id)
     {
         return self->CreateToolBar(style, id, wxString(wxEmptyString));
     }

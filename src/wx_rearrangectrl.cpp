@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/rearrangectrl.h>
+
 // wxRearrangeList inherits from wxCheckListBox (wxControl and wxItemContainer).
 // wxRearrangeCtrl is a wxPanel container.
 // Additional methods available via:
@@ -50,5 +52,34 @@ extern "C"
     EXPORT int wxRearrangeCtrl_MoveCurrentDown(wxRearrangeCtrl* self)
     {
         return self->GetList()->MoveCurrentDown();
+    }
+
+    // ---- wxRearrangeDialog (dialog wrapping a wxRearrangeCtrl) ----
+    EXPORT wxRearrangeDialog* wxRearrangeDialog_Create(wxWindow* parent, wxString* message,
+                                                       wxString* title, wxArrayInt* order,
+                                                       wxArrayString* items, int x, int y)
+    {
+        return new wxRearrangeDialog(parent, *message, *title, *order, *items, wxPoint(x, y));
+    }
+
+    EXPORT wxArrayInt* wxRearrangeDialog_GetOrder(wxRearrangeDialog* self)
+    {
+        return new wxArrayInt(self->GetOrder());
+    }
+
+    EXPORT wxRearrangeList* wxRearrangeDialog_GetList(wxRearrangeDialog* self)
+    {
+        // The returned list belongs to the dialog; do not delete it.
+        return self->GetList();
+    }
+
+    EXPORT void wxRearrangeDialog_AddExtraControls(wxRearrangeDialog* self, wxWindow* win)
+    {
+        self->AddExtraControls(win);
+    }
+
+    EXPORT void wxRearrangeDialog_Delete(wxRearrangeDialog* self)
+    {
+        delete self;
     }
 }

@@ -4,6 +4,7 @@
 #include "kwx_wrapper.h"
 
 #include <wx/app.h>
+#include <wx/appprogress.h>
 
 extern "C"
 {
@@ -191,5 +192,36 @@ extern "C"
 #if defined(__WXGTK__)
         wxApp::GTKAllowDiagnosticsControl();
 #endif
+    }
+
+    // ---- wxAppProgressIndicator (taskbar progress for the app) ----
+    EXPORT void* wxAppProgressIndicator_Create(wxWindow* parent, int maxValue)
+    {
+        return new wxAppProgressIndicator(parent, maxValue);
+    }
+
+    EXPORT int wxAppProgressIndicator_IsAvailable(wxAppProgressIndicator* self)
+    {
+        return self->IsAvailable();
+    }
+
+    EXPORT void wxAppProgressIndicator_SetValue(wxAppProgressIndicator* self, int value)
+    {
+        self->SetValue(value);
+    }
+
+    EXPORT void wxAppProgressIndicator_SetRange(wxAppProgressIndicator* self, int range)
+    {
+        self->SetRange(range);
+    }
+
+    EXPORT void wxAppProgressIndicator_Pulse(wxAppProgressIndicator* self)
+    {
+        self->Pulse();
+    }
+
+    EXPORT void wxAppProgressIndicator_Delete(wxAppProgressIndicator* self)
+    {
+        delete self;
     }
 }
