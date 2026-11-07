@@ -256,6 +256,17 @@ extern "C"
         return (void*) wxSysErrorMsg((unsigned long) nErrCode);
     }
 
+    EXPORT int wxPrintf(wxString* text)
+    {
+        if (!text)
+        {
+            return 0;
+        }
+
+        // The FFI cannot express variadic arguments, so text is already formatted.
+        return ::wxPrintf("%s", text->utf8_string().data());
+    }
+
     EXPORT void LogErrorMsg(wxString* message)
     {
         wxLogError(*message);

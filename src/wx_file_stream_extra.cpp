@@ -4,12 +4,35 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/archive.h>
 #include <wx/stream.h>
 #include <wx/tarstrm.h>
 #include <wx/textfile.h>
 #include <wx/tokenzr.h>
 #include <wx/wfstream.h>
 #include <wx/zipstrm.h>
+
+// The wxWidgets protocol APIs return a null-terminated array of wxChar
+// pointers; the FFI returns one joined string instead of an array.
+static wxString JoinProtocols(const wxChar* const* protocols)
+{
+    wxString joined;
+    if (!protocols)
+    {
+        return joined;
+    }
+
+    for (const wxChar* const* item = protocols; *item; ++item)
+    {
+        if (!joined.empty())
+        {
+            joined += ", ";
+        }
+        joined += *item;
+    }
+
+    return joined;
+}
 
 extern "C"
 {
@@ -237,6 +260,45 @@ extern "C"
     EXPORT void wxTempFile_Discard(wxTempFile* self)
     {
         self->Discard();
+    }
+
+    // -----------------------------------------------------------------------
+    // wxTempFileOutputStream
+    // -----------------------------------------------------------------------
+
+    EXPORT wxTempFileOutputStream* wxTempFileOutputStream_Create(wxString* file_name)
+    {
+        return new wxTempFileOutputStream(*file_name);
+    }
+
+    EXPORT void wxTempFileOutputStream_Delete(wxTempFileOutputStream* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxTempFileOutputStream_Commit(wxTempFileOutputStream* self)
+    {
+        return self->Commit();
+    }
+
+    EXPORT void wxTempFileOutputStream_Discard(wxTempFileOutputStream* self)
+    {
+        self->Discard();
+    }
+
+    EXPORT int wxTempFileOutputStream_Close(wxTempFileOutputStream* self)
+    {
+        return self->Close();
+    }
+
+    EXPORT int wxTempFileOutputStream_GetLength(wxTempFileOutputStream* self)
+    {
+        return static_cast<int>(self->GetLength());
+    }
+
+    EXPORT int wxTempFileOutputStream_IsSeekable(wxTempFileOutputStream* self)
+    {
+        return self->IsSeekable();
     }
 
     // -----------------------------------------------------------------------
@@ -472,6 +534,287 @@ extern "C"
     }
 
     // -----------------------------------------------------------------------
+    // wxFilterInputStream / wxFilterOutputStream
+    // -----------------------------------------------------------------------
+
+    EXPORT void wxFilterInputStream_Delete(wxFilterInputStream* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxFilterInputStream_GetLength(wxFilterInputStream* self)
+    {
+        return static_cast<int>(self->GetLength());
+    }
+
+    EXPORT wxInputStream* wxFilterInputStream_GetFilterInputStream(wxFilterInputStream* self)
+    {
+        return self->GetFilterInputStream();
+    }
+
+    EXPORT int wxFilterOutputStream_GetLength(wxFilterOutputStream* self)
+    {
+        return static_cast<int>(self->GetLength());
+    }
+
+    EXPORT wxOutputStream* wxFilterOutputStream_GetFilterOutputStream(wxFilterOutputStream* self)
+    {
+        return self->GetFilterOutputStream();
+    }
+
+    EXPORT void wxFilterOutputStream_Delete(wxFilterOutputStream* self)
+    {
+        delete self;
+    }
+
+    // -----------------------------------------------------------------------
+    // wxFilterClassFactoryBase / wxFilterClassFactory
+    // -----------------------------------------------------------------------
+
+    EXPORT wxString* wxFilterClassFactoryBase_GetProtocol(wxFilterClassFactoryBase* self)
+    {
+        return new wxString(self->GetProtocol());
+    }
+
+    EXPORT wxString* wxFilterClassFactoryBase_GetProtocols(wxFilterClassFactoryBase* self, int type)
+    {
+        return new wxString(
+            JoinProtocols(self->GetProtocols(static_cast<wxStreamProtocolType>(type))));
+    }
+
+    EXPORT int wxFilterClassFactoryBase_CanHandle(wxFilterClassFactoryBase* self,
+                                                  wxString* protocol, int type)
+    {
+        return self->CanHandle(*protocol, static_cast<wxStreamProtocolType>(type));
+    }
+
+    EXPORT wxString* wxFilterClassFactoryBase_PopExtension(wxFilterClassFactoryBase* self,
+                                                           wxString* location)
+    {
+        return new wxString(self->PopExtension(*location));
+    }
+
+    EXPORT wxFilterInputStream* wxFilterClassFactory_NewStreamInput(wxFilterClassFactory* self,
+                                                                    wxInputStream* stream)
+    {
+        return self->NewStream(*stream);
+    }
+
+    EXPORT wxFilterOutputStream* wxFilterClassFactory_NewStreamOutput(wxFilterClassFactory* self,
+                                                                      wxOutputStream* stream)
+    {
+        return self->NewStream(*stream);
+    }
+
+    EXPORT wxFilterClassFactory* wxFilterClassFactory_Find(wxString* protocol, int type)
+    {
+        return const_cast<wxFilterClassFactory*>(
+            wxFilterClassFactory::Find(*protocol, static_cast<wxStreamProtocolType>(type)));
+    }
+
+    EXPORT wxFilterClassFactory* wxFilterClassFactory_GetFirst()
+    {
+        return const_cast<wxFilterClassFactory*>(wxFilterClassFactory::GetFirst());
+    }
+
+    EXPORT wxFilterClassFactory* wxFilterClassFactory_GetNext(wxFilterClassFactory* self)
+    {
+        return const_cast<wxFilterClassFactory*>(self->GetNext());
+    }
+
+    // -----------------------------------------------------------------------
+    // wxArchiveClassFactory
+    // -----------------------------------------------------------------------
+
+    EXPORT wxArchiveEntry* wxArchiveClassFactory_NewEntry(wxArchiveClassFactory* self)
+    {
+        return self->NewEntry();
+    }
+
+    EXPORT wxArchiveInputStream* wxArchiveClassFactory_NewStreamInput(wxArchiveClassFactory* self,
+                                                                      wxInputStream* stream)
+    {
+        return self->NewStream(*stream);
+    }
+
+    EXPORT wxArchiveOutputStream* wxArchiveClassFactory_NewStreamOutput(wxArchiveClassFactory* self,
+                                                                        wxOutputStream* stream)
+    {
+        return self->NewStream(*stream);
+    }
+
+    EXPORT wxString* wxArchiveClassFactory_GetInternalName(wxArchiveClassFactory* self,
+                                                           wxString* name, int format)
+    {
+        return new wxString(self->GetInternalName(*name, static_cast<wxPathFormat>(format)));
+    }
+
+    EXPORT wxArchiveClassFactory* wxArchiveClassFactory_Find(wxString* protocol, int type)
+    {
+        return const_cast<wxArchiveClassFactory*>(
+            wxArchiveClassFactory::Find(*protocol, static_cast<wxStreamProtocolType>(type)));
+    }
+
+    EXPORT wxArchiveClassFactory* wxArchiveClassFactory_GetFirst()
+    {
+        return const_cast<wxArchiveClassFactory*>(wxArchiveClassFactory::GetFirst());
+    }
+
+    EXPORT wxArchiveClassFactory* wxArchiveClassFactory_GetNext(wxArchiveClassFactory* self)
+    {
+        return const_cast<wxArchiveClassFactory*>(self->GetNext());
+    }
+
+    // -----------------------------------------------------------------------
+    // wxArchiveEntry
+    // -----------------------------------------------------------------------
+
+    EXPORT wxDateTime* wxArchiveEntry_GetDateTime(wxArchiveEntry* self)
+    {
+        return new wxDateTime(self->GetDateTime());
+    }
+
+    EXPORT int wxArchiveEntry_GetSize(wxArchiveEntry* self)
+    {
+        return static_cast<int>(self->GetSize());
+    }
+
+    EXPORT int wxArchiveEntry_GetOffset(wxArchiveEntry* self)
+    {
+        return static_cast<int>(self->GetOffset());
+    }
+
+    EXPORT int wxArchiveEntry_IsDir(wxArchiveEntry* self)
+    {
+        return self->IsDir();
+    }
+
+    EXPORT int wxArchiveEntry_IsReadOnly(wxArchiveEntry* self)
+    {
+        return self->IsReadOnly();
+    }
+
+    EXPORT wxString* wxArchiveEntry_GetInternalName(wxArchiveEntry* self)
+    {
+        return new wxString(self->GetInternalName());
+    }
+
+    EXPORT int wxArchiveEntry_GetInternalFormat(wxArchiveEntry* self)
+    {
+        return static_cast<int>(self->GetInternalFormat());
+    }
+
+    EXPORT wxString* wxArchiveEntry_GetName(wxArchiveEntry* self, int path_format)
+    {
+        return new wxString(self->GetName(static_cast<wxPathFormat>(path_format)));
+    }
+
+    EXPORT wxArchiveEntry* wxArchiveEntry_Clone(wxArchiveEntry* self)
+    {
+        return self->Clone();
+    }
+
+    EXPORT void wxArchiveEntry_Delete(wxArchiveEntry* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxArchiveEntry_SetDateTime(wxArchiveEntry* self, wxDateTime* dt)
+    {
+        self->SetDateTime(dt ? *dt : wxDateTime::Now());
+    }
+
+    EXPORT void wxArchiveEntry_SetSize(wxArchiveEntry* self, int size)
+    {
+        self->SetSize(static_cast<wxFileOffset>(size));
+    }
+
+    EXPORT void wxArchiveEntry_SetIsDir(wxArchiveEntry* self, bool is_dir)
+    {
+        self->SetIsDir(is_dir);
+    }
+
+    EXPORT void wxArchiveEntry_SetIsReadOnly(wxArchiveEntry* self, bool is_read_only)
+    {
+        self->SetIsReadOnly(is_read_only);
+    }
+
+    EXPORT void wxArchiveEntry_SetName(wxArchiveEntry* self, wxString* entry_name, int path_format)
+    {
+        self->SetName(*entry_name, static_cast<wxPathFormat>(path_format));
+    }
+
+    // -----------------------------------------------------------------------
+    // wxArchiveInputStream
+    // -----------------------------------------------------------------------
+
+    EXPORT void wxArchiveInputStream_Delete(wxArchiveInputStream* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxArchiveEntry* wxArchiveInputStream_GetNextEntry(wxArchiveInputStream* self)
+    {
+        return self->GetNextEntry();
+    }
+
+    EXPORT int wxArchiveInputStream_OpenEntry(wxArchiveInputStream* self, wxArchiveEntry* entry)
+    {
+        return self->OpenEntry(*entry);
+    }
+
+    EXPORT int wxArchiveInputStream_CloseEntry(wxArchiveInputStream* self)
+    {
+        return self->CloseEntry();
+    }
+
+    // -----------------------------------------------------------------------
+    // wxArchiveOutputStream
+    // -----------------------------------------------------------------------
+
+    EXPORT void wxArchiveOutputStream_Delete(wxArchiveOutputStream* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxArchiveOutputStream_PutNextEntry(wxArchiveOutputStream* self,
+                                                  wxArchiveEntry* entry)
+    {
+        return self->PutNextEntry(entry);
+    }
+
+    EXPORT int wxArchiveOutputStream_PutNextEntryDate(wxArchiveOutputStream* self,
+                                                      wxString* entry_name, wxDateTime* dt,
+                                                      int size)
+    {
+        return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
+                                  static_cast<wxFileOffset>(size));
+    }
+
+    EXPORT int wxArchiveOutputStream_PutNextDirEntryDate(wxArchiveOutputStream* self,
+                                                         wxString* entry_name, wxDateTime* dt)
+    {
+        return self->PutNextDirEntry(*entry_name, dt ? *dt : wxDateTime::Now());
+    }
+
+    EXPORT int wxArchiveOutputStream_CopyEntry(wxArchiveOutputStream* self, wxArchiveEntry* entry,
+                                               wxArchiveInputStream* input_stream)
+    {
+        return self->CopyEntry(entry, *input_stream);
+    }
+
+    EXPORT int wxArchiveOutputStream_CopyArchiveMetaData(wxArchiveOutputStream* self,
+                                                         wxArchiveInputStream* input_stream)
+    {
+        return self->CopyArchiveMetaData(*input_stream);
+    }
+
+    EXPORT int wxArchiveOutputStream_CloseEntry(wxArchiveOutputStream* self)
+    {
+        return self->CloseEntry();
+    }
+
+    // -----------------------------------------------------------------------
     // wxZipEntry
     // -----------------------------------------------------------------------
 
@@ -689,9 +1032,22 @@ extern "C"
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
+    EXPORT int wxZipOutputStream_PutNextEntryDate(wxZipOutputStream* self, wxString* entry_name,
+                                                  wxDateTime* dt, int size)
+    {
+        return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
+                                  static_cast<wxFileOffset>(size));
+    }
+
     EXPORT int wxZipOutputStream_PutNextDirEntry(wxZipOutputStream* self, wxString* entry_name)
     {
         return self->PutNextDirEntry(*entry_name, wxDateTime::Now());
+    }
+
+    EXPORT int wxZipOutputStream_PutNextDirEntryDate(wxZipOutputStream* self, wxString* entry_name,
+                                                     wxDateTime* dt)
+    {
+        return self->PutNextDirEntry(*entry_name, dt ? *dt : wxDateTime::Now());
     }
 
     EXPORT int wxZipOutputStream_PutEntry(wxZipOutputStream* self, wxZipEntry* entry)
@@ -1049,9 +1405,22 @@ extern "C"
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
+    EXPORT int wxTarOutputStream_PutNextEntryDate(wxTarOutputStream* self, wxString* entry_name,
+                                                  wxDateTime* dt, int size)
+    {
+        return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
+                                  static_cast<wxFileOffset>(size));
+    }
+
     EXPORT int wxTarOutputStream_PutNextDirEntry(wxTarOutputStream* self, wxString* entry_name)
     {
         return self->PutNextDirEntry(*entry_name, wxDateTime::Now());
+    }
+
+    EXPORT int wxTarOutputStream_PutNextDirEntryDate(wxTarOutputStream* self, wxString* entry_name,
+                                                     wxDateTime* dt)
+    {
+        return self->PutNextDirEntry(*entry_name, dt ? *dt : wxDateTime::Now());
     }
 
     EXPORT int wxTarOutputStream_PutEntry(wxTarOutputStream* self, wxTarEntry* entry)

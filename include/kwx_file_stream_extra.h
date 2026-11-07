@@ -72,6 +72,21 @@ TBool wxTempFile_Commit(TSelf(wxTempFile) pObject);
 void wxTempFile_Discard(TSelf(wxTempFile) pObject);
 
 // ---------------------------------------------------------------------------
+// wxTempFileOutputStream
+// ---------------------------------------------------------------------------
+
+// The constructor opens the temporary file.  Close() is Commit(); the original
+// file is only replaced when Commit() succeeds.
+TClassDefExtend(wxTempFileOutputStream, wxOutputStream) TClass(wxTempFileOutputStream)
+    wxTempFileOutputStream_Create(TClass(wxString) file_name);
+void wxTempFileOutputStream_Delete(TSelf(wxTempFileOutputStream) pObject);
+TBool wxTempFileOutputStream_Commit(TSelf(wxTempFileOutputStream) pObject);
+void wxTempFileOutputStream_Discard(TSelf(wxTempFileOutputStream) pObject);
+TBool wxTempFileOutputStream_Close(TSelf(wxTempFileOutputStream) pObject);
+int wxTempFileOutputStream_GetLength(TSelf(wxTempFileOutputStream) pObject);
+TBool wxTempFileOutputStream_IsSeekable(TSelf(wxTempFileOutputStream) pObject);
+
+// ---------------------------------------------------------------------------
 // wxStringTokenizer
 // ---------------------------------------------------------------------------
 
@@ -136,11 +151,139 @@ TBool wxStreamBuffer_IsFixed(TSelf(wxStreamBuffer) pObject);
 TBool wxStreamBuffer_IsFlushable(TSelf(wxStreamBuffer) pObject);
 
 // ---------------------------------------------------------------------------
+// wxFilterInputStream / wxFilterOutputStream
+// ---------------------------------------------------------------------------
+
+// The parent stream must outlive the filter stream.
+void wxFilterInputStream_Delete(TSelf(wxFilterInputStream) pObject);
+int wxFilterInputStream_GetLength(TSelf(wxFilterInputStream) pObject);
+TClass(wxInputStream) wxFilterInputStream_GetFilterInputStream(TSelf(wxFilterInputStream) pObject);
+int wxFilterOutputStream_GetLength(TSelf(wxFilterOutputStream) pObject);
+TClass(wxOutputStream)
+    wxFilterOutputStream_GetFilterOutputStream(TSelf(wxFilterOutputStream) pObject);
+void wxFilterOutputStream_Delete(TSelf(wxFilterOutputStream) pObject);
+
+// ---------------------------------------------------------------------------
+// wxFilterClassFactoryBase / wxFilterClassFactory
+// ---------------------------------------------------------------------------
+
+// wxStreamProtocolType values: 0 = protocol, 1 = MIME type, 2 = encoding,
+// 3 = file extension.
+//
+// GetProtocols() joins the registered values with ", " so the whole list can be
+// copied by one FFI call; the wxWidgets function returns a null-terminated array
+// of wxChar pointers.
+TClassDef(wxFilterClassFactoryBase) TClass(wxString)
+    wxFilterClassFactoryBase_GetProtocol(TSelf(wxFilterClassFactoryBase) pObject);
+TClass(wxString)
+    wxFilterClassFactoryBase_GetProtocols(TSelf(wxFilterClassFactoryBase) pObject, int type);
+TBool wxFilterClassFactoryBase_CanHandle(TSelf(wxFilterClassFactoryBase) pObject,
+                                         TClass(wxString) protocol, int type);
+TClass(wxString) wxFilterClassFactoryBase_PopExtension(TSelf(wxFilterClassFactoryBase) pObject,
+                                                       TClass(wxString) location);
+
+// The returned factory is owned by wxWidgets and must not be deleted.
+// NewStreamInput/NewStreamOutput are the two NewStream() overloads.
+TClassDefExtend(wxFilterClassFactory, wxFilterClassFactoryBase) TClass(wxFilterInputStream)
+    wxFilterClassFactory_NewStreamInput(TSelf(wxFilterClassFactory) pObject,
+                                        TClass(wxInputStream) stream);
+TClass(wxFilterOutputStream)
+    wxFilterClassFactory_NewStreamOutput(TSelf(wxFilterClassFactory) pObject,
+                                         TClass(wxOutputStream) stream);
+TClass(wxFilterClassFactory) wxFilterClassFactory_Find(TClass(wxString) protocol, int type);
+TClass(wxFilterClassFactory) wxFilterClassFactory_GetFirst();
+TClass(wxFilterClassFactory) wxFilterClassFactory_GetNext(TSelf(wxFilterClassFactory) pObject);
+
+// ---------------------------------------------------------------------------
+// wxArchiveClassFactory
+// ---------------------------------------------------------------------------
+
+// A factory is owned by wxWidgets.  NewStreamInput/NewStreamOutput correspond to
+// the two NewStream() overloads; NewEntry() returns a new entry owned by the
+// caller.
+TClassDefExtend(wxArchiveClassFactory, wxFilterClassFactoryBase) TClass(wxArchiveEntry)
+    wxArchiveClassFactory_NewEntry(TSelf(wxArchiveClassFactory) pObject);
+TClass(wxArchiveInputStream)
+    wxArchiveClassFactory_NewStreamInput(TSelf(wxArchiveClassFactory) pObject,
+                                         TClass(wxInputStream) stream);
+TClass(wxArchiveOutputStream)
+    wxArchiveClassFactory_NewStreamOutput(TSelf(wxArchiveClassFactory) pObject,
+                                          TClass(wxOutputStream) stream);
+TClass(wxString) wxArchiveClassFactory_GetInternalName(TSelf(wxArchiveClassFactory) pObject,
+                                                       TClass(wxString) name, int format);
+TClass(wxArchiveClassFactory) wxArchiveClassFactory_Find(TClass(wxString) protocol, int type);
+TClass(wxArchiveClassFactory) wxArchiveClassFactory_GetFirst();
+TClass(wxArchiveClassFactory) wxArchiveClassFactory_GetNext(TSelf(wxArchiveClassFactory) pObject);
+
+// ---------------------------------------------------------------------------
+// wxArchiveEntry
+// ---------------------------------------------------------------------------
+
+// Entries returned by GetNextEntry() are owned by the caller.  GetDateTime()
+// returns a new wxDateTime the caller must delete.
+TClassDefExtend(wxArchiveEntry, wxObject) TClass(wxDateTime)
+    wxArchiveEntry_GetDateTime(TSelf(wxArchiveEntry) pObject);
+int wxArchiveEntry_GetSize(TSelf(wxArchiveEntry) pObject);
+int wxArchiveEntry_GetOffset(TSelf(wxArchiveEntry) pObject);
+TBool wxArchiveEntry_IsDir(TSelf(wxArchiveEntry) pObject);
+TBool wxArchiveEntry_IsReadOnly(TSelf(wxArchiveEntry) pObject);
+TClass(wxString) wxArchiveEntry_GetInternalName(TSelf(wxArchiveEntry) pObject);
+int wxArchiveEntry_GetInternalFormat(TSelf(wxArchiveEntry) pObject);
+TClass(wxString) wxArchiveEntry_GetName(TSelf(wxArchiveEntry) pObject, int path_format);
+TClass(wxArchiveEntry) wxArchiveEntry_Clone(TSelf(wxArchiveEntry) pObject);
+// GetNextEntry() gives away ownership; delete the entry with this function.
+void wxArchiveEntry_Delete(TSelf(wxArchiveEntry) pObject);
+void wxArchiveEntry_SetDateTime(TSelf(wxArchiveEntry) pObject, TClass(wxDateTime) dt);
+void wxArchiveEntry_SetSize(TSelf(wxArchiveEntry) pObject, int size);
+void wxArchiveEntry_SetIsDir(TSelf(wxArchiveEntry) pObject, TBool is_dir);
+void wxArchiveEntry_SetIsReadOnly(TSelf(wxArchiveEntry) pObject, TBool is_read_only);
+void wxArchiveEntry_SetName(TSelf(wxArchiveEntry) pObject, TClass(wxString) entry_name,
+                            int path_format);
+
+// ---------------------------------------------------------------------------
+// wxArchiveInputStream
+// ---------------------------------------------------------------------------
+
+// The parent stream must outlive the archive stream.  GetNextEntry() gives away
+// ownership of the returned entry and returns null when there are no more.
+TClassDefExtend(wxArchiveInputStream,
+                wxFilterInputStream) void wxArchiveInputStream_Delete(TSelf(wxArchiveInputStream)
+                                                                          pObject);
+TClass(wxArchiveEntry) wxArchiveInputStream_GetNextEntry(TSelf(wxArchiveInputStream) pObject);
+TBool wxArchiveInputStream_OpenEntry(TSelf(wxArchiveInputStream) pObject,
+                                     TClass(wxArchiveEntry) entry);
+TBool wxArchiveInputStream_CloseEntry(TSelf(wxArchiveInputStream) pObject);
+
+// ---------------------------------------------------------------------------
+// wxArchiveOutputStream
+// ---------------------------------------------------------------------------
+
+// PutNextEntry(wxArchiveEntry) and CopyEntry() take ownership of the entry.
+// The ...Date variants accept an explicit timestamp; a null dt means
+// wxDateTime::Now().  CloseEntry() and Close() finish the archive.
+TClassDefExtend(wxArchiveOutputStream,
+                wxFilterOutputStream) void wxArchiveOutputStream_Delete(TSelf(wxArchiveOutputStream)
+                                                                            pObject);
+TBool wxArchiveOutputStream_PutNextEntry(TSelf(wxArchiveOutputStream) pObject,
+                                         TClass(wxArchiveEntry) entry);
+TBool wxArchiveOutputStream_PutNextEntryDate(TSelf(wxArchiveOutputStream) pObject,
+                                             TClass(wxString) entry_name, TClass(wxDateTime) dt,
+                                             int size);
+TBool wxArchiveOutputStream_PutNextDirEntryDate(TSelf(wxArchiveOutputStream) pObject,
+                                                TClass(wxString) entry_name, TClass(wxDateTime) dt);
+TBool wxArchiveOutputStream_CopyEntry(TSelf(wxArchiveOutputStream) pObject,
+                                      TClass(wxArchiveEntry) entry,
+                                      TClass(wxArchiveInputStream) input_stream);
+TBool wxArchiveOutputStream_CopyArchiveMetaData(TSelf(wxArchiveOutputStream) pObject,
+                                                TClass(wxArchiveInputStream) input_stream);
+TBool wxArchiveOutputStream_CloseEntry(TSelf(wxArchiveOutputStream) pObject);
+
+// ---------------------------------------------------------------------------
 // wxZipEntry
 // ---------------------------------------------------------------------------
 
 // Entry objects returned by wxZipInputStream_GetNextEntry are owned by the caller.
-TClassDefExtend(wxZipEntry, wxObject) TClass(wxZipEntry) wxZipEntry_Create();
+TClassDefExtend(wxZipEntry, wxArchiveEntry) TClass(wxZipEntry) wxZipEntry_Create();
 TClass(wxZipEntry) wxZipEntry_CreateNamed(TClass(wxString) entry_name);
 void wxZipEntry_Delete(TSelf(wxZipEntry) pObject);
 TClass(wxZipEntry) wxZipEntry_Clone(TSelf(wxZipEntry) pObject);
@@ -176,7 +319,7 @@ void wxZipEntry_SetIsText(TSelf(wxZipEntry) pObject, TBool is_text);
 // ---------------------------------------------------------------------------
 
 // The parent stream must outlive the archive stream.
-TClassDefExtend(wxZipInputStream, wxInputStream) TClass(wxZipInputStream)
+TClassDefExtend(wxZipInputStream, wxArchiveInputStream) TClass(wxZipInputStream)
     wxZipInputStream_Create(TClass(wxInputStream) stream);
 void wxZipInputStream_Delete(TSelf(wxZipInputStream) pObject);
 TClass(wxZipEntry) wxZipInputStream_GetNextEntry(TSelf(wxZipInputStream) pObject);
@@ -192,13 +335,19 @@ int wxZipInputStream_GetLength(TSelf(wxZipInputStream) pObject);
 
 // PutNextEntry(wxZipEntry) and CopyEntry() take ownership of the entry and give away the
 // caller's reference. Close() is also called by the destructor.
-TClassDefExtend(wxZipOutputStream, wxFilterOutputStream) TClass(wxZipOutputStream)
+TClassDefExtend(wxZipOutputStream, wxArchiveOutputStream) TClass(wxZipOutputStream)
     wxZipOutputStream_Create(TClass(wxOutputStream) stream, int level);
 void wxZipOutputStream_Delete(TSelf(wxZipOutputStream) pObject);
 TBool wxZipOutputStream_PutNextEntry(TSelf(wxZipOutputStream) pObject, TClass(wxString) entry_name,
                                      int size);
+// Explicit timestamp.  A null dt means wxDateTime::Now().
+TBool wxZipOutputStream_PutNextEntryDate(TSelf(wxZipOutputStream) pObject,
+                                         TClass(wxString) entry_name, TClass(wxDateTime) dt,
+                                         int size);
 TBool wxZipOutputStream_PutNextDirEntry(TSelf(wxZipOutputStream) pObject,
                                         TClass(wxString) entry_name);
+TBool wxZipOutputStream_PutNextDirEntryDate(TSelf(wxZipOutputStream) pObject,
+                                            TClass(wxString) entry_name, TClass(wxDateTime) dt);
 TBool wxZipOutputStream_PutEntry(TSelf(wxZipOutputStream) pObject, TClass(wxZipEntry) entry);
 TBool wxZipOutputStream_CopyEntry(TSelf(wxZipOutputStream) pObject, TClass(wxZipEntry) entry,
                                   TClass(wxZipInputStream) input_stream);
@@ -241,7 +390,7 @@ int wxZlibOutputStream_GetLength(TSelf(wxZlibOutputStream) pObject);
 // ---------------------------------------------------------------------------
 
 // Entry objects returned by wxTarInputStream_GetNextEntry are owned by the caller.
-TClassDefExtend(wxTarEntry, wxObject) TClass(wxTarEntry) wxTarEntry_Create();
+TClassDefExtend(wxTarEntry, wxArchiveEntry) TClass(wxTarEntry) wxTarEntry_Create();
 TClass(wxTarEntry) wxTarEntry_CreateNamed(TClass(wxString) entry_name);
 void wxTarEntry_Delete(TSelf(wxTarEntry) pObject);
 TClass(wxTarEntry) wxTarEntry_Clone(TSelf(wxTarEntry) pObject);
@@ -279,7 +428,7 @@ void wxTarEntry_SetIsReadOnly(TSelf(wxTarEntry) pObject, TBool is_read_only);
 // ---------------------------------------------------------------------------
 
 // The parent stream must outlive the archive stream.
-TClassDefExtend(wxTarInputStream, wxFilterInputStream) TClass(wxTarInputStream)
+TClassDefExtend(wxTarInputStream, wxArchiveInputStream) TClass(wxTarInputStream)
     wxTarInputStream_Create(TClass(wxInputStream) stream);
 void wxTarInputStream_Delete(TSelf(wxTarInputStream) pObject);
 TClass(wxTarEntry) wxTarInputStream_GetNextEntry(TSelf(wxTarInputStream) pObject);
@@ -295,13 +444,19 @@ void wxTarInputStream_SetMaxExtendedHeaderSize(int size);
 
 // PutNextEntry(wxTarEntry) and CopyEntry() take ownership of the entry and give away the
 // caller's reference. Close() is also called by the destructor when it is still open.
-TClassDefExtend(wxTarOutputStream, wxFilterOutputStream) TClass(wxTarOutputStream)
+TClassDefExtend(wxTarOutputStream, wxArchiveOutputStream) TClass(wxTarOutputStream)
     wxTarOutputStream_Create(TClass(wxOutputStream) stream, int format);
 void wxTarOutputStream_Delete(TSelf(wxTarOutputStream) pObject);
 TBool wxTarOutputStream_PutNextEntry(TSelf(wxTarOutputStream) pObject, TClass(wxString) entry_name,
                                      int size);
+// Explicit timestamp.  A null dt means wxDateTime::Now().
+TBool wxTarOutputStream_PutNextEntryDate(TSelf(wxTarOutputStream) pObject,
+                                         TClass(wxString) entry_name, TClass(wxDateTime) dt,
+                                         int size);
 TBool wxTarOutputStream_PutNextDirEntry(TSelf(wxTarOutputStream) pObject,
                                         TClass(wxString) entry_name);
+TBool wxTarOutputStream_PutNextDirEntryDate(TSelf(wxTarOutputStream) pObject,
+                                            TClass(wxString) entry_name, TClass(wxDateTime) dt);
 TBool wxTarOutputStream_PutEntry(TSelf(wxTarOutputStream) pObject, TClass(wxTarEntry) entry);
 TBool wxTarOutputStream_CopyEntry(TSelf(wxTarOutputStream) pObject, TClass(wxTarEntry) entry,
                                   TClass(wxTarInputStream) input_stream);

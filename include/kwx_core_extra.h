@@ -248,6 +248,10 @@ void wxFileName_RemoveLastDir(TSelf(wxFileName) pObject);
 TBool wxFileName_Normalize(TSelf(wxFileName) pObject, int flags, TClass(wxString) cwd, int format);
 TBool wxFileName_MakeAbsolute(TSelf(wxFileName) pObject, TClass(wxString) cwd, int format);
 TBool wxFileName_MakeRelativeTo(TSelf(wxFileName) pObject, TClass(wxString) path_base, int format);
+// Returns path with every component sanitised and relative to the current
+// directory, or an empty string when path contains a ".." component.  This is
+// the security check for archive entry names.
+TClass(wxString) wxFileName_MakeSafeRelativePath(TClass(wxString) path, int format);
 TClass(wxString)
     wxFileName_GetAbsolutePath(TSelf(wxFileName) pObject, TClass(wxString) cwd, int format);
 TBool wxFileName_ReplaceEnvVariable(TSelf(wxFileName) pObject, TClass(wxString) env_name,

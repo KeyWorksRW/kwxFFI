@@ -6737,7 +6737,7 @@ void wxXmlResource_SetFlags(TSelf(wxXmlResource) pObject, int flags);
 
 TClassDefExtend(wxXmlResourceHandler, wxObject)
 
-    TClassDefExtend(wxZipInputStream, wxInputStream)
+    TClassDefExtend(wxZipInputStream, wxArchiveInputStream)
 
         TClassDefExtend(wxZlibInputStream, wxFilterInputStream)
 

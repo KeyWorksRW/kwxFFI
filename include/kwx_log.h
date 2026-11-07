@@ -100,3 +100,8 @@ TClass(wxString) wxLogRecordInfo_GetComponent(TSelf(wxLogRecordInfo) pObject);
 TInt64 wxLogRecordInfo_GetTimestamp(TSelf(wxLogRecordInfo) pObject);
 int wxLogRecordInfo_GetLevel(TSelf(wxLogRecordInfo) pObject);
 TClass(wxString) wxLogRecordInfo_GetMask(TSelf(wxLogRecordInfo) pObject);
+
+// Prints text to the current output, equivalent to wxPrintf("%s", text).  The C
+// ABI cannot express wxPrintf's variadic arguments, so callers format the text
+// before calling this function.
+int wxPrintf(TClass(wxString) text);

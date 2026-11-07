@@ -1,5 +1,6 @@
 #include "kwx_wrapper.h"
 #include <wx/filename.h>
+#include <wx/tokenzr.h>
 
 // wxFileName is exported as an opaque handle: the C caller never sees the class
 // layout, only pointers returned by the Create* functions.
@@ -24,6 +25,140 @@ static int FillStringArray(const wxArrayString& values, void* output)
     }
 
     return static_cast<int>(values.GetCount());
+}
+
+// Mirrors wxFileName::MakeSafeRelativePath() from wx 3.3.  Some wx 3.3 builds
+// do not ship that function, so kwxFFI carries the implementation.
+static wxString ForbiddenNameChars(wxPathFormat format)
+{
+    wxString forbidden("*?");
+
+    switch (format)
+    {
+        case wxPATH_MAC:
+            forbidden.clear();
+            break;
+
+        case wxPATH_DOS:
+            forbidden += "\\/:\"<>|";
+            break;
+
+        default:
+            break;
+    }
+
+    return forbidden;
+}
+
+static bool IsReservedDosName(const wxString& name)
+{
+    wxString base = name.BeforeFirst('.');
+    base.Trim();
+    base.MakeUpper();
+
+    if (base == "CON" || base == "PRN" || base == "AUX" || base == "NUL")
+    {
+        return true;
+    }
+
+    if (base.length() == 4 && (base.StartsWith("COM") || base.StartsWith("LPT")))
+    {
+        const wxUniChar digit = base[3];
+        return (digit >= '0' && digit <= '9') || digit == wxUniChar(0x00B9) ||
+               digit == wxUniChar(0x00B2) || digit == wxUniChar(0x00B3);
+    }
+
+    return false;
+}
+
+static wxString MakeSafeComponent(const wxString& name, wxPathFormat format)
+{
+    wxString forbidden = ForbiddenNameChars(format);
+    if (format != wxPATH_VMS)
+    {
+        forbidden += wxFileName::GetPathSeparators(format);
+    }
+
+    wxString valid;
+    valid.reserve(name.length());
+    for (const wxUniChar character: name)
+    {
+        if (character < 32 || forbidden.Find(character) != wxNOT_FOUND)
+        {
+            valid += '_';
+        }
+        else
+        {
+            valid += character;
+        }
+    }
+
+    if (valid == "." || valid == "..")
+    {
+        // These special names refer to directories and cannot be used.
+        valid.assign(valid.length(), '_');
+    }
+    else if (format == wxPATH_DOS)
+    {
+        // Windows silently strips trailing spaces and dots from names.
+        const size_t length = valid.length();
+        while (!valid.empty() && (valid.Last() == '.' || valid.Last() == ' '))
+        {
+            valid.RemoveLast();
+        }
+
+        if (valid.empty())
+        {
+            valid.assign(length, '_');
+        }
+        else if (IsReservedDosName(valid))
+        {
+            valid.Prepend("_");
+        }
+    }
+
+    if (valid.empty())
+    {
+        valid = "_";
+    }
+
+    return valid;
+}
+
+static wxString MakeSafeRelativePathLocal(const wxString& path, wxPathFormat format)
+{
+    format = wxFileName::GetFormat(format);
+
+    // VMS paths use a different syntax for directories and file names.
+    if (format == wxPATH_VMS)
+    {
+        return wxString();
+    }
+
+    wxString safe;
+    wxStringTokenizer tokenizer(path, wxFileName::GetPathSeparators(format), wxTOKEN_STRTOK);
+    while (tokenizer.HasMoreTokens())
+    {
+        const wxString component = tokenizer.GetNextToken();
+        if (component == ".")
+        {
+            continue;
+        }
+
+        // A parent-directory reference may escape the target directory.
+        if (component == "..")
+        {
+            return wxString();
+        }
+
+        if (!safe.empty())
+        {
+            safe += wxFileName::GetPathSeparator(format);
+        }
+        safe += MakeSafeComponent(component, format);
+    }
+
+    return safe;
 }
 
 extern "C"
@@ -238,6 +373,16 @@ extern "C"
     EXPORT int wxFileName_MakeRelativeTo(wxFileName* self, wxString* path_base, int format)
     {
         return self->MakeRelativeTo(PathOrEmpty(path_base), static_cast<wxPathFormat>(format));
+    }
+
+    EXPORT wxString* wxFileName_MakeSafeRelativePath(wxString* path, int format)
+    {
+        if (!path)
+        {
+            return new wxString();
+        }
+
+        return new wxString(MakeSafeRelativePathLocal(*path, static_cast<wxPathFormat>(format)));
     }
 
     EXPORT wxString* wxFileName_GetAbsolutePath(wxFileName* self, wxString* cwd, int format)

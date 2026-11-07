@@ -122,6 +122,10 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
     static const std::unordered_set<std::string> excluded_classes {
         // Helper object for the wxCmdLineEntryDesc table; only useful with wxCmdLineParser.
         "kwxCmdLineDesc",
+        "wxArchiveClassFactory",
+        "wxArchiveEntry",
+        "wxArchiveInputStream",
+        "wxArchiveOutputStream",
         "wxArray",
         "wxArrayString",
         "wxArrayInt",
@@ -145,6 +149,8 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
         "wxFTP",
         "wxFileInputStream",
         "wxFileOutputStream",
+        "wxFilterClassFactory",
+        "wxFilterClassFactoryBase",
         "wxFilterInputStream",
         "wxFilterOutputStream",
         "wxGzipInputStream",
@@ -184,6 +190,7 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
         "wxTarInputStream",
         "wxTarOutputStream",
         "wxTempFile",
+        "wxTempFileOutputStream",
         "wxTextFile",
         "wxTextInputStream",
         "wxTextOutputStream",
