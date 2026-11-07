@@ -284,4 +284,36 @@ extern "C"
     {
         return ((wxBitmap*) pObject)->CreateWithDIPSize(*(wxSize*) sz, scale, depth);
     }
+
+    // wxBitmapVector (wxVector<wxBitmap>)
+
+    EXPORT wxVector<wxBitmap>* wxBitmapVector_Create()
+    {
+        return new wxVector<wxBitmap>();
+    }
+
+    EXPORT void wxBitmapVector_Delete(wxVector<wxBitmap>* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxBitmapVector_GetCount(wxVector<wxBitmap>* self)
+    {
+        return static_cast<int>(self->size());
+    }
+
+    EXPORT void wxBitmapVector_Add(wxVector<wxBitmap>* self, wxBitmap* item)
+    {
+        self->push_back(*item);
+    }
+
+    EXPORT wxBitmap* wxBitmapVector_Item(wxVector<wxBitmap>* self, int index)
+    {
+        return new wxBitmap((*self)[static_cast<size_t>(index)]);
+    }
+
+    EXPORT wxBitmapBundle* wxBitmapBundle_FromBitmaps(wxVector<wxBitmap>* bitmaps)
+    {
+        return new wxBitmapBundle(wxBitmapBundle::FromBitmaps(*bitmaps));
+    }
 }

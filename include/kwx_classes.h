@@ -6,6 +6,7 @@
 #include "kwx_def.h"
 
 #include "kwx_accessible.h"
+#include "kwx_aui_serializer.h"
 #include "kwx_classes_sync.h"
 #include "kwx_combo_extra.h"
 #include "kwx_core_extra.h"
@@ -640,6 +641,14 @@ void wxAuiNotebook_SetTabCtrlHeight(TSelf(wxAuiNotebook) pObject, int height);
 TBool wxAuiNotebook_ShowWindowMenu(TSelf(wxAuiNotebook) pObject);
 void wxAuiNotebook_SetUniformBitmapSize(TSelf(wxAuiNotebook) pObject, TSize(width, height));
 void wxAuiNotebook_Split(TSelf(wxAuiNotebook) pObject, int page, int direction);
+int wxAuiNotebook_HitTest(TSelf(wxAuiNotebook) pObject, TPoint(point_x, point_y), long* flags);
+TClass(wxAuiTabCtrlArray) wxAuiNotebook_GetAllTabCtrls(TSelf(wxAuiNotebook) pObject);
+TClass(wxArrayInt) wxAuiNotebook_GetPagesInDisplayOrder(TSelf(wxAuiNotebook) pObject,
+                                                        TClass(wxAuiTabCtrl) tabCtrl);
+void wxAuiNotebook_SaveLayout(TSelf(wxAuiNotebook) pObject, TClass(wxString) name,
+                              TClass(kwxAuiSerializer) serializer);
+void wxAuiNotebook_LoadLayout(TSelf(wxAuiNotebook) pObject, TClass(wxString) name,
+                              TClass(kwxAuiDeserializer) deserializer);
 
 TClassDef(wxAuiTabContainerButton) int wxAuiTabContainerButton_Id(TSelf(wxAuiTabContainerButton)
                                                                       pObject);
@@ -794,16 +803,35 @@ int wxAuiSimpleTabArt_GetBestTabCtrlSize(TSelf(wxAuiSimpleTabArt) pObject, TClas
                                          TClass(wxAuiNotebookPageArray) pages,
                                          TSize(width, height));
 
+TClassDefExtend(wxAuiFlatTabArt, wxAuiTabArt) TClass(wxAuiFlatTabArt) wxAuiFlatTabArt_Create();
+TClass(wxAuiTabArt) wxAuiFlatTabArt_Clone(TSelf(wxAuiFlatTabArt) pObject);
+void wxAuiFlatTabArt_SetColour(TSelf(wxAuiFlatTabArt) pObject, TClass(wxColour) colour);
+void wxAuiFlatTabArt_SetActiveColour(TSelf(wxAuiFlatTabArt) pObject, TClass(wxColour) colour);
+
+TClassDefExtend(wxAuiGenericTabArt, wxAuiTabArt) TClass(wxAuiGenericTabArt)
+    wxAuiGenericTabArt_Create();
+TClass(wxAuiTabArt) wxAuiGenericTabArt_Clone(TSelf(wxAuiGenericTabArt) pObject);
+void wxAuiGenericTabArt_SetColour(TSelf(wxAuiGenericTabArt) pObject, TClass(wxColour) colour);
+void wxAuiGenericTabArt_SetActiveColour(TSelf(wxAuiGenericTabArt) pObject, TClass(wxColour) colour);
+
+TClassDefExtend(wxAuiNativeTabArt, wxAuiTabArt) TClass(wxAuiNativeTabArt)
+    wxAuiNativeTabArt_Create();
+TClass(wxAuiTabArt) wxAuiNativeTabArt_Clone(TSelf(wxAuiNativeTabArt) pObject);
+void wxAuiNativeTabArt_SetColour(TSelf(wxAuiNativeTabArt) pObject, TClass(wxColour) colour);
+void wxAuiNativeTabArt_SetActiveColour(TSelf(wxAuiNativeTabArt) pObject, TClass(wxColour) colour);
+
 /* wxAuiManager - public member */
 TClassDefExtend(wxAuiManager, wxEvtHandler) TClass(wxAuiManager)
     wxAuiManager_Create(TClass(wxWindow) managedWnd, int flags);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxAuiManager_AllowDocksForMinPanes(TSelf(wxAuiManager) pObject, int directions);
 TBool wxAuiManager_AlwaysUsesLiveResize(void* window);
+// Returns a borrowed pointer to the manager's pane, not a copy.
 TClass(wxAuiPaneInfo) wxAuiManager_GetPane(TSelf(wxAuiManager) pObject, void* window);
 void wxAuiManager_SetDocksForMinPanesStyle(TSelf(wxAuiManager) pObject, unsigned int style);
 void wxAuiManager_Delete(TSelf(wxAuiManager) pObject);
 TBool wxAuiManager_DetachPane(TSelf(wxAuiManager) pObject, TClass(wxWindow) window);
+// Returns a borrowed pointer to the manager's pane array; its items are the live panes.
 TClass(wxAuiPaneInfoArray) wxAuiManager_GetAllPanes(TSelf(wxAuiManager) pObject);
 TClass(wxAuiDockArt) wxAuiManager_GetArtProvider(TSelf(wxAuiManager) pObject);
 void wxAuiManager_GetDockSizeConstraint(TSelf(wxAuiManager) pObject, double* widthPct,
@@ -819,6 +847,8 @@ TBool wxAuiManager_LoadPerspective(TSelf(wxAuiManager) pObject, TClass(wxString)
                                    TBool update);
 TClass(wxString) wxAuiManager_SavePaneInfo(TSelf(wxAuiManager) pObject, TClass(wxAuiPaneInfo) pane);
 TClass(wxString) wxAuiManager_SavePerspective(TSelf(wxAuiManager) pObject);
+void wxAuiManager_SaveLayout(TSelf(wxAuiManager) pObject, TClass(kwxAuiSerializer) serializer);
+void wxAuiManager_LoadLayout(TSelf(wxAuiManager) pObject, TClass(kwxAuiDeserializer) deserializer);
 void wxAuiManager_SetArtProvider(TSelf(wxAuiManager) pObject, TClass(wxAuiDockArt) artProvider);
 void wxAuiManager_SetDockSizeConstraint(TSelf(wxAuiManager) pObject, double widthpct,
                                         double heightpct);
@@ -834,6 +864,7 @@ TBool wxAuiManager_AddPaneByPaneInfo(TSelf(wxAuiManager) pObject, TClass(wxWindo
 TBool wxAuiManager_AddPaneByPaneInfoAndDropPosition(TSelf(wxAuiManager) pObject,
                                                     TClass(wxWindow) window,
                                                     TClass(wxAuiPaneInfo) paneInfo, TPoint(x, y));
+// Both return a borrowed pointer to the manager's pane, not a copy.
 TClass(wxAuiPaneInfo)
     wxAuiManager_GetPaneByWindow(TSelf(wxAuiManager) pObject, TClass(wxWindow) window);
 TClass(wxAuiPaneInfo)
@@ -867,6 +898,19 @@ void wxAuiDockArt_SetFont(TSelf(wxAuiDockArt) pObject, int id, TClass(wxFont) fo
 void wxAuiDockArt_SetMetric(TSelf(wxAuiDockArt) pObject, int id, int new_val);
 
 TClassDef(wxAuiPaneInfo) TClass(wxAuiPaneInfo) wxAuiPaneInfo_CreateDefault();
+void wxAuiPaneInfo_Delete(TSelf(wxAuiPaneInfo) pObject);
+TClass(wxString) wxAuiPaneInfo_GetName(TSelf(wxAuiPaneInfo) pObject);
+TClass(wxString) wxAuiPaneInfo_GetCaption(TSelf(wxAuiPaneInfo) pObject);
+TClass(wxWindow) wxAuiPaneInfo_GetWindow(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockDirection(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockLayer(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockRow(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockPos(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockProportion(TSelf(wxAuiPaneInfo) pObject);
+int wxAuiPaneInfo_GetDockSize(TSelf(wxAuiPaneInfo) pObject);
+TClass(wxPoint) wxAuiPaneInfo_GetFloatingPos(TSelf(wxAuiPaneInfo) pObject);
+TClass(wxSize) wxAuiPaneInfo_GetFloatingSize(TSelf(wxAuiPaneInfo) pObject);
+TBool wxAuiPaneInfo_IsMaximized(TSelf(wxAuiPaneInfo) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxAuiPaneInfo)
     wxAuiPaneInfo_FloatingClientSize(TSelf(wxAuiPaneInfo) pObject, TClass(wxSize) size);
@@ -1036,19 +1080,35 @@ void wxBitmapBundleArray_Delete(TSelf(wxBitmapBundleArray) pObject);
 int wxBitmapBundleArray_GetCount(TSelf(wxBitmapBundleArray) pObject);
 void wxBitmapBundleArray_Add(TSelf(wxBitmapBundleArray) pObject, TClass(wxBitmapBundle) item);
 
+/** wxBitmapVector **/
+/** wxVector<wxBitmap>; used by wxBitmapBundle::FromBitmaps() **/
+TClassDef(wxBitmapVector) TClass(wxBitmapVector) wxBitmapVector_Create();
+void wxBitmapVector_Delete(TSelf(wxBitmapVector) pObject);
+int wxBitmapVector_GetCount(TSelf(wxBitmapVector) pObject);
+void wxBitmapVector_Add(TSelf(wxBitmapVector) pObject, TClass(wxBitmap) item);
+TClass(wxBitmap) wxBitmapVector_Item(TSelf(wxBitmapVector) pObject, int index);
+
 /** wxAuiToolBarItemArray **/
 /** see wxWidgets dynarray.height for additional array functions **/
 TClassDef(wxAuiToolBarItemArray) TClass(wxAuiToolBarItemArray) wxAuiToolBarItemArray_Create();
 void wxAuiToolBarItemArray_Delete(TSelf(wxAuiToolBarItemArray) pObject);
 int wxAuiToolBarItemArray_GetCount(TSelf(wxAuiToolBarItemArray) pObject);
+void wxAuiToolBarItemArray_Add(TSelf(wxAuiToolBarItemArray) pObject, TClass(wxAuiToolBarItem) item);
 TClass(wxAuiToolBarItem)
     wxAuiToolBarItemArray_Item(TSelf(wxAuiToolBarItemArray) pObject, int index);
+
+/** wxAuiTabCtrlArray **/
+TClassDef(wxAuiTabCtrlArray) TClass(wxAuiTabCtrlArray) wxAuiTabCtrlArray_Create();
+void wxAuiTabCtrlArray_Delete(TSelf(wxAuiTabCtrlArray) pObject);
+int wxAuiTabCtrlArray_GetCount(TSelf(wxAuiTabCtrlArray) pObject);
+TClass(wxAuiTabCtrl) wxAuiTabCtrlArray_Item(TSelf(wxAuiTabCtrlArray) pObject, int index);
 
 /** wxAuiPaneInfoArray **/
 /** see wxWidgets dynarray.height for additional array functions **/
 TClassDef(wxAuiPaneInfoArray) TClass(wxAuiPaneInfoArray) wxAuiPaneInfoArray_Create();
 void wxAuiPaneInfoArray_Delete(TSelf(wxAuiPaneInfoArray) pObject);
 int wxAuiPaneInfoArray_GetCount(TSelf(wxAuiPaneInfoArray) pObject);
+// Returns a borrowed pointer to the element, not a copy, so it can be mutated in place.
 TClass(wxAuiPaneInfo) wxAuiPaneInfoArray_Item(TSelf(wxAuiPaneInfoArray) pObject, int index);
 
 TClassDefExtend(wxAutoBufferedPaintDC, wxDC) TClass(wxAutoBufferedPaintDC)
@@ -1140,6 +1200,7 @@ TClassDefExtend(wxBitmapHandler, wxObject)
     TClassDef(wxBitmapBundle) void wxBitmapBundle_Delete(TSelf(wxBitmapBundle) self);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxBitmapBundle) wxBitmapBundle_FromResources(TClass(wxString) name);
+TClass(wxBitmapBundle) wxBitmapBundle_FromBitmaps(TClass(wxBitmapVector) bitmaps);
 TClass(wxBitmap) wxBitmapBundle_GetBitmap(TSelf(wxBitmapBundle) pObject, TClass(wxSize) size);
 TClass(wxSize) wxBitmapBundle_GetDefaultSize(TSelf(wxBitmapBundle) pObject);
 TBool wxBitmapBundle_IsOk(TSelf(wxBitmapBundle) pObject);
@@ -6179,6 +6240,8 @@ void wxTreeCtrl_ScrollTo(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item);
 void wxTreeCtrl_SelectItem(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item);
 void wxTreeCtrl_SelectItem2(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item, TBool select);
 void wxTreeCtrl_SetImageList(TSelf(wxTreeCtrl) pObject, TClass(wxImageList) imageList);
+void wxTreeCtrl_SetImages(TSelf(wxTreeCtrl) pObject, TClass(wxBitmapBundleArray) images);
+void wxTreeCtrl_SetStateImages(TSelf(wxTreeCtrl) pObject, TClass(wxBitmapBundleArray) images);
 void wxTreeCtrl_SetIndent(TSelf(wxTreeCtrl) pObject, int indent);
 void wxTreeCtrl_SetItemBackgroundColour(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) item,
                                         TClass(wxColour) col);

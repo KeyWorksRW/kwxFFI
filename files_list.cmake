@@ -3,6 +3,7 @@ set( FFI_SRC_FILES
     src/kwx_wrapper.cpp
 
     src/kwx_apppath.cpp
+    src/kwx_aui_serializer.cpp
     src/kwx_defs.cpp
     src/kwx_constants_table_gen.cpp
     src/kwx_dragimage.cpp
@@ -231,6 +232,7 @@ set( FFI_HDR_FILES
     include/kwx_events.h
     include/kwx_keys.h
     include/kwx_constants.h
+    include/kwx_aui_serializer.h
     include/kwx_classes.h
     include/kwx_classes_sync.h
     include/kwx_core_extra.h
