@@ -173,6 +173,16 @@ extern "C"
         self->SetStateImageList(imageList);
     }
 
+    EXPORT void wxTreeCtrl_SetImages(wxTreeCtrl* self, wxVector<wxBitmapBundle>* images)
+    {
+        self->SetImages(*images);
+    }
+
+    EXPORT void wxTreeCtrl_SetStateImages(wxTreeCtrl* self, wxVector<wxBitmapBundle>* images)
+    {
+        self->SetStateImages(*images);
+    }
+
     EXPORT wxString* wxTreeCtrl_GetItemText(wxTreeCtrl* self, void* item)
     {
         wxString* result = new wxString();

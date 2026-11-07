@@ -2532,6 +2532,11 @@ extern "C"
         wxLogStatus(*message);
     }
 
+    EXPORT void LogStatusWindow(wxFrame* frame, wxString* message)
+    {
+        wxLogStatus(frame, "%s", message->wx_str());
+    }
+
     EXPORT void LogSysError(wxString* message)
     {
         wxLogSysError(*message);

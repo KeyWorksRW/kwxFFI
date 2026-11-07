@@ -1776,6 +1776,72 @@ extern "C"
         return self->GetBestTabCtrlSize(wnd, *pages, wxSize(width, height));
     }
 
+    // wxAuiFlatTabArt
+
+    EXPORT void* wxAuiFlatTabArt_Create()
+    {
+        return (void*) new wxAuiFlatTabArt();
+    }
+
+    EXPORT void* wxAuiFlatTabArt_Clone(wxAuiFlatTabArt* self)
+    {
+        return (void*) self->Clone();
+    }
+
+    EXPORT void wxAuiFlatTabArt_SetColour(wxAuiFlatTabArt* self, wxColour* colour)
+    {
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxAuiFlatTabArt_SetActiveColour(wxAuiFlatTabArt* self, wxColour* colour)
+    {
+        self->SetActiveColour(*colour);
+    }
+
+    // wxAuiGenericTabArt
+
+    EXPORT void* wxAuiGenericTabArt_Create()
+    {
+        return (void*) new wxAuiGenericTabArt();
+    }
+
+    EXPORT void* wxAuiGenericTabArt_Clone(wxAuiGenericTabArt* self)
+    {
+        return (void*) self->Clone();
+    }
+
+    EXPORT void wxAuiGenericTabArt_SetColour(wxAuiGenericTabArt* self, wxColour* colour)
+    {
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxAuiGenericTabArt_SetActiveColour(wxAuiGenericTabArt* self, wxColour* colour)
+    {
+        self->SetActiveColour(*colour);
+    }
+
+    // wxAuiNativeTabArt
+
+    EXPORT void* wxAuiNativeTabArt_Create()
+    {
+        return (void*) new wxAuiNativeTabArt();
+    }
+
+    EXPORT void* wxAuiNativeTabArt_Clone(wxAuiNativeTabArt* self)
+    {
+        return (void*) self->Clone();
+    }
+
+    EXPORT void wxAuiNativeTabArt_SetColour(wxAuiNativeTabArt* self, wxColour* colour)
+    {
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxAuiNativeTabArt_SetActiveColour(wxAuiNativeTabArt* self, wxColour* colour)
+    {
+        self->SetActiveColour(*colour);
+    }
+
     // wxAuiManager - public member
 
     EXPORT void* wxAuiManager_Create(wxWindow* managedWnd, int flags)
@@ -1909,18 +1975,16 @@ extern "C"
         return self->AddPane(window, *paneInfo, wxPoint(x, y));
     }
 
+    // Returns a borrowed pointer to the manager's pane, not a copy: callers
+    // can mutate it in place and must not delete it.
     EXPORT wxAuiPaneInfo* wxAuiManager_GetPaneByWindow(wxAuiManager* self, wxWindow* window)
     {
-        wxAuiPaneInfo* info = new wxAuiPaneInfo();
-        *info = self->GetPane(window);
-        return info;
+        return &self->GetPane(window);
     }
 
     EXPORT wxAuiPaneInfo* wxAuiManager_GetPaneByName(wxAuiManager* self, wxString* id)
     {
-        wxAuiPaneInfo* info = new wxAuiPaneInfo();
-        *info = self->GetPane(*id);
-        return info;
+        return &self->GetPane(*id);
     }
 
     EXPORT void* wxAuiManager_GetManager(wxWindow* window)
@@ -2015,114 +2079,98 @@ extern "C"
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Bottom(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Bottom();
-        return out;
+        self->Bottom();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_BottomDockable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->BottomDockable(enable);
-        return out;
+        self->BottomDockable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Caption(wxAuiPaneInfo* self, wxString* source)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Caption(*source);
-        return out;
+        self->Caption(*source);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_CaptionVisible(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->CaptionVisible(visible);
-        return out;
+        self->CaptionVisible(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_CloseButton(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->CloseButton(visible);
-        return out;
+        self->CloseButton(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DefaultPane(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->DefaultPane();
-        return out;
+        self->DefaultPane();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DestroyOnClose(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->DestroyOnClose(enable);
-        return out;
+        self->DestroyOnClose(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Direction(wxAuiPaneInfo* self, int direction)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Direction(direction);
-        return out;
+        self->Direction(direction);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Dock(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Dock();
-        return out;
+        self->Dock();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_DockFixed(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->DockFixed(enable);
-        return out;
+        self->DockFixed(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Dockable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Dockable(enable);
-        return out;
+        self->Dockable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Fixed(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Fixed();
-        return out;
+        self->Fixed();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Float(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Float();
-        return out;
+        self->Float();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Floatable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Floatable(enable);
-        return out;
+        self->Floatable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Gripper(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Gripper(visible);
-        return out;
+        self->Gripper(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_GripperTop(wxAuiPaneInfo* self, bool attop)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->GripperTop(attop);
-        return out;
+        self->GripperTop(attop);
+        return self;
     }
 
     EXPORT int wxAuiPaneInfo_HasBorder(wxAuiPaneInfo* self)
@@ -2172,16 +2220,14 @@ extern "C"
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Hide(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Hide();
-        return out;
+        self->Hide();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Icon(wxAuiPaneInfo* self, wxBitmap* bitmap)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Icon(*bitmap);
-        return out;
+        self->Icon(*bitmap);
+        return self;
     }
 
     EXPORT int wxAuiPaneInfo_IsBottomDockable(wxAuiPaneInfo* self)
@@ -2256,100 +2302,86 @@ extern "C"
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Layer(wxAuiPaneInfo* self, int layer)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Layer(layer);
-        return out;
+        self->Layer(layer);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Left(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Left();
-        return out;
+        self->Left();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_LeftDockable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->LeftDockable(enable);
-        return out;
+        self->LeftDockable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MaximizeButton(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MaximizeButton(visible);
-        return out;
+        self->MaximizeButton(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MinimizeButton(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MinimizeButton(visible);
-        return out;
+        self->MinimizeButton(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Movable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Movable(enable);
-        return out;
+        self->Movable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Name(wxAuiPaneInfo* self, wxString* name)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Name(*name);
-        return out;
+        self->Name(*name);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_PaneBorder(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->PaneBorder(visible);
-        return out;
+        self->PaneBorder(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_PinButton(wxAuiPaneInfo* self, bool visible)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->PinButton(visible);
-        return out;
+        self->PinButton(visible);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Position(wxAuiPaneInfo* self, int pos)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Position(pos);
-        return out;
+        self->Position(pos);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Resizable(wxAuiPaneInfo* self, bool resizable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Resizable(resizable);
-        return out;
+        self->Resizable(resizable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Right(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Right();
-        return out;
+        self->Right();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_RightDockable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->RightDockable(enable);
-        return out;
+        self->RightDockable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Row(wxAuiPaneInfo* self, int row)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Row(row);
-        return out;
+        self->Row(row);
+        return self;
     }
 
     EXPORT void wxAuiPaneInfo_SafeSet(wxAuiPaneInfo* self, wxAuiPaneInfo* source)
@@ -2359,149 +2391,128 @@ extern "C"
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_SetFlag(wxAuiPaneInfo* self, int flag, bool option_state)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->SetFlag(flag, option_state);
-        return out;
+        self->SetFlag(flag, option_state);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Show(wxAuiPaneInfo* self, bool show)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Show(show);
-        return out;
+        self->Show(show);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_ToolbarPane(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->ToolbarPane();
-        return out;
+        self->ToolbarPane();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Top(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Top();
-        return out;
+        self->Top();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_TopDockable(wxAuiPaneInfo* self, bool enable)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->TopDockable(enable);
-        return out;
+        self->TopDockable(enable);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Window(wxAuiPaneInfo* self, wxWindow* window)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Window(window);
-        return out;
+        self->Window(window);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Copy(wxAuiPaneInfo* self, wxAuiPaneInfo* source)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->operator=(*source);
-        return out;
+        self->operator=(*source);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_BestSize(wxAuiPaneInfo* self, int width, int height)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->BestSize(wxSize(width, height));
-        return out;
+        self->BestSize(wxSize(width, height));
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_BestSizeXY(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->BestSize(x, y);
-        return out;
+        self->BestSize(x, y);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Centre(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Centre();
-        return out;
+        self->Centre();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_Center(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->Center();
-        return out;
+        self->Center();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_CentrePane(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->CentrePane();
-        return out;
+        self->CentrePane();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_CenterPane(wxAuiPaneInfo* self)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->CenterPane();
-        return out;
+        self->CenterPane();
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_FloatingPosition(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->FloatingPosition(wxPoint(x, y));
-        return out;
+        self->FloatingPosition(wxPoint(x, y));
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_FloatingPositionXY(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->FloatingPosition(x, y);
-        return out;
+        self->FloatingPosition(x, y);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_FloatingSize(wxAuiPaneInfo* self, int width, int height)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->FloatingSize(wxSize(width, height));
-        return out;
+        self->FloatingSize(wxSize(width, height));
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_FloatingSizeXY(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->FloatingSize(x, y);
-        return out;
+        self->FloatingSize(x, y);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MaxSize(wxAuiPaneInfo* self, int width, int height)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MaxSize(wxSize(width, height));
-        return out;
+        self->MaxSize(wxSize(width, height));
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MaxSizeXY(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MaxSize(x, y);
-        return out;
+        self->MaxSize(x, y);
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MinSize(wxAuiPaneInfo* self, int width, int height)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MinSize(wxSize(width, height));
-        return out;
+        self->MinSize(wxSize(width, height));
+        return self;
     }
 
     EXPORT wxAuiPaneInfo* wxAuiPaneInfo_MinSizeXY(wxAuiPaneInfo* self, int x, int y)
     {
-        wxAuiPaneInfo* out = new wxAuiPaneInfo();
-        *out = self->MinSize(x, y);
-        return out;
+        self->MinSize(x, y);
+        return self;
     }
 
     // wxAuiManagerEvent
@@ -2782,6 +2793,11 @@ extern "C"
         return self->GetCount();
     }
 
+    EXPORT void wxAuiToolBarItemArray_Add(wxAuiToolBarItemArray* self, wxAuiToolBarItem* item)
+    {
+        self->Add(*item);
+    }
+
     EXPORT wxAuiToolBarItem* wxAuiToolBarItemArray_Item(wxAuiToolBarItemArray* self, int index)
     {
         wxAuiToolBarItem* item = new wxAuiToolBarItem();
@@ -2805,11 +2821,11 @@ extern "C"
         return self->GetCount();
     }
 
+    // The array owns the pane objects, so return the element itself rather than
+    // a copy: callers can mutate a pane obtained from wxAuiManager_GetAllPanes().
     EXPORT wxAuiPaneInfo* wxAuiPaneInfoArray_Item(wxAuiPaneInfoArray* self, int index)
     {
-        wxAuiPaneInfo* info = new wxAuiPaneInfo();
-        *info = self->Item(index);
-        return info;
+        return &self->Item(static_cast<size_t>(index));
     }
 
     // wxAuiFloatingFrame
@@ -2857,11 +2873,10 @@ extern "C"
         return wxAuiManager::AlwaysUsesLiveResize((wxWindow*) window);
     }
 
+    // Returns a borrowed pointer to the manager's pane, not a copy.
     EXPORT void* wxAuiManager_GetPane(void* pObject, void* window)
     {
-        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
-        *pane = ((wxAuiManager*) pObject)->GetPane((wxWindow*) window);
-        return pane;
+        return &((wxAuiManager*) pObject)->GetPane((wxWindow*) window);
     }
 
     EXPORT void wxAuiManager_SetDocksForMinPanesStyle(void* pObject, unsigned int style)
@@ -2912,17 +2927,125 @@ extern "C"
         ((wxAuiNotebook*) pObject)->UnsplitAll();
     }
 
+    EXPORT int wxAuiNotebook_HitTest(wxAuiNotebook* self, int point_x, int point_y, long* flags)
+    {
+        return self->HitTest(wxPoint(point_x, point_y), flags);
+    }
+
+    EXPORT std::vector<wxAuiTabCtrl*>* wxAuiNotebook_GetAllTabCtrls(wxAuiNotebook* self)
+    {
+        return new std::vector<wxAuiTabCtrl*>(self->GetAllTabCtrls());
+    }
+
+    EXPORT wxArrayInt* wxAuiNotebook_GetPagesInDisplayOrder(wxAuiNotebook* self,
+                                                            wxAuiTabCtrl* tabCtrl)
+    {
+        wxArrayInt* pages = new wxArrayInt();
+        for (const size_t index: self->GetPagesInDisplayOrder(tabCtrl))
+        {
+            pages->Add(static_cast<int>(index));
+        }
+        return pages;
+    }
+
+    // wxAuiTabCtrlArray
+
+    EXPORT std::vector<wxAuiTabCtrl*>* wxAuiTabCtrlArray_Create()
+    {
+        return new std::vector<wxAuiTabCtrl*>();
+    }
+
+    EXPORT void wxAuiTabCtrlArray_Delete(std::vector<wxAuiTabCtrl*>* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxAuiTabCtrlArray_GetCount(std::vector<wxAuiTabCtrl*>* self)
+    {
+        return static_cast<int>(self->size());
+    }
+
+    EXPORT wxAuiTabCtrl* wxAuiTabCtrlArray_Item(std::vector<wxAuiTabCtrl*>* self, int index)
+    {
+        return (*self)[static_cast<size_t>(index)];
+    }
+
+    // wxAuiPaneInfo introspection
+
+    EXPORT void wxAuiPaneInfo_Delete(wxAuiPaneInfo* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxString* wxAuiPaneInfo_GetName(wxAuiPaneInfo* self)
+    {
+        return new wxString(self->name);
+    }
+
+    EXPORT wxString* wxAuiPaneInfo_GetCaption(wxAuiPaneInfo* self)
+    {
+        return new wxString(self->caption);
+    }
+
+    EXPORT wxWindow* wxAuiPaneInfo_GetWindow(wxAuiPaneInfo* self)
+    {
+        return self->window;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockDirection(wxAuiPaneInfo* self)
+    {
+        return self->dock_direction;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockLayer(wxAuiPaneInfo* self)
+    {
+        return self->dock_layer;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockRow(wxAuiPaneInfo* self)
+    {
+        return self->dock_row;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockPos(wxAuiPaneInfo* self)
+    {
+        return self->dock_pos;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockProportion(wxAuiPaneInfo* self)
+    {
+        return self->dock_proportion;
+    }
+
+    EXPORT int wxAuiPaneInfo_GetDockSize(wxAuiPaneInfo* self)
+    {
+        return self->dock_size;
+    }
+
+    EXPORT wxPoint* wxAuiPaneInfo_GetFloatingPos(wxAuiPaneInfo* self)
+    {
+        return new wxPoint(self->floating_pos);
+    }
+
+    EXPORT wxSize* wxAuiPaneInfo_GetFloatingSize(wxAuiPaneInfo* self)
+    {
+        return new wxSize(self->floating_size);
+    }
+
+    EXPORT int wxAuiPaneInfo_IsMaximized(wxAuiPaneInfo* self)
+    {
+        return self->IsMaximized() ? 1 : 0;
+    }
+
     EXPORT void* wxAuiPaneInfo_FloatingClientSize(void* pObject, void* size)
     {
-        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
-        *pane = ((wxAuiPaneInfo*) pObject)->FloatingClientSize(*(wxSize*) size);
-        return pane;
+        ((wxAuiPaneInfo*) pObject)->FloatingClientSize(*(wxSize*) size);
+        return pObject;
     }
 
     EXPORT void* wxAuiPaneInfo_IconMin(void* pObject, void* b)
     {
-        wxAuiPaneInfo* pane = new wxAuiPaneInfo();
-        *pane = ((wxAuiPaneInfo*) pObject)->IconMin(*(wxBitmapBundle*) b);
-        return pane;
+        ((wxAuiPaneInfo*) pObject)->IconMin(*(wxBitmapBundle*) b);
+        return pObject;
     }
 }

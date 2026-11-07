@@ -3,6 +3,96 @@
 
 #include "kwx_wrapper.h"
 
+#include <algorithm>
+#include <unordered_map>
+#include <vector>
+
+// The FFI callback ABI is three pointer arguments and a void return, but
+// wxFileDialog's creator must return the wxWindow* it builds.  The trampoline
+// below bridges the two: it invokes the callback and returns the child window
+// the callback added to the parent it was given.
+typedef void (*kwxFileDialogExtraControlCallback)(void* pObject, void* arg1, void* arg2);
+
+// Registration is per dialog.  MSW also calls the creator once with a
+// throwaway parent to measure the panel, where the dialog is not available, so
+// the most recent registration on the thread is the fallback for that call.
+// wxWidgets only calls the creator from the GUI thread.
+static thread_local void* g_pending_extra_control_creator = nullptr;
+static std::unordered_map<wxFileDialog*, void*> g_extra_control_creators;
+
+static wxWindow* CallExtraControlCreator(wxWindow* parent, void* pFunction)
+{
+    if (!pFunction)
+    {
+        return nullptr;
+    }
+
+    std::vector<wxWindow*> existing_children;
+    for (wxWindowList::compatibility_iterator node = parent->GetChildren().GetFirst(); node;
+         node = node->GetNext())
+    {
+        existing_children.push_back(node->GetData());
+    }
+
+    reinterpret_cast<kwxFileDialogExtraControlCallback>(pFunction)(parent, nullptr, nullptr);
+
+    for (wxWindowList::compatibility_iterator node = parent->GetChildren().GetFirst(); node;
+         node = node->GetNext())
+    {
+        if (std::find(existing_children.begin(), existing_children.end(), node->GetData()) ==
+            existing_children.end())
+        {
+            return node->GetData();
+        }
+    }
+
+    return nullptr;
+}
+
+static wxWindow* wxFileDialogExtraControlCreator(wxWindow* parent)
+{
+    wxFileDialog* dialog = nullptr;
+    void* pFunction = nullptr;
+
+    if (parent->IsKindOf(wxCLASSINFO(wxFileDialog)))
+    {
+        dialog = static_cast<wxFileDialog*>(parent);
+        const std::unordered_map<wxFileDialog*, void*>::iterator found =
+            g_extra_control_creators.find(dialog);
+        if (found != g_extra_control_creators.end())
+        {
+            pFunction = found->second;
+        }
+    }
+
+    if (!pFunction)
+    {
+        pFunction = g_pending_extra_control_creator;
+    }
+
+    // The measuring call has no way to name its dialog.  If several dialogs
+    // have registered, any of their callbacks can produce a panel to measure;
+    // picking one keeps wx's CreateExtraControlWithParent()->GetSize() call from
+    // dereferencing a null window.
+    if (!pFunction && !g_extra_control_creators.empty())
+    {
+        pFunction = g_extra_control_creators.begin()->second;
+    }
+
+    wxWindow* const extra_control = CallExtraControlCreator(parent, pFunction);
+
+    // A call with the dialog itself creates the control that the dialog keeps,
+    // so the registration is no longer needed.  The measuring call passes a
+    // throwaway parent and leaves the registration in place.
+    if (dialog && extra_control)
+    {
+        g_extra_control_creators.erase(dialog);
+        g_pending_extra_control_creator = nullptr;
+    }
+
+    return extra_control;
+}
+
 // wxFileDialog inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:
 //   wxWindow_* — base window methods (see wx_window.cpp)
@@ -157,13 +247,15 @@ extern "C"
     }
 
     // The creator callback must return the wxWindow* it creates, but the FFI callback
-    // ABI is void-only (kwxts/README.md, "Limitations"), so this path cannot surface a
-    // custom panel from a port. Use wxFileDialog_SetCustomizeHook instead.
+    // ABI is void-only (kwxts/README.md, "Limitations").  The callback must therefore
+    // create its panel with the parent it receives as pObject; the wrapper returns the
+    // first window the callback adds to that parent.  This preserves the wxWidgets
+    // behaviour, where the creator also receives the dialog as its parent.
     EXPORT int wxFileDialog_SetExtraControlCreator(wxFileDialog* self, void* pFunction)
     {
-        // The FFI hands over an untyped function pointer and the wx typedef is
-        // the only legal target type for it.
-        return self->SetExtraControlCreator(
-            reinterpret_cast<wxFileDialog::ExtraControlCreatorFunction>(pFunction));
+        g_extra_control_creators[self] = pFunction;
+        g_pending_extra_control_creator = pFunction;
+
+        return self->SetExtraControlCreator(&wxFileDialogExtraControlCreator);
     }
 }

@@ -441,7 +441,7 @@ extern "C"
     EXPORT wxMenuItem* wxMenu_AppendSubMenu(wxMenu* self, wxMenu* submenu, wxString* text,
                                             wxString* help)
     {
-        return self->AppendSubMenu(submenu, *text, *help);
+        return self->AppendSubMenu(submenu, *text, help ? *help : wxString());
     }
 
     EXPORT wxMenuItem* wxMenu_RemoveItem(wxMenu* self, int id)

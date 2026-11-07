@@ -11,6 +11,7 @@
 #include <wx/aui/dockart.h>
 #include <wx/aui/floatpane.h>
 #include <wx/aui/framemanager.h>
+#include <wx/aui/serializer.h>
 #include <wx/aui/tabmdi.h>
 #include <wx/bannerwindow.h>
 #include <wx/base64.h>

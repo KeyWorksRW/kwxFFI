@@ -117,6 +117,18 @@ wxClosure* kwxClosureRefData::GetClosure()
     return m_closure;
 }
 
+// Free-function handler used by wxEvtHandler_Bind()/Unbind().  The wxCallback
+// that wraps the foreign closure travels as the event's user data, exactly as
+// it does for the Connect() path below.
+static void kwxBoundEventHandler(wxEvent& event)
+{
+    wxCallback* callback = static_cast<wxCallback*>(event.GetEventUserData());
+    if (callback)
+    {
+        callback->Invoke(&event);
+    }
+}
+
 extern "C"
 {
     // closures
@@ -241,11 +253,42 @@ extern "C"
         return 0;
     }
 
-    EXPORT int wxEvtHandler_Disconnect(wxEvtHandler* self, int first, int last, int type,
-                                       wxObject* data)
+    // Modern event binding — same calling shape as Connect(), but routed through
+    // wxEvtHandler::Bind(), which uses the non-deprecated functor path.
+    EXPORT int wxEvtHandler_Bind(wxEvtHandler* self, int first, int last, int type,
+                                 wxClosure* closure)
     {
-        return (int) self->Disconnect(first, last, type,
-                                      (wxObjectEventFunction) &kwxEventHandler::HandleEvent, data);
+        wxCallback* callback = new wxCallback(closure);
+        self->Bind(wxEventTypeTag<wxEvent>(type), &kwxBoundEventHandler, first, last, callback);
+        return 0;
+    }
+
+    // Removes every handler installed by wxEvtHandler_Bind() for the given id range
+    // and event type.  Connect() handlers use a different functor type, so they are
+    // untouched.  Returns the number of handlers removed.
+    EXPORT int wxEvtHandler_Unbind(wxEvtHandler* self, int first, int last, int type)
+    {
+        int removed = 0;
+        while (self->Unbind(wxEventTypeTag<wxEvent>(type), &kwxBoundEventHandler, first, last,
+                            nullptr))
+        {
+            ++removed;
+        }
+        return removed;
+    }
+
+    // The id argument is retained for declaration/ABI compatibility with the
+    // generated bindings; unregistration is by id range and event type.
+    EXPORT int wxEvtHandler_Disconnect(wxEvtHandler* self, int first, int last, int type,
+                                       [[maybe_unused]] int id)
+    {
+        int removed = 0;
+        while (self->Disconnect(first, last, type,
+                                (wxObjectEventFunction) &kwxEventHandler::HandleEvent, nullptr))
+        {
+            ++removed;
+        }
+        return removed;
     }
 
     EXPORT void* Null_AcceleratorTable()

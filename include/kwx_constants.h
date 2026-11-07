@@ -192,6 +192,9 @@ void LogWarning(TClass(wxString) message);
 void LogMessage(TClass(wxString) message);
 void LogVerbose(TClass(wxString) message);
 void LogStatus(TClass(wxString) message);
+// wxLogStatus(frame, ...): routes the message to frame's status bar instead of the
+// application's top window.
+void LogStatusWindow(TClass(wxFrame) frame, TClass(wxString) message);
 void LogSysError(TClass(wxString) message);
 void LogDebug(TClass(wxString) message);
 void LogTrace(TClass(wxString) mask, TClass(wxString) message);

@@ -249,8 +249,8 @@ TClassDefExtend(wxWindowModalDialogEvent, wxCommandEvent) TClass(wxWindowModalDi
 TClass(wxDialog) wxWindowModalDialogEvent_GetDialog(TSelf(wxWindowModalDialogEvent) pObject);
 void wxWindowModalDialogEvent_Delete(TSelf(wxWindowModalDialogEvent) pObject);
 
-// The creator callback must return the wxWindow* it creates, but the FFI callback
-// ABI is void-only (kwxts/README.md, "Limitations"), so this path cannot surface a
-// custom panel from a port. Use wxFileDialog_SetCustomizeHook instead.
+// The creator callback must return the wxWindow* it creates.  The FFI callback
+// ABI is void-only, so the callback must create its panel with the parent it
+// receives as pObject; the wrapper returns the child the callback added.
 TBool wxFileDialog_SetExtraControlCreator(TSelf(wxFileDialog) pObject, void* pFunction);
 void wxFontDialog_Delete(TSelf(wxFontDialog) pObject);
