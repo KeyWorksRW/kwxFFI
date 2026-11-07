@@ -6,7 +6,7 @@
             "displayName": "Default (Ninja Multi-Config)",
             "description": "Standalone kwxFFI test project using Ninja Multi-Config",
             "generator": "Ninja Multi-Config",
-            "binaryDir": "${sourceDir}/../build/tests"
+            "binaryDir": "${sourceDir}/../build/standalone-tests"
         }
     ],
     "buildPresets": [

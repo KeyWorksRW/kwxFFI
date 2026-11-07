@@ -1766,6 +1766,7 @@ extern "C"
     int expwxPATH_GET_SEPARATOR();
     int expwxPATH_GET_VOLUME();
     int expwxPATH_MKDIR_FULL();
+    int expwxPATH_NATIVE();
     int expwxPATH_NO_SEPARATOR();
     int expwxPATH_RMDIR_FULL();
     int expwxPATH_RMDIR_PARENTS();
@@ -2400,12 +2401,12 @@ extern "C"
     int expwxYES_NO();
     int expwxZIP_FORMAT_ZIP64();
 
-    static int s_values[2395];
+    static int s_values[2396];
     static std::once_flag s_once;
 
     WXFFI_EXPORT(int, kwxConstants_IntCount)()
     {
-        return 2395;
+        return 2396;
     }
 
     WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
@@ -4176,6 +4177,7 @@ extern "C"
                            s_values[i++] = expwxPATH_GET_SEPARATOR();
                            s_values[i++] = expwxPATH_GET_VOLUME();
                            s_values[i++] = expwxPATH_MKDIR_FULL();
+                           s_values[i++] = expwxPATH_NATIVE();
                            s_values[i++] = expwxPATH_NO_SEPARATOR();
                            s_values[i++] = expwxPATH_RMDIR_FULL();
                            s_values[i++] = expwxPATH_RMDIR_PARENTS();
@@ -4815,7 +4817,7 @@ extern "C"
 
     WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
     {
-        static const char* const s_names[2395] = {
+        static const char* const s_names[2396] = {
             "EVT_ACCELERATOR_KEY",
             "EVT_ACTIVATE",
             "EVT_ACTIVATE_APP",
@@ -6578,6 +6580,7 @@ extern "C"
             "PATH_GET_SEPARATOR",
             "PATH_GET_VOLUME",
             "PATH_MKDIR_FULL",
+            "PATH_NATIVE",
             "PATH_NO_SEPARATOR",
             "PATH_RMDIR_FULL",
             "PATH_RMDIR_PARENTS",

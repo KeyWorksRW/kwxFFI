@@ -6,6 +6,7 @@
 #include <wx/debug.h>
 #include <wx/log.h>
 #include <wx/msgdlg.h>
+#include <wx/msgout.h>
 
 extern "C"
 {
@@ -265,6 +266,36 @@ extern "C"
 
         // The FFI cannot express variadic arguments, so text is already formatted.
         return ::wxPrintf("%s", text->utf8_string().data());
+    }
+
+    // Static targets: wxMessageOutput::Set() stores a borrowed pointer, so a
+    // per-call allocation would leak.  Function-local statics also keep the
+    // objects alive until process exit, after which nothing calls Set() again.
+    static wxMessageOutputStderr& StderrMessageOutput()
+    {
+        static wxMessageOutputStderr message_output(stderr);
+        return message_output;
+    }
+
+    static wxMessageOutputStderr& StdoutMessageOutput()
+    {
+        static wxMessageOutputStderr message_output(stdout);
+        return message_output;
+    }
+
+    EXPORT void kwxMessageOutputUseStderr()
+    {
+        wxMessageOutput::Set(&StderrMessageOutput());
+    }
+
+    EXPORT void kwxMessageOutputUseStdout()
+    {
+        wxMessageOutput::Set(&StdoutMessageOutput());
+    }
+
+    EXPORT void kwxMessageOutputReset()
+    {
+        wxMessageOutput::Set(nullptr);
     }
 
     EXPORT void LogErrorMsg(wxString* message)

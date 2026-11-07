@@ -105,6 +105,22 @@ static void TestClassParser(const std::filesystem::path& fixture_path)
     {
         CHECK_EQ(fixture_class->name, std::string("wxFixtureClass"));
         CHECK(!fixture_class->methods.empty());
+
+        // TClassOwned is reduced to TClass for every backend; the lifetime difference lives
+        // in returns_owned.
+        const std::vector<FunctionDecl>::const_iterator owned_method =
+            std::ranges::find_if(fixture_class->methods,
+                                 [](const FunctionDecl& method)
+                                 {
+                                     return method.method_name == "NewOwned";
+                                 });
+        CHECK(owned_method != fixture_class->methods.end());
+        if (owned_method != fixture_class->methods.end())
+        {
+            CHECK(owned_method->returns_owned);
+            CHECK_EQ(owned_method->return_macro, std::string("TClass"));
+            CHECK_EQ(owned_method->return_arg, std::string("wxFixtureClass"));
+        }
     }
 
     // The __APPLE__-guarded class must be present despite the guard.

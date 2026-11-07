@@ -494,8 +494,9 @@ struct WrapParam
         {
             return EffectiveFactoryClass(func, class_name, wrapped_classes) + " | null";
         }
-        // Non-factory TClass(SomeClass) returns a wrapper around a pointer wxWidgets owns.
-        // TSelf/TClassRef keep the raw Pointer contract.
+        // Non-factory TClass(SomeClass) returns a wrapper; the wrapper owns the pointer
+        // only when the declaration used TClassOwned.  TSelf/TClassRef keep the raw
+        // Pointer contract.
         if (IsWrappedClassReturn(func, wrapped_classes))
         {
             return func.return_arg + " | null";
@@ -563,13 +564,20 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
         return;
     }
 
-    // Non-factory TClass(SomeClass) method: wrap the raw pointer non-owningly, matching the
-    // wrapWx<Class> factory semantics.
+    // Non-factory TClass(SomeClass) method: the header marks a caller-owned result with
+    // TClassOwned, so only genuinely borrowed pointers get the non-owning wrapper.
     if (!class_name.empty() && IsWrappedClassReturn(func, wrapped_classes))
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
-        output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+        if (func.returns_owned)
+        {
+            output << indent << "return new " << func.return_arg << "(rawPtr);\n";
+        }
+        else
+        {
+            output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+        }
         return;
     }
 

@@ -9,6 +9,9 @@ TClassDef(wxFixtureClass) TClass(wxFixtureClass) wxFixtureClass_Create();
 
 void wxFixtureClass_Delete(TSelf(wxFixtureClass) pObject);
 
+// A non-constructor method that transfers ownership of the returned object.
+TClassOwned(wxFixtureClass) wxFixtureClass_NewOwned(TSelf(wxFixtureClass) pObject);
+
 #if defined(__APPLE__)
 TClassDef(wxGuardedClass) TClass(wxGuardedClass) wxGuardedClass_Create();
 #endif

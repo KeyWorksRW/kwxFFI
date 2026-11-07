@@ -7,10 +7,9 @@
 // and are therefore listed in `GuiExcludedClasses()` (`kwxgen/src/profile.cpp`), so the `gui`
 // profile used by the Go and Julia bindings does not emit them.
 //
-// Sizes and offsets are returned as `int`. wxWidgets stores them in `wxFileOffset`, which is
-// 64 bits on the supported platforms, so a size above 2 GB truncates. The 64-bit surface is
-// deferred until the downstream TypeScript binding supports `TInt64` — see
-// `.private/deferred_i64.md`.
+// Sizes and offsets are returned as `TInt64` (64-bit) because wxWidgets stores them in
+// `wxFileOffset`, which is 64 bits on every supported platform. See `.private/deferred_i64.md`
+// for the remaining narrowed surfaces.
 
 // ---------------------------------------------------------------------------
 // wxTextFile (and the inherited wxTextBuffer surface)
@@ -156,9 +155,9 @@ TBool wxStreamBuffer_IsFlushable(TSelf(wxStreamBuffer) pObject);
 
 // The parent stream must outlive the filter stream.
 void wxFilterInputStream_Delete(TSelf(wxFilterInputStream) pObject);
-int wxFilterInputStream_GetLength(TSelf(wxFilterInputStream) pObject);
+TInt64 wxFilterInputStream_GetLength(TSelf(wxFilterInputStream) pObject);
 TClass(wxInputStream) wxFilterInputStream_GetFilterInputStream(TSelf(wxFilterInputStream) pObject);
-int wxFilterOutputStream_GetLength(TSelf(wxFilterOutputStream) pObject);
+TInt64 wxFilterOutputStream_GetLength(TSelf(wxFilterOutputStream) pObject);
 TClass(wxOutputStream)
     wxFilterOutputStream_GetFilterOutputStream(TSelf(wxFilterOutputStream) pObject);
 void wxFilterOutputStream_Delete(TSelf(wxFilterOutputStream) pObject);
@@ -183,11 +182,12 @@ TClass(wxString) wxFilterClassFactoryBase_PopExtension(TSelf(wxFilterClassFactor
                                                        TClass(wxString) location);
 
 // The returned factory is owned by wxWidgets and must not be deleted.
-// NewStreamInput/NewStreamOutput are the two NewStream() overloads.
-TClassDefExtend(wxFilterClassFactory, wxFilterClassFactoryBase) TClass(wxFilterInputStream)
+// NewStreamInput/NewStreamOutput are the two NewStream() overloads; they transfer
+// ownership of the new stream to the caller.
+TClassDefExtend(wxFilterClassFactory, wxFilterClassFactoryBase) TClassOwned(wxFilterInputStream)
     wxFilterClassFactory_NewStreamInput(TSelf(wxFilterClassFactory) pObject,
                                         TClass(wxInputStream) stream);
-TClass(wxFilterOutputStream)
+TClassOwned(wxFilterOutputStream)
     wxFilterClassFactory_NewStreamOutput(TSelf(wxFilterClassFactory) pObject,
                                          TClass(wxOutputStream) stream);
 TClass(wxFilterClassFactory) wxFilterClassFactory_Find(TClass(wxString) protocol, int type);
@@ -200,13 +200,13 @@ TClass(wxFilterClassFactory) wxFilterClassFactory_GetNext(TSelf(wxFilterClassFac
 
 // A factory is owned by wxWidgets.  NewStreamInput/NewStreamOutput correspond to
 // the two NewStream() overloads; NewEntry() returns a new entry owned by the
-// caller.
-TClassDefExtend(wxArchiveClassFactory, wxFilterClassFactoryBase) TClass(wxArchiveEntry)
+// caller.  All three transfer ownership to the caller.
+TClassDefExtend(wxArchiveClassFactory, wxFilterClassFactoryBase) TClassOwned(wxArchiveEntry)
     wxArchiveClassFactory_NewEntry(TSelf(wxArchiveClassFactory) pObject);
-TClass(wxArchiveInputStream)
+TClassOwned(wxArchiveInputStream)
     wxArchiveClassFactory_NewStreamInput(TSelf(wxArchiveClassFactory) pObject,
                                          TClass(wxInputStream) stream);
-TClass(wxArchiveOutputStream)
+TClassOwned(wxArchiveOutputStream)
     wxArchiveClassFactory_NewStreamOutput(TSelf(wxArchiveClassFactory) pObject,
                                           TClass(wxOutputStream) stream);
 TClass(wxString) wxArchiveClassFactory_GetInternalName(TSelf(wxArchiveClassFactory) pObject,
@@ -220,21 +220,22 @@ TClass(wxArchiveClassFactory) wxArchiveClassFactory_GetNext(TSelf(wxArchiveClass
 // ---------------------------------------------------------------------------
 
 // Entries returned by GetNextEntry() are owned by the caller.  GetDateTime()
-// returns a new wxDateTime the caller must delete.
-TClassDefExtend(wxArchiveEntry, wxObject) TClass(wxDateTime)
+// returns a new wxDateTime the caller must delete.  Both use TClassOwned so a
+// generated wrapper frees them instead of treating them as borrowed.
+TClassDefExtend(wxArchiveEntry, wxObject) TClassOwned(wxDateTime)
     wxArchiveEntry_GetDateTime(TSelf(wxArchiveEntry) pObject);
-int wxArchiveEntry_GetSize(TSelf(wxArchiveEntry) pObject);
-int wxArchiveEntry_GetOffset(TSelf(wxArchiveEntry) pObject);
+TInt64 wxArchiveEntry_GetSize(TSelf(wxArchiveEntry) pObject);
+TInt64 wxArchiveEntry_GetOffset(TSelf(wxArchiveEntry) pObject);
 TBool wxArchiveEntry_IsDir(TSelf(wxArchiveEntry) pObject);
 TBool wxArchiveEntry_IsReadOnly(TSelf(wxArchiveEntry) pObject);
 TClass(wxString) wxArchiveEntry_GetInternalName(TSelf(wxArchiveEntry) pObject);
 int wxArchiveEntry_GetInternalFormat(TSelf(wxArchiveEntry) pObject);
 TClass(wxString) wxArchiveEntry_GetName(TSelf(wxArchiveEntry) pObject, int path_format);
-TClass(wxArchiveEntry) wxArchiveEntry_Clone(TSelf(wxArchiveEntry) pObject);
+TClassOwned(wxArchiveEntry) wxArchiveEntry_Clone(TSelf(wxArchiveEntry) pObject);
 // GetNextEntry() gives away ownership; delete the entry with this function.
 void wxArchiveEntry_Delete(TSelf(wxArchiveEntry) pObject);
 void wxArchiveEntry_SetDateTime(TSelf(wxArchiveEntry) pObject, TClass(wxDateTime) dt);
-void wxArchiveEntry_SetSize(TSelf(wxArchiveEntry) pObject, int size);
+void wxArchiveEntry_SetSize(TSelf(wxArchiveEntry) pObject, TInt64 size);
 void wxArchiveEntry_SetIsDir(TSelf(wxArchiveEntry) pObject, TBool is_dir);
 void wxArchiveEntry_SetIsReadOnly(TSelf(wxArchiveEntry) pObject, TBool is_read_only);
 void wxArchiveEntry_SetName(TSelf(wxArchiveEntry) pObject, TClass(wxString) entry_name,
@@ -249,7 +250,7 @@ void wxArchiveEntry_SetName(TSelf(wxArchiveEntry) pObject, TClass(wxString) entr
 TClassDefExtend(wxArchiveInputStream,
                 wxFilterInputStream) void wxArchiveInputStream_Delete(TSelf(wxArchiveInputStream)
                                                                           pObject);
-TClass(wxArchiveEntry) wxArchiveInputStream_GetNextEntry(TSelf(wxArchiveInputStream) pObject);
+TClassOwned(wxArchiveEntry) wxArchiveInputStream_GetNextEntry(TSelf(wxArchiveInputStream) pObject);
 TBool wxArchiveInputStream_OpenEntry(TSelf(wxArchiveInputStream) pObject,
                                      TClass(wxArchiveEntry) entry);
 TBool wxArchiveInputStream_CloseEntry(TSelf(wxArchiveInputStream) pObject);
@@ -268,7 +269,7 @@ TBool wxArchiveOutputStream_PutNextEntry(TSelf(wxArchiveOutputStream) pObject,
                                          TClass(wxArchiveEntry) entry);
 TBool wxArchiveOutputStream_PutNextEntryDate(TSelf(wxArchiveOutputStream) pObject,
                                              TClass(wxString) entry_name, TClass(wxDateTime) dt,
-                                             int size);
+                                             TInt64 size);
 TBool wxArchiveOutputStream_PutNextDirEntryDate(TSelf(wxArchiveOutputStream) pObject,
                                                 TClass(wxString) entry_name, TClass(wxDateTime) dt);
 TBool wxArchiveOutputStream_CopyEntry(TSelf(wxArchiveOutputStream) pObject,
@@ -286,10 +287,10 @@ TBool wxArchiveOutputStream_CloseEntry(TSelf(wxArchiveOutputStream) pObject);
 TClassDefExtend(wxZipEntry, wxArchiveEntry) TClass(wxZipEntry) wxZipEntry_Create();
 TClass(wxZipEntry) wxZipEntry_CreateNamed(TClass(wxString) entry_name);
 void wxZipEntry_Delete(TSelf(wxZipEntry) pObject);
-TClass(wxZipEntry) wxZipEntry_Clone(TSelf(wxZipEntry) pObject);
-int wxZipEntry_GetSize(TSelf(wxZipEntry) pObject);
-int wxZipEntry_GetOffset(TSelf(wxZipEntry) pObject);
-int wxZipEntry_GetCompressedSize(TSelf(wxZipEntry) pObject);
+TClassOwned(wxZipEntry) wxZipEntry_Clone(TSelf(wxZipEntry) pObject);
+TInt64 wxZipEntry_GetSize(TSelf(wxZipEntry) pObject);
+TInt64 wxZipEntry_GetOffset(TSelf(wxZipEntry) pObject);
+TInt64 wxZipEntry_GetCompressedSize(TSelf(wxZipEntry) pObject);
 TClass(wxString) wxZipEntry_GetName(TSelf(wxZipEntry) pObject, int path_format);
 TClass(wxString) wxZipEntry_GetInternalName(TSelf(wxZipEntry) pObject);
 int wxZipEntry_GetMethod(TSelf(wxZipEntry) pObject);
@@ -303,7 +304,7 @@ TBool wxZipEntry_IsDir(TSelf(wxZipEntry) pObject);
 TBool wxZipEntry_IsText(TSelf(wxZipEntry) pObject);
 TBool wxZipEntry_IsReadOnly(TSelf(wxZipEntry) pObject);
 TBool wxZipEntry_IsMadeByUnix(TSelf(wxZipEntry) pObject);
-void wxZipEntry_SetSize(TSelf(wxZipEntry) pObject, int size);
+void wxZipEntry_SetSize(TSelf(wxZipEntry) pObject, TInt64 size);
 void wxZipEntry_SetMethod(TSelf(wxZipEntry) pObject, int method);
 void wxZipEntry_SetComment(TSelf(wxZipEntry) pObject, TClass(wxString) comment);
 void wxZipEntry_SetExternalAttributes(TSelf(wxZipEntry) pObject, TUInt32 attributes);
@@ -322,12 +323,12 @@ void wxZipEntry_SetIsText(TSelf(wxZipEntry) pObject, TBool is_text);
 TClassDefExtend(wxZipInputStream, wxArchiveInputStream) TClass(wxZipInputStream)
     wxZipInputStream_Create(TClass(wxInputStream) stream);
 void wxZipInputStream_Delete(TSelf(wxZipInputStream) pObject);
-TClass(wxZipEntry) wxZipInputStream_GetNextEntry(TSelf(wxZipInputStream) pObject);
+TClassOwned(wxZipEntry) wxZipInputStream_GetNextEntry(TSelf(wxZipInputStream) pObject);
 TBool wxZipInputStream_OpenEntry(TSelf(wxZipInputStream) pObject, TClass(wxZipEntry) entry);
 TBool wxZipInputStream_CloseEntry(TSelf(wxZipInputStream) pObject);
 TClass(wxString) wxZipInputStream_GetComment(TSelf(wxZipInputStream) pObject);
 int wxZipInputStream_GetTotalEntries(TSelf(wxZipInputStream) pObject);
-int wxZipInputStream_GetLength(TSelf(wxZipInputStream) pObject);
+TInt64 wxZipInputStream_GetLength(TSelf(wxZipInputStream) pObject);
 
 // ---------------------------------------------------------------------------
 // wxZipOutputStream
@@ -339,11 +340,11 @@ TClassDefExtend(wxZipOutputStream, wxArchiveOutputStream) TClass(wxZipOutputStre
     wxZipOutputStream_Create(TClass(wxOutputStream) stream, int level);
 void wxZipOutputStream_Delete(TSelf(wxZipOutputStream) pObject);
 TBool wxZipOutputStream_PutNextEntry(TSelf(wxZipOutputStream) pObject, TClass(wxString) entry_name,
-                                     int size);
+                                     TInt64 size);
 // Explicit timestamp.  A null dt means wxDateTime::Now().
 TBool wxZipOutputStream_PutNextEntryDate(TSelf(wxZipOutputStream) pObject,
                                          TClass(wxString) entry_name, TClass(wxDateTime) dt,
-                                         int size);
+                                         TInt64 size);
 TBool wxZipOutputStream_PutNextDirEntry(TSelf(wxZipOutputStream) pObject,
                                         TClass(wxString) entry_name);
 TBool wxZipOutputStream_PutNextDirEntryDate(TSelf(wxZipOutputStream) pObject,
@@ -374,7 +375,7 @@ TClassDefExtend(wxZlibInputStream, wxFilterInputStream) TClass(wxZlibInputStream
 void wxZlibInputStream_Delete(TSelf(wxZlibInputStream) pObject);
 TBool wxZlibInputStream_CanHandleGZip();
 TBool wxZlibInputStream_SetDictionary(TSelf(wxZlibInputStream) pObject, void* data, int size);
-int wxZlibInputStream_GetLength(TSelf(wxZlibInputStream) pObject);
+TInt64 wxZlibInputStream_GetLength(TSelf(wxZlibInputStream) pObject);
 
 TClassDefExtend(wxZlibOutputStream, wxFilterOutputStream) TClass(wxZlibOutputStream)
     wxZlibOutputStream_Create(TClass(wxOutputStream) stream, int level, int flags);
@@ -383,7 +384,7 @@ TBool wxZlibOutputStream_CanHandleGZip();
 TBool wxZlibOutputStream_SetDictionary(TSelf(wxZlibOutputStream) pObject, void* data, int size);
 void wxZlibOutputStream_Sync(TSelf(wxZlibOutputStream) pObject);
 TBool wxZlibOutputStream_Close(TSelf(wxZlibOutputStream) pObject);
-int wxZlibOutputStream_GetLength(TSelf(wxZlibOutputStream) pObject);
+TInt64 wxZlibOutputStream_GetLength(TSelf(wxZlibOutputStream) pObject);
 
 // ---------------------------------------------------------------------------
 // wxTarEntry
@@ -393,14 +394,14 @@ int wxZlibOutputStream_GetLength(TSelf(wxZlibOutputStream) pObject);
 TClassDefExtend(wxTarEntry, wxArchiveEntry) TClass(wxTarEntry) wxTarEntry_Create();
 TClass(wxTarEntry) wxTarEntry_CreateNamed(TClass(wxString) entry_name);
 void wxTarEntry_Delete(TSelf(wxTarEntry) pObject);
-TClass(wxTarEntry) wxTarEntry_Clone(TSelf(wxTarEntry) pObject);
+TClassOwned(wxTarEntry) wxTarEntry_Clone(TSelf(wxTarEntry) pObject);
 TClass(wxString) wxTarEntry_GetName(TSelf(wxTarEntry) pObject, int path_format);
 TClass(wxString) wxTarEntry_GetInternalName(TSelf(wxTarEntry) pObject);
 int wxTarEntry_GetMode(TSelf(wxTarEntry) pObject);
 int wxTarEntry_GetUserId(TSelf(wxTarEntry) pObject);
 int wxTarEntry_GetGroupId(TSelf(wxTarEntry) pObject);
-int wxTarEntry_GetSize(TSelf(wxTarEntry) pObject);
-int wxTarEntry_GetOffset(TSelf(wxTarEntry) pObject);
+TInt64 wxTarEntry_GetSize(TSelf(wxTarEntry) pObject);
+TInt64 wxTarEntry_GetOffset(TSelf(wxTarEntry) pObject);
 int wxTarEntry_GetTypeFlag(TSelf(wxTarEntry) pObject);
 TClass(wxString) wxTarEntry_GetLinkName(TSelf(wxTarEntry) pObject);
 TClass(wxString) wxTarEntry_GetUserName(TSelf(wxTarEntry) pObject);
@@ -413,7 +414,7 @@ void wxTarEntry_SetName(TSelf(wxTarEntry) pObject, TClass(wxString) entry_name, 
 void wxTarEntry_SetUserId(TSelf(wxTarEntry) pObject, int user_id);
 void wxTarEntry_SetGroupId(TSelf(wxTarEntry) pObject, int group_id);
 void wxTarEntry_SetMode(TSelf(wxTarEntry) pObject, int mode);
-void wxTarEntry_SetSize(TSelf(wxTarEntry) pObject, int size);
+void wxTarEntry_SetSize(TSelf(wxTarEntry) pObject, TInt64 size);
 void wxTarEntry_SetTypeFlag(TSelf(wxTarEntry) pObject, int type_flag);
 void wxTarEntry_SetLinkName(TSelf(wxTarEntry) pObject, TClass(wxString) link_name);
 void wxTarEntry_SetUserName(TSelf(wxTarEntry) pObject, TClass(wxString) user_name);
@@ -431,10 +432,10 @@ void wxTarEntry_SetIsReadOnly(TSelf(wxTarEntry) pObject, TBool is_read_only);
 TClassDefExtend(wxTarInputStream, wxArchiveInputStream) TClass(wxTarInputStream)
     wxTarInputStream_Create(TClass(wxInputStream) stream);
 void wxTarInputStream_Delete(TSelf(wxTarInputStream) pObject);
-TClass(wxTarEntry) wxTarInputStream_GetNextEntry(TSelf(wxTarInputStream) pObject);
+TClassOwned(wxTarEntry) wxTarInputStream_GetNextEntry(TSelf(wxTarInputStream) pObject);
 TBool wxTarInputStream_OpenEntry(TSelf(wxTarInputStream) pObject, TClass(wxTarEntry) entry);
 TBool wxTarInputStream_CloseEntry(TSelf(wxTarInputStream) pObject);
-int wxTarInputStream_GetLength(TSelf(wxTarInputStream) pObject);
+TInt64 wxTarInputStream_GetLength(TSelf(wxTarInputStream) pObject);
 int wxTarInputStream_GetMaxExtendedHeaderSize();
 void wxTarInputStream_SetMaxExtendedHeaderSize(int size);
 
@@ -448,11 +449,11 @@ TClassDefExtend(wxTarOutputStream, wxArchiveOutputStream) TClass(wxTarOutputStre
     wxTarOutputStream_Create(TClass(wxOutputStream) stream, int format);
 void wxTarOutputStream_Delete(TSelf(wxTarOutputStream) pObject);
 TBool wxTarOutputStream_PutNextEntry(TSelf(wxTarOutputStream) pObject, TClass(wxString) entry_name,
-                                     int size);
+                                     TInt64 size);
 // Explicit timestamp.  A null dt means wxDateTime::Now().
 TBool wxTarOutputStream_PutNextEntryDate(TSelf(wxTarOutputStream) pObject,
                                          TClass(wxString) entry_name, TClass(wxDateTime) dt,
-                                         int size);
+                                         TInt64 size);
 TBool wxTarOutputStream_PutNextDirEntry(TSelf(wxTarOutputStream) pObject,
                                         TClass(wxString) entry_name);
 TBool wxTarOutputStream_PutNextDirEntryDate(TSelf(wxTarOutputStream) pObject,

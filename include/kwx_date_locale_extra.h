@@ -315,6 +315,12 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // when a help option was found and the usage message was shown, and a positive value on a
 // syntax error. ParseString() does the same for a single command-line string.
 //
+// Usage() and GetUsageString() render the usage block.  GetUsageString() returns a new
+// wxString the caller must delete, so a port can capture the text and print it through its own
+// output path; Usage() writes it through the active wxMessageOutput instead.  A GUI host can
+// call kwxMessageOutputUseStderr() (see kwx_log.h) so that output reaches the console rather
+// than wxMessageOutputBest's modal fallback.
+//
 // Value types are the wxCmdLineParamType values, flags are combinations of the
 // wxCmdLineEntryFlags values, and GetOptionLong() returns `default_value` when the option was
 // not found or did not hold a number.
@@ -324,6 +330,8 @@ void wxCmdLineParser_AddLongOption(TSelf(wxCmdLineParser) pObject, TClass(wxStri
                                    TClass(wxString) desc, int type, int flags);
 void wxCmdLineParser_AddUsageText(TSelf(wxCmdLineParser) pObject, TClass(wxString) text);
 int wxCmdLineParser_FoundSwitch(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
+void wxCmdLineParser_Usage(TSelf(wxCmdLineParser) pObject);
+TClassOwned(wxString) wxCmdLineParser_GetUsageString(TSelf(wxCmdLineParser) pObject);
 void wxCmdLineParser_Delete(TSelf(wxCmdLineParser) pObject);
 void wxCmdLineParser_SetDesc(TSelf(wxCmdLineParser) pObject, TClass(kwxCmdLineDesc) desc);
 void wxCmdLineParser_AddSwitch(TSelf(wxCmdLineParser) pObject, TClass(wxString) name,

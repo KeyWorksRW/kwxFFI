@@ -6016,6 +6016,10 @@ extern "C"
 
     // ---- wxFileName path, mkdir, rmdir and file-existence flags (wx/filename.h) ----
 
+    EXPORT int expwxPATH_NATIVE()
+    {
+        return static_cast<int>(wxPATH_NATIVE);
+    }
     EXPORT int expwxPATH_NO_SEPARATOR()
     {
         return static_cast<int>(wxPATH_NO_SEPARATOR);

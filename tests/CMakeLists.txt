@@ -10,6 +10,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 get_filename_component(KWXFFI_ROOT "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 
+# The root project's build keeps the support files for these same targets in
+# <root>/build/tests/CMakeFiles. A standalone configure into that directory
+# overwrites the root tree's Ninja dyndep files, which then makes
+# `ninja -f build-Release.ninja` fail with "no build statement exists for ...".
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    string(TOLOWER "${KWXFFI_ROOT}/build/tests" reserved_build_dir)
+    string(TOLOWER "${CMAKE_BINARY_DIR}" standalone_build_dir)
+    if(standalone_build_dir STREQUAL reserved_build_dir)
+        message(FATAL_ERROR
+            "Refusing to configure the standalone tests project in ${CMAKE_BINARY_DIR}:\n"
+            "the root project's build owns that directory. Configure in\n"
+            "${KWXFFI_ROOT}/build/standalone-tests instead (run `cmake --preset default`\n"
+            "from the tests directory).")
+    endif()
+endif()
+
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
 # ###################### kwxgen code generator #######################
