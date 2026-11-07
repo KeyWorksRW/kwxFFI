@@ -3,13 +3,146 @@
 
 #include "kwx_wrapper.h"
 
-// wxCalendarCtrl inherits from wxControl.
+// The generic implementation is built on every platform, including those whose
+// wxCalendarCtrl is the native control.  <wx/calctrl.h> (pulled in by
+// kwx_wrapper.h) only includes this header when no native control exists.
+#include <wx/generic/calctrlg.h>
+
+// wxCalendarCtrl and wxGenericCalendarCtrl inherit from wxCalendarCtrlBase, which in
+// turn inherits from wxControl.
 // Additional methods available via:
-//   wxWindow_*  — base window methods (see wx_window.cpp)
-//   wxControl_* — label, alignment (see wx_control.cpp)
+//   wxCalendarCtrlBase_* — API shared by both calendar controls
+//   wxWindow_*           — base window methods (see wx_window.cpp)
+//   wxControl_*          — label, alignment (see wx_control.cpp)
 
 extern "C"
 {
+    // wxCalendarCtrlBase exposes the API shared by the native control and
+    // wxGenericCalendarCtrl.  Every method is virtual, so a language binding can
+    // call these wrappers on an instance of either derived class.
+    EXPORT int wxCalendarCtrlBase_AllowMonthChange(wxCalendarCtrlBase* self)
+    {
+        return self->AllowMonthChange() ? 1 : 0;
+    }
+
+    EXPORT void wxCalendarCtrlBase_EnableHolidayDisplay(wxCalendarCtrlBase* self, bool display)
+    {
+        self->EnableHolidayDisplay(display);
+    }
+
+    EXPORT void wxCalendarCtrlBase_EnableMonthChange(wxCalendarCtrlBase* self, bool enable)
+    {
+        self->EnableMonthChange(enable);
+    }
+
+    EXPORT wxCalendarDateAttr* wxCalendarCtrlBase_GetAttr(wxCalendarCtrlBase* self, size_t day)
+    {
+        return self->GetAttr(day);
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetDate(wxCalendarCtrlBase* self, wxDateTime* date)
+    {
+        *date = self->GetDate();
+    }
+
+    EXPORT int wxCalendarCtrlBase_GetDateRange(wxCalendarCtrlBase* self, wxDateTime* lowerdate,
+                                               wxDateTime* upperdate)
+    {
+        return self->GetDateRange(lowerdate, upperdate) ? 1 : 0;
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHeaderColourBg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHeaderColourBg();
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHeaderColourFg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHeaderColourFg();
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHighlightColourBg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHighlightColourBg();
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHighlightColourFg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHighlightColourFg();
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHolidayColourBg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHolidayColourBg();
+    }
+
+    EXPORT void wxCalendarCtrlBase_GetHolidayColourFg(wxCalendarCtrlBase* self, wxColour* colour)
+    {
+        *colour = self->GetHolidayColourFg();
+    }
+
+    EXPORT int wxCalendarCtrlBase_HitTest(wxCalendarCtrlBase* self, int x, int y, wxDateTime* date,
+                                          void* weekday)
+    {
+        return static_cast<int>(
+            self->HitTest(wxPoint(x, y), date, static_cast<wxDateTime::WeekDay*>(weekday)));
+    }
+
+    EXPORT void wxCalendarCtrlBase_Mark(wxCalendarCtrlBase* self, size_t day, bool mark)
+    {
+        self->Mark(day, mark);
+    }
+
+    EXPORT void wxCalendarCtrlBase_ResetAttr(wxCalendarCtrlBase* self, size_t day)
+    {
+        self->ResetAttr(day);
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetAttr(wxCalendarCtrlBase* self, size_t day,
+                                           wxCalendarDateAttr* attr)
+    {
+        self->SetAttr(day, attr);
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetDate(wxCalendarCtrlBase* self, wxDateTime* date)
+    {
+        self->SetDate(*date);
+    }
+
+    EXPORT int wxCalendarCtrlBase_SetDateRange(wxCalendarCtrlBase* self, wxDateTime* lowerdate,
+                                               wxDateTime* upperdate)
+    {
+        if (self->SetDateRange(lowerdate ? *lowerdate : wxDefaultDateTime,
+                               upperdate ? *upperdate : wxDefaultDateTime))
+        {
+            return 1;
+        }
+        return 0;
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetHeaderColours(wxCalendarCtrlBase* self, wxColour* colFg,
+                                                    wxColour* colBg)
+    {
+        self->SetHeaderColours(*colFg, *colBg);
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetHighlightColours(wxCalendarCtrlBase* self, wxColour* colFg,
+                                                       wxColour* colBg)
+    {
+        self->SetHighlightColours(*colFg, *colBg);
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetHoliday(wxCalendarCtrlBase* self, size_t day)
+    {
+        self->SetHoliday(day);
+    }
+
+    EXPORT void wxCalendarCtrlBase_SetHolidayColours(wxCalendarCtrlBase* self, wxColour* colFg,
+                                                     wxColour* colBg)
+    {
+        self->SetHolidayColours(*colFg, *colBg);
+    }
+
     EXPORT wxCalendarCtrl* wxCalendarCtrl_Create(wxWindow* parent, int id, wxDateTime* date, int x,
                                                  int y, int width, int height, int style)
     {
@@ -24,6 +157,28 @@ extern "C"
     EXPORT void wxCalendarCtrl_GetDate(wxCalendarCtrl* self, wxDateTime* date)
     {
         *date = self->GetDate();
+    }
+
+    EXPORT int wxCalendarCtrl_GetDateRange(wxCalendarCtrl* self, wxDateTime* lowerdate,
+                                           wxDateTime* upperdate)
+    {
+        return self->GetDateRange(lowerdate, upperdate) ? 1 : 0;
+    }
+
+    EXPORT void wxCalendarCtrl_Mark(wxCalendarCtrl* self, size_t day, bool mark)
+    {
+        self->Mark(day, mark);
+    }
+
+    EXPORT int wxCalendarCtrl_SetDateRange(wxCalendarCtrl* self, wxDateTime* lowerdate,
+                                           wxDateTime* upperdate)
+    {
+        if (self->SetDateRange(lowerdate ? *lowerdate : wxDefaultDateTime,
+                               upperdate ? *upperdate : wxDefaultDateTime))
+        {
+            return 1;
+        }
+        return 0;
     }
 
     EXPORT void wxCalendarCtrl_EnableMonthChange(wxCalendarCtrl* self, bool enable)
@@ -108,6 +263,43 @@ extern "C"
                                       void* weekday)
     {
         return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) weekday);
+    }
+
+    EXPORT wxGenericCalendarCtrl* wxGenericCalendarCtrl_Create(wxWindow* parent, int id,
+                                                               wxDateTime* date, int x, int y,
+                                                               int width, int height, int style)
+    {
+        return new wxGenericCalendarCtrl(parent, id, *date, wxPoint(x, y), wxSize(width, height),
+                                         style);
+    }
+
+    EXPORT void wxGenericCalendarCtrl_EnableYearChange(wxGenericCalendarCtrl* self, bool enable)
+    {
+        self->EnableYearChange(enable);
+    }
+
+    EXPORT void wxGenericCalendarCtrl_GetLowerDateLimit(wxGenericCalendarCtrl* self,
+                                                        wxDateTime* date)
+    {
+        *date = self->GetLowerDateLimit();
+    }
+
+    EXPORT void wxGenericCalendarCtrl_GetUpperDateLimit(wxGenericCalendarCtrl* self,
+                                                        wxDateTime* date)
+    {
+        *date = self->GetUpperDateLimit();
+    }
+
+    EXPORT int wxGenericCalendarCtrl_SetLowerDateLimit(wxGenericCalendarCtrl* self,
+                                                       wxDateTime* date)
+    {
+        return self->SetLowerDateLimit(date ? *date : wxDefaultDateTime) ? 1 : 0;
+    }
+
+    EXPORT int wxGenericCalendarCtrl_SetUpperDateLimit(wxGenericCalendarCtrl* self,
+                                                       wxDateTime* date)
+    {
+        return self->SetUpperDateLimit(date ? *date : wxDefaultDateTime) ? 1 : 0;
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_Create(wxColour* textColour, wxColour* backColour,

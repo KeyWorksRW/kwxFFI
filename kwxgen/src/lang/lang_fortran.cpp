@@ -2389,7 +2389,7 @@ module wx_events
     private
 
     ! Connection
-    public :: wx_connect, wx_disconnect
+    public :: wx_bind, wx_unbind, wx_connect, wx_disconnect
 
     ! Base event accessors
     public :: wx_event_get_id, wx_event_get_type, wx_event_skip
@@ -2442,6 +2442,47 @@ contains
         ! TClosureFun is void* in C, so the function pointer crosses as a c_ptr.
         dummy = wxEvtHandler_Connect(window%ptr, c_first, c_last, c_type, &
             wxClosure_Create(transfer(fptr, c_null_ptr), data_ptr))
+    end subroutine
+
+    subroutine wx_bind(window, event_type, handler, user_data, id, last_id)
+        class(wxWindow_t), intent(in) :: window
+        integer, intent(in) :: event_type
+        procedure(event_callback) :: handler
+        type(c_ptr), intent(in), optional :: user_data
+        integer, intent(in), optional :: id
+        integer, intent(in), optional :: last_id
+
+        type(c_funptr) :: fptr
+        type(c_ptr) :: data_ptr
+        integer(c_int) :: c_first, c_last, c_type, dummy
+
+        fptr = c_funloc(handler)
+        data_ptr = c_null_ptr
+        if (present(user_data)) data_ptr = user_data
+        c_first = -1_c_int
+        if (present(id)) c_first = int(id, c_int)
+        c_last = c_first
+        if (present(last_id)) c_last = int(last_id, c_int)
+        c_type = int(event_type, c_int)
+
+        dummy = wxEvtHandler_Bind(window%ptr, c_first, c_last, c_type, &
+            wxClosure_Create(transfer(fptr, c_null_ptr), data_ptr))
+    end subroutine
+
+    subroutine wx_unbind(window, event_type, id, last_id)
+        class(wxWindow_t), intent(in) :: window
+        integer, intent(in) :: event_type
+        integer, intent(in), optional :: id, last_id
+
+        integer(c_int) :: c_first, c_last, c_type, dummy
+
+        c_first = -1_c_int
+        if (present(id)) c_first = int(id, c_int)
+        c_last = c_first
+        if (present(last_id)) c_last = int(last_id, c_int)
+        c_type = int(event_type, c_int)
+
+        dummy = wxEvtHandler_Unbind(window%ptr, c_first, c_last, c_type)
     end subroutine
 
     subroutine wx_disconnect(window, event_type, id, last_id)

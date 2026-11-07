@@ -1243,13 +1243,53 @@ void wxCalculateLayoutEvent_SetFlags(TSelf(wxCalculateLayoutEvent) pObject, int 
 void wxCalculateLayoutEvent_SetRect(TSelf(wxCalculateLayoutEvent) pObject,
                                     TRect(x, y, width, height));
 
-TClassDefExtend(wxCalendarCtrl, wxControl) TClass(wxCalendarCtrl)
+// wxCalendarCtrlBase is abstract (SetDate/GetDate/Mark are pure virtual), so it has no
+// Create wrapper. The native calendar and wxGenericCalendarCtrl both derive from it,
+// which lets a language binding hold either one through the base type.
+TClassDefExtend(wxCalendarCtrlBase, wxControl) TBool
+    wxCalendarCtrlBase_AllowMonthChange(TSelf(wxCalendarCtrlBase) pObject);
+void wxCalendarCtrlBase_EnableHolidayDisplay(TSelf(wxCalendarCtrlBase) pObject, int display);
+void wxCalendarCtrlBase_EnableMonthChange(TSelf(wxCalendarCtrlBase) pObject, TBool enable);
+void* wxCalendarCtrlBase_GetAttr(TSelf(wxCalendarCtrlBase) pObject, int day);
+void wxCalendarCtrlBase_GetDate(TSelf(wxCalendarCtrlBase) pObject, void* date);
+TBool wxCalendarCtrlBase_GetDateRange(TSelf(wxCalendarCtrlBase) pObject, void* lowerdate,
+                                      void* upperdate);
+void wxCalendarCtrlBase_GetHeaderColourBg(TSelf(wxCalendarCtrlBase) pObject,
+                                          TClassRef(wxColour) ref);
+void wxCalendarCtrlBase_GetHeaderColourFg(TSelf(wxCalendarCtrlBase) pObject,
+                                          TClassRef(wxColour) ref);
+void wxCalendarCtrlBase_GetHighlightColourBg(TSelf(wxCalendarCtrlBase) pObject,
+                                             TClassRef(wxColour) ref);
+void wxCalendarCtrlBase_GetHighlightColourFg(TSelf(wxCalendarCtrlBase) pObject,
+                                             TClassRef(wxColour) ref);
+void wxCalendarCtrlBase_GetHolidayColourBg(TSelf(wxCalendarCtrlBase) pObject,
+                                           TClassRef(wxColour) ref);
+void wxCalendarCtrlBase_GetHolidayColourFg(TSelf(wxCalendarCtrlBase) pObject,
+                                           TClassRef(wxColour) ref);
+int wxCalendarCtrlBase_HitTest(TSelf(wxCalendarCtrlBase) pObject, TPoint(x, y), void* date,
+                               void* weekday);
+void wxCalendarCtrlBase_Mark(TSelf(wxCalendarCtrlBase) pObject, int day, TBool mark);
+void wxCalendarCtrlBase_ResetAttr(TSelf(wxCalendarCtrlBase) pObject, int day);
+void wxCalendarCtrlBase_SetAttr(TSelf(wxCalendarCtrlBase) pObject, int day, void* attr);
+void wxCalendarCtrlBase_SetDate(TSelf(wxCalendarCtrlBase) pObject, void* date);
+TBool wxCalendarCtrlBase_SetDateRange(TSelf(wxCalendarCtrlBase) pObject, void* lowerdate,
+                                      void* upperdate);
+void wxCalendarCtrlBase_SetHeaderColours(TSelf(wxCalendarCtrlBase) pObject, void* colFg,
+                                         void* colBg);
+void wxCalendarCtrlBase_SetHighlightColours(TSelf(wxCalendarCtrlBase) pObject, void* colFg,
+                                            void* colBg);
+void wxCalendarCtrlBase_SetHoliday(TSelf(wxCalendarCtrlBase) pObject, int day);
+void wxCalendarCtrlBase_SetHolidayColours(TSelf(wxCalendarCtrlBase) pObject, void* colFg,
+                                          void* colBg);
+
+TClassDefExtend(wxCalendarCtrl, wxCalendarCtrlBase) TClass(wxCalendarCtrl)
     wxCalendarCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxDateTime) date,
                           TRect(left, top, width, height), int style);
 void wxCalendarCtrl_EnableHolidayDisplay(TSelf(wxCalendarCtrl) pObject, int display);
 void wxCalendarCtrl_EnableMonthChange(TSelf(wxCalendarCtrl) pObject, TBool enable);
 void* wxCalendarCtrl_GetAttr(TSelf(wxCalendarCtrl) pObject, int day);
 void wxCalendarCtrl_GetDate(TSelf(wxCalendarCtrl) pObject, void* date);
+TBool wxCalendarCtrl_GetDateRange(TSelf(wxCalendarCtrl) pObject, void* lowerdate, void* upperdate);
 void wxCalendarCtrl_GetHeaderColourBg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHeaderColourFg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHighlightColourBg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
@@ -1257,13 +1297,26 @@ void wxCalendarCtrl_GetHighlightColourFg(TSelf(wxCalendarCtrl) pObject, TClassRe
 void wxCalendarCtrl_GetHolidayColourBg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHolidayColourFg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 int wxCalendarCtrl_HitTest(TSelf(wxCalendarCtrl) pObject, TPoint(x, y), void* date, void* weekday);
+void wxCalendarCtrl_Mark(TSelf(wxCalendarCtrl) pObject, int day, TBool mark);
 void wxCalendarCtrl_ResetAttr(TSelf(wxCalendarCtrl) pObject, int day);
 void wxCalendarCtrl_SetAttr(TSelf(wxCalendarCtrl) pObject, int day, void* attr);
 void wxCalendarCtrl_SetDate(TSelf(wxCalendarCtrl) pObject, void* date);
+TBool wxCalendarCtrl_SetDateRange(TSelf(wxCalendarCtrl) pObject, void* lowerdate, void* upperdate);
 void wxCalendarCtrl_SetHeaderColours(TSelf(wxCalendarCtrl) pObject, void* colFg, void* colBg);
 void wxCalendarCtrl_SetHighlightColours(TSelf(wxCalendarCtrl) pObject, void* colFg, void* colBg);
 void wxCalendarCtrl_SetHoliday(TSelf(wxCalendarCtrl) pObject, int day);
 void wxCalendarCtrl_SetHolidayColours(TSelf(wxCalendarCtrl) pObject, void* colFg, void* colBg);
+
+// wxGenericCalendarCtrl is always built (src/generic/calctrlg.cpp is part of the core
+// library), including on platforms whose wxCalendarCtrl is the native control.
+TClassDefExtend(wxGenericCalendarCtrl, wxCalendarCtrlBase) TClass(wxGenericCalendarCtrl)
+    wxGenericCalendarCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxDateTime) date,
+                                 TRect(left, top, width, height), int style);
+void wxGenericCalendarCtrl_EnableYearChange(TSelf(wxGenericCalendarCtrl) pObject, TBool enable);
+void wxGenericCalendarCtrl_GetLowerDateLimit(TSelf(wxGenericCalendarCtrl) pObject, void* date);
+void wxGenericCalendarCtrl_GetUpperDateLimit(TSelf(wxGenericCalendarCtrl) pObject, void* date);
+TBool wxGenericCalendarCtrl_SetLowerDateLimit(TSelf(wxGenericCalendarCtrl) pObject, void* date);
+TBool wxGenericCalendarCtrl_SetUpperDateLimit(TSelf(wxGenericCalendarCtrl) pObject, void* date);
 
 TClassDef(wxCalendarDateAttr) TClass(wxCalendarDateAttr)
     wxCalendarDateAttr_Create(void* textColour, void* backColour, void* borderColour, void* font,
@@ -2095,10 +2148,13 @@ TClassDefExtend(wxEvtHandler, wxObject) void wxEvtHandler_AddPendingEvent(TSelf(
                                                                           TClass(wxEvent) event);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxClientData) wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
+int wxEvtHandler_Bind(TSelf(wxEvtHandler) pObject, int first, int last, int type,
+                      TClass(wxClosure) closure);
 int wxEvtHandler_Connect(TSelf(wxEvtHandler) pObject, int first, int last, int type, void* data);
 TClass(wxEvtHandler) wxEvtHandler_Create();
 void wxEvtHandler_Delete(TSelf(wxEvtHandler) pObject);
 int wxEvtHandler_Disconnect(TSelf(wxEvtHandler) pObject, int first, int last, int type, int id);
+int wxEvtHandler_Unbind(TSelf(wxEvtHandler) pObject, int first, int last, int type);
 TBool wxEvtHandler_GetEvtHandlerEnabled(TSelf(wxEvtHandler) pObject);
 TClass(wxEvtHandler) wxEvtHandler_GetNextHandler(TSelf(wxEvtHandler) pObject);
 TClass(wxEvtHandler) wxEvtHandler_GetPreviousHandler(TSelf(wxEvtHandler) pObject);
