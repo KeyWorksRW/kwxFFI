@@ -642,9 +642,9 @@ TBool wxAuiNotebook_ShowWindowMenu(TSelf(wxAuiNotebook) pObject);
 void wxAuiNotebook_SetUniformBitmapSize(TSelf(wxAuiNotebook) pObject, TSize(width, height));
 void wxAuiNotebook_Split(TSelf(wxAuiNotebook) pObject, int page, int direction);
 int wxAuiNotebook_HitTest(TSelf(wxAuiNotebook) pObject, TPoint(point_x, point_y), long* flags);
-TClass(wxAuiTabCtrlArray) wxAuiNotebook_GetAllTabCtrls(TSelf(wxAuiNotebook) pObject);
-TClass(wxArrayInt) wxAuiNotebook_GetPagesInDisplayOrder(TSelf(wxAuiNotebook) pObject,
-                                                        TClass(wxAuiTabCtrl) tabCtrl);
+TClassOwned(wxAuiTabCtrlArray) wxAuiNotebook_GetAllTabCtrls(TSelf(wxAuiNotebook) pObject);
+TClassOwned(wxArrayInt) wxAuiNotebook_GetPagesInDisplayOrder(TSelf(wxAuiNotebook) pObject,
+                                                             TClass(wxAuiTabCtrl) tabCtrl);
 void wxAuiNotebook_SaveLayout(TSelf(wxAuiNotebook) pObject, TClass(wxString) name,
                               TClass(kwxAuiSerializer) serializer);
 void wxAuiNotebook_LoadLayout(TSelf(wxAuiNotebook) pObject, TClass(wxString) name,
@@ -908,8 +908,8 @@ int wxAuiPaneInfo_GetDockRow(TSelf(wxAuiPaneInfo) pObject);
 int wxAuiPaneInfo_GetDockPos(TSelf(wxAuiPaneInfo) pObject);
 int wxAuiPaneInfo_GetDockProportion(TSelf(wxAuiPaneInfo) pObject);
 int wxAuiPaneInfo_GetDockSize(TSelf(wxAuiPaneInfo) pObject);
-TClass(wxPoint) wxAuiPaneInfo_GetFloatingPos(TSelf(wxAuiPaneInfo) pObject);
-TClass(wxSize) wxAuiPaneInfo_GetFloatingSize(TSelf(wxAuiPaneInfo) pObject);
+TClassOwned(wxPoint) wxAuiPaneInfo_GetFloatingPos(TSelf(wxAuiPaneInfo) pObject);
+TClassOwned(wxSize) wxAuiPaneInfo_GetFloatingSize(TSelf(wxAuiPaneInfo) pObject);
 TBool wxAuiPaneInfo_IsMaximized(TSelf(wxAuiPaneInfo) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxAuiPaneInfo)
@@ -1062,7 +1062,7 @@ TClassDef(wxAuiNotebookPage) TClass(wxWindow)
     wxAuiNotebookPage_Window(TSelf(wxAuiNotebookPage) pObject);
 TClass(wxString) wxAuiNotebookPage_Caption(TSelf(wxAuiNotebookPage) pObject);
 TClass(wxString) wxAuiNotebookPage_Tooltip(TSelf(wxAuiNotebookPage) pObject);
-TClass(wxBitmap) wxAuiNotebookPage_Bitmap(TSelf(wxAuiNotebookPage) pObject);
+TClassOwned(wxBitmapBundle) wxAuiNotebookPage_Bitmap(TSelf(wxAuiNotebookPage) pObject);
 TClass(wxRect) wxAuiNotebookPage_Rect(TSelf(wxAuiNotebookPage) pObject);
 TBool wxAuiNotebookPage_Active(TSelf(wxAuiNotebookPage) pObject);
 
@@ -1716,16 +1716,20 @@ TClassDefExtend(wxContextHelpButton, wxBitmapButton) TClass(wxContextHelpButton)
     wxContextHelpButton_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
                                long style);
 
-TClassDefExtend(wxControl, wxWindow) void wxControl_Command(TSelf(wxControl) pObject,
-                                                            TClass(wxEvent) event);
+TClassDefExtend(wxControl, wxWindow) TClass(wxControl)
+    wxControl_Create(TClass(wxWindow) parent, int id, TRect(pos_x, pos_y, width, height),
+                     long style);
+void wxControl_Command(TSelf(wxControl) pObject, TClass(wxEvent) event);
 TClass(wxString) wxControl_GetLabel(TSelf(wxControl) pObject);
 void wxControl_SetLabel(TSelf(wxControl) pObject, TClass(wxString) text);
 void wxControl_SetLabelText(TSelf(wxControl) pObject, TClass(wxString) text);
 TClass(wxString) wxControl_GetLabelText(TSelf(wxControl) pObject);
 TBool wxControl_SetLabelMarkup(TSelf(wxControl) pObject, TClass(wxString) markup);
 int wxControl_GetAlignment(TSelf(wxControl) pObject);
-void wxControl_GetSizeFromText(TSelf(wxControl) pObject, TClass(wxString) text, int* w, int* h);
-void wxControl_GetSizeFromTextSize(TSelf(wxControl) pObject, int xlen, int ylen, int* w, int* h);
+void wxControl_GetSizeFromText(TSelf(wxControl) pObject, TClass(wxString) text, int* width,
+                               int* height);
+void wxControl_GetSizeFromTextSize(TSelf(wxControl) pObject, int xlen, int ylen, int* width,
+                                   int* height);
 TClass(wxString) wxControl_RemoveMnemonics(TClass(wxString) str);
 TClass(wxString) wxControl_EscapeMnemonics(TClass(wxString) str);
 

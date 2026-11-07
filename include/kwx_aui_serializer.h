@@ -39,11 +39,11 @@ void wxAuiPaneLayoutInfo_SetDockRow(TSelf(wxAuiPaneLayoutInfo) pObject, int row)
 void wxAuiPaneLayoutInfo_SetDockPos(TSelf(wxAuiPaneLayoutInfo) pObject, int pos);
 void wxAuiPaneLayoutInfo_SetDockProportion(TSelf(wxAuiPaneLayoutInfo) pObject, int proportion);
 void wxAuiPaneLayoutInfo_SetDockSize(TSelf(wxAuiPaneLayoutInfo) pObject, int size);
-TClass(wxPoint) wxAuiPaneLayoutInfo_GetFloatingPos(TSelf(wxAuiPaneLayoutInfo) pObject);
+TClassOwned(wxPoint) wxAuiPaneLayoutInfo_GetFloatingPos(TSelf(wxAuiPaneLayoutInfo) pObject);
 void wxAuiPaneLayoutInfo_SetFloatingPos(TSelf(wxAuiPaneLayoutInfo) pObject, TPoint(pos_x, pos_y));
-TClass(wxSize) wxAuiPaneLayoutInfo_GetFloatingSize(TSelf(wxAuiPaneLayoutInfo) pObject);
+TClassOwned(wxSize) wxAuiPaneLayoutInfo_GetFloatingSize(TSelf(wxAuiPaneLayoutInfo) pObject);
 void wxAuiPaneLayoutInfo_SetFloatingSize(TSelf(wxAuiPaneLayoutInfo) pObject, TSize(width, height));
-TClass(wxSize) wxAuiPaneLayoutInfo_GetFloatingClientSize(TSelf(wxAuiPaneLayoutInfo) pObject);
+TClassOwned(wxSize) wxAuiPaneLayoutInfo_GetFloatingClientSize(TSelf(wxAuiPaneLayoutInfo) pObject);
 void wxAuiPaneLayoutInfo_SetFloatingClientSize(TSelf(wxAuiPaneLayoutInfo) pObject,
                                                TSize(width, height));
 TBool wxAuiPaneLayoutInfo_IsMaximized(TSelf(wxAuiPaneLayoutInfo) pObject);
@@ -69,9 +69,9 @@ void wxAuiTabLayoutInfo_SetDockRow(TSelf(wxAuiTabLayoutInfo) pObject, int row);
 void wxAuiTabLayoutInfo_SetDockPos(TSelf(wxAuiTabLayoutInfo) pObject, int pos);
 void wxAuiTabLayoutInfo_SetDockProportion(TSelf(wxAuiTabLayoutInfo) pObject, int proportion);
 void wxAuiTabLayoutInfo_SetDockSize(TSelf(wxAuiTabLayoutInfo) pObject, int size);
-TClass(wxArrayInt) wxAuiTabLayoutInfo_GetPages(TSelf(wxAuiTabLayoutInfo) pObject);
+TClassOwned(wxArrayInt) wxAuiTabLayoutInfo_GetPages(TSelf(wxAuiTabLayoutInfo) pObject);
 void wxAuiTabLayoutInfo_SetPages(TSelf(wxAuiTabLayoutInfo) pObject, TClass(wxArrayInt) pages);
-TClass(wxArrayInt) wxAuiTabLayoutInfo_GetPinned(TSelf(wxAuiTabLayoutInfo) pObject);
+TClassOwned(wxArrayInt) wxAuiTabLayoutInfo_GetPinned(TSelf(wxAuiTabLayoutInfo) pObject);
 void wxAuiTabLayoutInfo_SetPinned(TSelf(wxAuiTabLayoutInfo) pObject, TClass(wxArrayInt) pinned);
 int wxAuiTabLayoutInfo_GetActive(TSelf(wxAuiTabLayoutInfo) pObject);
 void wxAuiTabLayoutInfo_SetActive(TSelf(wxAuiTabLayoutInfo) pObject, int active);
@@ -86,7 +86,7 @@ void wxAuiPaneLayoutInfoArray_Delete(TSelf(wxAuiPaneLayoutInfoArray) pObject);
 int wxAuiPaneLayoutInfoArray_GetCount(TSelf(wxAuiPaneLayoutInfoArray) pObject);
 void wxAuiPaneLayoutInfoArray_Add(TSelf(wxAuiPaneLayoutInfoArray) pObject,
                                   TClass(wxAuiPaneLayoutInfo) item);
-TClass(wxAuiPaneLayoutInfo)
+TClassOwned(wxAuiPaneLayoutInfo)
     wxAuiPaneLayoutInfoArray_Item(TSelf(wxAuiPaneLayoutInfoArray) pObject, int index);
 
 TClassDef(wxAuiTabLayoutInfoArray) TClass(wxAuiTabLayoutInfoArray) wxAuiTabLayoutInfoArray_Create();
@@ -94,7 +94,7 @@ void wxAuiTabLayoutInfoArray_Delete(TSelf(wxAuiTabLayoutInfoArray) pObject);
 int wxAuiTabLayoutInfoArray_GetCount(TSelf(wxAuiTabLayoutInfoArray) pObject);
 void wxAuiTabLayoutInfoArray_Add(TSelf(wxAuiTabLayoutInfoArray) pObject,
                                  TClass(wxAuiTabLayoutInfo) item);
-TClass(wxAuiTabLayoutInfo)
+TClassOwned(wxAuiTabLayoutInfo)
     wxAuiTabLayoutInfoArray_Item(TSelf(wxAuiTabLayoutInfoArray) pObject, int index);
 
 // ---------------------------------------------------------------------------
@@ -165,6 +165,14 @@ void kwxAuiSerializer_AfterSave(TSelf(kwxAuiSerializer) pObject);
 //       set the result to the wxWindow* to add, or leave null to skip the pane
 //   HandleOrphanedPage:          (pObject, kwxAuiOrphanedPage*, null)
 //       GetResult() is true unless the callback sets it to false
+//
+// Error handling: a callback that detects malformed input calls
+// kwxAuiDeserializer_SetError() with a message.  As soon as the callback returns,
+// the C++ side aborts wxAuiManager/wxAuiNotebook::LoadLayout() by throwing
+// internally, which leaves the existing layout unchanged (the wxWidgets
+// contract for a deserializer exception).  The exception is caught at the FFI
+// boundary because it must not cross the C ABI; the message remains available
+// through HasError()/GetError(), so a port must check those after LoadLayout().
 // ---------------------------------------------------------------------------
 
 TClassDefExtend(kwxAuiDeserializer, wxAuiDeserializer) TClass(kwxAuiDeserializer)
@@ -176,5 +184,10 @@ void kwxAuiDeserializer_SetOnLoadNotebookTabs(TSelf(kwxAuiDeserializer) pObject,
 void kwxAuiDeserializer_SetOnCreatePaneWindow(TSelf(kwxAuiDeserializer) pObject, void* pFunction);
 void kwxAuiDeserializer_SetOnHandleOrphanedPage(TSelf(kwxAuiDeserializer) pObject, void* pFunction);
 void kwxAuiDeserializer_SetOnAfterLoad(TSelf(kwxAuiDeserializer) pObject, void* pFunction);
+void kwxAuiDeserializer_SetError(TSelf(kwxAuiDeserializer) pObject, TClass(wxString) message);
+TClassOwned(wxString) kwxAuiDeserializer_GetError(TSelf(kwxAuiDeserializer) pObject);
+TBool kwxAuiDeserializer_HasError(TSelf(kwxAuiDeserializer) pObject);
+// LoadLayout() clears any previous error before it starts.
+void kwxAuiDeserializer_ClearError(TSelf(kwxAuiDeserializer) pObject);
 void kwxAuiDeserializer_BeforeLoad(TSelf(kwxAuiDeserializer) pObject);
 void kwxAuiDeserializer_AfterLoad(TSelf(kwxAuiDeserializer) pObject);

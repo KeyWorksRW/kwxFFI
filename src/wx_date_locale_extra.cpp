@@ -1046,6 +1046,16 @@ extern "C"
         return value;
     }
 
+    EXPORT void wxCmdLineParser_Usage(wxCmdLineParser* self)
+    {
+        self->Usage();
+    }
+
+    EXPORT wxString* wxCmdLineParser_GetUsageString(wxCmdLineParser* self)
+    {
+        return new wxString(self->GetUsageString());
+    }
+
     EXPORT kwxCmdLineDesc* kwxCmdLineDesc_Create()
     {
         return new kwxCmdLineDesc();

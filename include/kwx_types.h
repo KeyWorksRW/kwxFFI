@@ -22,6 +22,7 @@
 #undef TBool
 #undef TBoolInt
 #undef TClass
+#undef TClassOwned
 #undef TSelf
 #undef TClassRef
 #undef TClosureFun
@@ -94,9 +95,16 @@
 /* classes.
    "Ref" is used for classes assigned by reference.
    "Self" is used for the 'this' or 'self' pointer.
+
+   "Owned" is identical to TClass(tp) in the C ABI, but tells a binding generator
+   that the returned pointer is owned by the caller. Use it for a non-constructor
+   method that hands back a freshly allocated object (Clone(), GetNextEntry(), the
+   NewStream()/NewEntry() factories). Without it the generated wrapper treats the
+   result as borrowed and its Delete()/Dispose() becomes a no-op, leaking the object.
 */
-#define TSelf(tp)     TClass(tp)
-#define TClassRef(tp) TClass(tp)
+#define TSelf(tp)       TClass(tp)
+#define TClassRef(tp)   TClass(tp)
+#define TClassOwned(tp) TClass(tp)
 
 /* strings */
 #define TString    TChar*

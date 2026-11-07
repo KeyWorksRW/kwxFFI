@@ -13,6 +13,7 @@
 
 #include <wx/aui/serializer.h>
 
+#include <exception>
 #include <utility>
 #include <vector>
 
@@ -121,7 +122,32 @@ private:
 class kwxAuiDeserializer : public wxAuiDeserializer
 {
 public:
+    // Thrown internally when a callback calls SetError(); caught at the FFI
+    // boundary so the exception never crosses the C ABI.
+    struct LoadAborted
+    {
+    };
+
     kwxAuiDeserializer(wxAuiManager* manager, void* pObject);
+
+    // Records the first error reported by a callback.  Every deserializer
+    // override checks this after the callback returns and throws LoadAborted,
+    // which aborts LoadLayout() without changing the existing layout.
+    void SetError(const wxString& message)
+    {
+        if (!m_has_error)
+        {
+            m_error = message;
+        }
+        m_has_error = true;
+    }
+    bool HasError() const { return m_has_error; }
+    const wxString& GetError() const { return m_error; }
+    void ClearError()
+    {
+        m_has_error = false;
+        m_error.clear();
+    }
 
     void SetOnBeforeLoad(void* pFunction)
     {
@@ -157,7 +183,11 @@ public:
     void AfterLoad() override;
 
 private:
+    void CheckError();
+
     void* m_object;
+    wxString m_error;
+    bool m_has_error = false;
     SerializerVoidFunc m_before_load_func;
     DeserializerPanesFunc m_load_panes_func;
     DeserializerTabsFunc m_load_notebook_tabs_func;
@@ -272,12 +302,21 @@ kwxAuiDeserializer::kwxAuiDeserializer(wxAuiManager* manager, void* pObject) :
 {
 }
 
+void kwxAuiDeserializer::CheckError()
+{
+    if (m_has_error)
+    {
+        throw LoadAborted {};
+    }
+}
+
 void kwxAuiDeserializer::BeforeLoad()
 {
     if (m_before_load_func)
     {
         m_before_load_func(m_object, nullptr, nullptr);
     }
+    CheckError();
 }
 
 std::vector<wxAuiPaneLayoutInfo> kwxAuiDeserializer::LoadPanes()
@@ -291,6 +330,11 @@ std::vector<wxAuiPaneLayoutInfo> kwxAuiDeserializer::LoadPanes()
     m_load_panes_func(m_object, &result, nullptr);
 
     wxAuiPaneLayoutInfoArray* array = static_cast<wxAuiPaneLayoutInfoArray*>(result.pointer);
+    if (m_has_error)
+    {
+        delete array;  // the callback may still have returned one before failing
+        CheckError();
+    }
     if (!array)
     {
         return {};
@@ -310,6 +354,7 @@ wxWindow* kwxAuiDeserializer::CreatePaneWindow(wxAuiPaneInfo& pane)
 
     kwxAuiCallbackResult result;
     m_create_pane_window_func(m_object, &pane, &result);
+    CheckError();
     return static_cast<wxWindow*>(result.pointer);
 }
 
@@ -323,6 +368,7 @@ bool kwxAuiDeserializer::HandleOrphanedPage(wxAuiNotebook& book, int page, wxAui
 
     kwxAuiOrphanedPage info { &book, page, tabCtrl, tabIndex, true };
     m_handle_orphaned_page_func(m_object, &info, nullptr);
+    CheckError();
     return info.result;
 }
 
@@ -337,6 +383,11 @@ std::vector<wxAuiTabLayoutInfo> kwxAuiDeserializer::LoadNotebookTabs(const wxStr
     m_load_notebook_tabs_func(m_object, const_cast<wxString*>(&name), &result);
 
     wxAuiTabLayoutInfoArray* array = static_cast<wxAuiTabLayoutInfoArray*>(result.pointer);
+    if (m_has_error)
+    {
+        delete array;  // the callback may still have returned one before failing
+        CheckError();
+    }
     if (!array)
     {
         return {};
@@ -356,6 +407,28 @@ void kwxAuiDeserializer::AfterLoad()
     }
 
     wxAuiDeserializer::AfterLoad();
+}
+
+// Converts an exception thrown by wxAuiManager/wxAuiNotebook::LoadLayout() into
+// the deserializer's error state.  LoadAborted already carries its message.
+static void RecordLoadException(kwxAuiDeserializer* deserializer)
+{
+    try
+    {
+        throw;
+    }
+    catch (const kwxAuiDeserializer::LoadAborted&)
+    {
+        // The callback reported the reason before the load was aborted.
+    }
+    catch (const std::exception& error)
+    {
+        deserializer->SetError(wxString::FromUTF8(error.what()));
+    }
+    catch (...)
+    {
+        deserializer->SetError("Unknown exception while loading the layout");
+    }
 }
 
 extern "C"
@@ -870,6 +943,26 @@ extern "C"
         self->SetOnAfterLoad(pFunction);
     }
 
+    EXPORT void kwxAuiDeserializer_SetError(kwxAuiDeserializer* self, wxString* message)
+    {
+        self->SetError(*message);
+    }
+
+    EXPORT wxString* kwxAuiDeserializer_GetError(kwxAuiDeserializer* self)
+    {
+        return new wxString(self->GetError());
+    }
+
+    EXPORT int kwxAuiDeserializer_HasError(kwxAuiDeserializer* self)
+    {
+        return self->HasError() ? 1 : 0;
+    }
+
+    EXPORT void kwxAuiDeserializer_ClearError(kwxAuiDeserializer* self)
+    {
+        self->ClearError();
+    }
+
     EXPORT void kwxAuiDeserializer_BeforeLoad(kwxAuiDeserializer* self)
     {
         self->BeforeLoad();
@@ -891,7 +984,15 @@ extern "C"
 
     EXPORT void wxAuiManager_LoadLayout(wxAuiManager* self, kwxAuiDeserializer* deserializer)
     {
-        self->LoadLayout(*deserializer);
+        deserializer->ClearError();
+        try
+        {
+            self->LoadLayout(*deserializer);
+        }
+        catch (...)
+        {
+            RecordLoadException(deserializer);
+        }
     }
 
     EXPORT void wxAuiNotebook_SaveLayout(wxAuiNotebook* self, wxString* name,
@@ -903,6 +1004,14 @@ extern "C"
     EXPORT void wxAuiNotebook_LoadLayout(wxAuiNotebook* self, wxString* name,
                                          kwxAuiDeserializer* deserializer)
     {
-        self->LoadLayout(*name, *deserializer);
+        deserializer->ClearError();
+        try
+        {
+            self->LoadLayout(*name, *deserializer);
+        }
+        catch (...)
+        {
+            RecordLoadException(deserializer);
+        }
     }
 }

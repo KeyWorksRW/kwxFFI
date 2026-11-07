@@ -411,6 +411,28 @@ struct ConstTableEntry
     return {};
 }
 
+// True when a class is an event class that owns no methods of its own.  Such a class
+// still needs a wrapper because ports receive an untyped event pointer and must
+// downcast it to call the inherited wxEvent accessors (wxPaintEvent is the common
+// case).  Only a direct wxEvent subclass qualifies: a zero-method class below another
+// event class is either a macro alias (wxNotebookEvent) or a stale placeholder
+// (wxTabEvent), neither of which should be emitted.
+[[nodiscard]] static bool IsZeroMethodEventClass(const std::string& class_name,
+                                                 const ParsedFFI& ffi)
+{
+    const std::unordered_map<std::string, std::string>::const_iterator iter =
+        ffi.parent_map.find(class_name);
+    return iter != ffi.parent_map.end() && iter->second == "wxEvent";
+}
+
+// A class gets a generated file when it has at least one wrapper method or when it is
+// a zero-method direct wxEvent subclass.  Everything else stays unwrapped, which
+// keeps abstract bases and stale placeholder blocks out of the output.
+[[nodiscard]] static bool ShouldEmitClass(const ClassInfo& cls, const ParsedFFI& ffi)
+{
+    return !cls.methods.empty() || IsZeroMethodEventClass(cls.name, ffi);
+}
+
 // Wraps a single kwx Param into information needed for the idiomatic TS method signature.
 // Each returned entry is one visible TypeScript parameter (or a hidden self receiver).
 struct WrapParam
@@ -494,9 +516,14 @@ struct WrapParam
         {
             return EffectiveFactoryClass(func, class_name, wrapped_classes) + " | null";
         }
-        // Non-factory TClass(SomeClass) returns a wrapper around a pointer wxWidgets owns.
-        // TSelf/TClassRef keep the raw Pointer contract.
-        if (IsWrappedClassReturn(func, wrapped_classes))
+        // Non-factory TClass(SomeClass) returns a wrapper; the wrapper owns the pointer
+        // only when the declaration used TClassOwned.  TSelf/TClassRef keep the raw
+        // Pointer contract.
+        // A free or static function has no enclosing class, so an unowned TClass
+        // return stays a raw Pointer.  Marking the declaration TClassOwned opts it
+        // into a wrapper that owns (and can release) the allocation.
+        if (IsWrappedClassReturn(func, wrapped_classes) &&
+            (!class_name.empty() || func.returns_owned))
         {
             return func.return_arg + " | null";
         }
@@ -563,13 +590,22 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
         return;
     }
 
-    // Non-factory TClass(SomeClass) method: wrap the raw pointer non-owningly, matching the
-    // wrapWx<Class> factory semantics.
-    if (!class_name.empty() && IsWrappedClassReturn(func, wrapped_classes))
+    // Non-factory TClass(SomeClass) result: the header marks a caller-owned result
+    // with TClassOwned, so only genuinely borrowed pointers get the non-owning
+    // wrapper.  A free or static function (class_name empty) wraps only when the
+    // declaration is TClassOwned; otherwise its raw Pointer contract is unchanged.
+    if (IsWrappedClassReturn(func, wrapped_classes) && (!class_name.empty() || func.returns_owned))
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
-        output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+        if (func.returns_owned)
+        {
+            output << indent << "return new " << func.return_arg << "(rawPtr);\n";
+        }
+        else
+        {
+            output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+        }
         return;
     }
 
@@ -2223,7 +2259,19 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
     WriteGeneratedHeader(output, "//");
 
+    // Owned returns from free/static functions need the same wrapper classes the
+    // per-class files emit, so build the emitted-class set the same way.
+    std::unordered_set<std::string> wrapped_classes;
+    for (const auto& other: ffi.classes)
+    {
+        if (ShouldEmitClass(other, ffi))
+        {
+            wrapped_classes.insert(other.name);
+        }
+    }
+
     std::ostringstream body;
+    std::set<std::string> return_imports;
     size_t func_count = 0;
     size_t free_func_count = 0;
     for (const auto& func: ffi.free_functions)
@@ -2235,8 +2283,11 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
         const std::string func_name = CFuncName(func);
         // Free functions have no enclosing class, so the factory path never applies.
-        const std::unordered_set<std::string> no_wrapped_classes;
-        const std::string ret_type = WrapReturnType(func, "", no_wrapped_classes);
+        const std::string ret_type = WrapReturnType(func, "", wrapped_classes);
+        if (func.returns_owned && IsWrappedClassReturn(func, wrapped_classes))
+        {
+            return_imports.insert(func.return_arg);
+        }
 
         // Build visible parameters
         std::vector<WrapParam> wrap_params;
@@ -2275,7 +2326,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
         }
         call += ")";
 
-        EmitWrapReturn(body, func, "", call, no_wrapped_classes);
+        EmitWrapReturn(body, func, "", call, wrapped_classes);
 
         body << "}\n\n";
         ++func_count;
@@ -2304,8 +2355,11 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
             const std::string func_name = CFuncName(func);
             // No enclosing class, so the factory path of WrapReturnType must never trigger.
-            const std::unordered_set<std::string> no_wrapped_classes;
-            const std::string ret_type = WrapReturnType(func, "", no_wrapped_classes);
+            const std::string ret_type = WrapReturnType(func, "", wrapped_classes);
+            if (func.returns_owned && IsWrappedClassReturn(func, wrapped_classes))
+            {
+                return_imports.insert(func.return_arg);
+            }
 
             std::vector<WrapParam> wrap_params;
             for (const auto& param: func.params)
@@ -2344,7 +2398,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
             }
             call += ")";
 
-            EmitWrapReturn(body, func, "", call, no_wrapped_classes);
+            EmitWrapReturn(body, func, "", call, wrapped_classes);
 
             body << "}\n\n";
             ++func_count;
@@ -2356,6 +2410,11 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     if (body_str.find("Pointer") != std::string::npos)
     {
         output << "import { Pointer } from \"kwx/platform\";\n";
+    }
+    for (const std::string& imported_class: return_imports)
+    {
+        output << "import { " << imported_class << " } from \"" << TsClassImportPath(imported_class)
+               << "\";\n";
     }
     output << "\n";
     output << body_str;
@@ -2649,7 +2708,7 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
     std::unordered_set<std::string> wrapped_classes;
     for (const auto& other: ffi.classes)
     {
-        if (!other.methods.empty())
+        if (ShouldEmitClass(other, ffi))
         {
             wrapped_classes.insert(other.name);
         }
@@ -2657,7 +2716,7 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
 
     for (const auto& cls: ffi.classes)
     {
-        if (cls.methods.empty())
+        if (!ShouldEmitClass(cls, ffi))
         {
             continue;
         }
@@ -2711,7 +2770,7 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
     std::vector<std::string> class_names;
     for (const auto& cls: ffi.classes)
     {
-        if (!cls.methods.empty())
+        if (ShouldEmitClass(cls, ffi))
         {
             class_names.push_back(cls.name);
         }

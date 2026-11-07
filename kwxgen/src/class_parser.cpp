@@ -268,6 +268,15 @@ static size_t FindFuncParenOpen(const std::string& line, size_t semicolon_pos)
     decl_out.return_type = return_type_str;
     std::ignore = ParseMacroType(return_type_str, decl_out.return_macro, decl_out.return_arg);
 
+    // TClassOwned(tp) is the caller-owns-the-result spelling of TClass(tp).  Reduce it to
+    // TClass so every backend sees the same return contract; returns_owned records the
+    // lifetime difference for the emitters that wrap the pointer (TypeScript).
+    if (decl_out.return_macro == "TClassOwned")
+    {
+        decl_out.return_macro = "TClass";
+        decl_out.returns_owned = true;
+    }
+
     // Parse parameters
     if (!param_str.empty())
     {

@@ -104,4 +104,15 @@ TClass(wxString) wxLogRecordInfo_GetMask(TSelf(wxLogRecordInfo) pObject);
 // Prints text to the current output, equivalent to wxPrintf("%s", text).  The C
 // ABI cannot express wxPrintf's variadic arguments, so callers format the text
 // before calling this function.
+//
+// wxPrintf(), wxCmdLineParser::Usage() and wxCmdLineParser::Parse() error
+// messages all write through the process-wide wxMessageOutput.  A GUI host has
+// no console from wxWidgets' point of view, so the default wxMessageOutputBest
+// falls back to a modal message box.  The kwxMessageOutput* helpers install a
+// static wxMessageOutputStderr (or stdout) target so that text reaches the
+// console the host process already owns; kwxMessageOutputReset restores the
+// wxWidgets default.
 int wxPrintf(TClass(wxString) text);
+void kwxMessageOutputUseStderr();
+void kwxMessageOutputUseStdout();
+void kwxMessageOutputReset();

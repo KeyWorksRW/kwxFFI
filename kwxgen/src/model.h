@@ -32,6 +32,7 @@ struct FunctionDecl
     bool is_constructor = false;  // true if method_name starts with "Create"
     bool is_destructor = false;   // true if method_name == "Delete"
     bool has_self = false;        // true if first param is TSelf(...)
+    bool returns_owned = false;   // true if declared with TClassOwned(tp)
 };
 
 struct ClassInfo

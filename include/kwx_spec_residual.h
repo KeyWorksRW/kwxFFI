@@ -227,18 +227,20 @@ void wxAffineMatrix2D_TransformDistance(TSelf(wxAffineMatrix2D) pObject, double*
 
 // Static provider stack and lookup functions; the instance-based
 // PushProvider/PopProvider/RemoveProvider wrappers live in src/wx_artprov.cpp.
-TClassDefExtend(wxArtProvider, wxObject) TClass(wxBitmap)
+TClassDefExtend(wxArtProvider, wxObject) TClassOwned(wxBitmap)
     wxArtProvider_GetBitmap(TClass(wxString) id, TClass(wxString) client, TSize(width, height));
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxArtProvider_Pop();
 void wxArtProvider_Push(void* provider);
-TClass(wxBitmapBundle) wxArtProvider_GetBitmapBundle(TClass(wxString) id, TClass(wxString) client,
-                                                     TSize(width, height));
-TClass(wxIcon)
+TClassOwned(wxBitmapBundle)
+    wxArtProvider_GetBitmapBundle(TClass(wxString) id, TClass(wxString) client,
+                                  TSize(width, height));
+TClassOwned(wxIcon)
     wxArtProvider_GetIcon(TClass(wxString) id, TClass(wxString) client, TSize(width, height));
-TClass(wxIconBundle) wxArtProvider_GetIconBundle(TClass(wxString) id, TClass(wxString) client);
-TClass(wxSize) wxArtProvider_GetNativeSizeHint(TClass(wxString) client, TClass(wxWindow) window);
-TClass(wxSize) wxArtProvider_GetSizeHint(TClass(wxString) client, TClass(wxWindow) window);
+TClassOwned(wxIconBundle) wxArtProvider_GetIconBundle(TClass(wxString) id, TClass(wxString) client);
+TClassOwned(wxSize)
+    wxArtProvider_GetNativeSizeHint(TClass(wxString) client, TClass(wxWindow) window);
+TClassOwned(wxSize) wxArtProvider_GetSizeHint(TClass(wxString) client, TClass(wxWindow) window);
 TBool wxArtProvider_HasNativeProvider();
 void wxArtProvider_PushBack(TClass(wxArtProvider) provider);
 TBool wxArtProvider_DeleteProvider(TClass(wxArtProvider) provider);
@@ -459,13 +461,15 @@ TClass(wxPGCell) wxPGProperty_GetCell(TSelf(wxPGProperty) pObject, unsigned int 
 TClass(wxString) wxPGProperty_GetDisplayedString(TSelf(wxPGProperty) pObject);
 unsigned int wxPGProperty_GetIndexInParent(TSelf(wxPGProperty) pObject);
 TBool wxPGProperty_HasAnyChild(TSelf(wxPGProperty) pObject);
-int wxPGProperty_InsertChoice(TSelf(wxPGProperty) pObject, TClass(wxString) label, int index, int value);
+int wxPGProperty_InsertChoice(TSelf(wxPGProperty) pObject, TClass(wxString) label, int index,
+                              int value);
 TBool wxPGProperty_IsCategory(TSelf(wxPGProperty) pObject);
 TBool wxPGProperty_IsEnabled(TSelf(wxPGProperty) pObject);
 TBool wxPGProperty_IsExpanded(TSelf(wxPGProperty) pObject);
 TBool wxPGProperty_IsValueUnspecified(TSelf(wxPGProperty) pObject);
 void wxPGProperty_RefreshEditor(TSelf(wxPGProperty) pObject);
-void wxPGProperty_SetAttribute(TSelf(wxPGProperty) pObject, TClass(wxString) name, TClass(wxVariant) value);
+void wxPGProperty_SetAttribute(TSelf(wxPGProperty) pObject, TClass(wxString) name,
+                               TClass(wxVariant) value);
 void wxPGProperty_SetAutoUnspecified(TSelf(wxPGProperty) pObject, TBool enable);
 void wxPGProperty_SetExpanded(TSelf(wxPGProperty) pObject, TBool expanded);
 int wxPGProperty_GetY(TSelf(wxPGProperty) pObject);

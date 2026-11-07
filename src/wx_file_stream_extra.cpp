@@ -542,9 +542,9 @@ extern "C"
         delete self;
     }
 
-    EXPORT int wxFilterInputStream_GetLength(wxFilterInputStream* self)
+    EXPORT wxFileOffset wxFilterInputStream_GetLength(wxFilterInputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     EXPORT wxInputStream* wxFilterInputStream_GetFilterInputStream(wxFilterInputStream* self)
@@ -552,9 +552,9 @@ extern "C"
         return self->GetFilterInputStream();
     }
 
-    EXPORT int wxFilterOutputStream_GetLength(wxFilterOutputStream* self)
+    EXPORT wxFileOffset wxFilterOutputStream_GetLength(wxFilterOutputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     EXPORT wxOutputStream* wxFilterOutputStream_GetFilterOutputStream(wxFilterOutputStream* self)
@@ -674,14 +674,14 @@ extern "C"
         return new wxDateTime(self->GetDateTime());
     }
 
-    EXPORT int wxArchiveEntry_GetSize(wxArchiveEntry* self)
+    EXPORT wxFileOffset wxArchiveEntry_GetSize(wxArchiveEntry* self)
     {
-        return static_cast<int>(self->GetSize());
+        return self->GetSize();
     }
 
-    EXPORT int wxArchiveEntry_GetOffset(wxArchiveEntry* self)
+    EXPORT wxFileOffset wxArchiveEntry_GetOffset(wxArchiveEntry* self)
     {
-        return static_cast<int>(self->GetOffset());
+        return self->GetOffset();
     }
 
     EXPORT int wxArchiveEntry_IsDir(wxArchiveEntry* self)
@@ -724,7 +724,7 @@ extern "C"
         self->SetDateTime(dt ? *dt : wxDateTime::Now());
     }
 
-    EXPORT void wxArchiveEntry_SetSize(wxArchiveEntry* self, int size)
+    EXPORT void wxArchiveEntry_SetSize(wxArchiveEntry* self, wxFileOffset size)
     {
         self->SetSize(static_cast<wxFileOffset>(size));
     }
@@ -785,7 +785,7 @@ extern "C"
 
     EXPORT int wxArchiveOutputStream_PutNextEntryDate(wxArchiveOutputStream* self,
                                                       wxString* entry_name, wxDateTime* dt,
-                                                      int size)
+                                                      wxFileOffset size)
     {
         return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
                                   static_cast<wxFileOffset>(size));
@@ -838,19 +838,19 @@ extern "C"
         return self->Clone();
     }
 
-    EXPORT int wxZipEntry_GetSize(wxZipEntry* self)
+    EXPORT wxFileOffset wxZipEntry_GetSize(wxZipEntry* self)
     {
-        return static_cast<int>(self->GetSize());
+        return self->GetSize();
     }
 
-    EXPORT int wxZipEntry_GetOffset(wxZipEntry* self)
+    EXPORT wxFileOffset wxZipEntry_GetOffset(wxZipEntry* self)
     {
-        return static_cast<int>(self->GetOffset());
+        return self->GetOffset();
     }
 
-    EXPORT int wxZipEntry_GetCompressedSize(wxZipEntry* self)
+    EXPORT wxFileOffset wxZipEntry_GetCompressedSize(wxZipEntry* self)
     {
-        return static_cast<int>(self->GetCompressedSize());
+        return self->GetCompressedSize();
     }
 
     EXPORT wxString* wxZipEntry_GetName(wxZipEntry* self, int path_format)
@@ -918,7 +918,7 @@ extern "C"
         return self->IsMadeByUnix();
     }
 
-    EXPORT void wxZipEntry_SetSize(wxZipEntry* self, int size)
+    EXPORT void wxZipEntry_SetSize(wxZipEntry* self, wxFileOffset size)
     {
         self->SetSize(static_cast<wxFileOffset>(size));
     }
@@ -1007,9 +1007,9 @@ extern "C"
         return self->GetTotalEntries();
     }
 
-    EXPORT int wxZipInputStream_GetLength(wxZipInputStream* self)
+    EXPORT wxFileOffset wxZipInputStream_GetLength(wxZipInputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     // -----------------------------------------------------------------------
@@ -1027,13 +1027,13 @@ extern "C"
     }
 
     EXPORT int wxZipOutputStream_PutNextEntry(wxZipOutputStream* self, wxString* entry_name,
-                                              int size)
+                                              wxFileOffset size)
     {
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
     EXPORT int wxZipOutputStream_PutNextEntryDate(wxZipOutputStream* self, wxString* entry_name,
-                                                  wxDateTime* dt, int size)
+                                                  wxDateTime* dt, wxFileOffset size)
     {
         return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
                                   static_cast<wxFileOffset>(size));
@@ -1136,9 +1136,9 @@ extern "C"
         return self->SetDictionary(static_cast<const char*>(data), static_cast<size_t>(size));
     }
 
-    EXPORT int wxZlibInputStream_GetLength(wxZlibInputStream* self)
+    EXPORT wxFileOffset wxZlibInputStream_GetLength(wxZlibInputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     EXPORT wxZlibOutputStream* wxZlibOutputStream_Create(wxOutputStream* stream, int level,
@@ -1172,9 +1172,9 @@ extern "C"
         return self->Close();
     }
 
-    EXPORT int wxZlibOutputStream_GetLength(wxZlibOutputStream* self)
+    EXPORT wxFileOffset wxZlibOutputStream_GetLength(wxZlibOutputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     // -----------------------------------------------------------------------
@@ -1226,14 +1226,14 @@ extern "C"
         return self->GetGroupId();
     }
 
-    EXPORT int wxTarEntry_GetSize(wxTarEntry* self)
+    EXPORT wxFileOffset wxTarEntry_GetSize(wxTarEntry* self)
     {
-        return static_cast<int>(self->GetSize());
+        return self->GetSize();
     }
 
-    EXPORT int wxTarEntry_GetOffset(wxTarEntry* self)
+    EXPORT wxFileOffset wxTarEntry_GetOffset(wxTarEntry* self)
     {
-        return static_cast<int>(self->GetOffset());
+        return self->GetOffset();
     }
 
     EXPORT int wxTarEntry_GetTypeFlag(wxTarEntry* self)
@@ -1296,7 +1296,7 @@ extern "C"
         self->SetMode(mode);
     }
 
-    EXPORT void wxTarEntry_SetSize(wxTarEntry* self, int size)
+    EXPORT void wxTarEntry_SetSize(wxTarEntry* self, wxFileOffset size)
     {
         self->SetSize(static_cast<wxFileOffset>(size));
     }
@@ -1370,9 +1370,9 @@ extern "C"
         return self->CloseEntry();
     }
 
-    EXPORT int wxTarInputStream_GetLength(wxTarInputStream* self)
+    EXPORT wxFileOffset wxTarInputStream_GetLength(wxTarInputStream* self)
     {
-        return static_cast<int>(self->GetLength());
+        return self->GetLength();
     }
 
     EXPORT int wxTarInputStream_GetMaxExtendedHeaderSize()
@@ -1400,13 +1400,13 @@ extern "C"
     }
 
     EXPORT int wxTarOutputStream_PutNextEntry(wxTarOutputStream* self, wxString* entry_name,
-                                              int size)
+                                              wxFileOffset size)
     {
         return self->PutNextEntry(*entry_name, wxDateTime::Now(), static_cast<wxFileOffset>(size));
     }
 
     EXPORT int wxTarOutputStream_PutNextEntryDate(wxTarOutputStream* self, wxString* entry_name,
-                                                  wxDateTime* dt, int size)
+                                                  wxDateTime* dt, wxFileOffset size)
     {
         return self->PutNextEntry(*entry_name, dt ? *dt : wxDateTime::Now(),
                                   static_cast<wxFileOffset>(size));

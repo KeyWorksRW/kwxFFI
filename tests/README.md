@@ -27,13 +27,19 @@ ctest --preset cheap
 Or equivalently, from the repository root:
 
 ```sh
-cmake -S tests -B build/tests -G "Ninja Multi-Config"
-cmake --build build/tests --config Release
-ctest --test-dir build/tests -C Release --output-on-failure
+cmake -S tests -B build/standalone-tests -G "Ninja Multi-Config"
+cmake --build build/standalone-tests --config Release
+ctest --test-dir build/standalone-tests -C Release --output-on-failure
 ```
 
 The tests project pulls in `kwxgen`, builds `kwxgen_core` from the generator
 sources, and registers every check with the `cheap` label.
+
+The standalone preset deliberately builds into `build/standalone-tests`, never
+into `build/tests`: the root project's own build keeps the support files for the
+same targets in `build/tests/CMakeFiles`, so configuring a second tree there
+overwrites its Ninja dyndep files and breaks the next `ninja -f
+build-Release.ninja`.
 
 ## What the checks mean
 

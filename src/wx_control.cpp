@@ -9,6 +9,12 @@
 
 extern "C"
 {
+    EXPORT wxControl* wxControl_Create(wxWindow* parent, int id, int pos_x, int pos_y, int width,
+                                       int height, long style)
+    {
+        return new wxControl(parent, id, wxPoint(pos_x, pos_y), wxSize(width, height), style);
+    }
+
     EXPORT void wxControl_SetLabel(wxControl* self, wxString* text)
     {
         self->SetLabel(*text);
@@ -48,18 +54,19 @@ extern "C"
         return self->GetAlignment();
     }
 
-    EXPORT void wxControl_GetSizeFromText(wxControl* self, wxString* text, int* w, int* h)
+    EXPORT void wxControl_GetSizeFromText(wxControl* self, wxString* text, int* width, int* height)
     {
-        wxSize sz = self->GetSizeFromText(*text);
-        *w = sz.GetWidth();
-        *h = sz.GetHeight();
+        const wxSize size = self->GetSizeFromText(*text);
+        *width = size.GetWidth();
+        *height = size.GetHeight();
     }
 
-    EXPORT void wxControl_GetSizeFromTextSize(wxControl* self, int xlen, int ylen, int* w, int* h)
+    EXPORT void wxControl_GetSizeFromTextSize(wxControl* self, int xlen, int ylen, int* width,
+                                              int* height)
     {
-        wxSize sz = self->GetSizeFromTextSize(xlen, ylen);
-        *w = sz.GetWidth();
-        *h = sz.GetHeight();
+        const wxSize size = self->GetSizeFromTextSize(xlen, ylen);
+        *width = size.GetWidth();
+        *height = size.GetHeight();
     }
 
     EXPORT wxString* wxControl_RemoveMnemonics(wxString* str)

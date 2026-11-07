@@ -145,7 +145,8 @@ This document records key architectural and design decisions made for the kwxFFI
 - Every class in `include/` must be classified as `gui` or `base-utility`; an unclassified base-utility class silently leaks into the Go and Julia surface. The authoritative list is `.private/coverage_expansion_inventory.md`, mirrored by `GuiExcludedClasses()` in `kwxgen/src/profile.cpp`
 - `kwxgen generate` and `kwxgen verify` must be run with the same `--profile`; a mismatch reports every profile-filtered symbol as missing
 - `kwxgen exports` must never be given `--profile`, so the digest baseline covers the complete surface regardless of which profile a consumer generates with
-- `TInt64` / `wxUIntPtr` exports remain deferred pending the downstream TypeScript type-map issue; the pending symbols are tracked in `.private/deferred_i64.md`
+- `TInt64` is supported by the TypeScript type map (`bigint`), so new exports may use it; the
+  surfaces that still narrow a wider integer are tracked in `.private/deferred_i64.md`
 - Adding a platform-specific class means extending `include/kwx_msw_aliases.h` and guarding the body in `src/`, never guarding the declaration in `include/`
 
 **Status**: Accepted
