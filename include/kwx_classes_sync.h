@@ -838,7 +838,8 @@ TBool wxProgressDialog_Pulse(TSelf(wxProgressDialog) pObject, TClass(wxString) m
 TClassDefExtend(wxGenericProgressDialog, wxDialog) TClass(wxGenericProgressDialog)
     wxGenericProgressDialog_Create(TClass(wxString) title, TClass(wxString) message, int maximum,
                                    TClass(wxWindow) parent, int style);
-TBool wxGenericProgressDialog_Update(TSelf(wxGenericProgressDialog) pObject, int value, int* skip);
+TBool wxGenericProgressDialog_Update(TSelf(wxGenericProgressDialog) pObject, int value,
+                                     TClass(wxString) message, int* skip);
 TBool wxGenericProgressDialog_Pulse(TSelf(wxGenericProgressDialog) pObject,
                                     TClass(wxString) message, int* skip);
 void wxGenericProgressDialog_Resume(TSelf(wxGenericProgressDialog) pObject);

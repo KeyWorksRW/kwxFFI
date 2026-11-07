@@ -700,10 +700,21 @@ kwxModalDialogHook::kwxModalDialogHook(void* pObject) : wxModalDialogHook()
     m_object = pObject;
     m_enter_func = nullptr;
     m_exit_func = nullptr;
+    m_capture_enter_dialog = false;
 }
 
 int kwxModalDialogHook::Enter(wxDialog* dialog)
 {
+    if (m_capture_enter_dialog)
+    {
+        // A void-capable binding cannot return an id, so its callback's return
+        // value is meaningless; capture the dialog and let it be shown instead.
+        if (m_enter_func)
+        {
+            m_enter_func(m_object, dialog);
+        }
+        return wxID_NONE;
+    }
     if (!m_enter_func)
     {
         // There is no wxModalDialogHook implementation to fall back to:
@@ -736,13 +747,16 @@ kwxAddRemoveAdaptor::kwxAddRemoveAdaptor(void* pObject)
     m_can_remove_func = nullptr;
     m_on_add_func = nullptr;
     m_on_remove_func = nullptr;
+    m_items_ctrl = nullptr;
+    m_can_add = false;
+    m_can_remove = false;
 }
 
 wxWindow* kwxAddRemoveAdaptor::GetItemsCtrl() const
 {
     if (!m_get_items_ctrl_func)
     {
-        return nullptr;
+        return m_items_ctrl;
     }
     return static_cast<wxWindow*>(m_get_items_ctrl_func(m_object, nullptr, nullptr));
 }
@@ -751,7 +765,7 @@ bool kwxAddRemoveAdaptor::CanAdd() const
 {
     if (!m_can_add_func)
     {
-        return false;
+        return m_can_add;
     }
     return m_can_add_func(m_object, nullptr, nullptr) != 0;
 }
@@ -760,7 +774,7 @@ bool kwxAddRemoveAdaptor::CanRemove() const
 {
     if (!m_can_remove_func)
     {
-        return false;
+        return m_can_remove;
     }
     return m_can_remove_func(m_object, nullptr, nullptr) != 0;
 }
@@ -845,10 +859,15 @@ kwxAppTraits::kwxAppTraits(void* pObject) : wxConsoleAppTraits()
     m_object = pObject;
     m_create_log_target_func = nullptr;
     m_create_renderer_func = nullptr;
+    m_log_target = nullptr;
 }
 
 wxLog* kwxAppTraits::CreateLogTarget()
 {
+    if (m_log_target)
+    {
+        return m_log_target;
+    }
     if (!m_create_log_target_func)
     {
         return wxConsoleAppTraits::CreateLogTarget();
@@ -1841,6 +1860,11 @@ extern "C"
         self->SetOnExit(pFunction);
     }
 
+    EXPORT void kwxModalDialogHook_CaptureEnterDialog(kwxModalDialogHook* self, int capture)
+    {
+        self->SetCaptureEnterDialog(capture != 0);
+    }
+
     EXPORT void wxModalDialogHook_SetOnEnter(wxModalDialogHook* self, void* pFunction)
     {
         static_cast<kwxModalDialogHook*>(self)->SetOnEnter(pFunction);
@@ -1849,6 +1873,11 @@ extern "C"
     EXPORT void wxModalDialogHook_SetOnExit(wxModalDialogHook* self, void* pFunction)
     {
         static_cast<kwxModalDialogHook*>(self)->SetOnExit(pFunction);
+    }
+
+    EXPORT void wxModalDialogHook_CaptureEnterDialog(wxModalDialogHook* self, int capture)
+    {
+        static_cast<kwxModalDialogHook*>(self)->SetCaptureEnterDialog(capture != 0);
     }
 
     EXPORT void wxModalDialogHook_Register(wxModalDialogHook* self)
@@ -1896,6 +1925,21 @@ extern "C"
     EXPORT void kwxAddRemoveAdaptor_SetOnRemove(kwxAddRemoveAdaptor* self, void* pFunction)
     {
         self->SetOnRemove(pFunction);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetItemsCtrl(kwxAddRemoveAdaptor* self, wxWindow* ctrl)
+    {
+        self->SetItemsCtrl(ctrl);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetCanAdd(kwxAddRemoveAdaptor* self, int value)
+    {
+        self->SetCanAdd(value != 0);
+    }
+
+    EXPORT void kwxAddRemoveAdaptor_SetCanRemove(kwxAddRemoveAdaptor* self, int value)
+    {
+        self->SetCanRemove(value != 0);
     }
 
     EXPORT void kwxAddRemoveAdaptor_Delete(kwxAddRemoveAdaptor* self)
@@ -2180,6 +2224,17 @@ extern "C"
     EXPORT void wxAppTraits_SetOnCreateRenderer(wxAppTraits* self, void* pFunction)
     {
         static_cast<kwxAppTraits*>(self)->SetOnCreateRenderer(pFunction);
+    }
+
+    EXPORT wxLog* kwxAppTraits_SetLogTarget(kwxAppTraits* self, wxLog* target)
+    {
+        return self->SetLogTarget(target);
+    }
+
+    EXPORT wxLog* wxAppTraits_SetLogTarget(wxAppTraits* self, wxLog* target)
+    {
+        kwxAppTraits* helper = static_cast<kwxAppTraits*>(self);
+        return helper->SetLogTarget(target);
     }
 
     // kwxEvent ---------------------------------------------------------------

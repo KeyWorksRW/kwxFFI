@@ -6,6 +6,7 @@
 #include <wx/cmdline.h>
 #include <wx/dir.h>
 #include <wx/fdrepdlg.h>
+#include <wx/filedlg.h>
 #include <wx/filename.h>
 #include <wx/fswatcher.h>
 #include <wx/grid.h>
@@ -5013,6 +5014,23 @@ extern "C"
     EXPORT wxString* expwxART_FIND_AND_REPLACE()
     {
         return new wxString((const char*) wxART_FIND_AND_REPLACE);
+    }
+
+    EXPORT int expwxMINOR_VERSION()
+    {
+        return wxMINOR_VERSION;
+    }
+    EXPORT int expwxALPHA_OPAQUE()
+    {
+        return wxALPHA_OPAQUE;
+    }
+    EXPORT wxString* expwxVERSION_NUM_DOT_STRING()
+    {
+        return new wxString(wxVERSION_NUM_DOT_STRING);
+    }
+    EXPORT wxString* expwxFileSelectorDefaultWildcardStr()
+    {
+        return new wxString(wxFileSelectorDefaultWildcardStr);
     }
 
     // ---- Checkbox styles and states ----

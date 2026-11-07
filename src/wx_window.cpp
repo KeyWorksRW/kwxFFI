@@ -276,6 +276,11 @@ extern "C"
         return (void*) self->FindWindow(*name);
     }
 
+    EXPORT void* wxWindow_FindWindowByIdSelf(wxWindow* self, int id)
+    {
+        return (void*) self->FindWindow((long) id);
+    }
+
     EXPORT void wxWindow_AddChild(wxWindow* self, wxWindowBase* child)
     {
         self->AddChild(child);

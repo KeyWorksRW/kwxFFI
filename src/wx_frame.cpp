@@ -362,6 +362,16 @@ extern "C"
 #endif
     }
 
+    EXPORT void* wxFrame_MSWGetSystemMenu(wxFrame* self)
+    {
+#ifdef __WXMSW__
+        return (void*) self->MSWGetSystemMenu();
+#else
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
     EXPORT void wxTopLevelWindow_CentreOnScreen(void* pObject, int dir)
     {
         ((wxTopLevelWindow*) pObject)->CentreOnScreen(dir);

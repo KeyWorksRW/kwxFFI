@@ -607,12 +607,14 @@ private:
     void* m_object;
     kwxModalDialogEnterFunc m_enter_func;
     kwxModalDialogExitFunc m_exit_func;
+    bool m_capture_enter_dialog;
 
 public:
     explicit kwxModalDialogHook(void* pObject);
 
     void SetOnEnter(void* pFunction) { m_enter_func = (kwxModalDialogEnterFunc) pFunction; }
     void SetOnExit(void* pFunction) { m_exit_func = (kwxModalDialogExitFunc) pFunction; }
+    void SetCaptureEnterDialog(bool capture) { m_capture_enter_dialog = capture; }
 
 protected:
     int Enter(wxDialog* dialog) override;
@@ -708,6 +710,7 @@ private:
     void* m_object;
     kwxAppTraitsLogFunc m_create_log_target_func;
     kwxAppTraitsRendererFunc m_create_renderer_func;
+    wxLog* m_log_target;
 
 public:
     explicit kwxAppTraits(void* pObject);
@@ -719,6 +722,13 @@ public:
     void SetOnCreateRenderer(void* pFunction)
     {
         m_create_renderer_func = (kwxAppTraitsRendererFunc) pFunction;
+    }
+
+    wxLog* SetLogTarget(wxLog* target)
+    {
+        wxLog* previous = m_log_target;
+        m_log_target = target;
+        return previous;
     }
 
     wxLog* CreateLogTarget() override;
@@ -1037,6 +1047,9 @@ private:
     kwxAddRemoveBoolFn m_can_remove_func;
     kwxAddRemoveVoidFn m_on_add_func;
     kwxAddRemoveVoidFn m_on_remove_func;
+    wxWindow* m_items_ctrl;
+    bool m_can_add;
+    bool m_can_remove;
 
 public:
     explicit kwxAddRemoveAdaptor(void* pObject);
@@ -1061,6 +1074,10 @@ public:
     {
         m_on_remove_func = reinterpret_cast<kwxAddRemoveVoidFn>(pFunction);
     }
+
+    void SetItemsCtrl(wxWindow* ctrl) { m_items_ctrl = ctrl; }
+    void SetCanAdd(bool value) { m_can_add = value; }
+    void SetCanRemove(bool value) { m_can_remove = value; }
 
     wxWindow* GetItemsCtrl() const override;
     bool CanAdd() const override;

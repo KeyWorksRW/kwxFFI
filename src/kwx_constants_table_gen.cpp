@@ -609,6 +609,7 @@ extern "C"
     int expwxALIGN_RIGHT();
     int expwxALIGN_TOP();
     int expwxALL();
+    int expwxALPHA_OPAQUE();
     int expwxALWAYS_SHOW_SB();
     int expwxAND();
     int expwxAND_INVERT();
@@ -1627,6 +1628,7 @@ extern "C"
     int expwxMEDIASTATE_STOPPED();
     int expwxMENU_TEAROFF();
     int expwxMINIMIZE_BOX();
+    int expwxMINOR_VERSION();
     int expwxMM_LOMETRIC();
     int expwxMM_METRIC();
     int expwxMM_POINTS();
@@ -2398,12 +2400,12 @@ extern "C"
     int expwxYES_NO();
     int expwxZIP_FORMAT_ZIP64();
 
-    static int s_values[2393];
+    static int s_values[2395];
     static std::once_flag s_once;
 
     WXFFI_EXPORT(int, kwxConstants_IntCount)()
     {
-        return 2393;
+        return 2395;
     }
 
     WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
@@ -3017,6 +3019,7 @@ extern "C"
                            s_values[i++] = expwxALIGN_RIGHT();
                            s_values[i++] = expwxALIGN_TOP();
                            s_values[i++] = expwxALL();
+                           s_values[i++] = expwxALPHA_OPAQUE();
                            s_values[i++] = expwxALWAYS_SHOW_SB();
                            s_values[i++] = expwxAND();
                            s_values[i++] = expwxAND_INVERT();
@@ -4035,6 +4038,7 @@ extern "C"
                            s_values[i++] = expwxMEDIASTATE_STOPPED();
                            s_values[i++] = expwxMENU_TEAROFF();
                            s_values[i++] = expwxMINIMIZE_BOX();
+                           s_values[i++] = expwxMINOR_VERSION();
                            s_values[i++] = expwxMM_LOMETRIC();
                            s_values[i++] = expwxMM_METRIC();
                            s_values[i++] = expwxMM_POINTS();
@@ -4811,7 +4815,7 @@ extern "C"
 
     WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
     {
-        static const char* const s_names[2393] = {
+        static const char* const s_names[2395] = {
             "EVT_ACCELERATOR_KEY",
             "EVT_ACTIVATE",
             "EVT_ACTIVATE_APP",
@@ -5417,6 +5421,7 @@ extern "C"
             "ALIGN_RIGHT",
             "ALIGN_TOP",
             "ALL",
+            "ALPHA_OPAQUE",
             "ALWAYS_SHOW_SB",
             "AND",
             "AND_INVERT",
@@ -6435,6 +6440,7 @@ extern "C"
             "MEDIASTATE_STOPPED",
             "MENU_TEAROFF",
             "MINIMIZE_BOX",
+            "MINOR_VERSION",
             "MM_LOMETRIC",
             "MM_METRIC",
             "MM_POINTS",

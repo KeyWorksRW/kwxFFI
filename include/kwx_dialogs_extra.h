@@ -108,6 +108,11 @@ TClassDefExtend(wxGenericFileDialog, wxDialog) TClass(wxGenericFileDialog)
                                TClass(wxString) wildcard, int style);
 TClass(wxString) wxGenericFileDialog_GetPath(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetPath(TSelf(wxGenericFileDialog) pObject, TClass(wxString) path);
+TArrayLen wxGenericFileDialog_GetPaths(TSelf(wxGenericFileDialog) pObject,
+                                       TArrayStringOutVoid paths);
+TArrayLen wxGenericFileDialog_GetFilenames(TSelf(wxGenericFileDialog) pObject,
+                                           TArrayStringOutVoid paths);
+TClass(wxString) wxGenericFileDialog_GetDirectory(TSelf(wxGenericFileDialog) pObject);
 TClass(wxString) wxGenericFileDialog_GetFilename(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetFilename(TSelf(wxGenericFileDialog) pObject, TClass(wxString) name);
 TClass(wxString) wxGenericFileDialog_GetWildcard(TSelf(wxGenericFileDialog) pObject);
@@ -244,5 +249,8 @@ TClassDefExtend(wxWindowModalDialogEvent, wxCommandEvent) TClass(wxWindowModalDi
 TClass(wxDialog) wxWindowModalDialogEvent_GetDialog(TSelf(wxWindowModalDialogEvent) pObject);
 void wxWindowModalDialogEvent_Delete(TSelf(wxWindowModalDialogEvent) pObject);
 
+// The creator callback must return the wxWindow* it creates, but the FFI callback
+// ABI is void-only (kwxts/README.md, "Limitations"), so this path cannot surface a
+// custom panel from a port. Use wxFileDialog_SetCustomizeHook instead.
 TBool wxFileDialog_SetExtraControlCreator(TSelf(wxFileDialog) pObject, void* pFunction);
 void wxFontDialog_Delete(TSelf(wxFontDialog) pObject);
