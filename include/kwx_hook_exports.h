@@ -225,6 +225,10 @@ EXPORT void kwxHtmlTagsModule_SetOnFillHandlersTable(TSelf(kwxHtmlTagsModule) pO
 TClassDef(wxHtmlTagsModule) EXPORT
     void wxHtmlTagsModule_SetOnFillHandlersTable(TSelf(wxHtmlTagsModule) pObject, void* pFunction);
 
+// SetLogTarget() stores the target on a kwxAppTraits helper.  When the receiver
+// is a platform traits object (the type wxApp::GetTraits() returns), the same
+// target is installed as the process-wide active log target instead, so the
+// call is safe for either object.  Both forms return the previous target.
 TClassDefExtend(kwxAppTraits, wxAppTraits) EXPORT void* kwxAppTraits_Create(void* pObject);
 EXPORT void kwxAppTraits_Delete(TSelf(kwxAppTraits) pObject);
 EXPORT void kwxAppTraits_SetOnCreateLogTarget(TSelf(kwxAppTraits) pObject, void* pFunction);

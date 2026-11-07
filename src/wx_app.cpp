@@ -38,6 +38,13 @@ extern "C"
         return self->GetTopWindow();
     }
 
+    EXPORT wxAppTraits* wxApp_GetTraits(wxApp* self)
+    {
+        // GetTraits() creates the traits object on first use and keeps it for
+        // the lifetime of the application; the caller must not delete it.
+        return self->GetTraits();
+    }
+
     EXPORT void wxApp_ExitMainLoop(wxApp* self)
     {
         self->ExitMainLoop();

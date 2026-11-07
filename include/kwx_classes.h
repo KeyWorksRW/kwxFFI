@@ -280,6 +280,9 @@ void wxApp_ProcessPendingEvents(TSelf(wxApp) pObject);
 void wxApp_SetExitOnFrameDelete(TSelf(wxApp) pObject, TBool flag);
 TBool wxApp_GetExitOnFrameDelete(TSelf(wxApp) pObject);
 TClass(wxWindow) wxApp_GetTopWindow(TSelf(wxApp) pObject);
+// Returns the application's traits object.  The returned object belongs to the
+// application; do not delete it.
+TClass(wxAppTraits) wxApp_GetTraits(TSelf(wxApp) pObject);
 void wxApp_ExitMainLoop(TSelf(wxApp) pObject);
 // Phase 5: the <Base>_SetOn spellings the portability matrix resolves an ovh
 // row to.  The kwxApp_* helper functions are declared in the kwxApp block in

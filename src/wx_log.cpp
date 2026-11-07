@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <wx/debug.h>
 #include <wx/log.h>
+#include <wx/msgdlg.h>
 
 extern "C"
 {
@@ -70,6 +71,52 @@ public:
         m_do_log_text_at_level_func = (TLogTextAtLevelFunc) pFunction;
     }
 };
+
+#if wxUSE_LOGGUI
+// DoShowSingleLogMessage() is private in wxLogGui, but a private virtual can
+// still be overridden; the dialogs sample's MyLogGui does exactly that.
+// The callback has three pointer slots (the FFI ABI), so the style argument is
+// read from GetPendingStyle() while the callback runs.
+typedef void (*TLogGuiShowSingleFunc)(void* pObject, void* message, void* title);
+
+class kwxLogGui : public wxLogGui
+{
+private:
+    void* m_object;
+    TLogGuiShowSingleFunc m_show_single_func;
+    int m_pending_style;
+
+    void DoShowSingleLogMessage(const wxString& message, const wxString& title, int style) override
+    {
+        if (!m_show_single_func)
+        {
+            // Same default as wxLogGui::DoShowSingleLogMessage(), which is
+            // private and therefore cannot be called from here.
+            wxMessageBox(message, title, wxOK | style);
+            return;
+        }
+
+        m_pending_style = style;
+        m_show_single_func(m_object, const_cast<void*>(static_cast<const void*>(&message)),
+                           const_cast<void*>(static_cast<const void*>(&title)));
+    }
+
+public:
+    explicit kwxLogGui(void* pObject) : wxLogGui()
+    {
+        m_object = pObject;
+        m_show_single_func = nullptr;
+        m_pending_style = 0;
+    }
+
+    void SetOnDoShowSingleLogMessage(void* pFunction)
+    {
+        m_show_single_func = reinterpret_cast<TLogGuiShowSingleFunc>(pFunction);
+    }
+
+    int GetPendingStyle() const { return m_pending_style; }
+};
+#endif  // wxUSE_LOGGUI
 
 extern "C"
 {
@@ -344,6 +391,26 @@ extern "C"
 #endif  // wxUSE_LOG
 
 #if wxUSE_LOGGUI
+    EXPORT void* kwxLogGui_Create(void* pObject)
+    {
+        return (void*) new kwxLogGui(pObject);
+    }
+
+    EXPORT void kwxLogGui_SetOnDoShowSingleLogMessage(kwxLogGui* self, void* pFunction)
+    {
+        self->SetOnDoShowSingleLogMessage(pFunction);
+    }
+
+    EXPORT int kwxLogGui_GetPendingStyle(kwxLogGui* self)
+    {
+        return self->GetPendingStyle();
+    }
+
+    EXPORT void kwxLogGui_Delete(kwxLogGui* self)
+    {
+        delete self;
+    }
+
     EXPORT wxLogGui* wxLogGui_Create()
     {
         return new wxLogGui();

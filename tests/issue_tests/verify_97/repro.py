@@ -10,9 +10,12 @@ are asserted here:
   1. kwxAddRemoveAdaptor gains data-driven SetItemsCtrl/SetCanAdd/SetCanRemove.
   2. wxModalDialogHook gains CaptureEnterDialog so a void callback can show the
      dialog instead of returning garbage.
-  3. wxFileDialog_SetExtraControlCreator's return-value constraint is documented
-     at the declaration and at the definition.
-  4. kwxAppTraits gains SetLogTarget (returns the previous target).
+  3. wxFileDialog_SetExtraControlCreator works with a void callback: the wrapper
+     invokes the callback and returns the child it created under the parent.
+  4. kwxAppTraits gains SetLogTarget (returns the previous target), and
+     wxApp::GetTraits() is exported so the target is reachable from a binding.
+     kwxLogGui exposes the private DoShowSingleLogMessage() customization as a
+     three-pointer callback (style via GetPendingStyle()).
   5. wxFindDialogEvent_GetFindString/GetReplaceString cast to
      wxFindDialogEvent, return the right string, and agree with the header.
   6. wxWindow::FindWindow(long id) has a member-form wrapper
@@ -60,6 +63,11 @@ NEW_SYMBOLS = (
     "kwxAddRemoveAdaptor_SetCanRemove",
     "kwxAppTraits_SetLogTarget",
     "wxAppTraits_SetLogTarget",
+    "wxApp_GetTraits",
+    "kwxLogGui_Create",
+    "kwxLogGui_SetOnDoShowSingleLogMessage",
+    "kwxLogGui_GetPendingStyle",
+    "kwxLogGui_Delete",
     "wxWindow_FindWindowByIdSelf",
     "wxFrame_MSWGetSystemMenu",
     "wxGenericFileDialog_GetPaths",
@@ -143,6 +151,7 @@ def check_headers(root: Path) -> None:
     sync = read(root / "include" / "kwx_classes_sync.h")
     dialogs = read(root / "include" / "kwx_dialogs_extra.h")
     hooks = read(root / "include" / "kwx_hook_exports.h")
+    log = read(root / "include" / "kwx_log.h")
 
     expect(
         "wxFindDialogEvent_GetFindString returns TClass(wxString) with only pObject",
@@ -213,10 +222,26 @@ def check_headers(root: Path) -> None:
         )
         is not None,
     )
+    expect(
+        "wxApp_GetTraits returns the application's traits object",
+        re.search(
+            r"TClass\(wxAppTraits\)\s+wxApp_GetTraits"
+            r"\(\s*TSelf\(wxApp\)\s+pObject\s*\)",
+            classes,
+        )
+        is not None,
+    )
     for symbol in NEW_SYMBOLS:
         if symbol.startswith("expwx"):
             continue
-        expect(f"include/ declares {symbol}", symbol in hooks or symbol in classes or symbol in dialogs or symbol in sync)
+        expect(
+            f"include/ declares {symbol}",
+            symbol in hooks
+            or symbol in classes
+            or symbol in dialogs
+            or symbol in sync
+            or symbol in log,
+        )
 
 
 def check_sources(root: Path) -> None:
@@ -292,7 +317,40 @@ def check_sources(root: Path) -> None:
         re.search(r"wxGenericFileDialog\*\)[^\n]*wxFileDialog", generic) is None,
     )
 
+    file_dialog = read(root / "src" / "wx_filedialog.cpp")
+    expect(
+        "SetExtraControlCreator installs the child-collecting trampoline",
+        "self->SetExtraControlCreator(&wxFileDialogExtraControlCreator)" in file_dialog,
+    )
+    expect(
+        "SetExtraControlCreator no longer casts the callback straight to the wx typedef",
+        "reinterpret_cast<wxFileDialog::ExtraControlCreatorFunction>(pFunction)"
+        not in file_dialog,
+    )
+
+    app = read(root / "src" / "wx_app.cpp")
+    expect("wxApp_GetTraits calls self->GetTraits()", "wxApp_GetTraits" in app and "self->GetTraits()" in app)
+
+    log_source = read(root / "src" / "wx_log.cpp")
+    expect(
+        "kwxLogGui overrides DoShowSingleLogMessage",
+        "class kwxLogGui : public wxLogGui" in log_source
+        and "void DoShowSingleLogMessage" in log_source,
+    )
+    for symbol in (
+        "kwxLogGui_Create",
+        "kwxLogGui_SetOnDoShowSingleLogMessage",
+        "kwxLogGui_GetPendingStyle",
+        "kwxLogGui_Delete",
+    ):
+        expect(f"src/wx_log.cpp defines {symbol}", symbol in log_source)
+
     hooks = read(root / "src" / "kwx_hooks.cpp")
+    expect(
+        "wxAppTraits_SetLogTarget handles platform traits without an invalid downcast",
+        "g_kwxAppTraits.contains(self)" in hooks
+        and "wxLog::SetActiveTarget(target)" in hooks,
+    )
     for symbol in (
         "kwxModalDialogHook_CaptureEnterDialog",
         "wxModalDialogHook_CaptureEnterDialog",
@@ -417,10 +475,35 @@ def check_typescript_shapes(kwxgen: Path, root: Path, work: Path) -> None:
     for getter in ("GetPaths", "GetFilenames", "GetDirectory"):
         expect(f"wxGenericFileDialog emits {getter}", re.search(r"\b" + getter + r"\(", generic) is not None)
 
+    app = read(out_dir / "wxApp_gen.ts")
+    expect(
+        "wxApp emits GetTraits",
+        re.search(r"GetTraits\(\):\s*wxAppTraits", app) is not None,
+    )
+
+    log_gui = read(out_dir / "kwxLogGui_gen.ts")
+    expect(
+        "kwxLogGui emits the single-message hook and the pending style",
+        "SetOnDoShowSingleLogMessage(" in log_gui
+        and "GetPendingStyle()" in log_gui
+        and "createKwxLogGui(" in log_gui,
+    )
+
     window = read(out_dir / "wxWindow_gen.ts")
     expect(
         "wxWindow emits FindWindowByIdSelf",
         re.search(r"FindWindowByIdSelf\(", window) is not None,
+    )
+    # MyRearrangeDialog needs no new export: the containing button sizer is
+    # reachable through GetContainingSizer() and AddWindowFlags().
+    expect(
+        "wxWindow emits GetContainingSizer",
+        re.search(r"GetContainingSizer\(", window) is not None,
+    )
+    sizer = read(out_dir / "wxSizer_gen.ts")
+    expect(
+        "wxSizer emits AddWindowFlags",
+        re.search(r"AddWindowFlags\(", sizer) is not None,
     )
 
     frame = read(out_dir / "wxFrame_gen.ts")

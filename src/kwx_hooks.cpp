@@ -7,6 +7,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <unordered_set>
+
 // The class definitions live in include/kwx_helper_hooks.h; that header now
 // carries no export declarations, so it needs no suppression macro.  The
 // exported kwx<Base>_* functions are defined below inside an extern "C" block;
@@ -847,6 +849,11 @@ void kwxHtmlTagsModule::FillHandlersTable(wxHtmlWinParser* parser)
 
 // ---------------------------------------------------------------------------
 // wxAppTraits
+//
+// Only kwxAppTraits has the SetLogTarget() slot.  Track the objects created
+// here so a wxAppTraits pointer from wxApp::GetTraits() (a platform traits
+// object, not one of these helpers) is never cast to the wrong type.
+static std::unordered_set<wxAppTraits*> g_kwxAppTraits;
 //
 // CreateLogTarget()/CreateRenderer() are pure virtual on wxAppTraitsBase, but
 // wxConsoleAppTraits implements both (wx/apptrait.h:216, :222), so an unset
@@ -2198,11 +2205,14 @@ extern "C"
 
     EXPORT void* kwxAppTraits_Create(void* pObject)
     {
-        return (void*) new kwxAppTraits(pObject);
+        kwxAppTraits* const traits = new kwxAppTraits(pObject);
+        g_kwxAppTraits.insert(static_cast<wxAppTraits*>(traits));
+        return (void*) traits;
     }
 
     EXPORT void kwxAppTraits_Delete(kwxAppTraits* self)
     {
+        g_kwxAppTraits.erase(static_cast<wxAppTraits*>(self));
         delete self;
     }
 
@@ -2216,14 +2226,23 @@ extern "C"
         self->SetOnCreateRenderer(pFunction);
     }
 
+    // The base-name setters are safe only for a kwxAppTraits helper.  A
+    // platform traits object (wxApp::GetTraits()) has no callback slots, so
+    // ignore the call instead of casting it to the wrong type.
     EXPORT void wxAppTraits_SetOnCreateLogTarget(wxAppTraits* self, void* pFunction)
     {
-        static_cast<kwxAppTraits*>(self)->SetOnCreateLogTarget(pFunction);
+        if (g_kwxAppTraits.contains(self))
+        {
+            static_cast<kwxAppTraits*>(self)->SetOnCreateLogTarget(pFunction);
+        }
     }
 
     EXPORT void wxAppTraits_SetOnCreateRenderer(wxAppTraits* self, void* pFunction)
     {
-        static_cast<kwxAppTraits*>(self)->SetOnCreateRenderer(pFunction);
+        if (g_kwxAppTraits.contains(self))
+        {
+            static_cast<kwxAppTraits*>(self)->SetOnCreateRenderer(pFunction);
+        }
     }
 
     EXPORT wxLog* kwxAppTraits_SetLogTarget(kwxAppTraits* self, wxLog* target)
@@ -2231,10 +2250,19 @@ extern "C"
         return self->SetLogTarget(target);
     }
 
+    // wxAppTraits itself has no log-target setter: CreateLogTarget() is the
+    // virtual factory.  For a kwxAppTraits helper the target is stored there.
+    // Any other traits object (notably the platform traits that
+    // wxApp::GetTraits() returns) is handled by installing the same target as
+    // the process-wide active log target, which is the observable effect a
+    // caller wants and avoids an invalid downcast.
     EXPORT wxLog* wxAppTraits_SetLogTarget(wxAppTraits* self, wxLog* target)
     {
-        kwxAppTraits* helper = static_cast<kwxAppTraits*>(self);
-        return helper->SetLogTarget(target);
+        if (g_kwxAppTraits.contains(self))
+        {
+            return static_cast<kwxAppTraits*>(self)->SetLogTarget(target);
+        }
+        return wxLog::SetActiveTarget(target);
     }
 
     // kwxEvent ---------------------------------------------------------------

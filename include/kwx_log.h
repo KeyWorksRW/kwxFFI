@@ -60,6 +60,18 @@ TClassDefExtend(wxLogGui, wxLog) TClass(wxLogGui) wxLogGui_Create();
 void wxLogGui_Flush(TSelf(wxLogGui) pObject);
 void wxLogGui_Delete(TSelf(wxLogGui) pObject);
 
+// kwxLogGui is a callback-driven wxLogGui.  wxLogGui's DoShowSingleLogMessage()
+// is private, so only a derived class can customize the single-message dialog
+// (as MyLogGui does in the dialogs sample).  The callback receives
+// (pObject, message, title); the two strings are const wxString* valid only for
+// the call.  DoShowSingleLogMessage's style argument is exposed by
+// kwxLogGui_GetPendingStyle() because the FFI callback ABI has only three
+// pointer slots.
+TClassDefExtend(kwxLogGui, wxLogGui) EXPORT TClass(kwxLogGui) kwxLogGui_Create(void* pObject);
+EXPORT void kwxLogGui_SetOnDoShowSingleLogMessage(TSelf(kwxLogGui) pObject, void* pFunction);
+EXPORT int kwxLogGui_GetPendingStyle(TSelf(kwxLogGui) pObject);
+EXPORT void kwxLogGui_Delete(TSelf(kwxLogGui) pObject);
+
 TClassDefExtend(wxLogStderr, wxLog) TClass(wxLogStderr) wxLogStderr_Create();
 TClass(wxLogStderr) wxLogStderr_CreateStdOut();
 void wxLogStderr_Delete(TSelf(wxLogStderr) pObject);
