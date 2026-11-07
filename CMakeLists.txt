@@ -298,6 +298,23 @@ if(NOT APPLE)
         ${wxWidgets_SOURCE_DIR}/src/generic/dirdlgg.cpp)
 endif()
 
+# The bundled expat moved its XML_Char string helpers (xcslen/xcscmp/xcsncmp)
+# out of xmlparse.c into a new xcs.c. FetchContent refreshes the wxWidgets
+# snapshot in place, but CMake does not track the included
+# build/cmake/lib/expat.cmake as a configure dependency, so an existing build
+# tree can keep linking wxexpat without xcs.c and fail with undefined
+# xcslen/xcsncmp. Compile the source whenever the refreshed snapshot has it and
+# the target does not include it yet.
+if(TARGET wxexpat)
+    set(_kwxfi_expat_xcs "${wxWidgets_SOURCE_DIR}/src/expat/expat/lib/xcs.c")
+    if(EXISTS "${_kwxfi_expat_xcs}")
+        get_target_property(_kwxfi_expat_sources wxexpat SOURCES)
+        if(NOT _kwxfi_expat_sources MATCHES "xcs\\.c")
+            target_sources(wxexpat PRIVATE "${_kwxfi_expat_xcs}")
+        endif()
+    endif()
+endif()
+
 # Set the library directory based on platform
 if(WIN32)
     set(WX_LIB_DIR ${wxWidgets_BUILD_DIR}/lib/vc_x64_lib)
