@@ -15,9 +15,9 @@
 //     wxDatePickerCtrl, wxCalendarCtrl, wxFileName, wxFSFile, wxDateEvent and wxDateProperty,
 //     which is why `gui` output contains a wxDateTime binding even though the class is listed
 //     as excluded.
-//   * `gui` — wxLocale, wxUILocale, wxTranslations, wxNumberFormatter, wxConfigBase and
-//     wxFileConfig are deliberately kept in the `gui` surface; do not add them to the
-//     exclusion list.
+//   * `gui` — wxLocale, wxUILocale, wxTranslations, wxNumberFormatter, wxConfigBase,
+//     wxConfig and wxFileConfig are deliberately kept in the `gui` surface; do not add
+//     them to the exclusion list.
 //
 // Strings are returned as `TClass(wxString)` (a `wxString*` the caller owns) with two
 // exceptions that follow the block they extend: wxNumberFormatter keeps its `TString` returns
@@ -272,6 +272,17 @@ TClassDefExtend(wxConfigBase, wxObject) void wxConfigBase_DontCreateOnDemand();
 long wxConfigBase_ReadLong(TSelf(wxConfigBase) pObject, TClass(wxString) key, long def_val);
 
 // ---------------------------------------------------------------------------
+// wxConfig
+// ---------------------------------------------------------------------------
+
+// wxConfig is the platform's native config class: wxRegConfig on MSW, wxFileConfig
+// elsewhere. Wrapping it under its own name lets a port call the same five-argument
+// constructor the C++ samples use instead of substituting wxFileConfig.
+TClassDefExtend(wxConfig, wxConfigBase) TClass(wxConfig)
+    wxConfig_Create(TClass(wxString) app_name, TClass(wxString) vendor_name,
+                    TClass(wxString) local_filename, TClass(wxString) global_filename, long style);
+
+// ---------------------------------------------------------------------------
 // wxFileConfig
 // ---------------------------------------------------------------------------
 
@@ -309,7 +320,8 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // not found or did not hold a number.
 TClassDef(wxCmdLineParser) TClass(wxCmdLineParser) wxCmdLineParser_Create();
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void wxCmdLineParser_AddLongOption(TSelf(wxCmdLineParser) pObject, TClass(wxString) lng, TClass(wxString) desc, int type, int flags);
+void wxCmdLineParser_AddLongOption(TSelf(wxCmdLineParser) pObject, TClass(wxString) lng,
+                                   TClass(wxString) desc, int type, int flags);
 void wxCmdLineParser_AddUsageText(TSelf(wxCmdLineParser) pObject, TClass(wxString) text);
 int wxCmdLineParser_FoundSwitch(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 void wxCmdLineParser_Delete(TSelf(wxCmdLineParser) pObject);

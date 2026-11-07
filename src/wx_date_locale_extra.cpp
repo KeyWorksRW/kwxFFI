@@ -890,6 +890,17 @@ extern "C"
     }
 
     // -----------------------------------------------------------------------
+    // wxConfig
+    // -----------------------------------------------------------------------
+
+    EXPORT wxConfig* wxConfig_Create(wxString* app_name, wxString* vendor_name,
+                                     wxString* local_filename, wxString* global_filename,
+                                     long style)
+    {
+        return new wxConfig(*app_name, *vendor_name, *local_filename, *global_filename, style);
+    }
+
+    // -----------------------------------------------------------------------
     // wxFileConfig
     // -----------------------------------------------------------------------
 
