@@ -156,6 +156,9 @@ extern "C"
             ->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
     }
 
+    // The creator callback must return the wxWindow* it creates, but the FFI callback
+    // ABI is void-only (kwxts/README.md, "Limitations"), so this path cannot surface a
+    // custom panel from a port. Use wxFileDialog_SetCustomizeHook instead.
     EXPORT int wxFileDialog_SetExtraControlCreator(wxFileDialog* self, void* pFunction)
     {
         // The FFI hands over an untyped function pointer and the wx typedef is

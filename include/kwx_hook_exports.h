@@ -177,10 +177,12 @@ TClassDefExtend(kwxModalDialogHook, wxModalDialogHook) EXPORT
 EXPORT void kwxModalDialogHook_Delete(TSelf(kwxModalDialogHook) pObject);
 EXPORT void kwxModalDialogHook_SetOnEnter(TSelf(kwxModalDialogHook) pObject, void* pFunction);
 EXPORT void kwxModalDialogHook_SetOnExit(TSelf(kwxModalDialogHook) pObject, void* pFunction);
+EXPORT void kwxModalDialogHook_CaptureEnterDialog(TSelf(kwxModalDialogHook) pObject, TBool capture);
 
 TClassDef(wxModalDialogHook) EXPORT
     void wxModalDialogHook_SetOnEnter(TSelf(wxModalDialogHook) pObject, void* pFunction);
 EXPORT void wxModalDialogHook_SetOnExit(TSelf(wxModalDialogHook) pObject, void* pFunction);
+EXPORT void wxModalDialogHook_CaptureEnterDialog(TSelf(wxModalDialogHook) pObject, TBool capture);
 EXPORT void wxModalDialogHook_Register(TSelf(wxModalDialogHook) pObject);
 EXPORT void wxModalDialogHook_Unregister(TSelf(wxModalDialogHook) pObject);
 EXPORT void wxModalDialogHook_Delete(TSelf(wxModalDialogHook) pObject);
@@ -198,6 +200,10 @@ EXPORT void kwxAddRemoveAdaptor_SetOnCanAdd(TSelf(kwxAddRemoveAdaptor) pObject, 
 EXPORT void kwxAddRemoveAdaptor_SetOnCanRemove(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
 EXPORT void kwxAddRemoveAdaptor_SetOnAdd(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
 EXPORT void kwxAddRemoveAdaptor_SetOnRemove(TSelf(kwxAddRemoveAdaptor) pObject, void* pFunction);
+EXPORT void kwxAddRemoveAdaptor_SetItemsCtrl(TSelf(kwxAddRemoveAdaptor) pObject,
+                                             TClass(wxWindow) ctrl);
+EXPORT void kwxAddRemoveAdaptor_SetCanAdd(TSelf(kwxAddRemoveAdaptor) pObject, TBool value);
+EXPORT void kwxAddRemoveAdaptor_SetCanRemove(TSelf(kwxAddRemoveAdaptor) pObject, TBool value);
 EXPORT void kwxAddRemoveAdaptor_Delete(TSelf(kwxAddRemoveAdaptor) pObject);
 
 TClassDefExtend(kwxTextCompleterSimple, wxTextCompleterSimple) EXPORT
@@ -223,10 +229,12 @@ TClassDefExtend(kwxAppTraits, wxAppTraits) EXPORT void* kwxAppTraits_Create(void
 EXPORT void kwxAppTraits_Delete(TSelf(kwxAppTraits) pObject);
 EXPORT void kwxAppTraits_SetOnCreateLogTarget(TSelf(kwxAppTraits) pObject, void* pFunction);
 EXPORT void kwxAppTraits_SetOnCreateRenderer(TSelf(kwxAppTraits) pObject, void* pFunction);
+EXPORT TClass(wxLog) kwxAppTraits_SetLogTarget(TSelf(kwxAppTraits) pObject, TClass(wxLog) target);
 
 TClassDef(wxAppTraits) EXPORT
     void wxAppTraits_SetOnCreateLogTarget(TSelf(wxAppTraits) pObject, void* pFunction);
 EXPORT void wxAppTraits_SetOnCreateRenderer(TSelf(wxAppTraits) pObject, void* pFunction);
+EXPORT TClass(wxLog) wxAppTraits_SetLogTarget(TSelf(wxAppTraits) pObject, TClass(wxLog) target);
 
 TClassDefExtend(kwxDocument, wxDocument) EXPORT void* kwxDocument_Create(void* pObject);
 EXPORT void kwxDocument_Delete(TSelf(kwxDocument) pObject);

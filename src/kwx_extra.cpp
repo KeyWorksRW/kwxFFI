@@ -2041,10 +2041,11 @@ extern "C"
         return new wxGenericProgressDialog(*title, *message, maximum, parent, style);
     }
 
-    EXPORT int wxGenericProgressDialog_Update(wxGenericProgressDialog* self, int value, int* skip)
+    EXPORT int wxGenericProgressDialog_Update(wxGenericProgressDialog* self, int value,
+                                              wxString* message, int* skip)
     {
         bool skip_value = false;
-        const bool result = self->Update(value, wxEmptyString, &skip_value);
+        const bool result = self->Update(value, *message, &skip_value);
         if (skip)
         {
             *skip = skip_value ? 1 : 0;

@@ -2221,16 +2221,14 @@ TClassDefExtend(wxFilterInputStream, wxInputStream)
 
     TClassDefExtend(wxFilterOutputStream, wxOutputStream)
 
-        TClassDefExtend(wxFindDialogEvent,
-                        wxCommandEvent) int wxFindDialogEvent_GetFindString(TSelf(wxFindDialogEvent)
-                                                                                pObject,
-                                                                            void* ref);
+        TClassDefExtend(wxFindDialogEvent, wxCommandEvent) TClass(wxString)
+            wxFindDialogEvent_GetFindString(TSelf(wxFindDialogEvent) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxFindReplaceDialog) wxFindDialogEvent_GetDialog(TSelf(wxFindDialogEvent) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxFilterOutputStream_Close(TSelf(wxFilterOutputStream) pObject);
 int wxFindDialogEvent_GetFlags(TSelf(wxFindDialogEvent) pObject);
-int wxFindDialogEvent_GetReplaceString(TSelf(wxFindDialogEvent) pObject, void* ref);
+TClass(wxString) wxFindDialogEvent_GetReplaceString(TSelf(wxFindDialogEvent) pObject);
 
 TClassDefExtend(wxFindReplaceData, wxObject) TClass(wxFindReplaceData)
     wxFindReplaceData_Create(int flags);
@@ -2379,6 +2377,7 @@ TClassDefExtend(wxFrame, wxTopLevelWindow) TClass(wxFrame)
                    TRect(left, top, width, height), int style);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void* wxFrame_MSWGetTaskBarButton(TSelf(wxFrame) pObject);
+TClass(wxMenu) wxFrame_MSWGetSystemMenu(TSelf(wxFrame) pObject);
 TClass(wxStatusBar) wxFrame_CreateStatusBar(TSelf(wxFrame) pObject, int number, int style, int id);
 TClass(wxToolBar) wxFrame_CreateToolBar(TSelf(wxFrame) pObject, long style, int id);
 int wxFrame_GetClientAreaOrigin_left(TSelf(wxFrame) pObject);
@@ -6473,6 +6472,7 @@ TBool wxWindow_Disable(TSelf(wxWindow) pObject);
 TBool wxWindow_Enable(TSelf(wxWindow) pObject, TBool enable);
 TClass(wxWindow) wxWindow_FindFocus(TSelf(wxWindow) pObject);
 TClass(wxWindow) wxWindow_FindWindow(TSelf(wxWindow) pObject, TClass(wxString) name);
+TClass(wxWindow) wxWindow_FindWindowByIdSelf(TSelf(wxWindow) pObject, int id);
 void wxWindow_Fit(TSelf(wxWindow) pObject);
 void wxWindow_FitInside(TSelf(wxWindow) pObject);
 void wxWindow_Freeze(TSelf(wxWindow) pObject);

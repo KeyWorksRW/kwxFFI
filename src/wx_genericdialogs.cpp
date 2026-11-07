@@ -104,6 +104,37 @@ extern "C"
         return result;
     }
 
+    EXPORT int wxGenericFileDialog_GetPaths(wxGenericFileDialog* self, void* paths)
+    {
+        wxArrayString arr;
+        self->GetPaths(arr);
+        if (paths)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+        }
+        return arr.GetCount();
+    }
+
+    EXPORT int wxGenericFileDialog_GetFilenames(wxGenericFileDialog* self, void* paths)
+    {
+        wxArrayString arr;
+        self->GetFilenames(arr);
+        if (paths)
+        {
+            for (unsigned int i = 0; i < arr.GetCount(); i++)
+                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+        }
+        return arr.GetCount();
+    }
+
+    EXPORT wxString* wxGenericFileDialog_GetDirectory(wxGenericFileDialog* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetDirectory();
+        return result;
+    }
+
     EXPORT void wxGenericFileDialog_SetPath(wxGenericFileDialog* self, wxString* path)
     {
         self->SetPath(*path);

@@ -82,14 +82,14 @@ extern "C"
     EXPORT wxString* wxFindDialogEvent_GetFindString(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFindReplaceData*) pObject)->GetFindString();
+        *result = ((wxFindDialogEvent*) pObject)->GetFindString();
         return result;
     }
 
     EXPORT wxString* wxFindDialogEvent_GetReplaceString(void* pObject)
     {
         wxString* result = new wxString();
-        *result = ((wxFindReplaceData*) pObject)->GetFindString();
+        *result = ((wxFindDialogEvent*) pObject)->GetReplaceString();
         return result;
     }
 
