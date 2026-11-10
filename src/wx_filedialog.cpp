@@ -158,16 +158,21 @@ extern "C"
         return result;
     }
 
-    EXPORT int wxFileDialog_GetPaths(void* pObject, void* paths)
+    EXPORT int wxFileDialog_GetPaths(void* pObject, void* paths, int capacity)
     {
-        wxArrayString arr;
-        ((wxFileDialog*) pObject)->GetPaths(arr);
+        wxArrayString paths_array;
+        ((wxFileDialog*) pObject)->GetPaths(paths_array);
+        const size_t limit =
+            capacity > 0 ? std::min(paths_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(paths_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(paths_array.GetCount());
     }
 
     EXPORT wxString* wxFileDialog_GetDirectory(void* pObject)
@@ -184,16 +189,21 @@ extern "C"
         return result;
     }
 
-    EXPORT int wxFileDialog_GetFilenames(void* pObject, void* paths)
+    EXPORT int wxFileDialog_GetFilenames(void* pObject, void* paths, int capacity)
     {
-        wxArrayString arr;
-        ((wxFileDialog*) pObject)->GetFilenames(arr);
+        wxArrayString files_array;
+        ((wxFileDialog*) pObject)->GetFilenames(files_array);
+        const size_t limit =
+            capacity > 0 ? std::min(files_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(files_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(files_array.GetCount());
     }
 
     EXPORT wxString* wxFileDialog_GetWildcard(void* pObject)

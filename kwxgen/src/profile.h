@@ -13,7 +13,8 @@
 //          still referenced by a retained signature (ancestor, mixin, parameter or
 //          return type) is kept so the generated bindings still compile.
 //
-// Go and Julia default to `gui`; Fortran, LuaJIT and TypeScript default to `full`.
+// Every language defaults to `full`. `gui` is never a default; a consumer opts down to it
+// explicitly with `--profile gui`.
 
 #pragma once
 
@@ -29,9 +30,14 @@ std::vector<std::string_view> ProfileNames();
 // True if profile_name is one of ProfileNames().
 bool IsKnownProfile(std::string_view profile_name);
 
-// Default profile for a language name: "go" and "julia" return "gui"; "fortran",
-// "luajit", "typescript" and any unknown name return "full".
+// Default profile for a language name: "full" for every known language and for any
+// unknown name. `gui` is only ever selected explicitly.
 std::string DefaultProfileForLanguage(std::string_view lang);
+
+// True if the `gui` profile drops this class as base-utility. The coverage report uses it
+// for its `gui` column; the answer does not depend on whether a retained signature adds the
+// class back.
+bool IsGuiExcludedClass(std::string_view class_name);
 
 // Return a copy of ffi_data narrowed to the requested profile. "full" (and any profile
 // other than "gui") returns the input unchanged; "gui" drops the excluded classes and

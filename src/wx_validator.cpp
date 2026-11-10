@@ -29,6 +29,18 @@ public:
         return ok;
     }
 
+    // wxGenericValidator::Clone() returns a plain wxGenericValidator, which would
+    // drop the int-backed bool adapter when wxWindow::SetValidator() clones it.  The
+    // copy must re-point the base bool pointer at this clone's own m_value: the base
+    // copy constructor otherwise copies the pointer to the source object's member.
+    wxObject* Clone() const override
+    {
+        kwxGenericValidatorBool* clone = new kwxGenericValidatorBool(m_intValue);
+        clone->m_value = m_value;
+        clone->wxValidator::Copy(*this);
+        return clone;
+    }
+
 private:
     int* m_intValue;
     bool m_value = false;

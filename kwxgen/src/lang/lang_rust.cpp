@@ -12,6 +12,7 @@
 #include "rust_type_map.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cstdlib>
 #include <filesystem>
@@ -886,6 +887,187 @@ VerifyResult RustEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* 
 }
 
 // -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// The emitted module set for a model; defined with the class-file emitters further down.
+[[nodiscard]] static std::vector<ClassInfo> BuildEmitClasses(const ParsedFFI& ffi);
+
+// Support value types that live in support.rs rather than in a generated class module.
+static constexpr std::array<std::string_view, 3> RUST_SUPPORT_CLASSES { "wxPoint", "wxSize",
+                                                                        "wxRect" };
+
+// The Rust member name EmitMethodWrappers gives a method.  A destructor folds into the
+// handle lifetime, a constructor becomes new/new_full or a named factory, and every other
+// member is named through RustWrapperMethodName.
+[[nodiscard]] static std::string RustEmittedMethodKey(const FunctionDecl& method)
+{
+    if (IsDestructor(method))
+    {
+        return "drop";
+    }
+    if (method.is_constructor && !method.has_self)
+    {
+        const bool is_pointer_return = method.return_type.contains('*') ||
+                                       method.return_macro == "TClass" ||
+                                       method.return_macro == "TSelf";
+        if (!is_pointer_return)
+        {
+            return CFuncName(method);
+        }
+        if (method.method_name == "Create")
+        {
+            return "new";
+        }
+    }
+    return RustWrapperMethodName(method);
+}
+
+// Count the methods EmitMethodWrappers writes for one class.  A consumer also re-emits the
+// methods of every mixin it implements, so those count toward the consumer.
+static void CountRustClassMethods(const ClassInfo& cls, const ParsedFFI& ffi,
+                                  const std::map<std::string, const ClassInfo*>& class_index,
+                                  CoverageInfo& report)
+{
+    std::set<std::string> emitted_methods;
+    size_t wrapped_count = 0;
+    size_t collapsed_count = 0;
+
+    const auto count_method =
+        [&emitted_methods, &wrapped_count, &collapsed_count](const std::string& method_key)
+    {
+        if (emitted_methods.insert(method_key).second)
+        {
+            ++wrapped_count;
+        }
+        else
+        {
+            ++collapsed_count;
+        }
+    };
+
+    for (const FunctionDecl& method: cls.methods)
+    {
+        if (IsValidFunction(method))
+        {
+            count_method(RustEmittedMethodKey(method));
+        }
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi.mixin_map.find(cls.name);
+    if (mixin_iter != ffi.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::map<std::string, const ClassInfo*>::const_iterator mixin_found =
+                class_index.find(mixin_name);
+            if (mixin_found == class_index.end())
+            {
+                continue;
+            }
+            for (const FunctionDecl& method: mixin_found->second->methods)
+            {
+                if (!IsValidFunction(method))
+                {
+                    continue;
+                }
+                // A mixin constructor or destructor is not re-emitted on the consumer, but
+                // it is still part of the consumer's model method surface, so it is counted
+                // the same way as the mixin's own module counts it.
+                count_method(RustEmittedMethodKey(method));
+            }
+        }
+    }
+
+    report.method_counts_by_class[cls.name] = wrapped_count;
+    if (collapsed_count != 0)
+    {
+        report.deduplicated_method_counts_by_class[cls.name] = collapsed_count;
+        report.deduplicated_method_count += collapsed_count;
+    }
+}
+
+CoverageInfo RustEmitter::Coverage(const ParsedFFI& ffi) const
+{
+    CoverageInfo report;
+    report.free_function_count = ffi.free_functions.size();
+    report.event_count = ffi.events.size();
+    report.key_count = ffi.keys.size();
+    report.constant_count = ffi.constants.size();
+
+    std::map<std::string, const ClassInfo*> class_index;
+    for (const auto& cls: ffi.classes)
+    {
+        class_index.emplace(cls.name, &cls);
+    }
+
+    // BuildEmitClasses returns one entry per emitted module, owned by its wx* class.  A
+    // kwx* alias shares the wx* owner's module name, so coverage is tested by module name
+    // rather than by an exact class-name match.
+    const std::vector<ClassInfo> emit_classes = BuildEmitClasses(ffi);
+    std::set<std::string> emitted_modules;
+    for (const ClassInfo& cls: emit_classes)
+    {
+        emitted_modules.insert(RustModuleName(cls.name));
+    }
+
+    constexpr auto is_support_class = [](const std::string& class_name)
+    {
+        return std::ranges::find(RUST_SUPPORT_CLASSES, class_name) != RUST_SUPPORT_CLASSES.end();
+    };
+
+    for (const auto& cls: ffi.classes)
+    {
+        // object.rs owns the root handle and its methods, so wxObject is provided by the
+        // consumer side of the crate rather than by a generated class module.
+        if (cls.name == "wxObject")
+        {
+            report.consumer_provided_classes.emplace_back(cls.name);
+            CountRustClassMethods(cls, ffi, class_index, report);
+            continue;
+        }
+
+        if (!emitted_modules.contains(RustModuleName(cls.name)))
+        {
+            if (!is_support_class(cls.name))
+            {
+                report.skipped_classes.push_back(cls.name);
+            }
+            continue;
+        }
+
+        // The class is covered even when its methods are merged into a sibling module: a
+        // kwx* alias shares its wx* owner's module, so it is never reported as skipped.
+        report.wrapped_classes.push_back(cls.name);
+        CountRustClassMethods(cls, ffi, class_index, report);
+    }
+
+    // A synthesized parent has its own module but is not a parsed class.
+    for (const ClassInfo& cls: emit_classes)
+    {
+        if (!class_index.contains(cls.name))
+        {
+            report.wrapped_classes.push_back(cls.name);
+        }
+    }
+
+    // support.rs owns the value types when they do not produce a class module.
+    for (const std::string_view support_name: RUST_SUPPORT_CLASSES)
+    {
+        if (!emitted_modules.contains(RustModuleName(std::string(support_name))))
+        {
+            report.consumer_provided_classes.emplace_back(support_name);
+        }
+    }
+
+    std::ranges::sort(report.wrapped_classes);
+    std::ranges::sort(report.consumer_provided_classes);
+    std::ranges::sort(report.skipped_classes);
+    return report;
+}
+
+// -------------------------------------------------------------------------
 // Cargo.toml
 // -------------------------------------------------------------------------
 
@@ -1522,6 +1704,59 @@ static void AddClassToEmitGroups(std::map<std::string, ClassInfo>& groups, Class
     existing.methods.insert(existing.methods.end(), cls.methods.begin(), cls.methods.end());
 }
 
+// A mixin declares its receiver as TClass(OwnClass) rather than TSelf.  A consumer that
+// re-emits the method takes &self instead and passes its own handle to the mixin C function.
+[[nodiscard]] static FunctionDecl AsConsumerMethod(const FunctionDecl& mixin_method,
+                                                   const std::string& mixin_name)
+{
+    FunctionDecl consumer_method = mixin_method;
+    if (!consumer_method.params.empty() && consumer_method.params.front().macro_name == "TClass" &&
+        consumer_method.params.front().macro_arg == mixin_name)
+    {
+        consumer_method.params.erase(consumer_method.params.begin());
+        consumer_method.has_self = true;
+    }
+    return consumer_method;
+}
+
+// A consumer re-emits each mixin's methods so its generated type exposes the full C++
+// interface; the mixin class keeps its own module as well.
+static void AddMixinMethods(const ParsedFFI& ffi, std::map<std::string, ClassInfo>& groups)
+{
+    for (auto& group: groups)
+    {
+        ClassInfo& class_info = group.second;
+        const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+            ffi.mixin_map.find(class_info.name);
+        if (mixin_iter == ffi.mixin_map.end())
+        {
+            continue;
+        }
+
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::vector<ClassInfo>::const_iterator mixin_found =
+                std::find_if(ffi.classes.begin(), ffi.classes.end(),
+                             [&mixin_name](const ClassInfo& candidate)
+                             {
+                                 return candidate.name == mixin_name;
+                             });
+            if (mixin_found == ffi.classes.end())
+            {
+                continue;
+            }
+            for (const FunctionDecl& method: mixin_found->methods)
+            {
+                if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+                {
+                    continue;
+                }
+                class_info.methods.push_back(AsConsumerMethod(method, mixin_name));
+            }
+        }
+    }
+}
+
 // Build the complete list of classes to emit, sorted by module name. Every parent that a
 // generated type dereferences to is itself part of the list.
 [[nodiscard]] static std::vector<ClassInfo> BuildEmitClasses(const ParsedFFI& ffi)
@@ -1598,6 +1833,9 @@ static void AddClassToEmitGroups(std::map<std::string, ClassInfo>& groups, Class
         AbortGeneration("class '" + classInfo.name + "' has parent '" + classInfo.parent +
                         "' with no generated type");
     }
+
+    // Consumers expose their mixins' methods, so the emitted wrapper set includes them.
+    AddMixinMethods(ffi, groups);
 
     std::vector<ClassInfo> classes;
     classes.reserve(groups.size());

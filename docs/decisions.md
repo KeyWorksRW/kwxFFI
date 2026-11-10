@@ -142,12 +142,38 @@ This document records key architectural and design decisions made for the kwxFFI
 
 **Implications**:
 
-- Every class in `include/` must be classified as `gui` or `base-utility`; an unclassified base-utility class silently leaks into the Go and Julia surface. The authoritative list is `.private/coverage_expansion_inventory.md`, mirrored by `GuiExcludedClasses()` in `kwxgen/src/profile.cpp`
+- Every class in `include/` must be classified as `gui` or `base-utility`; an unclassified base-utility class is still wrapped by `--profile gui`. The authoritative list is produced by `kwxgen coverage --inventory .private/coverage_expansion_inventory.md` and mirrored by `GuiExcludedClasses()` in `kwxgen/src/profile.cpp`
 - `kwxgen generate` and `kwxgen verify` must be run with the same `--profile`; a mismatch reports every profile-filtered symbol as missing
 - `kwxgen exports` must never be given `--profile`, so the digest baseline covers the complete surface regardless of which profile a consumer generates with
 - `TInt64` is supported by the TypeScript type map (`bigint`), so new exports may use it; the
   surfaces that still narrow a wider integer are tracked in `.private/deferred_i64.md`
 - Adding a platform-specific class means extending `include/kwx_msw_aliases.h` and guarding the body in `src/`, never guarding the declaration in `include/`
+
+**Status**: Accepted; superseded in part by *Full wrapper coverage is the default for every language binding* (per-language default and scope statements only)
+
+---
+
+## Decision: Full wrapper coverage is the default for every language binding
+
+**Date**: 2026-11-10
+
+**Context**: The original profile design gave Go and Julia a `gui` default and left each backend free to decide which classes it wrapped. That produced a different surface in every binding: Fortran wrapped seven hardcoded modules, Go and Julia dropped every class with no methods, and a consumer could not tell whether a missing symbol meant "this class has no consumer value" or "this backend has not got to it yet". The five ports (Fortran, Go, Julia, LuaJIT, Rust) all want the same wxWidgets surface, and the runtime-gap argument that justified the Go/Julia `gui` default is a preference, not a requirement.
+
+**Decision**: `full` is the default profile for every language backend. Every backend must expose a wrapper for every class that has at least one valid method, plus a wrapper type for every zero-method direct `wxEvent` subclass (so an untyped event pointer can be downcast — `wxPaintEvent` is the common case). `gui` remains available as an explicit opt-down (`--profile gui`) for a consumer that prefers its runtime's standard library over the wrapped base-utility classes. Class selection is one shared rule in `kwxgen/src/lang/lang_common.h` (`IsZeroMethodEventClass`, `ShouldWrapClass`, `CollectWrappedClasses`); no backend keeps a private predicate or a hardcoded class list except the documented consumer-provided exemptions.
+
+**Rationale**:
+
+1. **One surface, one expectation**: A class is either wrapped everywhere or nowhere, so a missing symbol has exactly one meaning — the parsed model does not declare it, or the class is a documented consumer-provided type.
+2. **The `gui` filter is a preference, not a gap**: Go and Julia standard libraries may cover date/time, regex and XML better than the raw wrappers, but that is a consumer choice; making it the default hid classes the consumer might want and made generated output incomparable across ports.
+3. **Events need wrapper types even with no methods**: A zero-method direct `wxEvent` subclass carries no methods of its own yet must exist as a type so ports can downcast an event pointer and call the inherited `wxEvent` accessors.
+4. **A shared predicate is testable**: `ShouldWrapClass()` is one function the coverage report and the parity gate both use, so no backend can drift from the rule unnoticed.
+
+**Implications**:
+
+- `DefaultProfileForLanguage()` returns `full` for every language; `gui` is only ever selected with an explicit `--profile gui`.
+- A backend that filters classes must derive its set from `CollectWrappedClasses()` plus its own documented consumer-provided names; adding any other exemption requires a note in this file.
+- `kwxgen coverage --require-parity` treats the TypeScript surface as the reference and fails when another backend misses one of its wrapped classes or method counts.
+- This decision supersedes the per-language default and scope statements in *Single Library with Generation Profiles Instead of Multiple Bindings*; the single-library and generation-time-filtering conclusions there still hold.
 
 **Status**: Accepted
 

@@ -16,6 +16,7 @@ public:
     [[nodiscard]] VerifyResult Verify(const ParsedFFI& ffi,
                                       const std::filesystem::path& dir) override;
     [[nodiscard]] std::string_view Name() const override { return "rust"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi) const override;
 
 private:
     static void GenerateCargoToml(const std::filesystem::path& outDir);

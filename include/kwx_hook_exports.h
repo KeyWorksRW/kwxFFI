@@ -79,6 +79,11 @@ TClassDefExtend(kwxPanel, wxPanel) EXPORT TClass(kwxPanel)
 EXPORT void kwxPanel_Delete(TSelf(kwxPanel) pObject);
 EXPORT void kwxPanel_SetOnTransferDataFromWindow(TSelf(kwxPanel) pObject, void* pFunction);
 EXPORT void kwxPanel_SetOnTransferDataToWindow(TSelf(kwxPanel) pObject, void* pFunction);
+// The best-size callback receives two int* outputs (width, height) so no wxSize
+// crosses the boundary; the scroll callback receives the deltas and a
+// const wxRect* that is null when the caller passed no rectangle.
+EXPORT void kwxPanel_SetOnDoGetBestClientSize(TSelf(kwxPanel) pObject, void* pFunction);
+EXPORT void kwxPanel_SetOnScrollWindow(TSelf(kwxPanel) pObject, void* pFunction);
 
 TClassDefExtend(kwxEvtHandler, wxEvtHandler) EXPORT void* kwxEvtHandler_Create(void* pObject);
 EXPORT void kwxEvtHandler_Delete(TSelf(kwxEvtHandler) pObject);

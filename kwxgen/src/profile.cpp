@@ -18,6 +18,8 @@ static constexpr int MAX_PARENT_DEPTH = 50;
 // Macro names that name a class in a return type or parameter.
 static constexpr std::string_view MACRO_TCLASS = "TClass";
 static constexpr std::string_view MACRO_TCLASS_DEF = "TClassDef";
+static constexpr std::string_view MACRO_TCLASS_OWNED = "TClassOwned";
+static constexpr std::string_view MACRO_TCLASS_REF = "TClassRef";
 static constexpr std::string_view MACRO_TSELF = "TSelf";
 
 static constexpr std::string_view PROFILE_FULL = "full";
@@ -25,13 +27,14 @@ static constexpr std::string_view PROFILE_GUI = "gui";
 
 [[nodiscard]] static bool IsClassReturnMacro(std::string_view macro_name)
 {
-    return macro_name == MACRO_TCLASS || macro_name == MACRO_TCLASS_DEF;
+    return macro_name == MACRO_TCLASS || macro_name == MACRO_TCLASS_DEF ||
+           macro_name == MACRO_TCLASS_OWNED;
 }
 
 [[nodiscard]] static bool IsClassParamMacro(std::string_view macro_name)
 {
     return macro_name == MACRO_TCLASS || macro_name == MACRO_TCLASS_DEF ||
-           macro_name == MACRO_TSELF;
+           macro_name == MACRO_TCLASS_REF || macro_name == MACRO_TSELF;
 }
 
 // Append every class name referenced by a signature on this class: its ancestors, its
@@ -97,12 +100,12 @@ bool IsKnownProfile(std::string_view profile_name)
     return false;
 }
 
-std::string DefaultProfileForLanguage(std::string_view lang)
+std::string DefaultProfileForLanguage([[maybe_unused]] std::string_view lang)
 {
-    if (lang == "go" || lang == "julia")
-    {
-        return std::string { PROFILE_GUI };
-    }
+    // `full` is the default for every language: every backend exposes every class with at
+    // least one valid method plus the zero-method direct wxEvent subclasses. `gui` remains
+    // available as an explicit opt-down for a consumer that prefers its runtime's standard
+    // library over the wrapped base-utility classes.
     return std::string { PROFILE_FULL };
 }
 
@@ -210,6 +213,11 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
         "wxZlibOutputStream",
     };
     return excluded_classes;
+}
+
+bool IsGuiExcludedClass(std::string_view class_name)
+{
+    return GuiExcludedClasses().contains(std::string(class_name));
 }
 
 ParsedFFI ApplyProfile(const ParsedFFI& ffi_data, std::string_view profile)

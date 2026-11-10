@@ -125,7 +125,7 @@ Each wxWidgets event type is exposed through a function:
 MAKE_EVENT_WRAPPER(EVT_BUTTON)  // Creates exp_wxEVT_BUTTON() returning event ID
 ```
 
-Foreign languages call `exp_wxEVT_BUTTON()` to get the event type ID, then register their callback using `wxEvtHandler_Bind()` (preferred; it routes through `wxEvtHandler::Bind()`) or the legacy `wxEvtHandler_Connect()`. `wxEvtHandler_Unbind()` removes handlers installed by `wxEvtHandler_Bind()`; `wxEvtHandler_Disconnect()` removes those installed by `wxEvtHandler_Connect()`.
+Foreign languages call `exp_wxEVT_BUTTON()` to get the event type ID, then register their callback using `wxEvtHandler_Bind()` (preferred; it routes through `wxEvtHandler::Bind()`) or the legacy `wxEvtHandler_Connect()`. `wxEvtHandler_Unbind()` removes every handler installed by `wxEvtHandler_Bind()` for an id range and event type; `wxEvtHandler_UnbindClosure()` removes only the one installed for a specific closure, leaving other handlers on the same range in place. `wxEvtHandler_Disconnect()` removes those installed by `wxEvtHandler_Connect()`.
 
 ## String Handling
 

@@ -411,28 +411,6 @@ struct ConstTableEntry
     return {};
 }
 
-// True when a class is an event class that owns no methods of its own.  Such a class
-// still needs a wrapper because ports receive an untyped event pointer and must
-// downcast it to call the inherited wxEvent accessors (wxPaintEvent is the common
-// case).  Only a direct wxEvent subclass qualifies: a zero-method class below another
-// event class is either a macro alias (wxNotebookEvent) or a stale placeholder
-// (wxTabEvent), neither of which should be emitted.
-[[nodiscard]] static bool IsZeroMethodEventClass(const std::string& class_name,
-                                                 const ParsedFFI& ffi)
-{
-    const std::unordered_map<std::string, std::string>::const_iterator iter =
-        ffi.parent_map.find(class_name);
-    return iter != ffi.parent_map.end() && iter->second == "wxEvent";
-}
-
-// A class gets a generated file when it has at least one wrapper method or when it is
-// a zero-method direct wxEvent subclass.  Everything else stays unwrapped, which
-// keeps abstract bases and stale placeholder blocks out of the output.
-[[nodiscard]] static bool ShouldEmitClass(const ClassInfo& cls, const ParsedFFI& ffi)
-{
-    return !cls.methods.empty() || IsZeroMethodEventClass(cls.name, ffi);
-}
-
 // Wraps a single kwx Param into information needed for the idiomatic TS method signature.
 // Each returned entry is one visible TypeScript parameter (or a hidden self receiver).
 struct WrapParam
@@ -497,6 +475,21 @@ struct WrapParam
            wrapped_classes.contains(func.return_arg);
 }
 
+// Wrapper class returns that must stay a raw Pointer in one owner's generated code, keyed
+// by the owning class.  Importing such a class by value would close an ECMAScript module
+// cycle that crosses an `extends` clause: the parent's class binding is still in its
+// temporal dead zone when the importing module evaluates, so the module graph throws a
+// ReferenceError.
+static std::unordered_map<std::string, std::unordered_set<std::string>> s_denied_wrapped_returns;
+
+[[nodiscard]] static bool IsDeniedWrappedReturn(const std::string& owner,
+                                                const std::string& returned)
+{
+    const std::unordered_map<std::string, std::unordered_set<std::string>>::const_iterator found =
+        s_denied_wrapped_returns.find(owner);
+    return found != s_denied_wrapped_returns.end() && found->second.contains(returned);
+}
+
 // Return the TypeScript return type annotation for a method in the class wrapper layer.
 // class_name is the enclosing class (used when return is TClass/TSelf → ClassName | null).
 [[nodiscard]] static std::string
@@ -522,8 +515,11 @@ struct WrapParam
         // A free or static function has no enclosing class, so an unowned TClass
         // return stays a raw Pointer.  Marking the declaration TClassOwned opts it
         // into a wrapper that owns (and can release) the allocation.
+        // A wrapper whose value import would close a module cycle keeps the raw Pointer
+        // contract so the generated module graph evaluates without a TDZ ReferenceError.
         if (IsWrappedClassReturn(func, wrapped_classes) &&
-            (!class_name.empty() || func.returns_owned))
+            (!class_name.empty() || func.returns_owned) &&
+            !IsDeniedWrappedReturn(class_name, func.return_arg))
         {
             return func.return_arg + " | null";
         }
@@ -594,7 +590,11 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     // with TClassOwned, so only genuinely borrowed pointers get the non-owning
     // wrapper.  A free or static function (class_name empty) wraps only when the
     // declaration is TClassOwned; otherwise its raw Pointer contract is unchanged.
-    if (IsWrappedClassReturn(func, wrapped_classes) && (!class_name.empty() || func.returns_owned))
+    // A denied return keeps the raw Pointer contract; WrapReturnType applied the same
+    // decision, so the emitted annotation and this body cannot disagree.
+    if (IsWrappedClassReturn(func, wrapped_classes) &&
+        (!class_name.empty() || func.returns_owned) &&
+        !IsDeniedWrappedReturn(class_name, func.return_arg))
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
@@ -622,6 +622,300 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     }
 
     output << indent << "return " << call_expr << ";\n";
+}
+
+// Value-import edges between generated class modules: importer → imported.
+using TsModuleEdges = std::unordered_map<std::string, std::unordered_set<std::string>>;
+
+// True when `target` is reachable from `origin` by following value-import edges.
+[[nodiscard]] static bool TsEdgesReach(const TsModuleEdges& edges, const std::string& origin,
+                                       const std::string& target)
+{
+    if (origin == target)
+    {
+        return true;
+    }
+
+    std::vector<std::string> pending { origin };
+    std::unordered_set<std::string> visited { origin };
+    while (!pending.empty())
+    {
+        const std::string current = pending.back();
+        pending.pop_back();
+
+        const TsModuleEdges::const_iterator found = edges.find(current);
+        if (found == edges.end())
+        {
+            continue;
+        }
+        for (const std::string& next: found->second)
+        {
+            if (next == target)
+            {
+                return true;
+            }
+            if (visited.insert(next).second)
+            {
+                pending.push_back(next);
+            }
+        }
+    }
+    return false;
+}
+
+// True when a path from `origin` to `target` exists that traverses at least one `extends`
+// edge.  Only such a path is fatal: a class binding referenced from an `extends` clause is
+// evaluated eagerly, so a cycle through it leaves that binding in its temporal dead zone.
+// A cycle made only of return-type imports is harmless — those references sit inside method
+// bodies and are resolved on the first call.
+[[nodiscard]] static bool TsEdgesReachThroughExtends(const TsModuleEdges& edges,
+                                                     const TsModuleEdges& extends_edges,
+                                                     const std::string& origin,
+                                                     const std::string& target)
+{
+    // Breadth-first over (class, crossed-an-extends-clause) states.
+    std::vector<std::pair<std::string, bool>> pending { { origin, false } };
+    std::set<std::pair<std::string, bool>> visited { { origin, false } };
+    while (!pending.empty())
+    {
+        const auto [current, crossed] = pending.back();
+        pending.pop_back();
+        if (crossed && current == target)
+        {
+            return true;
+        }
+
+        const TsModuleEdges::const_iterator found = edges.find(current);
+        if (found == edges.end())
+        {
+            continue;
+        }
+        const TsModuleEdges::const_iterator extends_found = extends_edges.find(current);
+        for (const std::string& next: found->second)
+        {
+            const bool is_extends =
+                extends_found != extends_edges.end() && extends_found->second.contains(next);
+            if (visited.emplace(next, crossed || is_extends).second)
+            {
+                pending.emplace_back(next, crossed || is_extends);
+            }
+        }
+    }
+    return false;
+}
+
+// Record the value-import edge that `importer`'s file creates for a wrapper-returning
+// method, or deny that return when the edge would close a module cycle that crosses an
+// `extends` clause.  A denied return emits a raw Pointer instead, which needs no import.
+static void ReserveWrappedReturnEdge(TsModuleEdges& edges, const TsModuleEdges& extends_edges,
+                                     const std::string& importer, const std::string& owner,
+                                     const FunctionDecl& func,
+                                     const std::unordered_set<std::string>& wrapped_classes)
+{
+    if (!IsWrappedClassReturn(func, wrapped_classes))
+    {
+        return;
+    }
+
+    const std::string& returned = func.return_arg;
+    if (returned == importer)
+    {
+        return;  // the file defines the class it constructs, so there is no import edge
+    }
+    if (IsDeniedWrappedReturn(owner, returned))
+    {
+        return;
+    }
+    if (TsEdgesReachThroughExtends(edges, extends_edges, returned, importer))
+    {
+        s_denied_wrapped_returns[owner].insert(returned);
+        std::println(stderr, "  TypeScript: {}: {} return stays raw Pointer (import cycle)", owner,
+                     returned);
+        return;
+    }
+    edges[importer].insert(returned);
+}
+
+// Decide which wrapped-class returns must stay a raw Pointer.  A generated class file that
+// imports another wrapper class by value joins the ECMAScript module graph.  When such an
+// import closes a cycle that also crosses an `extends` clause, the base class binding is
+// still in its temporal dead zone as the derived module evaluates, and the graph throws a
+// ReferenceError before any wrapper can be used.  Denying the return keeps the typed
+// wrapper everywhere else.
+static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
+{
+    s_denied_wrapped_returns.clear();
+
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi);
+
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    class_index.reserve(ffi.classes.size());
+    for (const auto& cls: ffi.classes)
+    {
+        class_index.emplace(cls.name, &cls);
+    }
+
+    // Seed the graph with the edges that cannot be downgraded: the `extends` import and
+    // the class a factory constructs.
+    TsModuleEdges edges;
+    TsModuleEdges extends_edges;
+    for (const auto& cls: ffi.classes)
+    {
+        if (!wrapped_classes.contains(cls.name))
+        {
+            continue;
+        }
+        const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
+        if (!parent_name.empty() && parent_name != cls.name)
+        {
+            edges[cls.name].insert(parent_name);
+            extends_edges[cls.name].insert(parent_name);
+        }
+
+        std::set<std::string> emitted_factory_names;
+        for (const auto& func: cls.methods)
+        {
+            if (!IsValidFunction(func) || !IsFactoryMethod(func))
+            {
+                continue;
+            }
+            if (!emitted_factory_names.insert(TsFactoryName(cls.name, func)).second)
+            {
+                continue;
+            }
+            const std::string created_class =
+                EffectiveFactoryClass(func, cls.name, wrapped_classes);
+            if (created_class != cls.name && created_class != parent_name)
+            {
+                edges[cls.name].insert(created_class);
+            }
+        }
+    }
+
+    // Then walk every wrapper-returning method in emission order.  A mixin method is
+    // re-emitted in each consumer's file, so its edge is consumer → returned class while
+    // the annotation stays keyed by the mixin that declares it.
+    for (const auto& cls: ffi.classes)
+    {
+        if (!wrapped_classes.contains(cls.name))
+        {
+            continue;
+        }
+
+        std::set<std::string> emitted_instance_names;
+        for (const auto& func: cls.methods)
+        {
+            if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                IsStaticClassFunction(func, &cls))
+            {
+                continue;
+            }
+            if (!emitted_instance_names.insert(TsMethodName(cls.name, func)).second)
+            {
+                continue;
+            }
+            ReserveWrappedReturnEdge(edges, extends_edges, cls.name, cls.name, func,
+                                     wrapped_classes);
+        }
+
+        const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+            ffi.mixin_map.find(cls.name);
+        if (mixin_iter == ffi.mixin_map.end())
+        {
+            continue;
+        }
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator mixin_found =
+                class_index.find(mixin_name);
+            if (mixin_found == class_index.end())
+            {
+                continue;
+            }
+            for (const auto& func: mixin_found->second->methods)
+            {
+                if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                    IsStaticClassFunction(func, mixin_found->second))
+                {
+                    continue;
+                }
+                ReserveWrappedReturnEdge(edges, extends_edges, cls.name, mixin_name, func,
+                                         wrapped_classes);
+            }
+        }
+    }
+
+    // A derived class can re-declare an inherited member, and its annotation has to match
+    // the ancestor's override contract.  Deny the same returns down the inheritance chain,
+    // nearest parent first, which also keeps an inherited member's wrapper class out of
+    // every descendant file.  Denying more returns is always safe: it only widens the raw
+    // Pointer surface.
+    const auto wrapped_depth = [&ffi, &wrapped_classes](const std::string& class_name)
+    {
+        size_t depth = 0;
+        std::set<std::string> visited;
+        std::string current = class_name;
+        while (visited.insert(current).second)
+        {
+            const std::string parent_name = FindTsWrappedParent(current, ffi, wrapped_classes);
+            if (parent_name.empty())
+            {
+                break;
+            }
+            ++depth;
+            current = parent_name;
+        }
+        return depth;
+    };
+
+    std::vector<std::pair<size_t, std::string>> by_depth;
+    by_depth.reserve(wrapped_classes.size());
+    for (const auto& cls: ffi.classes)
+    {
+        if (wrapped_classes.contains(cls.name))
+        {
+            by_depth.emplace_back(wrapped_depth(cls.name), cls.name);
+        }
+    }
+    std::ranges::sort(by_depth);
+
+    for (const auto& entry: by_depth)
+    {
+        const std::string parent_name = FindTsWrappedParent(entry.second, ffi, wrapped_classes);
+        if (parent_name.empty())
+        {
+            continue;
+        }
+        const std::unordered_map<std::string, std::unordered_set<std::string>>::const_iterator
+            inherited = s_denied_wrapped_returns.find(parent_name);
+        if (inherited == s_denied_wrapped_returns.end())
+        {
+            continue;
+        }
+        // Copy: inserting into s_denied_wrapped_returns can rehash and invalidate `inherited`.
+        const std::unordered_set<std::string> inherited_returns = inherited->second;
+        for (const std::string& returned: inherited_returns)
+        {
+            s_denied_wrapped_returns[entry.second].insert(returned);
+        }
+    }
+
+    // Guard: the greedy pass never adds an edge that closes a fatal cycle, but the seeded
+    // `extends` and factory edges are not negotiable.  Report a cycle they still form so a
+    // header change cannot silently reintroduce the TDZ crash.
+    for (const auto& entry: extends_edges)
+    {
+        for (const std::string& parent_name: entry.second)
+        {
+            if (TsEdgesReach(edges, parent_name, entry.first))
+            {
+                std::println(stderr,
+                             "  Error: TypeScript module cycle through {} extends {} — the "
+                             "generated corpus will not load",
+                             entry.first, parent_name);
+            }
+        }
+    }
 }
 
 // True if GenerateFreeFunctions emits a file at all: either true free functions exist, or a
@@ -1732,6 +2026,9 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
 void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 {
     s_rename_records.clear();
+    // Must run before any class file is emitted: the return-type and return-body emitters
+    // both consult the deny set, and they have to agree.
+    ComputeDeniedWrappedReturns(ffi);
 
     std::error_code dir_error;
     fs::create_directories(out_dir, dir_error);
@@ -1783,6 +2080,129 @@ VerifyResult TypeScriptEmitter::Verify(const ParsedFFI& /* ffi */, const fs::pat
     result.success = false;
     result.messages.emplace_back("TypeScript verify: use 'kwxgen verify' command instead");
     return result;
+}
+
+// -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// Count the members EmitClassFile would emit for this class and record the ones it would
+// collapse into an already-emitted member.  The key mirrors the emission decision: a
+// destructor becomes Delete(), a factory becomes a module-level factory function, a static
+// member becomes a module-level function, and every other method is an instance member.
+static void
+    CountTsClassMethods(const ClassInfo& cls, const ParsedFFI& ffi,
+                        const std::unordered_map<std::string, const ClassInfo*>& class_index,
+                        CoverageInfo& report)
+{
+    std::set<std::string> emitted_names;
+    size_t wrapped_count = 0;
+    size_t collapsed_count = 0;
+
+    for (const auto& func: cls.methods)
+    {
+        if (!IsValidFunction(func))
+        {
+            continue;
+        }
+
+        std::string member_key;
+        if (IsTrueDestructor(func))
+        {
+            member_key = "Delete";
+        }
+        else if (IsFactoryMethod(func))
+        {
+            member_key = TsFactoryName(cls.name, func);
+        }
+        else if (IsStaticClassFunction(func, &cls))
+        {
+            member_key = TsEscapeName(func.method_name);
+        }
+        else
+        {
+            member_key = TsMethodName(cls.name, func);
+        }
+
+        if (emitted_names.insert(member_key).second)
+        {
+            ++wrapped_count;
+        }
+        else
+        {
+            ++collapsed_count;
+        }
+    }
+
+    // A consumer re-emits its mixins' members, so they belong to the consumer's method count.
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi.mixin_map.find(cls.name);
+    if (mixin_iter != ffi.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator mixin_found =
+                class_index.find(mixin_name);
+            if (mixin_found == class_index.end())
+            {
+                continue;
+            }
+            for (const auto& func: mixin_found->second->methods)
+            {
+                if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                    IsStaticClassFunction(func, mixin_found->second))
+                {
+                    continue;
+                }
+                if (emitted_names.insert(TsMethodName(mixin_name, func)).second)
+                {
+                    ++wrapped_count;
+                }
+                else
+                {
+                    ++collapsed_count;
+                }
+            }
+        }
+    }
+
+    report.method_counts_by_class[cls.name] = wrapped_count;
+    if (collapsed_count != 0)
+    {
+        report.deduplicated_method_counts_by_class[cls.name] = collapsed_count;
+        report.deduplicated_method_count += collapsed_count;
+    }
+}
+
+CoverageInfo TypeScriptEmitter::Coverage(const ParsedFFI& ffi) const
+{
+    CoverageInfo report;
+    report.free_function_count = ffi.free_functions.size();
+    report.event_count = ffi.events.size();
+    report.key_count = ffi.keys.size();
+    report.constant_count = ffi.constants.size();
+
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    class_index.reserve(ffi.classes.size());
+    for (const auto& cls: ffi.classes)
+    {
+        class_index.emplace(cls.name, &cls);
+    }
+
+    for (const auto& cls: ffi.classes)
+    {
+        if (!ShouldWrapClass(cls, ffi))
+        {
+            report.skipped_classes.push_back(cls.name);
+            continue;
+        }
+        report.wrapped_classes.push_back(cls.name);
+        CountTsClassMethods(cls, ffi, class_index, report);
+    }
+
+    std::ranges::sort(report.wrapped_classes);
+    std::ranges::sort(report.skipped_classes);
+    return report;
 }
 
 // -------------------------------------------------------------------------
@@ -2261,14 +2681,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
     // Owned returns from free/static functions need the same wrapper classes the
     // per-class files emit, so build the emitted-class set the same way.
-    std::unordered_set<std::string> wrapped_classes;
-    for (const auto& other: ffi.classes)
-    {
-        if (ShouldEmitClass(other, ffi))
-        {
-            wrapped_classes.insert(other.name);
-        }
-    }
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi);
 
     std::ostringstream body;
     std::set<std::string> return_imports;
@@ -2522,7 +2935,8 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string emitted_name = EmitInstanceMethod(
             body, ancestors, cls.name, func, emitted_instance_names, wrapped_classes);
         emitted_instance_names.insert(emitted_name);
-        if (IsWrappedClassReturn(func, wrapped_classes))
+        if (IsWrappedClassReturn(func, wrapped_classes) &&
+            !IsDeniedWrappedReturn(cls.name, func.return_arg))
         {
             return_imports.insert(func.return_arg);
         }
@@ -2568,7 +2982,8 @@ void TypeScriptEmitter::EmitClassFile(
                 const std::string emitted_name = EmitInstanceMethod(
                     body, ancestors, mixin_name, func, emitted_instance_names, wrapped_classes);
                 emitted_instance_names.insert(emitted_name);
-                if (IsWrappedClassReturn(func, wrapped_classes))
+                if (IsWrappedClassReturn(func, wrapped_classes) &&
+                    !IsDeniedWrappedReturn(mixin_name, func.return_arg))
                 {
                     return_imports.insert(func.return_arg);
                 }
@@ -2705,18 +3120,11 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
 
     // Build the set of classes that actually have generated wrapper methods.  It is
     // identical for every class file, so compute it once.
-    std::unordered_set<std::string> wrapped_classes;
-    for (const auto& other: ffi.classes)
-    {
-        if (ShouldEmitClass(other, ffi))
-        {
-            wrapped_classes.insert(other.name);
-        }
-    }
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi);
 
     for (const auto& cls: ffi.classes)
     {
-        if (!ShouldEmitClass(cls, ffi))
+        if (!ShouldWrapClass(cls, ffi))
         {
             continue;
         }
@@ -2770,7 +3178,7 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
     std::vector<std::string> class_names;
     for (const auto& cls: ffi.classes)
     {
-        if (ShouldEmitClass(cls, ffi))
+        if (ShouldWrapClass(cls, ffi))
         {
             class_names.push_back(cls.name);
         }

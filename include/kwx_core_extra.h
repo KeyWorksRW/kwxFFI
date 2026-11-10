@@ -195,7 +195,8 @@ TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(
 
 TClassDef(wxFileName) TClass(wxFileName) wxFileName_Create();
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void wxFileName_SplitPath(TClass(wxString) fullpath, void* volume, void* path, void* name, void* ext, int* hasExt, int format);
+void wxFileName_SplitPath(TClass(wxString) fullpath, void* volume, void* path, void* name,
+                          void* ext, int* hasExt, int format);
 TClass(wxFileName) wxFileName_CreateFromPath(TClass(wxString) full_path, int format);
 TClass(wxFileName)
     wxFileName_CreateWithName(TClass(wxString) path, TClass(wxString) name, int format);
@@ -219,7 +220,8 @@ TClass(wxString) wxFileName_GetName(TSelf(wxFileName) pObject);
 TClass(wxString) wxFileName_GetExt(TSelf(wxFileName) pObject);
 TClass(wxString) wxFileName_GetVolume(TSelf(wxFileName) pObject);
 size_t wxFileName_GetDirCount(TSelf(wxFileName) pObject);
-TArrayLen wxFileName_GetDirs(TSelf(wxFileName) pObject, TArrayStringOutVoid dirs);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen wxFileName_GetDirs(TSelf(wxFileName) pObject, TArrayStringOutVoid dirs, int capacity);
 TBool wxFileName_HasName(TSelf(wxFileName) pObject);
 TBool wxFileName_HasExt(TSelf(wxFileName) pObject);
 TBool wxFileName_HasVolume(TSelf(wxFileName) pObject);
@@ -336,9 +338,10 @@ TBool wxDir_HasFiles(TSelf(wxDir) pObject, TClass(wxString) spec);
 TBool wxDir_HasSubDirs(TSelf(wxDir) pObject, TClass(wxString) spec);
 size_t wxDir_Traverse(TSelf(wxDir) pObject, TClass(wxDirTraverser) sink, TClass(wxString) spec,
                       int flags);
-// GetAllFiles appends to the caller-supplied array and returns the total count.
+// Writes at most capacity entries to the caller-supplied array and returns the total
+// count.  The count may exceed capacity when the array was not large enough.
 size_t wxDir_GetAllFiles(TClass(wxString) dir_name, TArrayStringOutVoid files,
-                         TClass(wxString) spec, int flags);
+                         TClass(wxString) spec, int flags, int capacity);
 TClass(wxString) wxDir_FindFirst(TClass(wxString) dir_name, TClass(wxString) spec, int flags);
 // Returns the total size in bytes, or -1.0 if it cannot be determined.
 double wxDir_GetTotalSize(TClass(wxString) dir_name);
@@ -436,14 +439,19 @@ TBool wxPersistentObject_Restore(TSelf(wxPersistentObject) pObject);
 // reachable from the FFI; the class is declared to keep the model complete.
 TClassDefExtend(wxPersistentWindow, wxPersistentObject)
 
-// ---------------------------------------------------------------------------
-// wxEventFilter / wxEventBlocker / wxEvtHandler filters
-// ---------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------
+    // wxEventFilter / wxEventBlocker / wxEvtHandler filters
+    // ---------------------------------------------------------------------------
 
-// wxEventFilter_Create returns a kwxEventFilter (see kwx_helper_eventfilter.h)
-// that forwards FilterEvent to pFunction.
-TClassDef(wxEventFilter) TClass(wxEventFilter) wxEventFilter_Create(void* pObject, void* pFunction);
+    // wxEventFilter_Create returns a kwxEventFilter (see kwx_helper_eventfilter.h)
+    // that forwards FilterEvent to pFunction.  pFunction may be cast from a
+    // void-returning thunk: the callback reports its verdict with
+    // wxEventFilter_SetResult, which applies to the filter whose FilterEvent is
+    // running.
+    TClassDef(wxEventFilter) TClass(wxEventFilter)
+        wxEventFilter_Create(void* pObject, void* pFunction);
 void wxEventFilter_Delete(TSelf(wxEventFilter) pObject);
+void wxEventFilter_SetResult(int result);
 
 TClassDefExtend(wxEventBlocker, wxEvtHandler) TClass(wxEventBlocker)
     wxEventBlocker_Create(TClass(wxWindow) window, int event_type);

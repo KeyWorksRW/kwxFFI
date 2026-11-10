@@ -97,7 +97,9 @@ TClassDefExtend(wxGenericDirDialog, wxDialog) TClass(wxGenericDirDialog)
                               TClass(wxString) directory, int style);
 TClass(wxString) wxGenericDirDialog_GetMessage(TSelf(wxGenericDirDialog) pObject);
 TClass(wxString) wxGenericDirDialog_GetPath(TSelf(wxGenericDirDialog) pObject);
-TArrayLen wxGenericDirDialog_GetPaths(TSelf(wxGenericDirDialog) pObject, TArrayStringOutVoid paths);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen wxGenericDirDialog_GetPaths(TSelf(wxGenericDirDialog) pObject, TArrayStringOutVoid paths,
+                                      int capacity);
 void wxGenericDirDialog_SetMessage(TSelf(wxGenericDirDialog) pObject, TClass(wxString) msg);
 void wxGenericDirDialog_SetPath(TSelf(wxGenericDirDialog) pObject, TClass(wxString) pth);
 void wxGenericDirDialog_Delete(TSelf(wxGenericDirDialog) pObject);
@@ -108,10 +110,11 @@ TClassDefExtend(wxGenericFileDialog, wxDialog) TClass(wxGenericFileDialog)
                                TClass(wxString) wildcard, int style);
 TClass(wxString) wxGenericFileDialog_GetPath(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetPath(TSelf(wxGenericFileDialog) pObject, TClass(wxString) path);
+// Fills at most capacity entries; the return value is the total available count.
 TArrayLen wxGenericFileDialog_GetPaths(TSelf(wxGenericFileDialog) pObject,
-                                       TArrayStringOutVoid paths);
+                                       TArrayStringOutVoid paths, int capacity);
 TArrayLen wxGenericFileDialog_GetFilenames(TSelf(wxGenericFileDialog) pObject,
-                                           TArrayStringOutVoid paths);
+                                           TArrayStringOutVoid paths, int capacity);
 TClass(wxString) wxGenericFileDialog_GetDirectory(TSelf(wxGenericFileDialog) pObject);
 TClass(wxString) wxGenericFileDialog_GetFilename(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetFilename(TSelf(wxGenericFileDialog) pObject, TClass(wxString) name);

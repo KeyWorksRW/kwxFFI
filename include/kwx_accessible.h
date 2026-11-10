@@ -60,6 +60,7 @@ TClassDefExtend(wxWindow, wxWindowBase)
     void wxWindow_SetAccessible(TSelf(wxWindow) pObject, TClass(wxAccessible) accessible);
 TClass(wxAccessible) wxWindow_GetAccessible(TSelf(wxWindow) pObject);
 TClass(wxAccessible) wxWindow_GetOrCreateAccessible(TSelf(wxWindow) pObject);
+TClass(wxAccessible) wxWindow_CreateAccessible(TSelf(wxWindow) pObject);
 void wxWindow_SetAccessibleName(TSelf(wxWindow) pObject, TClass(wxString) name);
 
 #endif  // !defined(__cplusplus) || wxUSE_ACCESSIBILITY

@@ -14,7 +14,7 @@
 //     a class that a retained class names in a signature — wxDateTime is re-added this way by
 //     wxDatePickerCtrl, wxCalendarCtrl, wxFileName, wxFSFile, wxDateEvent and wxDateProperty,
 //     which is why `gui` output contains a wxDateTime binding even though the class is listed
-//     as excluded.
+//     as excluded. wxDateSpan is re-added the same way by wxDateTime::DiffAsDateSpan().
 //   * `gui` — wxLocale, wxUILocale, wxTranslations, wxNumberFormatter, wxConfigBase,
 //     wxConfig and wxFileConfig are deliberately kept in the `gui` surface; do not add
 //     them to the exclusion list.

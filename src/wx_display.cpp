@@ -85,6 +85,29 @@ extern "C"
         *height = ppi.y;
     }
 
+    // wxArrayVideoModes
+
+    EXPORT wxArrayVideoModes* wxArrayVideoModes_Create()
+    {
+        return new wxArrayVideoModes();
+    }
+
+    EXPORT void wxArrayVideoModes_Delete(wxArrayVideoModes* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxArrayVideoModes_GetCount(wxArrayVideoModes* self)
+    {
+        return static_cast<int>(self->GetCount());
+    }
+
+    EXPORT wxVideoMode* wxArrayVideoModes_Item(wxArrayVideoModes* self, int index)
+    {
+        // Hand back a copy: the array is a temporary the caller releases separately.
+        return new wxVideoMode((*self)[static_cast<size_t>(index)]);
+    }
+
     // wxVideoMode
 
     EXPORT void* wxVideoMode_Create(int width, int height, int depth, int freq)
@@ -112,6 +135,11 @@ extern "C"
         return self->GetDepth();
     }
 
+    EXPORT int wxVideoMode_GetRefresh(wxVideoMode* self)
+    {
+        return self->GetRefresh();
+    }
+
     EXPORT int wxVideoMode_IsOk(wxVideoMode* self)
     {
         return self->IsOk();
@@ -122,11 +150,16 @@ extern "C"
         return self->Matches(*other);
     }
 
-    EXPORT void* wxDisplay_GetCurrentMode(wxDisplay* self)
+    EXPORT wxVideoMode* wxDisplay_GetCurrentMode(wxDisplay* self)
     {
-        wxVideoMode* result = new wxVideoMode();
-        *result = self->GetCurrentMode();
-        return (void*) result;
+        return new wxVideoMode(self->GetCurrentMode());
+    }
+
+    EXPORT wxArrayVideoModes* wxDisplay_GetModes(wxDisplay* self)
+    {
+        // GetModes() re-enumerates the video modes on every call, so the whole array is
+        // materialized here and handed to the caller instead of being queried per index.
+        return new wxArrayVideoModes(self->GetModes());
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----

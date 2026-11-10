@@ -82,10 +82,16 @@ extern "C"
     }
 
     EXPORT int wxCalendarCtrlBase_HitTest(wxCalendarCtrlBase* self, int x, int y, wxDateTime* date,
-                                          void* weekday)
+                                          int* weekday)
     {
-        return static_cast<int>(
-            self->HitTest(wxPoint(x, y), date, static_cast<wxDateTime::WeekDay*>(weekday)));
+        wxDateTime::WeekDay day = wxDateTime::Inv_WeekDay;
+        const int hit =
+            static_cast<int>(self->HitTest(wxPoint(x, y), date, weekday ? &day : nullptr));
+        if (weekday)
+        {
+            *weekday = static_cast<int>(day);
+        }
+        return hit;
     }
 
     EXPORT void wxCalendarCtrlBase_Mark(wxCalendarCtrlBase* self, size_t day, bool mark)
@@ -260,9 +266,16 @@ extern "C"
     }
 
     EXPORT int wxCalendarCtrl_HitTest(wxCalendarCtrl* self, int x, int y, wxDateTime* date,
-                                      void* weekday)
+                                      int* weekday)
     {
-        return (int) self->HitTest(wxPoint(x, y), date, (wxDateTime::WeekDay*) weekday);
+        wxDateTime::WeekDay day = wxDateTime::Inv_WeekDay;
+        const int hit =
+            static_cast<int>(self->HitTest(wxPoint(x, y), date, weekday ? &day : nullptr));
+        if (weekday)
+        {
+            *weekday = static_cast<int>(day);
+        }
+        return hit;
     }
 
     EXPORT wxGenericCalendarCtrl* wxGenericCalendarCtrl_Create(wxWindow* parent, int id,
@@ -306,13 +319,24 @@ extern "C"
                                                          wxColour* borderColour, wxFont* font,
                                                          int border)
     {
-        return new wxCalendarDateAttr(*textColour, *backColour, *borderColour, *font,
-                                      (wxCalendarDateBorder) border);
+        // Every argument is optional in wxCalendarDateAttr's constructor, and a foreign
+        // binding can pass a null pointer for any of them, so substitute the wx default
+        // instead of dereferencing null.
+        return new wxCalendarDateAttr(
+            textColour ? *textColour : wxNullColour, backColour ? *backColour : wxNullColour,
+            borderColour ? *borderColour : wxNullColour, font ? *font : wxNullFont,
+            static_cast<wxCalendarDateBorder>(border));
     }
 
     EXPORT wxCalendarDateAttr* wxCalendarDateAttr_CreateDefault()
     {
         return new wxCalendarDateAttr();
+    }
+
+    EXPORT wxCalendarDateAttr* wxCalendarDateAttr_CreateBorder(int border, wxColour* colBorder)
+    {
+        return new wxCalendarDateAttr(static_cast<wxCalendarDateBorder>(border),
+                                      colBorder ? *colBorder : wxNullColour);
     }
 
     EXPORT void wxCalendarDateAttr_Delete(wxCalendarDateAttr* self)

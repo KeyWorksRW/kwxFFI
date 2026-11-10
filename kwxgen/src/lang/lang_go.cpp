@@ -90,6 +90,10 @@ static std::string GoFileName(const std::string& class_name)
 
 // Classes already hand-defined in the Go module (wx/types.go).  Generating them
 // would redeclare the type, so they are skipped.
+//
+// These are consumer-provided: the Go module supplies them, so the coverage report
+// counts them as covered rather than missing.  The C accessors the module calls
+// (wxSize_GetWidth and friends) still come from the generated glue.
 static const std::unordered_set<std::string> kHandMaintainedClasses = {
     "wxPoint",
     "wxSize",
@@ -97,7 +101,8 @@ static const std::unordered_set<std::string> kHandMaintainedClasses = {
 };
 
 // Package-level functions already hand-defined in the Go module (wx/app.go).
-// A generated free function with one of these names would be a redeclaration.
+// A generated free function with one of these names would be a redeclaration, so they
+// are skipped.  They are consumer-provided and count as covered in the coverage report.
 static const std::unordered_set<std::string> kHandMaintainedFreeFunctions = {
     "Bell",
     "InitAllImageHandlers",
@@ -1604,14 +1609,20 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
 }
 
 // Go type names emitted for the classes that produce their own file.
+//
+// The class set comes from the shared policy in lang_common.h so Go wraps exactly the
+// classes every other backend wraps, including the zero-method direct wxEvent subclasses
+// (wxPaintEvent) that need a wrapper to expose the inherited wxEvent accessors.
 [[nodiscard]] static std::unordered_set<std::string>
     CollectClassTypeNames(const ParsedFFI& parsed_ffi)
 {
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(parsed_ffi);
     std::unordered_set<std::string> names;
-    names.reserve(parsed_ffi.classes.size());
+    names.reserve(wrapped_classes.size());
     for (const auto& class_decl: parsed_ffi.classes)
     {
-        if (!class_decl.methods.empty() && !kHandMaintainedClasses.contains(class_decl.name))
+        if (wrapped_classes.contains(class_decl.name) &&
+            !kHandMaintainedClasses.contains(class_decl.name))
         {
             names.insert(StripPrefix(class_decl.name));
         }
@@ -1678,6 +1689,184 @@ struct GoFreeFunction
         }
     }
     return result;
+}
+
+// -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// True when EmitClassFile emits a Go member for this declaration: a free function is
+// routed to functions_gen.go, a constructor becomes a factory, a class static becomes a
+// package-level function, and everything else becomes a method on the wrapper type.
+[[nodiscard]] static bool IsGoEmittedMember(const FunctionDecl& func)
+{
+    return IsValidFunction(func);
+}
+
+// The Go identifier EmitClassFile gives this declaration inside the class block.  Mirrors
+// the classifier in EmitClassFile: a free function keeps its package-level name, a class
+// static is prefixed with the class name, a true constructor becomes NewXxx, a destructor
+// becomes Delete, and everything else is a plain method name.
+[[nodiscard]] static std::string GoMemberName(const std::string& class_name,
+                                              const FunctionDecl& func)
+{
+    const bool is_free_function = func.class_name.empty() && !func.has_self;
+    const bool is_true_constructor =
+        func.is_constructor && !func.has_self && func.return_type != "TBool";
+    const bool is_class_static = !is_free_function && !is_true_constructor && !func.is_destructor &&
+                                 !func.has_self && !IsPseudoSelf(func);
+
+    if (is_free_function)
+    {
+        return GoFreeFunctionName(func);
+    }
+    if (is_class_static)
+    {
+        return StripPrefix(class_name) + "_" + SafeGoIdentifier(func.method_name);
+    }
+    if (is_true_constructor)
+    {
+        return GoConstructorName(StripPrefix(class_name), func.method_name);
+    }
+    if (func.is_destructor)
+    {
+        return "Delete";
+    }
+    return SafeGoIdentifier(func.method_name);
+}
+
+// Count the members a class block produces, collapsing a declaration whose member name is
+// already taken.  A mixin's methods are counted for the consumer that uses the mixin: Go
+// exposes them through the mixin's own wrapper type, and the parity gate compares the
+// total against the consumer's model count plus its mixin methods.
+static void CountGoClassMethods(
+    const std::string& class_name, const ClassInfo& class_decl, const ParsedFFI& parsed_ffi,
+    const std::unordered_map<std::string, const ClassInfo*>& class_index, CoverageInfo& report)
+{
+    std::unordered_set<std::string> emitted_member_names;
+    size_t wrapped_count = 0;
+    size_t collapsed_count = 0;
+
+    const auto count_member =
+        [&emitted_member_names, &wrapped_count, &collapsed_count](const std::string& member_name)
+    {
+        if (emitted_member_names.insert(member_name).second)
+        {
+            ++wrapped_count;
+        }
+        else
+        {
+            ++collapsed_count;
+        }
+    };
+
+    for (const auto& func: class_decl.methods)
+    {
+        if (!IsGoEmittedMember(func))
+        {
+            continue;
+        }
+        const std::string member_name = GoMemberName(class_name, func);
+        // wx/event.go hand-implements the idiomatic event API on EvtHandler.  EmitClassFile
+        // drops those raw wrappers, so the consumer supplies the member instead.
+        if (class_name == "wxEvtHandler" && (member_name == "Bind" || member_name == "Unbind"))
+        {
+            ++collapsed_count;
+            continue;
+        }
+        count_member(member_name);
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        parsed_ffi.mixin_map.find(class_name);
+    if (mixin_iter != parsed_ffi.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            const std::unordered_map<std::string, const ClassInfo*>::const_iterator mixin_found =
+                class_index.find(mixin_name);
+            if (mixin_found == class_index.end())
+            {
+                continue;
+            }
+            for (const auto& func: mixin_found->second->methods)
+            {
+                if (!IsGoEmittedMember(func))
+                {
+                    continue;
+                }
+                count_member(GoMemberName(mixin_name, func));
+            }
+        }
+    }
+
+    report.method_counts_by_class[class_name] = wrapped_count;
+    if (collapsed_count != 0)
+    {
+        report.deduplicated_method_counts_by_class[class_name] = collapsed_count;
+        report.deduplicated_method_count += collapsed_count;
+    }
+}
+
+CoverageInfo GoEmitter::Coverage(const ParsedFFI& parsed_ffi) const
+{
+    CoverageInfo report;
+    report.free_function_count = parsed_ffi.free_functions.size();
+    report.event_count = parsed_ffi.events.size();
+    report.key_count = parsed_ffi.keys.size();
+    report.constant_count = parsed_ffi.constants.size();
+
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    class_index.reserve(parsed_ffi.classes.size());
+    for (const auto& class_decl: parsed_ffi.classes)
+    {
+        class_index.emplace(class_decl.name, &class_decl);
+    }
+
+    // wxPoint/wxSize/wxRect are hand-defined value types in the Go module (wx/types.go),
+    // which also drives the native accessors through the generated glue (sizeFromPtr and
+    // friends).  They are consumer-provided, so they are reported as covered rather than
+    // missing, and their model methods are counted as supplied by the consumer.
+    for (const std::string& maintained: kHandMaintainedClasses)
+    {
+        report.consumer_provided_classes.push_back(maintained);
+        const std::unordered_map<std::string, const ClassInfo*>::const_iterator maintained_iter =
+            class_index.find(maintained);
+        if (maintained_iter == class_index.end())
+        {
+            continue;
+        }
+        size_t maintained_count = 0;
+        for (const auto& func: maintained_iter->second->methods)
+        {
+            if (IsValidFunction(func))
+            {
+                ++maintained_count;
+            }
+        }
+        report.method_counts_by_class[maintained] = maintained_count;
+    }
+
+    for (const auto& class_decl: parsed_ffi.classes)
+    {
+        if (kHandMaintainedClasses.contains(class_decl.name))
+        {
+            continue;  // already reported as consumer-provided
+        }
+        if (!ShouldWrapClass(class_decl, parsed_ffi))
+        {
+            report.skipped_classes.push_back(class_decl.name);
+            continue;
+        }
+
+        report.wrapped_classes.push_back(class_decl.name);
+        CountGoClassMethods(class_decl.name, class_decl, parsed_ffi, class_index, report);
+    }
+
+    std::ranges::sort(report.wrapped_classes);
+    std::ranges::sort(report.consumer_provided_classes);
+    std::ranges::sort(report.skipped_classes);
+    return report;
 }
 
 // -------------------------------------------------------------------------
@@ -2083,33 +2272,30 @@ size_t GoEmitter::GenerateClassFiles(const ParsedFFI& parsed_ffi, const fs::path
     // Classes already hand-defined in the Go module (wx/types.go) are skipped by
     // kHandMaintainedClasses, which is shared with the free-function collision check.
 
-    // Only include classes that will actually be generated (have methods and
-    // aren't hand-maintained).  This prevents parent-embed resolution from
-    // referencing types that will never be emitted — e.g. wxObject has no
-    // wrapped methods, so "Object" would never be defined, yet child classes
-    // would try to embed it.  Those classes fall back to BaseObject instead.
+    // Only include classes that will actually be generated.  The set comes from the shared
+    // policy so a class is wrapped in Go exactly when it is wrapped everywhere.  This also
+    // keeps parent-embed resolution from referencing a type that is never emitted — e.g.
+    // wxObject has no wrapped methods, so "Object" is never defined, yet child classes would
+    // try to embed it.  Those classes fall back to BaseObject instead.
+    const std::unordered_set<std::string> policy_classes = CollectWrappedClasses(parsed_ffi);
     std::unordered_set<std::string> wrapped_classes;
-    wrapped_classes.reserve(parsed_ffi.classes.size());
-    for (const auto& class_decl: parsed_ffi.classes)
+    wrapped_classes.reserve(policy_classes.size());
+    for (const std::string& wrapped_name: policy_classes)
     {
-        if (!class_decl.methods.empty() && !kHandMaintainedClasses.contains(class_decl.name))
+        if (!kHandMaintainedClasses.contains(wrapped_name))
         {
-            wrapped_classes.insert(class_decl.name);
+            wrapped_classes.insert(wrapped_name);
         }
     }
 
     std::unordered_set<std::string> expected_class_files;
-    expected_class_files.reserve(parsed_ffi.classes.size());
+    expected_class_files.reserve(wrapped_classes.size());
 
     for (const auto& class_decl: parsed_ffi.classes)
     {
-        if (class_decl.methods.empty())
+        if (!wrapped_classes.contains(class_decl.name))
         {
-            continue;
-        }
-        if (kHandMaintainedClasses.contains(class_decl.name))
-        {
-            continue;  // defined in types.go — skip to avoid redeclaration
+            continue;  // not in the shared policy, or defined in types.go
         }
 
         const std::string file_name = GoFileName(class_decl.name);
@@ -2244,6 +2430,14 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         else
         {
             member_name = SafeGoIdentifier(func.method_name);
+        }
+
+        // wx/event.go hand-implements the idiomatic Go event API on EvtHandler.
+        // Emitting the raw C-shaped wrappers for these would redeclare the same
+        // method on the same receiver type and break the package.
+        if (class_info.name == "wxEvtHandler" && (member_name == "Bind" || member_name == "Unbind"))
+        {
+            continue;
         }
 
         if (!emitted_member_names.insert(member_name).second)

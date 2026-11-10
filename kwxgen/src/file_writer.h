@@ -16,8 +16,12 @@
 // the output file are opened in binary mode, so no newline translation ever happens and
 // generated files always use LF even when the generator runs on Windows.
 
+#include <cstddef>
 #include <filesystem>
+#include <set>
 #include <sstream>
+#include <string>
+#include <string_view>
 
 class ConditionalFileWriter : public std::ostringstream
 {
@@ -46,3 +50,11 @@ private:
     bool m_flushed = false;
     bool m_wrote = false;
 };
+
+// Delete generated files in `dir` whose name ends with `suffix` but is not listed in
+// `expected_files`. Only regular files directly inside `dir` are considered, so a
+// hand-written file with a different suffix is never removed and nothing outside `dir` is
+// touched. Returns the number of files deleted.
+std::size_t RemoveStaleGeneratedFiles(const std::filesystem::path& dir,
+                                      const std::set<std::string>& expected_files,
+                                      std::string_view suffix);

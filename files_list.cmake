@@ -54,6 +54,7 @@ set( FFI_SRC_FILES
     src/wx_clientdata.cpp
     src/wx_clipboard.cpp
     src/wx_coldata.cpp
+    src/wx_collapsibleheaderctrl.cpp
     src/wx_collapsiblepane.cpp
     src/wx_colour.cpp
     src/wx_colourdlg.cpp
@@ -104,6 +105,7 @@ set( FFI_SRC_FILES
 
     src/wx_genericdialogs.cpp
     src/wx_genericdirctrl.cpp
+    src/wx_gesture_extra.cpp
     src/wx_grid.cpp
     src/wx_gridbagsizer.cpp
     src/wx_headerctrl.cpp
@@ -258,6 +260,7 @@ set( FFI_HDR_FILES
     include/kwx_helper_cmdline.h
     include/kwx_helper_thread.h
     include/kwx_hook_exports.h
+    include/kwx_gesture_extra.h
     include/kwx_spec_residual.h
     include/kwx_thread_extra.h
     include/kwx_grid.h

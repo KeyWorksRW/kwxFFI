@@ -1551,6 +1551,16 @@ extern "C"
         self->SetOnTransferDataToWindow(pFunction);
     }
 
+    EXPORT void kwxPanel_SetOnDoGetBestClientSize(kwxPanel* self, void* pFunction)
+    {
+        self->SetOnDoGetBestClientSize(pFunction);
+    }
+
+    EXPORT void kwxPanel_SetOnScrollWindow(kwxPanel* self, void* pFunction)
+    {
+        self->SetOnScrollWindow(pFunction);
+    }
+
     // The <Base>_SetOn aliases the portability matrix also resolves ovh rows to.
     EXPORT void wxPanel_SetOnTransferDataFromWindow(wxPanel* self, void* pFunction)
     {
@@ -1560,6 +1570,16 @@ extern "C"
     EXPORT void wxPanel_SetOnTransferDataToWindow(wxPanel* self, void* pFunction)
     {
         static_cast<kwxPanel*>(self)->SetOnTransferDataToWindow(pFunction);
+    }
+
+    EXPORT void wxPanel_SetOnDoGetBestClientSize(wxPanel* self, void* pFunction)
+    {
+        static_cast<kwxPanel*>(self)->SetOnDoGetBestClientSize(pFunction);
+    }
+
+    EXPORT void wxPanel_SetOnScrollWindow(wxPanel* self, void* pFunction)
+    {
+        static_cast<kwxPanel*>(self)->SetOnScrollWindow(pFunction);
     }
 
     // kwxVarHScrollHelper -----------------------------------------------------

@@ -2996,6 +2996,10 @@ extern "C"
     {
         return (int) wxCANCEL;
     }
+    EXPORT int expwxCANCEL_DEFAULT()
+    {
+        return (int) wxCANCEL_DEFAULT;
+    }
     EXPORT int expwxNO_DEFAULT()
     {
         return (int) wxNO_DEFAULT;
@@ -5015,6 +5019,10 @@ extern "C"
     {
         return new wxString((const char*) wxART_FIND_AND_REPLACE);
     }
+    EXPORT wxString* expwxART_FULL_SCREEN()
+    {
+        return new wxString((const char*) wxART_FULL_SCREEN);
+    }
 
     EXPORT int expwxMINOR_VERSION()
     {
@@ -6568,6 +6576,123 @@ extern "C"
     {
         return static_cast<int>(wxCAL_SHOW_WEEK_NUMBERS);
     }
+
+    // wxDateTime's enumerators are nested in the class, so wxWidgets does not
+    // define them as global C names. Export them so a binding does not have to
+    // replicate the numeric values of the TZ, Country, Month, WeekDay,
+    // NameFlags and WeekFlags enumerations.
+    EXPORT int expwxDateTime_Local()
+    {
+        return static_cast<int>(wxDateTime::Local);
+    }
+    EXPORT int expwxDateTime_Country_Unknown()
+    {
+        return static_cast<int>(wxDateTime::Country_Unknown);
+    }
+    EXPORT int expwxDateTime_Country_Default()
+    {
+        return static_cast<int>(wxDateTime::Country_Default);
+    }
+    EXPORT int expwxDateTime_Name_Full()
+    {
+        return static_cast<int>(wxDateTime::Name_Full);
+    }
+    EXPORT int expwxDateTime_Name_Abbr()
+    {
+        return static_cast<int>(wxDateTime::Name_Abbr);
+    }
+    EXPORT int expwxDateTime_Name_Shortest()
+    {
+        return static_cast<int>(wxDateTime::Name_Shortest);
+    }
+    EXPORT int expwxDateTime_Default_First()
+    {
+        return static_cast<int>(wxDateTime::Default_First);
+    }
+    EXPORT int expwxDateTime_Monday_First()
+    {
+        return static_cast<int>(wxDateTime::Monday_First);
+    }
+    EXPORT int expwxDateTime_Sunday_First()
+    {
+        return static_cast<int>(wxDateTime::Sunday_First);
+    }
+    EXPORT int expwxDateTime_Jan()
+    {
+        return static_cast<int>(wxDateTime::Jan);
+    }
+    EXPORT int expwxDateTime_Feb()
+    {
+        return static_cast<int>(wxDateTime::Feb);
+    }
+    EXPORT int expwxDateTime_Mar()
+    {
+        return static_cast<int>(wxDateTime::Mar);
+    }
+    EXPORT int expwxDateTime_Apr()
+    {
+        return static_cast<int>(wxDateTime::Apr);
+    }
+    EXPORT int expwxDateTime_May()
+    {
+        return static_cast<int>(wxDateTime::May);
+    }
+    EXPORT int expwxDateTime_Jun()
+    {
+        return static_cast<int>(wxDateTime::Jun);
+    }
+    EXPORT int expwxDateTime_Jul()
+    {
+        return static_cast<int>(wxDateTime::Jul);
+    }
+    EXPORT int expwxDateTime_Aug()
+    {
+        return static_cast<int>(wxDateTime::Aug);
+    }
+    EXPORT int expwxDateTime_Sep()
+    {
+        return static_cast<int>(wxDateTime::Sep);
+    }
+    EXPORT int expwxDateTime_Oct()
+    {
+        return static_cast<int>(wxDateTime::Oct);
+    }
+    EXPORT int expwxDateTime_Nov()
+    {
+        return static_cast<int>(wxDateTime::Nov);
+    }
+    EXPORT int expwxDateTime_Dec()
+    {
+        return static_cast<int>(wxDateTime::Dec);
+    }
+    EXPORT int expwxDateTime_Sun()
+    {
+        return static_cast<int>(wxDateTime::Sun);
+    }
+    EXPORT int expwxDateTime_Mon()
+    {
+        return static_cast<int>(wxDateTime::Mon);
+    }
+    EXPORT int expwxDateTime_Tue()
+    {
+        return static_cast<int>(wxDateTime::Tue);
+    }
+    EXPORT int expwxDateTime_Wed()
+    {
+        return static_cast<int>(wxDateTime::Wed);
+    }
+    EXPORT int expwxDateTime_Thu()
+    {
+        return static_cast<int>(wxDateTime::Thu);
+    }
+    EXPORT int expwxDateTime_Fri()
+    {
+        return static_cast<int>(wxDateTime::Fri);
+    }
+    EXPORT int expwxDateTime_Sat()
+    {
+        return static_cast<int>(wxDateTime::Sat);
+    }
     EXPORT int expwxCLRP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxCLRP_USE_TEXTCTRL);
@@ -6731,6 +6856,10 @@ extern "C"
     EXPORT int expwxDATAVIEW_COL_SORTABLE()
     {
         return static_cast<int>(wxDATAVIEW_COL_SORTABLE);
+    }
+    EXPORT int expwxCHOICEDLG_STYLE()
+    {
+        return static_cast<int>(wxCHOICEDLG_STYLE);
     }
     EXPORT int expwxDEFAULT_DIALOG_STYLE()
     {
@@ -7507,6 +7636,16 @@ extern "C"
     EXPORT int expwxNotificationMessage_Timeout_Never()
     {
         return static_cast<int>(wxNotificationMessage::Timeout_Never);
+    }
+    // wxHAS_NATIVE_NOTIFICATION_MESSAGE is a compile-time macro, so this reports
+    // whether the wxWidgets build used by this library has native notifications.
+    EXPORT int expwxHAS_NATIVE_NOTIFICATION_MESSAGE()
+    {
+#if defined(wxHAS_NATIVE_NOTIFICATION_MESSAGE)
+        return 1;
+#else
+        return 0;
+#endif
     }
     EXPORT int expwxODCB_DCLICK_CYCLES()
     {

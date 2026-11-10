@@ -11,10 +11,11 @@
 
 extern "C"
 {
-    EXPORT wxDatePickerCtrl* wxDatePickerCtrl_Create(wxWindow* parent, int id, int x, int y,
-                                                     int width, int height, long style)
+    EXPORT wxDatePickerCtrl* wxDatePickerCtrl_Create(wxWindow* parent, int id, wxDateTime* date,
+                                                     int x, int y, int width, int height,
+                                                     long style)
     {
-        return new wxDatePickerCtrl(parent, id, wxDefaultDateTime, wxPoint(x, y),
+        return new wxDatePickerCtrl(parent, id, date ? *date : wxDefaultDateTime, wxPoint(x, y),
                                     wxSize(width, height), style);
     }
 

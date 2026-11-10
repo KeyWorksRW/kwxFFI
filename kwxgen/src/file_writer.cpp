@@ -9,7 +9,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
+#include <string_view>
 #include <tuple>
 
 ConditionalFileWriter::~ConditionalFileWriter()
@@ -54,4 +56,50 @@ bool ConditionalFileWriter::Flush()
     file << content;
     m_wrote = true;
     return true;
+}
+
+std::size_t RemoveStaleGeneratedFiles(const std::filesystem::path& dir,
+                                      const std::set<std::string>& expected_files,
+                                      std::string_view suffix)
+{
+    std::error_code directory_error;
+    if (!std::filesystem::is_directory(dir, directory_error))
+    {
+        return 0;
+    }
+
+    std::set<std::filesystem::path> stale_files;
+    for (const std::filesystem::directory_entry& entry:
+         std::filesystem::directory_iterator(dir, directory_error))
+    {
+        if (directory_error)
+        {
+            break;
+        }
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+        const std::string filename = entry.path().filename().string();
+        if (!filename.ends_with(std::string(suffix)))
+        {
+            continue;
+        }
+        if (expected_files.contains(filename))
+        {
+            continue;
+        }
+        stale_files.insert(entry.path());
+    }
+
+    std::size_t removed_count = 0;
+    for (const std::filesystem::path& stale_file: stale_files)
+    {
+        std::error_code remove_error;
+        if (std::filesystem::remove(stale_file, remove_error))
+        {
+            ++removed_count;
+        }
+    }
+    return removed_count;
 }

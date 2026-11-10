@@ -25,6 +25,7 @@ public:
     [[nodiscard]] VerifyResult Verify(const ParsedFFI& ffi,
                                       const std::filesystem::path& out_dir) override;
     [[nodiscard]] std::string_view Name() const override { return "typescript"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi) const override;
 
 private:
     // Emits kwx_ffi_gen.ts — the dlopen call with all C symbol definitions.

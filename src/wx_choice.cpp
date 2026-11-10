@@ -32,6 +32,17 @@ extern "C"
         self->Append(*item);
     }
 
+    EXPORT int wxChoice_AppendWithClientData(wxChoice* self, wxString* item, void* clientData)
+    {
+        return self->Append(*item, clientData);
+    }
+
+    EXPORT int wxChoice_AppendWithClientObject(wxChoice* self, wxString* item,
+                                               wxClientData* clientData)
+    {
+        return self->Append(*item, clientData);
+    }
+
     EXPORT void wxChoice_Delete(wxChoice* self, int index)
     {
         self->Delete(index);
@@ -72,6 +83,11 @@ extern "C"
     EXPORT void wxChoice_SetString(wxChoice* self, int index, wxString* str)
     {
         self->SetString(index, *str);
+    }
+
+    EXPORT int wxChoice_SetStringSelection(wxChoice* self, wxString* str)
+    {
+        return self->SetStringSelection(*str);
     }
 
     EXPORT void wxChoice_SetColumns(wxChoice* self, int n)
