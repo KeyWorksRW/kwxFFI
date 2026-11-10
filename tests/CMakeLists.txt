@@ -123,6 +123,18 @@ if(KWXFFI_C_COMPILER)
     )
 endif()
 
+# Every backend must cover the TypeScript reference surface at --profile full.
+# The checker exits 77 (CTest SKIP) when no kwxgen binary is available.
+add_test(NAME binding_coverage
+    COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/binding_coverage.py"
+        --root "${KWXFFI_ROOT}"
+        --kwxgen "$<TARGET_FILE:kwxgen>"
+)
+set_tests_properties(binding_coverage PROPERTIES
+    LABELS cheap
+    SKIP_RETURN_CODE 77
+)
+
 add_test(NAME export_snapshot
     COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_LIST_DIR}/checks/export_snapshot.py"
         --root "${KWXFFI_ROOT}"

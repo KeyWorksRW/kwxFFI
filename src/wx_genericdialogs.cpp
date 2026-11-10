@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <algorithm>
+
 // wx/wx.h selects the native MSW/GTK dialog classes, so the generic headers
 // must be included explicitly. Each generic header needs its base-class header
 // (and, for the colour dialog, wxColourData) to be included first.
@@ -61,16 +63,21 @@ extern "C"
         return result;
     }
 
-    EXPORT int wxGenericDirDialog_GetPaths(wxGenericDirDialog* self, void* paths)
+    EXPORT int wxGenericDirDialog_GetPaths(wxGenericDirDialog* self, void* paths, int capacity)
     {
-        wxArrayString arr;
-        self->GetPaths(arr);
+        wxArrayString paths_array;
+        self->GetPaths(paths_array);
+        const size_t limit =
+            capacity > 0 ? std::min(paths_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(paths_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(paths_array.GetCount());
     }
 
     EXPORT void wxGenericDirDialog_SetMessage(wxGenericDirDialog* self, wxString* msg)
@@ -104,28 +111,39 @@ extern "C"
         return result;
     }
 
-    EXPORT int wxGenericFileDialog_GetPaths(wxGenericFileDialog* self, void* paths)
+    EXPORT int wxGenericFileDialog_GetPaths(wxGenericFileDialog* self, void* paths, int capacity)
     {
-        wxArrayString arr;
-        self->GetPaths(arr);
+        wxArrayString paths_array;
+        self->GetPaths(paths_array);
+        const size_t limit =
+            capacity > 0 ? std::min(paths_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(paths_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(paths_array.GetCount());
     }
 
-    EXPORT int wxGenericFileDialog_GetFilenames(wxGenericFileDialog* self, void* paths)
+    EXPORT int wxGenericFileDialog_GetFilenames(wxGenericFileDialog* self, void* paths,
+                                                int capacity)
     {
-        wxArrayString arr;
-        self->GetFilenames(arr);
+        wxArrayString files_array;
+        self->GetFilenames(files_array);
+        const size_t limit =
+            capacity > 0 ? std::min(files_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(files_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(files_array.GetCount());
     }
 
     EXPORT wxString* wxGenericFileDialog_GetDirectory(wxGenericFileDialog* self)

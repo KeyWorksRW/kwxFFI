@@ -247,15 +247,27 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         return result;
     }
 
-    // Array types: expand to count + pointer
-    if (p.macro_name == "TArrayString" || p.macro_name == "TArrayInt" ||
-        p.macro_name == "TByteString" || p.macro_name == "TByteStringLazy")
+    // Array types: expand to count + pointer. TByteString is declared as
+    // `TByteData *d, int n` — the data pointer comes FIRST — so it must not share the
+    // count-first expansion used by TArrayString/TArrayInt.
+    if (p.macro_name == "TArrayString" || p.macro_name == "TArrayInt")
     {
         auto names = FortranSplitMacroArg(p.macro_arg);
         if (names.size() >= 2)
         {
             result.push_back({ "integer(c_int)", "c_int", FortranEscapeName(names[0]) });
             result.push_back({ "type(c_ptr)", "c_ptr", FortranEscapeName(names[1]) });
+        }
+        return result;
+    }
+
+    if (p.macro_name == "TByteString" || p.macro_name == "TByteStringLazy")
+    {
+        auto names = FortranSplitMacroArg(p.macro_arg);
+        if (names.size() >= 2)
+        {
+            result.push_back({ "type(c_ptr)", "c_ptr", FortranEscapeName(names[0]) });
+            result.push_back({ "integer(c_int)", "c_int", FortranEscapeName(names[1]) });
         }
         return result;
     }
@@ -291,7 +303,9 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
 
     if (p.macro_name == "TClosureFun" || p.raw_type == "TClosureFun")
     {
-        result.push_back({ "type(c_ptr)", "c_ptr",
+        // A Fortran consumer passes c_funloc(proc); the raw interface must therefore declare
+        // the slot as c_funptr, not c_ptr, or the actual argument would not type-check.
+        result.push_back({ "type(c_funptr)", "c_funptr",
                            FortranEscapeName(p.param_name.empty() ? "fn" : p.param_name) });
         return result;
     }
@@ -349,6 +363,10 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         result.push_back({ "integer(c_long)", "c_long", name });
     else if (raw == "wxUIntPtr" || raw == "uintptr_t")
         result.push_back({ "integer(c_size_t)", "c_size_t", name });
+    else if (raw == "intptr_t" || raw == "TIntPtr")
+        result.push_back({ "integer(c_intptr_t)", "c_intptr_t", name });
+    else if (raw == "unsigned short")
+        result.push_back({ "integer(c_short)", "c_short", name });
     else if (raw == "double")
         result.push_back({ "real(c_double)", "c_double", name });
     else if (raw == "float")

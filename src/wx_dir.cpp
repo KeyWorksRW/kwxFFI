@@ -1,5 +1,6 @@
 #include "kwx_wrapper.h"
 
+#include <algorithm>
 #include <bit>
 #include <wx/dir.h>
 
@@ -138,14 +139,17 @@ extern "C"
         return self->Traverse(*sink, PathOrEmpty(spec), flags);
     }
 
-    EXPORT size_t wxDir_GetAllFiles(wxString* dir_name, void* files, wxString* spec, int flags)
+    EXPORT size_t wxDir_GetAllFiles(wxString* dir_name, void* files, wxString* spec, int flags,
+                                    int capacity)
     {
         wxArrayString found;
         wxDir::GetAllFiles(PathOrEmpty(dir_name), &found, PathOrEmpty(spec), flags);
 
+        const size_t limit =
+            capacity > 0 ? std::min(found.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (files)
         {
-            for (size_t index = 0; index < found.GetCount(); ++index)
+            for (size_t index = 0; index < limit; ++index)
             {
                 static_cast<const char**>(files)[index] =
                     strdup(found.Item(index).utf8_string().data());

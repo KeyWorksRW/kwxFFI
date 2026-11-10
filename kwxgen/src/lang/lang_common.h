@@ -17,6 +17,8 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
+#include <unordered_set>
 
 constexpr std::string_view WX_PREFIX { "wx" };
 constexpr std::string_view KWX_PREFIX { "kwx" };
@@ -117,4 +119,42 @@ inline std::string ToSnakeCase(const std::string& name)
         }
     }
     return result;
+}
+
+// Class-selection policy shared by every language backend.
+//
+// True when a class is an event class that owns no methods of its own. Such a class still
+// needs a wrapper because ports receive an untyped event pointer and must downcast it to call
+// the inherited wxEvent accessors (wxPaintEvent is the common case). Only a direct wxEvent
+// subclass qualifies: a zero-method class below another event class is either a macro alias
+// (wxNotebookEvent) or a stale placeholder (wxTabEvent), neither of which should be emitted.
+[[nodiscard]] inline bool IsZeroMethodEventClass(const std::string& class_name,
+                                                 const ParsedFFI& ffi)
+{
+    const std::unordered_map<std::string, std::string>::const_iterator iter =
+        ffi.parent_map.find(class_name);
+    return iter != ffi.parent_map.end() && iter->second == "wxEvent";
+}
+
+// A class gets a wrapper when it has at least one wrapper method or when it is a zero-method
+// direct wxEvent subclass. Everything else stays unwrapped, which keeps abstract bases and
+// stale placeholder blocks out of the output. Every backend derives its class set from this
+// predicate so a class is either wrapped everywhere or nowhere.
+[[nodiscard]] inline bool ShouldWrapClass(const ClassInfo& cls, const ParsedFFI& ffi)
+{
+    return !cls.methods.empty() || IsZeroMethodEventClass(cls.name, ffi);
+}
+
+// The set of class names that get a generated wrapper file.
+[[nodiscard]] inline std::unordered_set<std::string> CollectWrappedClasses(const ParsedFFI& ffi)
+{
+    std::unordered_set<std::string> wrapped_classes;
+    for (const auto& cls: ffi.classes)
+    {
+        if (ShouldWrapClass(cls, ffi))
+        {
+            wrapped_classes.insert(cls.name);
+        }
+    }
+    return wrapped_classes;
 }

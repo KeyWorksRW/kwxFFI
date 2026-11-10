@@ -23,6 +23,21 @@
 
 namespace fs = std::filesystem;
 
+// Classes whose concrete struct and constructor are skipped: they are declared abstractly in
+// the hand-written core/types.jl, or already have a struct there.  Their methods are still
+// emitted so they dispatch polymorphically, which is why the names are not wrapped classes
+// but consumer-provided types.
+static const std::unordered_set<std::string> kSkipStruct = {
+    "wxObject", "wxEvtHandler", "wxWindow", "wxControl", "wxTopLevelWindow", "wxSizer",
+    "wxEvent"  // struct wxEvent defined in core/types.jl
+};
+
+// Classes excluded from idiomatic generation entirely.  Only the string helper type is
+// excluded, because core/strings.jl manages its lifecycle.
+static const std::unordered_set<std::string> kSkipClass = {
+    "wxString"  // lifecycle managed by core/strings.jl
+};
+
 // Build a C function name from a FunctionDecl.
 
 // Groups the three string identifiers needed by EmitCCallWrapper.
@@ -147,6 +162,72 @@ static std::string StripWxPrefix(const std::string& name)
 {
     std::ignore = return_macro;
     return return_type.empty() || return_type == "void";
+}
+
+// True when a non-constructor method's first parameter is TClass(ClassName) for the method's
+// own class.  A mixin (wxTextEntry, wxItemContainer, wxComboPopup) declares its receiver this
+// way instead of TSelf, so the parameter is the receiver and must not be emitted as an
+// argument.  The parser sets has_self for genuine TSelf receivers, so a real method's first
+// parameter is never mistaken for the receiver.
+[[nodiscard]] static bool IsJuliaPseudoSelf(const FunctionDecl& func)
+{
+    if (func.is_constructor || func.has_self || func.class_name.empty() || func.params.empty())
+    {
+        return false;
+    }
+    const Param& first_param = func.params.front();
+    return first_param.macro_name == "TClass" && first_param.macro_arg == func.class_name;
+}
+
+// True when a class passes its object through an explicit TClass(OwnClass) first parameter
+// instead of TSelf for most of its methods (the mixin shape: wxTextEntry, wxItemContainer,
+// wxComboPopup).  Only for such a class does a leading TClass(own class) parameter denote the
+// receiver; elsewhere it is an ordinary argument (wxLog_SetActiveTarget takes the new target).
+[[nodiscard]] static bool JuliaUsesExplicitReceiver(const ClassInfo& class_info)
+{
+    size_t receiver_count = 0;
+    size_t method_count = 0;
+    for (const auto& method: class_info.methods)
+    {
+        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+        {
+            continue;
+        }
+        if (method.has_self)
+        {
+            return false;  // the class names its receiver with TSelf
+        }
+        ++method_count;
+        if (IsJuliaPseudoSelf(method))
+        {
+            ++receiver_count;
+        }
+    }
+    return receiver_count != 0 && (receiver_count * 2U) > method_count;
+}
+
+// True when a destructor's only parameter is the receiver (TSelf, or TClass of its own
+// class).  A method merely named "Delete" that takes an index (wxItemContainer_Delete) is an
+// ordinary method, so it is re-emitted on a mixin's consumers like any other.
+[[nodiscard]] static bool IsJuliaTrueDestructor(const FunctionDecl& func)
+{
+    if (!func.is_destructor || func.params.empty())
+    {
+        return false;
+    }
+    for (const auto& param: func.params)
+    {
+        if (param.macro_name == "TSelf")
+        {
+            continue;
+        }
+        if (param.macro_name == "TClass" && param.macro_arg == func.class_name)
+        {
+            continue;
+        }
+        return false;
+    }
+    return true;
 }
 
 // Walk parent_map to find the nearest Julia abstract parent type.
@@ -498,13 +579,21 @@ static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& 
 
 // Emit one idiomatic Julia method (non-constructor, non-duplicate-name guard
 // is the caller's responsibility).
+//
+// julia_cls is the type the receiver is annotated with: the method's own class normally, or the
+// consumer class when a mixin method is re-emitted through a class that consumes it.
+// explicit_receiver is true when the defining class names its receiver with a leading
+// TClass(own class) parameter instead of TSelf (the mixin shape).
 static void EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
-                                const std::string& julia_cls)
+                                const std::string& julia_cls, bool explicit_receiver)
 {
     if (!IsValidFunction(func) || (func.is_constructor && !func.has_self))
     {
         return;
     }
+
+    // A mixin declares its receiver as TClass(own class); it is the receiver, not an argument.
+    const bool pseudo_self = explicit_receiver && IsJuliaPseudoSelf(func);
 
     bool is_void = IsVoidReturn(func.return_type, func.return_macro);
 
@@ -521,13 +610,19 @@ static void EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
         method_name = snake + (is_void ? "!" : "");
     }
 
-    // Build idiomatic param list (skip TSelf).
+    // Build idiomatic param list (skip the receiver parameter).
     std::vector<std::vector<JuliaIdiomParam>> param_groups;
     bool has_post_calls = false;
+    bool skipped_receiver = !pseudo_self;
     for (const auto& param: func.params)
     {
         if (param.macro_name == "TSelf")
         {
+            continue;
+        }
+        if (!skipped_receiver && param.macro_name == "TClass" && param.macro_arg == func.class_name)
+        {
+            skipped_receiver = true;  // the mixin's TClass(own class) receiver
             continue;
         }
         std::vector<JuliaIdiomParam> group = ConvertToIdiomParams(param, false);
@@ -649,6 +744,118 @@ VerifyResult JuliaEmitter::Verify(const ParsedFFI& /* parsed_ffi */,
     result.success = false;
     result.messages.emplace_back("Julia verify: use 'kwxgen verify' command instead");
     return result;
+}
+
+// -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// Count the valid methods the backend emits for one class.  The idiomatic wrapper file writes
+// one block per valid method, plus one per plain (non-constructor, non-destructor) method of
+// each mixin the class consumes.  A kSkipStruct class skips its idiomatic struct and
+// constructor, but the raw ccall layer in classes_gen.jl still declares that constructor, so it
+// is emitted by the backend and counts here.
+[[nodiscard]] static size_t CountJuliaEmittedMethods(const ClassInfo& class_info,
+                                                     const ParsedFFI& parsed_ffi)
+{
+    size_t method_count = 0;
+    for (const auto& func: class_info.methods)
+    {
+        if (IsValidFunction(func))
+        {
+            ++method_count;
+        }
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        parsed_ffi.mixin_map.find(class_info.name);
+    if (mixin_iter == parsed_ffi.mixin_map.end())
+    {
+        return method_count;
+    }
+    for (const std::string& mixin_name: mixin_iter->second)
+    {
+        if (kSkipClass.contains(mixin_name))
+        {
+            continue;  // its lifecycle lives in core/strings.jl
+        }
+        for (const auto& mixin_class: parsed_ffi.classes)
+        {
+            if (mixin_class.name != mixin_name)
+            {
+                continue;
+            }
+            for (const auto& func: mixin_class.methods)
+            {
+                if (!IsValidFunction(func) || func.is_constructor || IsJuliaTrueDestructor(func))
+                {
+                    continue;
+                }
+                ++method_count;
+            }
+            break;
+        }
+    }
+    return method_count;
+}
+
+CoverageInfo JuliaEmitter::Coverage(const ParsedFFI& parsed_ffi) const
+{
+    CoverageInfo report;
+    report.free_function_count = parsed_ffi.free_functions.size();
+    report.event_count = parsed_ffi.events.size();
+    report.key_count = parsed_ffi.keys.size();
+    report.constant_count = parsed_ffi.constants.size();
+
+    for (const std::string& skip_name: kSkipClass)
+    {
+        report.consumer_provided_classes.push_back(skip_name);
+    }
+    for (const std::string& skip_name: kSkipStruct)
+    {
+        report.consumer_provided_classes.push_back(skip_name);
+    }
+
+    // The same policy GenerateIdiomaticClasses() uses, so the report describes what is emitted.
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(parsed_ffi);
+
+    for (const auto& class_entry: parsed_ffi.classes)
+    {
+        if (kSkipClass.contains(class_entry.name))
+        {
+            // core/strings.jl owns the wxString lifecycle, but the raw ccall layer in
+            // classes_gen.jl still declares every method, so those methods do reach the
+            // backend output and belong in the count.
+            size_t raw_count = 0;
+            for (const auto& func: class_entry.methods)
+            {
+                if (IsValidFunction(func))
+                {
+                    ++raw_count;
+                }
+            }
+            if (raw_count != 0)
+            {
+                report.method_counts_by_class[class_entry.name] = raw_count;
+            }
+            continue;  // already reported as consumer-provided
+        }
+        if (!wrapped_classes.contains(class_entry.name))
+        {
+            report.skipped_classes.push_back(class_entry.name);
+            continue;
+        }
+
+        report.wrapped_classes.push_back(class_entry.name);
+
+        report.method_counts_by_class[class_entry.name] =
+            CountJuliaEmittedMethods(class_entry, parsed_ffi);
+    }
+
+    std::ranges::sort(report.wrapped_classes);
+    std::ranges::sort(report.consumer_provided_classes);
+    std::ranges::sort(report.skipped_classes);
+    return report;
 }
 
 // -------------------------------------------------------------------------
@@ -867,10 +1074,6 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
     // kSkipStruct: skip concrete struct + constructor, but STILL emit methods.
     // These are types declared abstractly in types.jl, or types with existing
     // definitions (wxEvent in types.jl). Methods dispatch on them polymorphically.
-    static const std::unordered_set<std::string> kSkipStruct = {
-        "wxObject", "wxEvtHandler", "wxWindow", "wxControl", "wxTopLevelWindow", "wxSizer",
-        "wxEvent"  // struct wxEvent defined in core/types.jl
-    };
     const bool skip_struct = kSkipStruct.contains(class_info.name);
 
     if (!skip_struct)
@@ -1010,7 +1213,44 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
         }
     }  // !skip_struct
 
+    // ---------- mixin methods re-emitted through this class ----------
+    // A consumer of a mixin (wxTextCtrl consumes wxTextEntry, wxListBox consumes
+    // wxItemContainer) exposes the mixin's methods on itself, so the wrapper is emitted here
+    // against the consumer's own type.  Emitted before the class's own methods so that a
+    // consumer method with the same signature wins.
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        parsed_ffi.mixin_map.find(class_info.name);
+    if (mixin_iter != parsed_ffi.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            if (kSkipClass.contains(mixin_name))
+            {
+                continue;  // its lifecycle lives in core/strings.jl
+            }
+            for (const auto& mixin_class: parsed_ffi.classes)
+            {
+                if (mixin_class.name != mixin_name)
+                {
+                    continue;
+                }
+                const bool mixin_explicit_receiver = JuliaUsesExplicitReceiver(mixin_class);
+                for (const auto& func: mixin_class.methods)
+                {
+                    if (!IsValidFunction(func) || func.is_constructor ||
+                        IsJuliaTrueDestructor(func))
+                    {
+                        continue;
+                    }
+                    EmitIdiomaticMethod(output, func, class_info.name, mixin_explicit_receiver);
+                }
+                break;
+            }
+        }
+    }
+
     // ---------- methods (emitted for ALL classes, including abstract types) ----------
+    const bool explicit_receiver = JuliaUsesExplicitReceiver(class_info);
     for (const auto& func: class_info.methods)
     {
         if (!IsValidFunction(func))
@@ -1022,7 +1262,7 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
             continue;  // true constructors already emitted (or skipped for abstract)
         }
 
-        EmitIdiomaticMethod(output, func, class_info.name);
+        EmitIdiomaticMethod(output, func, class_info.name, explicit_receiver);
     }
 }
 
@@ -1050,19 +1290,20 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
     // Only utility types that have dedicated implementations (strings.jl) are excluded.
     // Abstract types (wxWindow, etc.) are included here but kSkipStruct prevents
     // struct generation; their methods are still emitted and dispatch polymorphically.
-    static const std::unordered_set<std::string> kSkipClass = {
-        "wxString"  // lifecycle managed by core/strings.jl
-    };
+    //
+    // The class set comes from the shared wrapper policy, so a zero-method direct wxEvent
+    // subclass still gets a struct and an include line even though it contributes no methods.
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(parsed_ffi);
 
     for (const auto& class_entry: parsed_ffi.classes)
     {
-        if (class_entry.methods.empty())
-        {
-            continue;
-        }
         if (kSkipClass.contains(class_entry.name))
         {
             ++skippedCount;
+            continue;
+        }
+        if (!wrapped_classes.contains(class_entry.name))
+        {
             continue;
         }
 

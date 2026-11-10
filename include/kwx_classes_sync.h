@@ -186,9 +186,21 @@ TClassDef(wxDC) void wxDC_GetPixel2(TSelf(wxDC) pObject, int x, int y, TClass(wx
 double wxDC_GetUserScaleX(TSelf(wxDC) pObject);
 double wxDC_GetUserScaleY(TSelf(wxDC) pObject);
 
+// wxArrayVideoModes is `wxBaseArray<wxVideoMode>` (wx/display.h).  It has no wxObject base
+// and is only produced by wxDisplay::GetModes(), so it is declared next to wxDisplay.
+TClassDef(wxArrayVideoModes) TClass(wxArrayVideoModes) wxArrayVideoModes_Create();
+void wxArrayVideoModes_Delete(TSelf(wxArrayVideoModes) pObject);
+int wxArrayVideoModes_GetCount(TSelf(wxArrayVideoModes) pObject);
+// Handed back as a caller-owned copy so the array can be released independently.
+TClassOwned(wxVideoMode) wxArrayVideoModes_Item(TSelf(wxArrayVideoModes) pObject, int index);
+
 TClassDef(wxDisplay) void* wxDisplay_Create(unsigned int index);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxDisplay_ChangeMode(TSelf(wxDisplay) pObject, TClass(wxVideoMode) mode);
+// Enumerates every mode the display supports (no filter mode), returning a caller-owned
+// array.  wxDisplay::GetModes() re-enumerates on each call, so callers must read the
+// whole array from one call instead of querying it per index.
+TClassOwned(wxArrayVideoModes) wxDisplay_GetModes(TSelf(wxDisplay) pObject);
 int wxDisplay_GetDepth(TSelf(wxDisplay) pObject);
 TClass(wxSize) wxDisplay_GetRawPPI(TSelf(wxDisplay) pObject);
 void wxDisplay_ResetMode(TSelf(wxDisplay) pObject);
@@ -196,7 +208,7 @@ void* wxDisplay_CreateFromWindow(TClass(wxWindow) win);
 void wxDisplay_Delete(TSelf(wxDisplay) pObject);
 void wxDisplay_GetClientArea(TSelf(wxDisplay) pObject, int* x, int* y, int* width, int* height);
 int wxDisplay_GetCount();
-void* wxDisplay_GetCurrentMode(TSelf(wxDisplay) pObject);
+TClassOwned(wxVideoMode) wxDisplay_GetCurrentMode(TSelf(wxDisplay) pObject);
 int wxDisplay_GetFromPoint(int x, int y);
 int wxDisplay_GetFromWindow(TClass(wxWindow) win);
 void wxDisplay_GetGeometry(TSelf(wxDisplay) pObject, int* x, int* y, int* width, int* height);
@@ -1486,6 +1498,8 @@ TClassDef(wxVideoMode) void* wxVideoMode_Create(int width, int height, int depth
 void wxVideoMode_Delete(TSelf(wxVideoMode) pObject);
 int wxVideoMode_GetDepth(TSelf(wxVideoMode) pObject);
 int wxVideoMode_GetHeight(TSelf(wxVideoMode) pObject);
+// Refresh rate in Hz; 0 means unspecified/unknown.
+int wxVideoMode_GetRefresh(TSelf(wxVideoMode) pObject);
 int wxVideoMode_GetWidth(TSelf(wxVideoMode) pObject);
 TBool wxVideoMode_IsOk(TSelf(wxVideoMode) pObject);
 TBool wxVideoMode_Matches(TSelf(wxVideoMode) pObject, TClass(wxVideoMode) other);

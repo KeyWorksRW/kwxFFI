@@ -2,11 +2,11 @@
 """Run the kwxFFI checks without requiring a CMake build.
 
 `--static` runs only the checks that read the source tree: the two guard
-checkers and their self-test. Without it the export-surface digest and the
-`deno check` wrapper run too, using the newest kwxgen binary that can be found
-under `bin/` or `build/`. The digest check compares a count and a sha256 hash
-with `tests/expected/symbols.sha256`, so a mismatch means the exported FFI
-surface changed.
+checkers and their self-test. Without it the cross-language coverage guard, the
+export-surface digest and the `deno check` wrapper run too, using the newest
+kwxgen binary that can be found under `bin/` or `build/`. The digest check
+compares a count and a sha256 hash with `tests/expected/symbols.sha256`, so a
+mismatch means the exported FFI surface changed.
 
 Exit code is 1 when any check failed, 0 otherwise (skips are not failures).
 """
@@ -107,13 +107,15 @@ def main(argv: list[str] | None = None) -> int:
     kwxgen = discover_kwxgen(root, options.kwxgen)
 
     if options.static:
+        print("--- binding_coverage: not run (--static)")
         print("--- export_snapshot: not run (--static)")
         print("--- deno_check: not run (--static)")
     elif kwxgen is None:
+        results.append(("binding_coverage", "SKIP (kwxgen binary not found)"))
         results.append(("export_snapshot", "SKIP (kwxgen binary not found)"))
         results.append(("deno_check", "SKIP (kwxgen binary not found)"))
     else:
-        for name in ("export_snapshot", "deno_check"):
+        for name in ("binding_coverage", "export_snapshot", "deno_check"):
             status = run_check(
                 name,
                 checks_dir / f"{name}.py",

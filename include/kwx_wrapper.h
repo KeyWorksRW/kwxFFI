@@ -23,6 +23,7 @@
 #include <wx/choicebk.h>
 #include <wx/clipbrd.h>
 #include <wx/clrpicker.h>
+#include <wx/collheaderctrl.h>
 #include <wx/collpane.h>
 #include <wx/colordlg.h>
 #include <wx/combo.h>

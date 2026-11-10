@@ -190,6 +190,7 @@ void LogError(TClass(wxString) message);
 void LogFatalError(TClass(wxString) message);
 void LogWarning(TClass(wxString) message);
 void LogMessage(TClass(wxString) message);
+void LogInfo(TClass(wxString) message);
 void LogVerbose(TClass(wxString) message);
 void LogStatus(TClass(wxString) message);
 // wxLogStatus(frame, ...): routes the message to frame's status bar instead of the

@@ -2,6 +2,8 @@
 #include <wx/filename.h>
 #include <wx/tokenzr.h>
 
+#include <algorithm>
+
 // wxFileName is exported as an opaque handle: the C caller never sees the class
 // layout, only pointers returned by the Create* functions.
 
@@ -10,18 +12,21 @@ static wxString PathOrEmpty(wxString* text)
     return text ? *text : wxString();
 }
 
-// Copies an array of strings into a caller-supplied array of char pointers.
-// Each element is a strdup() copy owned by the caller.
-static int FillStringArray(const wxArrayString& values, void* output)
+// Copies at most capacity strings into a caller-supplied array of char pointers and
+// returns the total number of values.  Each written entry is a strdup() copy owned by
+// the caller.
+static int FillStringArray(const wxArrayString& values, void* output, int capacity)
 {
-    if (!output)
-    {
-        return 0;
-    }
+    const size_t limit =
+        capacity > 0 ? std::min(values.GetCount(), static_cast<size_t>(capacity)) : 0;
 
-    for (size_t index = 0; index < values.GetCount(); ++index)
+    if (output)
     {
-        static_cast<const char**>(output)[index] = strdup(values.Item(index).utf8_string().data());
+        for (size_t index = 0; index < limit; ++index)
+        {
+            static_cast<const char**>(output)[index] =
+                strdup(values.Item(index).utf8_string().data());
+        }
     }
 
     return static_cast<int>(values.GetCount());
@@ -255,9 +260,9 @@ extern "C"
         return self->GetDirCount();
     }
 
-    EXPORT int wxFileName_GetDirs(wxFileName* self, void* dirs)
+    EXPORT int wxFileName_GetDirs(wxFileName* self, void* dirs, int capacity)
     {
-        return FillStringArray(self->GetDirs(), dirs);
+        return FillStringArray(self->GetDirs(), dirs, capacity);
     }
 
     EXPORT int wxFileName_HasName(wxFileName* self)

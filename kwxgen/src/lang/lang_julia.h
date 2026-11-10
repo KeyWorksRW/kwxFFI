@@ -16,6 +16,7 @@ public:
     VerifyResult Verify(const ParsedFFI& parsed_ffi,
                         const std::filesystem::path& directory) override;
     [[nodiscard]] std::string_view Name() const override { return "julia"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& parsed_ffi) const override;
 
 private:
     static void GenerateEvents(const ParsedFFI& parsed_ffi, const std::filesystem::path& outDir);

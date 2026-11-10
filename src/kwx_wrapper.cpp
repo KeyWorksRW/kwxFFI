@@ -5,6 +5,10 @@
 
 #include <wx/quantize.h>
 
+#include <cstddef>
+#include <iterator>
+#include <vector>
+
 int copyStrToBuf(void* dst, wxString& src)
 {
     if (dst)
@@ -127,6 +131,36 @@ static void kwxBoundEventHandler(wxEvent& event)
     {
         callback->Invoke(&event);
     }
+}
+
+// One record per successful wxEvtHandler_Bind().  wxEvtHandler::Unbind()
+// identifies the handler to remove by (id range, event type, functor, user
+// data), so removing one specific Bind() connection needs the wxCallback that
+// Bind() allocated; this table remembers it.  Records are dropped when the
+// connection is unbound.  A record left behind by a destroyed handler is never
+// dereferenced — only its address is compared — so it costs a few bytes rather
+// than dangling access.
+struct kwxBoundRecord
+{
+    wxEvtHandler* owner;
+    wxClosure* closure;
+    wxCallback* callback;
+    int first;
+    int last;
+    int type;
+};
+
+static std::vector<kwxBoundRecord> s_bound_records;
+
+// Drops every record for this handler and range, whatever closure it names.
+static void kwxForgetBoundRecords(wxEvtHandler* owner, int first, int last, int type)
+{
+    std::erase_if(s_bound_records,
+                  [owner, first, last, type](const kwxBoundRecord& record)
+                  {
+                      return record.owner == owner && record.first == first &&
+                             record.last == last && record.type == type;
+                  });
 }
 
 extern "C"
@@ -260,6 +294,34 @@ extern "C"
     {
         wxCallback* callback = new wxCallback(closure);
         self->Bind(wxEventTypeTag<wxEvent>(type), &kwxBoundEventHandler, first, last, callback);
+        s_bound_records.push_back({ self, closure, callback, first, last, type });
+        return 0;
+    }
+
+    // Removes the single handler wxEvtHandler_Bind() installed for this closure and
+    // id range.  Connect() handlers use a different functor type, so they are
+    // untouched.  Returns non-zero when one handler was removed.
+    EXPORT int wxEvtHandler_UnbindClosure(wxEvtHandler* self, int first, int last, int type,
+                                          wxClosure* closure)
+    {
+        // Scan backwards so the most recent Bind() for this closure is the one
+        // removed, matching wxWidgets' own "last bound first unbound" order.
+        for (size_t index = s_bound_records.size(); index-- > 0;)
+        {
+            const kwxBoundRecord& record = s_bound_records[index];
+            if (record.owner != self || record.first != first || record.last != last ||
+                record.type != type || record.closure != closure)
+            {
+                continue;
+            }
+
+            wxCallback* callback = record.callback;
+            s_bound_records.erase(s_bound_records.begin() + static_cast<std::ptrdiff_t>(index));
+            return self->Unbind(wxEventTypeTag<wxEvent>(type), &kwxBoundEventHandler, first, last,
+                                callback) ?
+                       1 :
+                       0;
+        }
         return 0;
     }
 
@@ -274,7 +336,29 @@ extern "C"
         {
             ++removed;
         }
+        kwxForgetBoundRecords(self, first, last, type);
         return removed;
+    }
+
+    // Deferred execution of a closure after the current event has been processed.
+    // The reference is taken before queueing and released inside the queued
+    // callable, so the closure stays alive until CallAfter() actually runs it.
+    EXPORT void wxEvtHandler_CallAfter(wxEvtHandler* self, wxClosure* closure)
+    {
+        if (!self || !closure)
+        {
+            return;
+        }
+        closure->IncRef();
+        self->CallAfter(
+            [closure]()
+            {
+                // wxEvent is abstract (pure Clone()), so use the concrete command
+                // event, matching the wxListCtrl_SortItems2 closure precedent.
+                wxCommandEvent event(wxEVT_NULL);
+                closure->Invoke(&event);
+                closure->DecRef();
+            });
     }
 
     // The id argument is retained for declaration/ABI compatibility with the

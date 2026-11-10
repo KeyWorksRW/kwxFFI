@@ -15,6 +15,7 @@ public:
     void Generate(const ParsedFFI& ffi_data, const std::filesystem::path& out_dir) override;
     VerifyResult Verify(const ParsedFFI& ffi_data, const std::filesystem::path& out_dir) override;
     [[nodiscard]] std::string_view Name() const override { return "lua"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi_data) const override;
 
 private:
     // Raw FFI layer: ffi.cdef declarations for all C functions

@@ -784,6 +784,7 @@ extern "C"
     int expwxCAL_SHOW_WEEK_NUMBERS();
     int expwxCAL_SUNDAY_FIRST();
     int expwxCANCEL();
+    int expwxCANCEL_DEFAULT();
     int expwxCAPTION();
     int expwxCAP_BUTT();
     int expwxCAP_PROJECTING();
@@ -804,6 +805,7 @@ extern "C"
     int expwxCHK_CHECKED();
     int expwxCHK_UNCHECKED();
     int expwxCHK_UNDETERMINED();
+    int expwxCHOICEDLG_STYLE();
     int expwxCLEAR();
     int expwxCLIP_CHILDREN();
     int expwxCLIP_SIBLINGS();
@@ -939,6 +941,34 @@ extern "C"
     int expwxDUPLEX_HORIZONTAL();
     int expwxDUPLEX_SIMPLEX();
     int expwxDUPLEX_VERTICAL();
+    int expwxDateTime_Apr();
+    int expwxDateTime_Aug();
+    int expwxDateTime_Country_Default();
+    int expwxDateTime_Country_Unknown();
+    int expwxDateTime_Dec();
+    int expwxDateTime_Default_First();
+    int expwxDateTime_Feb();
+    int expwxDateTime_Fri();
+    int expwxDateTime_Jan();
+    int expwxDateTime_Jul();
+    int expwxDateTime_Jun();
+    int expwxDateTime_Local();
+    int expwxDateTime_Mar();
+    int expwxDateTime_May();
+    int expwxDateTime_Mon();
+    int expwxDateTime_Monday_First();
+    int expwxDateTime_Name_Abbr();
+    int expwxDateTime_Name_Full();
+    int expwxDateTime_Name_Shortest();
+    int expwxDateTime_Nov();
+    int expwxDateTime_Oct();
+    int expwxDateTime_Sat();
+    int expwxDateTime_Sep();
+    int expwxDateTime_Sun();
+    int expwxDateTime_Sunday_First();
+    int expwxDateTime_Thu();
+    int expwxDateTime_Tue();
+    int expwxDateTime_Wed();
     int expwxDefaultCoord();
     int expwxDragCancel();
     int expwxDragCopy();
@@ -1127,6 +1157,7 @@ extern "C"
     int expwxGridSelectNone();
     int expwxGridSelectRows();
     int expwxGridSelectRowsOrColumns();
+    int expwxHAS_NATIVE_NOTIFICATION_MESSAGE();
     int expwxHATCHSTYLE_BDIAGONAL();
     int expwxHATCHSTYLE_CROSS();
     int expwxHATCHSTYLE_CROSSDIAG();
@@ -2401,12 +2432,12 @@ extern "C"
     int expwxYES_NO();
     int expwxZIP_FORMAT_ZIP64();
 
-    static int s_values[2396];
+    static int s_values[2427];
     static std::once_flag s_once;
 
     WXFFI_EXPORT(int, kwxConstants_IntCount)()
     {
-        return 2396;
+        return 2427;
     }
 
     WXFFI_EXPORT(const int*, kwxConstants_IntTable)()
@@ -3195,6 +3226,7 @@ extern "C"
                            s_values[i++] = expwxCAL_SHOW_WEEK_NUMBERS();
                            s_values[i++] = expwxCAL_SUNDAY_FIRST();
                            s_values[i++] = expwxCANCEL();
+                           s_values[i++] = expwxCANCEL_DEFAULT();
                            s_values[i++] = expwxCAPTION();
                            s_values[i++] = expwxCAP_BUTT();
                            s_values[i++] = expwxCAP_PROJECTING();
@@ -3215,6 +3247,7 @@ extern "C"
                            s_values[i++] = expwxCHK_CHECKED();
                            s_values[i++] = expwxCHK_UNCHECKED();
                            s_values[i++] = expwxCHK_UNDETERMINED();
+                           s_values[i++] = expwxCHOICEDLG_STYLE();
                            s_values[i++] = expwxCLEAR();
                            s_values[i++] = expwxCLIP_CHILDREN();
                            s_values[i++] = expwxCLIP_SIBLINGS();
@@ -3350,6 +3383,34 @@ extern "C"
                            s_values[i++] = expwxDUPLEX_HORIZONTAL();
                            s_values[i++] = expwxDUPLEX_SIMPLEX();
                            s_values[i++] = expwxDUPLEX_VERTICAL();
+                           s_values[i++] = expwxDateTime_Apr();
+                           s_values[i++] = expwxDateTime_Aug();
+                           s_values[i++] = expwxDateTime_Country_Default();
+                           s_values[i++] = expwxDateTime_Country_Unknown();
+                           s_values[i++] = expwxDateTime_Dec();
+                           s_values[i++] = expwxDateTime_Default_First();
+                           s_values[i++] = expwxDateTime_Feb();
+                           s_values[i++] = expwxDateTime_Fri();
+                           s_values[i++] = expwxDateTime_Jan();
+                           s_values[i++] = expwxDateTime_Jul();
+                           s_values[i++] = expwxDateTime_Jun();
+                           s_values[i++] = expwxDateTime_Local();
+                           s_values[i++] = expwxDateTime_Mar();
+                           s_values[i++] = expwxDateTime_May();
+                           s_values[i++] = expwxDateTime_Mon();
+                           s_values[i++] = expwxDateTime_Monday_First();
+                           s_values[i++] = expwxDateTime_Name_Abbr();
+                           s_values[i++] = expwxDateTime_Name_Full();
+                           s_values[i++] = expwxDateTime_Name_Shortest();
+                           s_values[i++] = expwxDateTime_Nov();
+                           s_values[i++] = expwxDateTime_Oct();
+                           s_values[i++] = expwxDateTime_Sat();
+                           s_values[i++] = expwxDateTime_Sep();
+                           s_values[i++] = expwxDateTime_Sun();
+                           s_values[i++] = expwxDateTime_Sunday_First();
+                           s_values[i++] = expwxDateTime_Thu();
+                           s_values[i++] = expwxDateTime_Tue();
+                           s_values[i++] = expwxDateTime_Wed();
                            s_values[i++] = expwxDefaultCoord();
                            s_values[i++] = expwxDragCancel();
                            s_values[i++] = expwxDragCopy();
@@ -3538,6 +3599,7 @@ extern "C"
                            s_values[i++] = expwxGridSelectNone();
                            s_values[i++] = expwxGridSelectRows();
                            s_values[i++] = expwxGridSelectRowsOrColumns();
+                           s_values[i++] = expwxHAS_NATIVE_NOTIFICATION_MESSAGE();
                            s_values[i++] = expwxHATCHSTYLE_BDIAGONAL();
                            s_values[i++] = expwxHATCHSTYLE_CROSS();
                            s_values[i++] = expwxHATCHSTYLE_CROSSDIAG();
@@ -4817,7 +4879,7 @@ extern "C"
 
     WXFFI_EXPORT(const char* const*, kwxConstants_NameTable)()
     {
-        static const char* const s_names[2396] = {
+        static const char* const s_names[2427] = {
             "EVT_ACCELERATOR_KEY",
             "EVT_ACTIVATE",
             "EVT_ACTIVATE_APP",
@@ -5598,6 +5660,7 @@ extern "C"
             "CAL_SHOW_WEEK_NUMBERS",
             "CAL_SUNDAY_FIRST",
             "CANCEL",
+            "CANCEL_DEFAULT",
             "CAPTION",
             "CAP_BUTT",
             "CAP_PROJECTING",
@@ -5618,6 +5681,7 @@ extern "C"
             "CHK_CHECKED",
             "CHK_UNCHECKED",
             "CHK_UNDETERMINED",
+            "CHOICEDLG_STYLE",
             "CLEAR",
             "CLIP_CHILDREN",
             "CLIP_SIBLINGS",
@@ -5753,6 +5817,34 @@ extern "C"
             "DUPLEX_HORIZONTAL",
             "DUPLEX_SIMPLEX",
             "DUPLEX_VERTICAL",
+            "DateTime_Apr",
+            "DateTime_Aug",
+            "DateTime_Country_Default",
+            "DateTime_Country_Unknown",
+            "DateTime_Dec",
+            "DateTime_Default_First",
+            "DateTime_Feb",
+            "DateTime_Fri",
+            "DateTime_Jan",
+            "DateTime_Jul",
+            "DateTime_Jun",
+            "DateTime_Local",
+            "DateTime_Mar",
+            "DateTime_May",
+            "DateTime_Mon",
+            "DateTime_Monday_First",
+            "DateTime_Name_Abbr",
+            "DateTime_Name_Full",
+            "DateTime_Name_Shortest",
+            "DateTime_Nov",
+            "DateTime_Oct",
+            "DateTime_Sat",
+            "DateTime_Sep",
+            "DateTime_Sun",
+            "DateTime_Sunday_First",
+            "DateTime_Thu",
+            "DateTime_Tue",
+            "DateTime_Wed",
             "DefaultCoord",
             "DragCancel",
             "DragCopy",
@@ -5941,6 +6033,7 @@ extern "C"
             "GridSelectNone",
             "GridSelectRows",
             "GridSelectRowsOrColumns",
+            "HAS_NATIVE_NOTIFICATION_MESSAGE",
             "HATCHSTYLE_BDIAGONAL",
             "HATCHSTYLE_CROSS",
             "HATCHSTYLE_CROSSDIAG",

@@ -15,6 +15,7 @@ public:
     void Generate(const ParsedFFI& ffi_data, const std::filesystem::path& outDir) override;
     VerifyResult Verify(const ParsedFFI& ffi_data, const std::filesystem::path& out_dir) override;
     [[nodiscard]] std::string_view Name() const override { return "fortran"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi_data) const override;
 
 private:
     // kwxffi_gen.f90 — raw C interface declarations
@@ -25,18 +26,14 @@ private:
     static void GenerateFreeFunctions(const ParsedFFI& ffi_data, std::ostream& output);
 
     // Idiomatic Fortran wrapper modules
-    static void GenerateTypes(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
+    static void GenerateTypeTree(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
     static void GenerateStringModule(const std::filesystem::path& outDir);
-    static void GenerateWindowModule(const ParsedFFI& ffi_data,
-                                     const std::filesystem::path& outDir);
-    static void GenerateFrameModule(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
-    static void GenerateControlsModule(const ParsedFFI& ffi_data,
-                                       const std::filesystem::path& outDir);
-    static void GenerateMenusModule(const ParsedFFI& ffi_data, const std::filesystem::path& outDir);
-    static void GenerateSizersModule(const ParsedFFI& ffi_data,
-                                     const std::filesystem::path& outDir);
     static void GenerateEventsModule(const ParsedFFI& ffi_data,
                                      const std::filesystem::path& outDir);
-    static void GenerateDialogsModule(const ParsedFFI& ffi_data,
-                                      const std::filesystem::path& outDir);
+
+    // One generated module per class that has at least one valid method.
+    static void GenerateClassModules(const ParsedFFI& ffi_data,
+                                     const std::filesystem::path& outDir);
+    static void EmitClassModule(std::ostream& output, const ClassInfo& class_info,
+                                const ParsedFFI& ffi_data);
 };

@@ -8,15 +8,18 @@
 #include "lang_fortran.h"
 
 #include "../file_writer.h"
+#include "fortran_idiom_map.h"
 #include "fortran_type_map.h"
 #include "lang_common.h"
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <filesystem>
 #include <map>
 #include <print>
 #include <set>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -278,15 +281,10 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
     }
 
     // 2. Idiomatic Fortran wrapper modules
-    GenerateTypes(ffi_data, outDir);
+    GenerateTypeTree(ffi_data, outDir);
     GenerateStringModule(outDir);
-    GenerateWindowModule(ffi_data, outDir);
-    GenerateFrameModule(ffi_data, outDir);
-    GenerateControlsModule(ffi_data, outDir);
-    GenerateMenusModule(ffi_data, outDir);
-    GenerateSizersModule(ffi_data, outDir);
     GenerateEventsModule(ffi_data, outDir);
-    GenerateDialogsModule(ffi_data, outDir);
+    GenerateClassModules(ffi_data, outDir);
 
     std::println(stderr, "Fortran: generated all files in {}", outDir.string());
 }
@@ -297,6 +295,161 @@ VerifyResult FortranEmitter::Verify(const ParsedFFI& /* ffi_data */, const fs::p
     result.success = false;
     result.messages.emplace_back("Fortran verify: use 'kwxgen verify' command instead");
     return result;
+}
+
+// Root of every generated Fortran wrapper type. It owns the two handle fields that all
+// wrapper types inherit.
+static constexpr std::string_view FORTRAN_ROOT_CLASS = "wxObject";
+
+// Every class the model knows about: parsed classes, every parent named by the hierarchy,
+// and every mixin. A mixin is not itself instantiated by a consumer, but wrapper modules
+// take `class(<mixin>_t)` arguments, so the type must exist.
+[[nodiscard]] static std::set<std::string> CollectFortranClassNames(const ParsedFFI& ffi_data)
+{
+    std::set<std::string> class_names;
+    for (const ClassInfo& class_info: ffi_data.classes)
+    {
+        class_names.insert(class_info.name);
+    }
+    for (const std::pair<const std::string, std::string>& parent_entry: ffi_data.parent_map)
+    {
+        class_names.insert(parent_entry.first);
+        if (!parent_entry.second.empty())
+        {
+            class_names.insert(parent_entry.second);
+        }
+    }
+    for (const std::pair<const std::string, std::vector<std::string>>& mixin_entry:
+         ffi_data.mixin_map)
+    {
+        class_names.insert(mixin_entry.first);
+        for (const std::string& mixin_name: mixin_entry.second)
+        {
+            class_names.insert(mixin_name);
+        }
+    }
+    class_names.insert(std::string(FORTRAN_ROOT_CLASS));
+    return class_names;
+}
+
+// -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// Count the wrapper procedures a class module exposes, using the same C-name dedupe rule as
+// CollectFortranClassProcedures(). Mixin methods belong to the consumer's module, so they
+// are counted here as well. Counting the emitted procedures rather than the raw model keeps
+// the parity gate honest about what the module really exposes.
+static void CountFortranClassProcedures(const ClassInfo& class_info, const ParsedFFI& ffi_data,
+                                        CoverageInfo& report)
+{
+    std::set<std::string> emitted_c_functions;
+    size_t wrapped_count = 0;
+    size_t collapsed_count = 0;
+
+    const auto count_methods = [&](const ClassInfo& method_owner)
+    {
+        for (const FunctionDecl& method: method_owner.methods)
+        {
+            if (!IsValidFunction(method))
+            {
+                continue;
+            }
+            if (emitted_c_functions.insert(CFuncName(method)).second)
+            {
+                ++wrapped_count;
+            }
+            else
+            {
+                ++collapsed_count;
+            }
+        }
+    };
+
+    count_methods(class_info);
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi_data.mixin_map.find(class_info.name);
+    if (mixin_iter != ffi_data.mixin_map.end())
+    {
+        for (const std::string& mixin_name: mixin_iter->second)
+        {
+            for (const ClassInfo& mixin_class: ffi_data.classes)
+            {
+                if (mixin_class.name == mixin_name)
+                {
+                    count_methods(mixin_class);
+                    break;
+                }
+            }
+        }
+    }
+
+    report.method_counts_by_class[class_info.name] = wrapped_count;
+    if (collapsed_count != 0)
+    {
+        report.deduplicated_method_counts_by_class[class_info.name] = collapsed_count;
+        report.deduplicated_method_count += collapsed_count;
+    }
+}
+
+// Every parsed class plus every synthesized parent and mixin is represented in
+// kwx_types.f90, so the whole type set counts as wrapped. A class contributes method counts
+// only when GenerateClassModules() actually writes a module for it, so the report measures
+// the emitted wrapper surface rather than the type tree.
+CoverageInfo FortranEmitter::Coverage(const ParsedFFI& ffi_data) const
+{
+    CoverageInfo report;
+    report.free_function_count = ffi_data.free_functions.size();
+    report.event_count = ffi_data.events.size();
+    report.key_count = ffi_data.keys.size();
+    report.constant_count = ffi_data.constants.size();
+
+    const std::set<std::string> class_names = CollectFortranClassNames(ffi_data);
+    report.wrapped_classes.assign(class_names.begin(), class_names.end());
+
+    // Mirror GenerateClassModules(): a class gets a module only when it owns at least one
+    // valid method and its module name does not collide with an earlier class.
+    std::set<std::string> generated_modules;
+    for (const std::string& class_name: report.wrapped_classes)
+    {
+        const ClassInfo* class_info = nullptr;
+        for (const ClassInfo& candidate: ffi_data.classes)
+        {
+            if (candidate.name == class_name)
+            {
+                class_info = &candidate;
+                break;
+            }
+        }
+        if (class_info == nullptr)
+        {
+            continue;
+        }
+
+        bool has_valid_method = false;
+        for (const FunctionDecl& method: class_info->methods)
+        {
+            if (IsValidFunction(method))
+            {
+                has_valid_method = true;
+                break;
+            }
+        }
+        if (!has_valid_method)
+        {
+            continue;
+        }
+
+        if (!generated_modules.insert(FortranClassModuleName(class_name)).second)
+        {
+            continue;
+        }
+
+        CountFortranClassProcedures(*class_info, ffi_data, report);
+    }
+
+    return report;
 }
 
 // -------------------------------------------------------------------------
@@ -455,10 +608,168 @@ void FortranEmitter::GenerateFreeFunctions(const ParsedFFI& ffi_data, std::ostre
 }
 
 // -------------------------------------------------------------------------
-// kwx_types.f90 — Opaque pointer types
+// kwx_types.f90 — Generated class type tree
 // -------------------------------------------------------------------------
 
-void FortranEmitter::GenerateTypes(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
+// Map every model class name to its Fortran type identifier. Names arrive sorted so the
+// assignment — and any collision suffix — is deterministic across runs.
+[[nodiscard]] static std::map<std::string, std::string>
+    BuildFortranTypeIdentifiers(const std::set<std::string>& class_names)
+{
+    std::map<std::string, std::string> identifiers;
+    std::set<std::string> used_identifiers;
+
+    for (const std::string& class_name: class_names)
+    {
+        std::string identifier =
+            FortranSanitizeIdentifier(class_name, FORTRAN_TYPE_IDENTIFIER_BASE_MAX);
+        if (used_identifiers.contains(identifier))
+        {
+            const std::string base_identifier = identifier;
+            for (size_t ordinal = 2;; ++ordinal)
+            {
+                identifier = base_identifier + "_" + std::to_string(ordinal);
+                if (!used_identifiers.contains(identifier))
+                {
+                    break;
+                }
+            }
+            std::println(stderr,
+                         "Fortran type tree: '{}' collides with an existing identifier, using '{}'",
+                         class_name, identifier);
+        }
+        used_identifiers.insert(identifier);
+        identifiers.insert_or_assign(class_name, identifier);
+    }
+    return identifiers;
+}
+
+// Fortran requires the parent type to be declared before the type that extends it, so the
+// emission order must be a topological order of the parent relation. Kahn's algorithm gives
+// that order; any class left unplaced is appended in name order so the output stays complete
+// even if the hierarchy was malformed.
+[[nodiscard]] static std::vector<std::string>
+    TopologicalClassOrder(const std::map<std::string, std::string>& parents,
+                          const std::set<std::string>& class_names, std::string_view root_class)
+{
+    std::map<std::string, std::vector<std::string>> children;
+    std::map<std::string, size_t> pending_parents;
+    for (const std::string& class_name: class_names)
+    {
+        const std::map<std::string, std::string>::const_iterator parent_iter =
+            parents.find(class_name);
+        if (parent_iter == parents.end())
+        {
+            continue;  // the root type is emitted separately
+        }
+        children[parent_iter->second].push_back(class_name);
+        ++pending_parents[class_name];
+    }
+
+    std::vector<std::string> ordered_classes;
+    ordered_classes.reserve(class_names.size());
+
+    // `class_names` is sorted, so this queue is deterministic.
+    std::vector<std::string> ready { std::string(root_class) };
+    for (size_t next = 0; next < ready.size(); ++next)
+    {
+        const std::string& parent_name = ready[next];
+        const std::map<std::string, std::vector<std::string>>::const_iterator child_iter =
+            children.find(parent_name);
+        if (child_iter == children.end())
+        {
+            continue;
+        }
+        for (const std::string& child_name: child_iter->second)
+        {
+            size_t& remaining = pending_parents[child_name];
+            --remaining;
+            if (remaining == 0)
+            {
+                ordered_classes.push_back(child_name);
+                ready.push_back(child_name);
+            }
+        }
+    }
+
+    if (ordered_classes.size() + 1 != class_names.size())
+    {
+        const std::set<std::string> placed(ordered_classes.begin(), ordered_classes.end());
+        for (const std::string& class_name: class_names)
+        {
+            if (class_name != root_class && !placed.contains(class_name))
+            {
+                std::println(stderr, "Fortran type tree: '{}' is unreachable from the root type",
+                             class_name);
+                ordered_classes.push_back(class_name);
+            }
+        }
+    }
+
+    return ordered_classes;
+}
+
+// Break inheritance cycles. Fortran rejects a circular type extension, and the parsed
+// hierarchy is not guaranteed acyclic: a malformed input can make two classes each other's
+// parent. Each cycle is broken at its lexicographically first member, which extends the root
+// type instead, and the affected classes are reported.
+static void BreakFortranParentCycles(std::map<std::string, std::string>& parents,
+                                     std::string_view root_class)
+{
+    std::set<std::string> resolved;
+    for (const std::pair<const std::string, std::string>& parent_entry: parents)
+    {
+        std::set<std::string> chain;
+        std::string current = parent_entry.first;
+        while (current != root_class)
+        {
+            if (chain.contains(current))
+            {
+                // `current` starts the cycle. Walk the cycle to find its first member.
+                std::string first_member = current;
+                std::string walker = parents.at(current);
+                while (walker != current)
+                {
+                    first_member = std::min(first_member, walker);
+                    walker = parents.at(walker);
+                }
+                if (resolved.contains(first_member))
+                {
+                    break;
+                }
+                resolved.insert(first_member);
+                parents.insert_or_assign(first_member, std::string(root_class));
+                std::println(stderr, "Fortran type tree: inheritance cycle broken at '{}'",
+                             first_member);
+                break;
+            }
+            chain.insert(current);
+            const std::map<std::string, std::string>::const_iterator parent_iter =
+                parents.find(current);
+            if (parent_iter == parents.end())
+            {
+                break;
+            }
+            current = parent_iter->second;
+        }
+    }
+}
+
+// Emit the module function that wraps a raw C pointer in the matching derived type.
+// `owned` is optional so a borrowed handle — the common case for getters — never deletes
+// an object the C++ side still owns.
+static void EmitFromPtr(std::ostream& output, const std::string& type_name)
+{
+    output << "    function " << type_name << "_from_ptr(ptr, owned) result(obj)\n";
+    output << "        type(c_ptr), intent(in), value :: ptr\n";
+    output << "        logical, intent(in), optional :: owned\n";
+    output << "        type(" << type_name << "_t) :: obj\n";
+    output << "        obj%ptr = ptr\n";
+    output << "        if (present(owned)) obj%owned = owned\n";
+    output << "    end function " << type_name << "_from_ptr\n\n";
+}
+
+void FortranEmitter::GenerateTypeTree(const ParsedFFI& ffi_data, const fs::path& outDir)
 {
     ConditionalFileWriter output(outDir / "kwx_types.f90");
 
@@ -468,84 +779,83 @@ void FortranEmitter::GenerateTypes(const ParsedFFI& /* ffi_data */, const fs::pa
     output << "    implicit none\n";
     output << "    private\n\n";
 
-    // Helper: emit a base type with its own ptr + is_valid
-    struct BaseType
-    {
-        const char* name;
-    };
-    // Helper: emit an extended type
-    struct DerivedType
-    {
-        const char* name;
-        const char* parent;
-    };
+    // Every class the model knows about: parsed classes, every parent named by the hierarchy,
+    // and every mixin. A mixin is not itself instantiated by a consumer, but wrapper modules
+    // take `class(<mixin>_t)` arguments, so the type must exist.
+    const std::set<std::string> class_names = CollectFortranClassNames(ffi_data);
 
-    // Base types (each has its own ptr and is_valid)
-    constexpr std::array<BaseType, 8> bases = { {
-        { "wxWindow" },
-        { "wxSizer" },
-        { "wxEvent" },
-        { "wxApp" },
-        { "wxMenu" },
-        { "wxMenuBar" },
-        { "wxMenuItem" },
-        { "wxString" },
-    } };
+    const std::map<std::string, std::string> identifiers = BuildFortranTypeIdentifiers(class_names);
 
-    // Derived types
-    constexpr std::array<DerivedType, 17> derived = { {
-        { "wxFrame", "wxWindow" },
-        { "wxDialog", "wxWindow" },
-        { "wxPanel", "wxWindow" },
-        { "wxButton", "wxWindow" },
-        { "wxTextCtrl", "wxWindow" },
-        { "wxStaticText", "wxWindow" },
-        { "wxCheckBox", "wxWindow" },
-        { "wxRadioButton", "wxWindow" },
-        { "wxChoice", "wxWindow" },
-        { "wxListBox", "wxWindow" },
-        { "wxComboBox", "wxWindow" },
-        { "wxStatusBar", "wxWindow" },
-        { "wxToolBar", "wxWindow" },
-        { "wxBoxSizer", "wxSizer" },
-        { "wxFlexGridSizer", "wxSizer" },
-        { "wxGridSizer", "wxSizer" },
-        { "wxCommandEvent", "wxEvent" },
-    } };
-
-    // Emit base types
-    for (const auto& base: bases)
+    // Resolve the type each class extends. An empty, self-referential, or unknown parent
+    // extends the root type, which keeps a malformed hierarchy from producing invalid Fortran.
+    std::map<std::string, std::string> parents;
+    for (const std::string& class_name: class_names)
     {
-        const std::string tname = std::string(base.name) + "_t";
-        output << "    type, public :: " << tname << "\n";
-        output << "        type(c_ptr) :: ptr = c_null_ptr\n";
-        output << "    contains\n";
-        output << "        procedure :: is_valid => " << base.name << "_is_valid\n";
-        output << "    end type " << tname << "\n\n";
+        if (class_name == FORTRAN_ROOT_CLASS)
+        {
+            continue;
+        }
+        std::string parent_name;
+        const std::unordered_map<std::string, std::string>::const_iterator parent_iter =
+            ffi_data.parent_map.find(class_name);
+        if (parent_iter != ffi_data.parent_map.end())
+        {
+            parent_name = parent_iter->second;
+        }
+        if (parent_name.empty() || parent_name == class_name || !class_names.contains(parent_name))
+        {
+            parent_name = std::string(FORTRAN_ROOT_CLASS);
+        }
+        parents.insert_or_assign(class_name, parent_name);
     }
 
-    // Emit derived types
-    for (const auto& derived_entry: derived)
+    BreakFortranParentCycles(parents, FORTRAN_ROOT_CLASS);
+    const std::vector<std::string> ordered_classes =
+        TopologicalClassOrder(parents, class_names, FORTRAN_ROOT_CLASS);
+
+    // The root type owns the handle fields; every other type inherits them.
+    const std::string root_type = identifiers.at(std::string(FORTRAN_ROOT_CLASS));
+    output << "    type, public :: " << root_type << "_t\n";
+    output << "        type(c_ptr) :: ptr = c_null_ptr\n";
+    output << "        logical :: owned = .false.\n";
+    output << "    contains\n";
+    output << "        procedure :: is_valid => " << root_type << "_is_valid\n";
+    output << "    end type " << root_type << "_t\n\n";
+
+    for (const std::string& class_name: ordered_classes)
     {
-        const std::string tname = std::string(derived_entry.name) + "_t";
-        const std::string pname = std::string(derived_entry.parent) + "_t";
-        output << "    type, extends(" << pname << "), public :: " << tname << "\n";
-        output << "    end type " << tname << "\n\n";
+        const std::string& type_name = identifiers.at(class_name);
+        const std::string& parent_type = identifiers.at(parents.at(class_name));
+        output << "    type, extends(" << parent_type << "_t), public :: " << type_name << "_t\n";
+        output << "    end type " << type_name << "_t\n\n";
     }
+
+    // The type tree declares every handle builder public: a wrapper module in another file
+    // calls `<class>_from_ptr` and would otherwise only see a private module procedure.
+    for (const std::string& class_name: ordered_classes)
+    {
+        output << "    public :: " << identifiers.at(class_name) << "_from_ptr\n";
+    }
+    output << "    public :: " << root_type << "_from_ptr\n";
+    output << "\n";
 
     output << "contains\n\n";
 
-    // is_valid procedures for base types
-    for (const auto& base: bases)
+    output << "    pure logical function " << root_type << "_is_valid(self) result(valid)\n";
+    output << "        class(" << root_type << "_t), intent(in) :: self\n";
+    output << "        valid = c_associated(self%ptr)\n";
+    output << "    end function " << root_type << "_is_valid\n\n";
+
+    // One borrowed-or-owned handle builder per class. `owned` defaults to false, so a handle
+    // returned by a getter never frees an object the C++ side still owns.
+    EmitFromPtr(output, root_type);
+    for (const std::string& class_name: ordered_classes)
     {
-        output << "    pure logical function " << base.name << "_is_valid(self) result(valid)\n";
-        output << "        class(" << base.name << "_t), intent(in) :: self\n";
-        output << "        valid = c_associated(self%ptr)\n";
-        output << "    end function " << base.name << "_is_valid\n\n";
+        EmitFromPtr(output, identifiers.at(class_name));
     }
 
     output << "end module kwx_types\n";
-    std::println(stderr, "  Generated kwx_types.f90");
+    std::println(stderr, "  Generated kwx_types.f90 ({} types)", ordered_classes.size() + 1);
 }
 
 // -------------------------------------------------------------------------
@@ -556,14 +866,21 @@ void FortranEmitter::GenerateStringModule(const fs::path& outDir)
 {
     ConditionalFileWriter output(outDir / "wx_string.f90");
 
+    // wxString_Delete is NOT declared here. The raw `kwxffi` module already provides it
+    // (generated from include/kwx_classes.h), and every wrapper module does `use kwxffi`.
+    // Declaring a second module procedure with that name makes any scope that imports both
+    // ambiguous, so this module re-exports the kwxffi entity instead and offers the
+    // null-resetting convenience as wx_string_delete.
     output << R"(! Code generated by kwxgen. DO NOT EDIT.
 module wx_string
     use, intrinsic :: iso_c_binding
     use kwx_types
+    use kwxffi, only: wxString_Delete, kwxFree
     implicit none
     private
 
-    public :: to_wxstring, from_wxstring, wxString_Delete
+    public :: to_wxstring, from_wxstring, from_cstring, free_cstring, wx_string_delete, &
+        wxString_Delete
 
     interface
         function wxString_CreateUTF8(str) bind(C, name="wxString_CreateUTF8")
@@ -579,15 +896,12 @@ module wx_string
             integer(c_int) :: wxString_GetString
         end function
 
-        subroutine wxString_Delete_C(wx_str) bind(C, name="wxString_Delete")
-            import :: c_ptr
-            type(c_ptr), value :: wx_str
-        end subroutine
-
-        function wxString_Length(wx_str) bind(C, name="wxString_Length")
-            import :: c_ptr, c_int
-            type(c_ptr), value :: wx_str
-            integer(c_int) :: wxString_Length
+        ! A TString is a bare char*, so its length comes from the C library rather than from
+        ! an FFI accessor.
+        function c_strlen(str) bind(C, name="strlen")
+            import :: c_ptr, c_size_t
+            type(c_ptr), value :: str
+            integer(c_size_t) :: c_strlen
         end function
     end interface
 
@@ -630,1745 +944,53 @@ contains
         end do
     end function from_wxstring
 
-    subroutine wxString_Delete(wx_str_ptr)
+    ! Copies a NUL-terminated UTF-8 C string into a Fortran string. The pointer is NOT freed:
+    ! the FFI does not state whether a TString result is strdup()ed or borrowed. Use
+    ! free_cstring() on the raw pointer when the C function documents caller ownership.
+    function from_cstring(cstr) result(fstring)
+        type(c_ptr), intent(in) :: cstr
+        character(len=:), allocatable :: fstring
+        character(kind=c_char), dimension(:), pointer :: chars
+        integer(c_size_t) :: slen
+        integer :: idx
+
+        fstring = ""
+        if (.not. c_associated(cstr)) return
+
+        slen = c_strlen(cstr)
+        if (slen <= 0) return
+
+        allocate(character(len=int(slen)) :: fstring)
+        call c_f_pointer(cstr, chars, [int(slen)])
+        do idx = 1, int(slen)
+            fstring(idx:idx) = chars(idx)
+        end do
+    end function from_cstring
+
+    ! Releases a string buffer the C side allocated with malloc()/strdup() and clears the
+    ! caller's pointer so a stale handle cannot survive the call.
+    subroutine free_cstring(cstr)
+        type(c_ptr), intent(inout) :: cstr
+        if (c_associated(cstr)) then
+            call kwxFree(cstr)
+            cstr = c_null_ptr
+        end if
+    end subroutine free_cstring
+
+    ! Frees wx_str_ptr and clears it. The re-exported kwxffi wxString_Delete takes its
+    ! argument by value, so it cannot null the caller's pointer; use this when a stale
+    ! handle must not survive the call.
+    subroutine wx_string_delete(wx_str_ptr)
         type(c_ptr), intent(inout) :: wx_str_ptr
         if (c_associated(wx_str_ptr)) then
-            call wxString_Delete_C(wx_str_ptr)
+            call wxString_Delete(wx_str_ptr)
             wx_str_ptr = c_null_ptr
         end if
-    end subroutine wxString_Delete
+    end subroutine wx_string_delete
 
 end module wx_string
 )";
     std::println(stderr, "  Generated wx_string.f90");
-}
-
-// -------------------------------------------------------------------------
-// wx_window.f90 — wxWindow base class wrapper
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateWindowModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "wx_window.f90");
-
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_window
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    implicit none
-    private
-
-    ! Visibility and state
-    public :: wx_window_show, wx_window_hide
-    public :: wx_window_enable, wx_window_disable
-    public :: wx_window_is_enabled, wx_window_is_shown
-
-    ! Size and position
-    public :: wx_window_set_size, wx_window_move
-    public :: wx_window_get_id
-
-    ! Focus
-    public :: wx_window_set_focus, wx_window_has_focus
-
-    ! Refresh and update
-    public :: wx_window_refresh, wx_window_update
-
-    ! Layout
-    public :: wx_window_center, wx_window_fit, wx_window_layout
-
-    ! Destruction
-    public :: wx_window_destroy, wx_window_close
-
-    ! Hierarchy
-    public :: wx_window_get_parent, wx_window_is_top_level
-
-    ! Freeze/thaw
-    public :: wx_window_freeze, wx_window_thaw
-
-    ! Z-order
-    public :: wx_window_raise, wx_window_lower
-
-contains
-
-    !--- Visibility and state ---
-
-    function wx_window_show(window) result(shown)
-        class(wxWindow_t), intent(in) :: window
-        logical :: shown
-        shown = (wxWindow_Show(window%ptr) /= 0)
-    end function
-
-    function wx_window_hide(window) result(hidden)
-        class(wxWindow_t), intent(in) :: window
-        logical :: hidden
-        hidden = (wxWindow_Hide(window%ptr) /= 0)
-    end function
-
-    subroutine wx_window_enable(window)
-        class(wxWindow_t), intent(in) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_Enable(window%ptr, 1_c_int)
-    end subroutine
-
-    subroutine wx_window_disable(window)
-        class(wxWindow_t), intent(in) :: window
-        integer(c_int) :: result_
-        result_ = wxWindow_Disable(window%ptr)
-    end subroutine
-
-    function wx_window_is_enabled(window) result(enabled)
-        class(wxWindow_t), intent(in) :: window
-        logical :: enabled
-        enabled = (wxWindow_IsEnabled(window%ptr) /= 0)
-    end function
-
-    function wx_window_is_shown(window) result(shown)
-        class(wxWindow_t), intent(in) :: window
-        logical :: shown
-        shown = (wxWindow_IsShown(window%ptr) /= 0)
-    end function
-
-    !--- Size and position ---
-
-    subroutine wx_window_set_size(window, x, y, width, height)
-        class(wxWindow_t), intent(in) :: window
-        integer, intent(in) :: x, y, width, height
-        call wxWindow_SetSize(window%ptr, int(x, c_int), int(y, c_int), &
-            int(width, c_int), int(height, c_int), 0_c_int)
-    end subroutine
-
-    subroutine wx_window_move(window, x, y)
-        class(wxWindow_t), intent(in) :: window
-        integer, intent(in) :: x, y
-        call wxWindow_Move(window%ptr, int(x, c_int), int(y, c_int), 0_c_int)
-    end subroutine
-
-    function wx_window_get_id(window) result(id)
-        class(wxWindow_t), intent(in) :: window
-        integer :: id
-        id = int(wxWindow_GetId(window%ptr))
-    end function
-
-    !--- Focus ---
-
-    subroutine wx_window_set_focus(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_SetFocus(window%ptr)
-    end subroutine
-
-    function wx_window_has_focus(window) result(focused)
-        class(wxWindow_t), intent(in) :: window
-        logical :: focused
-        focused = (wxWindow_HasFocus(window%ptr) /= 0)
-    end function
-
-    !--- Refresh and update ---
-
-    subroutine wx_window_refresh(window, erase_background)
-        class(wxWindow_t), intent(in) :: window
-        logical, intent(in), optional :: erase_background
-        integer(c_int) :: erase
-        erase = 1_c_int
-        if (present(erase_background)) then
-            erase = 0_c_int
-            if (erase_background) erase = 1_c_int
-        end if
-        call wxWindow_Refresh(window%ptr, erase)
-    end subroutine
-
-    subroutine wx_window_update(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_UpdateWindowUI(window%ptr, 0_c_int)
-    end subroutine
-
-    !--- Layout ---
-
-    subroutine wx_window_center(window, direction)
-        class(wxWindow_t), intent(in) :: window
-        integer, intent(in), optional :: direction
-        integer(c_int) :: dir
-        dir = wxBOTH()
-        if (present(direction)) dir = int(direction, c_int)
-        call wxWindow_CenterOnParent(window%ptr, dir)
-    end subroutine
-
-    subroutine wx_window_fit(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_Fit(window%ptr)
-    end subroutine
-
-    function wx_window_layout(window) result(ok)
-        class(wxWindow_t), intent(in) :: window
-        logical :: ok
-        ok = (wxWindow_Layout(window%ptr) /= 0)
-    end function
-
-    !--- Destruction ---
-
-    function wx_window_destroy(window) result(destroyed)
-        class(wxWindow_t), intent(inout) :: window
-        logical :: destroyed
-        destroyed = (wxWindow_Destroy(window%ptr) /= 0)
-        window%ptr = c_null_ptr
-    end function
-
-    function wx_window_close(window, force) result(closed)
-        class(wxWindow_t), intent(in) :: window
-        logical, intent(in), optional :: force
-        logical :: closed
-        integer(c_int) :: c_force
-        c_force = 0_c_int
-        if (present(force)) then
-            if (force) c_force = 1_c_int
-        end if
-        closed = (wxWindow_Close(window%ptr, c_force) /= 0)
-    end function
-
-    !--- Hierarchy ---
-
-    function wx_window_get_parent(window) result(parent)
-        class(wxWindow_t), intent(in) :: window
-        type(wxWindow_t) :: parent
-        parent%ptr = wxWindow_GetParent(window%ptr)
-    end function
-
-    function wx_window_is_top_level(window) result(is_top)
-        class(wxWindow_t), intent(in) :: window
-        logical :: is_top
-        is_top = (wxWindow_IsTopLevel(window%ptr) /= 0)
-    end function
-
-    !--- Freeze/thaw ---
-
-    subroutine wx_window_freeze(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_Freeze(window%ptr)
-    end subroutine
-
-    subroutine wx_window_thaw(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_Thaw(window%ptr)
-    end subroutine
-
-    !--- Z-order ---
-
-    subroutine wx_window_raise(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_Raise(window%ptr)
-    end subroutine
-
-    subroutine wx_window_lower(window)
-        class(wxWindow_t), intent(in) :: window
-        call wxWindow_Lower(window%ptr)
-    end subroutine
-
-end module wx_window
-)";
-    std::println(stderr, "  Generated wx_window.f90");
-}
-
-// -------------------------------------------------------------------------
-// wx_frame.f90 — wxFrame + wxTopLevelWindow wrapper
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateFrameModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "wx_frame.f90");
-
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_frame
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    use wx_string, only: to_wxstring, from_wxstring
-    implicit none
-    private
-
-    ! Creation
-    public :: wx_frame_create
-
-    ! Show/hide/close
-    public :: wx_frame_show, wx_frame_hide, wx_frame_close
-
-    ! Status bar
-    public :: wx_frame_create_status_bar, wx_frame_set_status_text
-    public :: wx_frame_push_status_text, wx_frame_pop_status_text
-
-    ! Menu bar
-    public :: wx_frame_set_menu_bar, wx_frame_get_menu_bar
-
-    ! Toolbar
-    public :: wx_frame_create_tool_bar, wx_frame_get_tool_bar
-
-    ! Window ops
-    public :: wx_frame_center, wx_frame_set_size
-
-    ! TopLevelWindow ops
-    public :: wx_frame_restore, wx_frame_maximize, wx_frame_iconize
-    public :: wx_frame_is_maximized, wx_frame_is_iconized
-    public :: wx_frame_show_full_screen, wx_frame_is_full_screen
-    public :: wx_frame_get_title, wx_frame_set_title
-    public :: wx_frame_is_active
-    public :: wx_frame_enable_close_button
-    public :: wx_frame_enable_maximize_button
-    public :: wx_frame_enable_minimize_button
-    public :: wx_frame_request_user_attention
-
-contains
-
-    !--- Creation ---
-
-    function wx_frame_create(title, parent, id, x, y, width, height, style) &
-            result(frame)
-        character(len=*), intent(in) :: title
-        class(wxWindow_t), intent(in), optional :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxFrame_t) :: frame
-
-        type(c_ptr) :: parent_ptr, title_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        parent_ptr = c_null_ptr
-        if (present(parent)) parent_ptr = parent%ptr
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = wxDEFAULT_FRAME_STYLE()
-        if (present(style)) c_style = style
-
-        title_ptr = to_wxstring(title)
-        frame%ptr = wxFrame_Create(parent_ptr, c_id, title_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(title_ptr)
-    end function
-
-    !--- Show/hide/close ---
-
-    subroutine wx_frame_show(frame)
-        type(wxFrame_t), intent(in) :: frame
-        integer(c_int) :: dummy
-        dummy = wxWindow_Show(frame%ptr)
-    end subroutine
-
-    subroutine wx_frame_hide(frame)
-        type(wxFrame_t), intent(in) :: frame
-        integer(c_int) :: dummy
-        dummy = wxWindow_Hide(frame%ptr)
-    end subroutine
-
-    subroutine wx_frame_close(frame, force)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: force
-        integer(c_int) :: c_force, dummy
-        c_force = 0_c_int
-        if (present(force)) then
-            if (force) c_force = 1_c_int
-        end if
-        dummy = wxWindow_Close(frame%ptr, c_force)
-    end subroutine
-
-    !--- Status bar ---
-
-    subroutine wx_frame_create_status_bar(frame, number, style)
-        type(wxFrame_t), intent(in) :: frame
-        integer, intent(in), optional :: number
-        integer(c_int), intent(in), optional :: style
-        type(c_ptr) :: result_
-        integer(c_int) :: c_num
-        integer(c_int) :: c_style
-        c_num = 1_c_int
-        if (present(number)) c_num = int(number, c_int)
-        c_style = 0_c_int
-        if (present(style)) c_style = style
-        result_ = wxFrame_CreateStatusBar(frame%ptr, c_num, c_style, -1_c_int)
-    end subroutine
-
-    subroutine wx_frame_set_status_text(frame, text, number)
-        type(wxFrame_t), intent(in) :: frame
-        character(len=*), intent(in) :: text
-        integer, intent(in), optional :: number
-        type(c_ptr) :: text_ptr
-        integer(c_int) :: c_num
-        c_num = 0_c_int
-        if (present(number)) c_num = int(number, c_int)
-        text_ptr = to_wxstring(text)
-        call wxFrame_SetStatusText(frame%ptr, text_ptr, c_num)
-        call wxString_Delete(text_ptr)
-    end subroutine
-
-    subroutine wx_frame_push_status_text(frame, text, number)
-        type(wxFrame_t), intent(in) :: frame
-        character(len=*), intent(in) :: text
-        integer, intent(in), optional :: number
-        type(c_ptr) :: text_ptr
-        integer(c_int) :: c_num
-        c_num = 0_c_int
-        if (present(number)) c_num = int(number, c_int)
-        text_ptr = to_wxstring(text)
-        call wxFrame_PushStatusText(frame%ptr, text_ptr, c_num)
-        call wxString_Delete(text_ptr)
-    end subroutine
-
-    subroutine wx_frame_pop_status_text(frame, number)
-        type(wxFrame_t), intent(in) :: frame
-        integer, intent(in), optional :: number
-        integer(c_int) :: c_num
-        c_num = 0_c_int
-        if (present(number)) c_num = int(number, c_int)
-        call wxFrame_PopStatusText(frame%ptr, c_num)
-    end subroutine
-
-    !--- Menu bar ---
-
-    subroutine wx_frame_set_menu_bar(frame, menubar)
-        type(wxFrame_t), intent(in) :: frame
-        type(wxMenuBar_t), intent(in) :: menubar
-        call wxFrame_SetMenuBar(frame%ptr, menubar%ptr)
-    end subroutine
-
-    function wx_frame_get_menu_bar(frame) result(menubar)
-        type(wxFrame_t), intent(in) :: frame
-        type(wxMenuBar_t) :: menubar
-        menubar%ptr = wxFrame_GetMenuBar(frame%ptr)
-    end function
-
-    !--- Toolbar ---
-
-    function wx_frame_create_tool_bar(frame, style) result(toolbar)
-        type(wxFrame_t), intent(in) :: frame
-        integer(c_long), intent(in), optional :: style
-        type(wxToolBar_t) :: toolbar
-        integer(c_long) :: c_style
-        c_style = -1_c_long
-        if (present(style)) c_style = style
-        toolbar%ptr = wxFrame_CreateToolBar(frame%ptr, c_style, -1_c_int)
-    end function
-
-    function wx_frame_get_tool_bar(frame) result(toolbar)
-        type(wxFrame_t), intent(in) :: frame
-        type(wxToolBar_t) :: toolbar
-        toolbar%ptr = wxFrame_GetToolBar(frame%ptr)
-    end function
-
-    !--- Window ops ---
-
-    subroutine wx_frame_center(frame, direction)
-        type(wxFrame_t), intent(in) :: frame
-        integer, intent(in), optional :: direction
-        integer(c_int) :: dir
-        dir = wxBOTH()
-        if (present(direction)) dir = int(direction, c_int)
-        call wxWindow_CenterOnParent(frame%ptr, dir)
-    end subroutine
-
-    subroutine wx_frame_set_size(frame, width, height)
-        type(wxFrame_t), intent(in) :: frame
-        integer, intent(in) :: width, height
-        call wxWindow_SetSize(frame%ptr, -1_c_int, -1_c_int, &
-            int(width, c_int), int(height, c_int), 0_c_int)
-    end subroutine
-
-    !--- TopLevelWindow ops ---
-
-    subroutine wx_frame_restore(frame)
-        type(wxFrame_t), intent(in) :: frame
-        call wxTopLevelWindow_Restore(frame%ptr)
-    end subroutine
-
-    subroutine wx_frame_maximize(frame, maximize)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: maximize
-        integer(c_int) :: c_max
-        c_max = 1_c_int
-        if (present(maximize)) then
-            c_max = 0_c_int
-            if (maximize) c_max = 1_c_int
-        end if
-        call wxTopLevelWindow_Maximize(frame%ptr, c_max)
-    end subroutine
-
-    subroutine wx_frame_iconize(frame, iconize)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: iconize
-        integer(c_int) :: c_ico, dummy
-        c_ico = 1_c_int
-        if (present(iconize)) then
-            c_ico = 0_c_int
-            if (iconize) c_ico = 1_c_int
-        end if
-        dummy = wxTopLevelWindow_Iconize(frame%ptr, c_ico)
-    end subroutine
-
-    function wx_frame_is_maximized(frame) result(maximized)
-        type(wxFrame_t), intent(in) :: frame
-        logical :: maximized
-        maximized = (wxTopLevelWindow_IsMaximized(frame%ptr) /= 0)
-    end function
-
-    function wx_frame_is_iconized(frame) result(iconized)
-        type(wxFrame_t), intent(in) :: frame
-        logical :: iconized
-        iconized = (wxTopLevelWindow_IsIconized(frame%ptr) /= 0)
-    end function
-
-    function wx_frame_show_full_screen(frame, show, style) result(ok)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in) :: show
-        integer(c_long), intent(in), optional :: style
-        logical :: ok
-        integer(c_int) :: c_show
-        integer(c_long) :: c_style
-        c_show = 0_c_int
-        if (show) c_show = 1_c_int
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-        ok = (wxTopLevelWindow_ShowFullScreen(frame%ptr, c_show, c_style) /= 0)
-    end function
-
-    function wx_frame_is_full_screen(frame) result(full)
-        type(wxFrame_t), intent(in) :: frame
-        logical :: full
-        full = (wxTopLevelWindow_IsFullScreen(frame%ptr) /= 0)
-    end function
-
-    function wx_frame_get_title(frame) result(title)
-        type(wxFrame_t), intent(in) :: frame
-        character(len=:), allocatable :: title
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxTopLevelWindow_GetTitle(frame%ptr)
-        title = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_frame_set_title(frame, title)
-        type(wxFrame_t), intent(in) :: frame
-        character(len=*), intent(in) :: title
-        type(c_ptr) :: title_ptr
-        title_ptr = to_wxstring(title)
-        call wxTopLevelWindow_SetTitle(frame%ptr, title_ptr)
-        call wxString_Delete(title_ptr)
-    end subroutine
-
-    function wx_frame_is_active(frame) result(active)
-        type(wxFrame_t), intent(in) :: frame
-        logical :: active
-        active = (wxTopLevelWindow_IsActive(frame%ptr) /= 0)
-    end function
-
-    function wx_frame_enable_close_button(frame, enable) result(ok)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: enable
-        logical :: ok
-        integer(c_int) :: c_en
-        c_en = 1_c_int
-        if (present(enable)) then
-            c_en = 0_c_int
-            if (enable) c_en = 1_c_int
-        end if
-        ok = (wxTopLevelWindow_EnableCloseButton(frame%ptr, c_en) /= 0)
-    end function
-
-    function wx_frame_enable_maximize_button(frame, enable) result(ok)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: enable
-        logical :: ok
-        integer(c_int) :: c_en
-        c_en = 1_c_int
-        if (present(enable)) then
-            c_en = 0_c_int
-            if (enable) c_en = 1_c_int
-        end if
-        ok = (wxTopLevelWindow_EnableMaximizeButton(frame%ptr, c_en) /= 0)
-    end function
-
-    function wx_frame_enable_minimize_button(frame, enable) result(ok)
-        type(wxFrame_t), intent(in) :: frame
-        logical, intent(in), optional :: enable
-        logical :: ok
-        integer(c_int) :: c_en
-        c_en = 1_c_int
-        if (present(enable)) then
-            c_en = 0_c_int
-            if (enable) c_en = 1_c_int
-        end if
-        ok = (wxTopLevelWindow_EnableMinimizeButton(frame%ptr, c_en) /= 0)
-    end function
-
-    subroutine wx_frame_request_user_attention(frame, flags)
-        type(wxFrame_t), intent(in) :: frame
-        integer, intent(in), optional :: flags
-        integer(c_int) :: c_flags
-        c_flags = 0_c_int
-        if (present(flags)) c_flags = int(flags, c_int)
-        call wxTopLevelWindow_RequestUserAttention(frame%ptr, c_flags)
-    end subroutine
-
-end module wx_frame
-)";
-    std::println(stderr, "  Generated wx_frame.f90");
-}
-
-// -------------------------------------------------------------------------
-// wx_controls.f90 — Control wrappers
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateControlsModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "wx_controls.f90");
-
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_controls
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    use wx_string, only: to_wxstring, from_wxstring
-    implicit none
-    private
-
-    ! wxButton
-    public :: wx_button_create, wx_button_set_default
-
-    ! wxTextCtrl
-    public :: wx_text_ctrl_create
-    public :: wx_text_ctrl_get_value, wx_text_ctrl_set_value
-    public :: wx_text_ctrl_change_value
-    public :: wx_text_ctrl_clear
-    public :: wx_text_ctrl_write_text, wx_text_ctrl_append_text
-    public :: wx_text_ctrl_is_modified, wx_text_ctrl_is_editable
-    public :: wx_text_ctrl_get_number_of_lines
-    public :: wx_text_ctrl_set_hint
-
-    ! wxStaticText
-    public :: wx_static_text_create
-
-    ! wxPanel
-    public :: wx_panel_create
-
-    ! wxCheckBox
-    public :: wx_checkbox_create
-    public :: wx_checkbox_get_value, wx_checkbox_set_value
-
-    ! wxRadioButton
-    public :: wx_radiobutton_create
-    public :: wx_radiobutton_get_value, wx_radiobutton_set_value
-
-    ! wxChoice
-    public :: wx_choice_create, wx_choice_append
-    public :: wx_choice_delete, wx_choice_clear, wx_choice_get_count
-    public :: wx_choice_get_selection, wx_choice_set_selection
-    public :: wx_choice_find_string
-    public :: wx_choice_get_string, wx_choice_set_string
-
-    ! wxListBox
-    public :: wx_listbox_create, wx_listbox_append
-    public :: wx_listbox_delete, wx_listbox_clear, wx_listbox_get_count
-    public :: wx_listbox_get_selection, wx_listbox_set_selection
-    public :: wx_listbox_find_string
-    public :: wx_listbox_get_string, wx_listbox_set_string
-    public :: wx_listbox_is_selected
-
-    ! wxComboBox
-    public :: wx_combobox_create, wx_combobox_append
-    public :: wx_combobox_delete, wx_combobox_clear, wx_combobox_get_count
-    public :: wx_combobox_get_selection, wx_combobox_set_selection
-    public :: wx_combobox_find_string
-    public :: wx_combobox_get_string, wx_combobox_set_string
-    public :: wx_combobox_get_value, wx_combobox_set_value
-
-contains
-
-    !--- wxButton ---
-
-    function wx_button_create(label, parent, id, x, y, width, height, style) &
-            result(button)
-        character(len=*), intent(in) :: label
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxButton_t) :: button
-
-        type(c_ptr) :: label_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        label_ptr = to_wxstring(label)
-        button%ptr = wxButton_Create(parent%ptr, c_id, label_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(label_ptr)
-    end function
-
-    subroutine wx_button_set_default(button)
-        type(wxButton_t), intent(in) :: button
-        call wxButton_SetDefault(button%ptr)
-    end subroutine
-
-    !--- wxTextCtrl ---
-
-    function wx_text_ctrl_create(parent, value, id, x, y, width, height, style) &
-            result(ctrl)
-        class(wxWindow_t), intent(in) :: parent
-        character(len=*), intent(in), optional :: value
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxTextCtrl_t) :: ctrl
-
-        type(c_ptr) :: val_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        if (present(value)) then
-            val_ptr = to_wxstring(value)
-        else
-            val_ptr = to_wxstring("")
-        end if
-
-        ctrl%ptr = wxTextCtrl_Create(parent%ptr, c_id, val_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(val_ptr)
-    end function
-
-    function wx_text_ctrl_get_value(ctrl) result(value)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=:), allocatable :: value
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxTextCtrl_GetValue(ctrl%ptr)
-        value = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_text_ctrl_set_value(ctrl, value)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: value
-        type(c_ptr) :: val_ptr
-        val_ptr = to_wxstring(value)
-        call wxTextCtrl_SetValue(ctrl%ptr, val_ptr)
-        call wxString_Delete(val_ptr)
-    end subroutine
-
-    subroutine wx_text_ctrl_change_value(ctrl, value)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: value
-        type(c_ptr) :: val_ptr
-        val_ptr = to_wxstring(value)
-        call wxTextCtrl_ChangeValue(ctrl%ptr, val_ptr)
-        call wxString_Delete(val_ptr)
-    end subroutine
-
-    subroutine wx_text_ctrl_clear(ctrl)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        call wxTextCtrl_Clear(ctrl%ptr)
-    end subroutine
-
-    subroutine wx_text_ctrl_write_text(ctrl, text)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: text
-        type(c_ptr) :: text_ptr
-        text_ptr = to_wxstring(text)
-        call wxTextCtrl_WriteText(ctrl%ptr, text_ptr)
-        call wxString_Delete(text_ptr)
-    end subroutine
-
-    subroutine wx_text_ctrl_append_text(ctrl, text)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: text
-        type(c_ptr) :: text_ptr
-        text_ptr = to_wxstring(text)
-        call wxTextCtrl_AppendText(ctrl%ptr, text_ptr)
-        call wxString_Delete(text_ptr)
-    end subroutine
-
-    function wx_text_ctrl_is_modified(ctrl) result(modified)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        logical :: modified
-        modified = (wxTextCtrl_IsModified(ctrl%ptr) /= 0)
-    end function
-
-    function wx_text_ctrl_is_editable(ctrl) result(editable)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        logical :: editable
-        editable = (wxTextCtrl_IsEditable(ctrl%ptr) /= 0)
-    end function
-
-    function wx_text_ctrl_get_number_of_lines(ctrl) result(nlines)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        integer :: nlines
-        nlines = int(wxTextCtrl_GetNumberOfLines(ctrl%ptr))
-    end function
-
-    subroutine wx_text_ctrl_set_hint(ctrl, hint)
-        type(wxTextCtrl_t), intent(in) :: ctrl
-        character(len=*), intent(in) :: hint
-        type(c_ptr) :: hint_ptr
-        integer(c_int) :: res
-        hint_ptr = to_wxstring(hint)
-        res = wxTextEntry_SetHint(ctrl%ptr, hint_ptr)
-        call wxString_Delete(hint_ptr)
-    end subroutine
-
-
-        )";  // end first raw string chunk
-    output << R"(
-    !--- wxStaticText ---
-
-    function wx_static_text_create(label, parent, id, x, y, width, height, &
-            style) result(st)
-        character(len=*), intent(in) :: label
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxStaticText_t) :: st
-
-        type(c_ptr) :: label_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        label_ptr = to_wxstring(label)
-        st%ptr = wxStaticText_Create(parent%ptr, c_id, label_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(label_ptr)
-    end function
-
-    !--- wxPanel ---
-
-    function wx_panel_create(parent, id, x, y, width, height, style) &
-            result(panel)
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxPanel_t) :: panel
-
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = wxTAB_TRAVERSAL()
-        if (present(style)) c_style = style
-
-        panel%ptr = wxPanel_Create(parent%ptr, c_id, &
-            c_x, c_y, c_w, c_h, c_style)
-    end function
-
-    !--- wxCheckBox ---
-
-    function wx_checkbox_create(label, parent, id, x, y, width, height, &
-            style) result(cb)
-        character(len=*), intent(in) :: label
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxCheckBox_t) :: cb
-
-        type(c_ptr) :: label_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        label_ptr = to_wxstring(label)
-        cb%ptr = wxCheckBox_Create(parent%ptr, c_id, label_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(label_ptr)
-    end function
-
-    function wx_checkbox_get_value(cb) result(checked)
-        type(wxCheckBox_t), intent(in) :: cb
-        logical :: checked
-        checked = (wxCheckBox_GetValue(cb%ptr) /= 0)
-    end function
-
-    subroutine wx_checkbox_set_value(cb, checked)
-        type(wxCheckBox_t), intent(in) :: cb
-        logical, intent(in) :: checked
-        integer(c_int) :: val
-        val = 0_c_int
-        if (checked) val = 1_c_int
-        call wxCheckBox_SetValue(cb%ptr, val)
-    end subroutine
-
-    !--- wxRadioButton ---
-
-    function wx_radiobutton_create(label, parent, id, x, y, width, height, &
-            style) result(rb)
-        character(len=*), intent(in) :: label
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxRadioButton_t) :: rb
-
-        type(c_ptr) :: label_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        label_ptr = to_wxstring(label)
-        rb%ptr = wxRadioButton_Create(parent%ptr, c_id, label_ptr, &
-            c_x, c_y, c_w, c_h, c_style)
-        call wxString_Delete(label_ptr)
-    end function
-
-    function wx_radiobutton_get_value(rb) result(selected)
-        type(wxRadioButton_t), intent(in) :: rb
-        logical :: selected
-        selected = (wxRadioButton_GetValue(rb%ptr) /= 0)
-    end function
-
-    subroutine wx_radiobutton_set_value(rb, selected)
-        type(wxRadioButton_t), intent(in) :: rb
-        logical, intent(in) :: selected
-        integer(c_int) :: val
-        val = 0_c_int
-        if (selected) val = 1_c_int
-        call wxRadioButton_SetValue(rb%ptr, val)
-    end subroutine
-
-    !--- wxChoice ---
-
-    function wx_choice_create(parent, id, x, y, width, height, style) &
-            result(choice)
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxChoice_t) :: choice
-
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        choice%ptr = wxChoice_Create(parent%ptr, c_id, &
-            c_x, c_y, c_w, c_h, 0_c_int, c_null_ptr, c_style)
-    end function
-
-    subroutine wx_choice_append(choice, item)
-        type(wxChoice_t), intent(in) :: choice
-        character(len=*), intent(in) :: item
-        type(c_ptr) :: item_ptr
-        item_ptr = to_wxstring(item)
-        call wxChoice_Append(choice%ptr, item_ptr)
-        call wxString_Delete(item_ptr)
-    end subroutine
-
-    subroutine wx_choice_delete(choice, index)
-        type(wxChoice_t), intent(in) :: choice
-        integer, intent(in) :: index
-        call wxChoice_Delete(choice%ptr, int(index, c_int))
-    end subroutine
-
-    subroutine wx_choice_clear(choice)
-        type(wxChoice_t), intent(in) :: choice
-        call wxChoice_Clear(choice%ptr)
-    end subroutine
-
-    function wx_choice_get_count(choice) result(n)
-        type(wxChoice_t), intent(in) :: choice
-        integer :: n
-        n = int(wxChoice_GetCount(choice%ptr))
-    end function
-
-    function wx_choice_get_selection(choice) result(sel)
-        type(wxChoice_t), intent(in) :: choice
-        integer :: sel
-        sel = int(wxChoice_GetSelection(choice%ptr))
-    end function
-
-    subroutine wx_choice_set_selection(choice, index)
-        type(wxChoice_t), intent(in) :: choice
-        integer, intent(in) :: index
-        call wxChoice_SetSelection(choice%ptr, int(index, c_int))
-    end subroutine
-
-    function wx_choice_find_string(choice, str) result(index)
-        type(wxChoice_t), intent(in) :: choice
-        character(len=*), intent(in) :: str
-        integer :: index
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        index = int(wxChoice_FindString(choice%ptr, str_ptr))
-        call wxString_Delete(str_ptr)
-    end function
-
-    function wx_choice_get_string(choice, index) result(str)
-        type(wxChoice_t), intent(in) :: choice
-        integer, intent(in) :: index
-        character(len=:), allocatable :: str
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxChoice_GetString(choice%ptr, int(index, c_int))
-        str = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_choice_set_string(choice, index, str)
-        type(wxChoice_t), intent(in) :: choice
-        integer, intent(in) :: index
-        character(len=*), intent(in) :: str
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        call wxChoice_SetString(choice%ptr, int(index, c_int), str_ptr)
-        call wxString_Delete(str_ptr)
-    end subroutine
-        )";  // end second raw string chunk
-    output << R"(
-
-    !--- wxListBox ---
-
-    function wx_listbox_create(parent, id, x, y, width, height, style) &
-            result(lb)
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxListBox_t) :: lb
-
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        lb%ptr = wxListBox_Create(parent%ptr, c_id, &
-            c_x, c_y, c_w, c_h, 0_c_int, c_null_ptr, c_style)
-    end function
-
-    subroutine wx_listbox_append(lb, item)
-        type(wxListBox_t), intent(in) :: lb
-        character(len=*), intent(in) :: item
-        type(c_ptr) :: item_ptr
-        item_ptr = to_wxstring(item)
-        call wxListBox_Append(lb%ptr, item_ptr)
-        call wxString_Delete(item_ptr)
-    end subroutine
-
-    subroutine wx_listbox_delete(lb, index)
-        type(wxListBox_t), intent(in) :: lb
-        integer, intent(in) :: index
-        call wxListBox_Delete(lb%ptr, int(index, c_int))
-    end subroutine
-
-    subroutine wx_listbox_clear(lb)
-        type(wxListBox_t), intent(in) :: lb
-        call wxListBox_Clear(lb%ptr)
-    end subroutine
-
-    function wx_listbox_get_count(lb) result(n)
-        type(wxListBox_t), intent(in) :: lb
-        integer :: n
-        n = int(wxListBox_GetCount(lb%ptr))
-    end function
-
-    function wx_listbox_get_selection(lb) result(sel)
-        type(wxListBox_t), intent(in) :: lb
-        integer :: sel
-        sel = int(wxListBox_GetSelection(lb%ptr))
-    end function
-
-    subroutine wx_listbox_set_selection(lb, index, sel)
-        type(wxListBox_t), intent(in) :: lb
-        integer, intent(in) :: index
-        logical, intent(in), optional :: sel
-        integer(c_int) :: c_sel
-        c_sel = 1_c_int
-        if (present(sel)) then
-            c_sel = 0_c_int
-            if (sel) c_sel = 1_c_int
-        end if
-        call wxListBox_SetSelection(lb%ptr, int(index, c_int), c_sel)
-    end subroutine
-
-    function wx_listbox_find_string(lb, str) result(index)
-        type(wxListBox_t), intent(in) :: lb
-        character(len=*), intent(in) :: str
-        integer :: index
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        index = int(wxListBox_FindString(lb%ptr, str_ptr))
-        call wxString_Delete(str_ptr)
-    end function
-
-    function wx_listbox_get_string(lb, index) result(str)
-        type(wxListBox_t), intent(in) :: lb
-        integer, intent(in) :: index
-        character(len=:), allocatable :: str
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxListBox_GetString(lb%ptr, int(index, c_int))
-        str = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_listbox_set_string(lb, index, str)
-        type(wxListBox_t), intent(in) :: lb
-        integer, intent(in) :: index
-        character(len=*), intent(in) :: str
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        call wxListBox_SetString(lb%ptr, int(index, c_int), str_ptr)
-        call wxString_Delete(str_ptr)
-    end subroutine
-
-    function wx_listbox_is_selected(lb, index) result(selected)
-        type(wxListBox_t), intent(in) :: lb
-        integer, intent(in) :: index
-        logical :: selected
-        selected = (wxListBox_IsSelected(lb%ptr, int(index, c_int)) /= 0)
-    end function
-
-    !--- wxComboBox ---
-
-    function wx_combobox_create(parent, id, value, x, y, width, height, &
-            style) result(cb)
-        class(wxWindow_t), intent(in) :: parent
-        integer, intent(in), optional :: id
-        character(len=*), intent(in), optional :: value
-        integer, intent(in), optional :: x, y, width, height
-        integer(c_long), intent(in), optional :: style
-        type(wxComboBox_t) :: cb
-
-        type(c_ptr) :: val_ptr
-        integer(c_int) :: c_id, c_x, c_y, c_w, c_h
-        integer(c_long) :: c_style
-
-        c_id = wxID_ANY()
-        if (present(id)) c_id = int(id, c_int)
-        c_x = -1_c_int
-        if (present(x)) c_x = int(x, c_int)
-        c_y = -1_c_int
-        if (present(y)) c_y = int(y, c_int)
-        c_w = -1_c_int
-        if (present(width)) c_w = int(width, c_int)
-        c_h = -1_c_int
-        if (present(height)) c_h = int(height, c_int)
-        c_style = 0_c_long
-        if (present(style)) c_style = style
-
-        if (present(value)) then
-            val_ptr = to_wxstring(value)
-        else
-            val_ptr = to_wxstring("")
-        end if
-
-        cb%ptr = wxComboBox_Create(parent%ptr, c_id, val_ptr, &
-            c_x, c_y, c_w, c_h, 0_c_int, c_null_ptr, c_style)
-        call wxString_Delete(val_ptr)
-    end function
-
-    subroutine wx_combobox_append(cb, item)
-        type(wxComboBox_t), intent(in) :: cb
-        character(len=*), intent(in) :: item
-        type(c_ptr) :: item_ptr
-        item_ptr = to_wxstring(item)
-        call wxComboBox_Append(cb%ptr, item_ptr)
-        call wxString_Delete(item_ptr)
-    end subroutine
-
-    subroutine wx_combobox_delete(cb, index)
-        type(wxComboBox_t), intent(in) :: cb
-        integer, intent(in) :: index
-        call wxComboBox_Delete(cb%ptr, int(index, c_int))
-    end subroutine
-
-    subroutine wx_combobox_clear(cb)
-        type(wxComboBox_t), intent(in) :: cb
-        call wxComboBox_Clear(cb%ptr)
-    end subroutine
-
-    function wx_combobox_get_count(cb) result(n)
-        type(wxComboBox_t), intent(in) :: cb
-        integer :: n
-        n = int(wxComboBox_GetCount(cb%ptr))
-    end function
-
-    function wx_combobox_get_selection(cb) result(sel)
-        type(wxComboBox_t), intent(in) :: cb
-        integer :: sel
-        sel = int(wxComboBox_GetSelection(cb%ptr))
-    end function
-
-    subroutine wx_combobox_set_selection(cb, index)
-        type(wxComboBox_t), intent(in) :: cb
-        integer, intent(in) :: index
-        call wxComboBox_SetSelection(cb%ptr, int(index, c_int))
-    end subroutine
-
-    function wx_combobox_find_string(cb, str) result(index)
-        type(wxComboBox_t), intent(in) :: cb
-        character(len=*), intent(in) :: str
-        integer :: index
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        index = int(wxComboBox_FindString(cb%ptr, str_ptr))
-        call wxString_Delete(str_ptr)
-    end function
-
-    function wx_combobox_get_string(cb, index) result(str)
-        type(wxComboBox_t), intent(in) :: cb
-        integer, intent(in) :: index
-        character(len=:), allocatable :: str
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxComboBox_GetString(cb%ptr, int(index, c_int))
-        str = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_combobox_set_string(cb, index, str)
-        type(wxComboBox_t), intent(in) :: cb
-        integer, intent(in) :: index
-        character(len=*), intent(in) :: str
-        type(c_ptr) :: str_ptr
-        str_ptr = to_wxstring(str)
-        call wxComboBox_SetString(cb%ptr, int(index, c_int), str_ptr)
-        call wxString_Delete(str_ptr)
-    end subroutine
-
-    function wx_combobox_get_value(cb) result(value)
-        type(wxComboBox_t), intent(in) :: cb
-        character(len=:), allocatable :: value
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxComboBox_GetValue(cb%ptr)
-        value = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_combobox_set_value(cb, value)
-        type(wxComboBox_t), intent(in) :: cb
-        character(len=*), intent(in) :: value
-        type(c_ptr) :: val_ptr
-        val_ptr = to_wxstring(value)
-        call wxComboBox_SetValue(cb%ptr, val_ptr)
-        call wxString_Delete(val_ptr)
-    end subroutine
-
-end module wx_controls
-)";
-    std::println(stderr, "  Generated wx_controls.f90");
-}
-
-// -------------------------------------------------------------------------
-// wx_menus.f90 — Menu wrappers
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateMenusModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "wx_menus.f90");
-
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_menus
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    use wx_string, only: to_wxstring, from_wxstring
-    implicit none
-    private
-
-    ! wxMenu
-    public :: wx_menu_create, wx_menu_delete
-    public :: wx_menu_append, wx_menu_append_separator
-    public :: wx_menu_append_check_item
-    public :: wx_menu_enable, wx_menu_check
-    public :: wx_menu_is_enabled, wx_menu_is_checked
-    public :: wx_menu_get_item_count
-
-    ! wxMenuBar
-    public :: wx_menubar_create, wx_menubar_append
-    public :: wx_menubar_get_menu_count, wx_menubar_get_menu
-    public :: wx_menubar_enable_top
-
-    ! wxMenuItem
-    public :: wx_menuitem_create, wx_menuitem_delete
-    public :: wx_menuitem_get_id, wx_menuitem_is_separator
-    public :: wx_menuitem_get_label, wx_menuitem_set_label
-    public :: wx_menuitem_is_checked, wx_menuitem_check
-    public :: wx_menuitem_is_enabled, wx_menuitem_enable
-
-contains
-
-    !--- wxMenu ---
-
-    function wx_menu_create(title) result(menu)
-        character(len=*), intent(in), optional :: title
-        type(wxMenu_t) :: menu
-        type(c_ptr) :: title_ptr
-
-        if (present(title)) then
-            title_ptr = to_wxstring(title)
-        else
-            title_ptr = to_wxstring("")
-        end if
-        menu%ptr = wxMenu_Create(title_ptr, 0_c_long)
-        call wxString_Delete(title_ptr)
-    end function
-
-    subroutine wx_menu_delete(menu)
-        type(wxMenu_t), intent(inout) :: menu
-        call wxMenu_DeletePointer(menu%ptr)
-        menu%ptr = c_null_ptr
-    end subroutine
-
-    subroutine wx_menu_append(menu, id, text, help)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        character(len=*), intent(in) :: text
-        character(len=*), intent(in), optional :: help
-        type(c_ptr) :: text_ptr, help_ptr
-
-        text_ptr = to_wxstring(text)
-        if (present(help)) then
-            help_ptr = to_wxstring(help)
-        else
-            help_ptr = to_wxstring("")
-        end if
-        call wxMenu_Append(menu%ptr, int(id, c_int), text_ptr, &
-            help_ptr, 0_c_int)
-        call wxString_Delete(text_ptr)
-        call wxString_Delete(help_ptr)
-    end subroutine
-
-    subroutine wx_menu_append_separator(menu)
-        type(wxMenu_t), intent(in) :: menu
-        call wxMenu_AppendSeparator(menu%ptr)
-    end subroutine
-
-    subroutine wx_menu_append_check_item(menu, id, text, help)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        character(len=*), intent(in) :: text
-        character(len=*), intent(in), optional :: help
-        type(c_ptr) :: text_ptr, help_ptr
-
-        text_ptr = to_wxstring(text)
-        if (present(help)) then
-            help_ptr = to_wxstring(help)
-        else
-            help_ptr = to_wxstring("")
-        end if
-        call wxMenu_AppendCheckItem(menu%ptr, int(id, c_int), &
-            text_ptr, help_ptr)
-        call wxString_Delete(text_ptr)
-        call wxString_Delete(help_ptr)
-    end subroutine
-
-    subroutine wx_menu_enable(menu, id, enable)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        logical, intent(in) :: enable
-        integer(c_int) :: c_en
-        c_en = 0_c_int
-        if (enable) c_en = 1_c_int
-        call wxMenu_Enable(menu%ptr, int(id, c_int), c_en)
-    end subroutine
-
-    subroutine wx_menu_check(menu, id, check_)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        logical, intent(in) :: check_
-        integer(c_int) :: c_chk
-        c_chk = 0_c_int
-        if (check_) c_chk = 1_c_int
-        call wxMenu_Check(menu%ptr, int(id, c_int), c_chk)
-    end subroutine
-
-    function wx_menu_is_enabled(menu, id) result(enabled)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        logical :: enabled
-        enabled = (wxMenu_IsEnabled(menu%ptr, int(id, c_int)) /= 0)
-    end function
-
-    function wx_menu_is_checked(menu, id) result(checked)
-        type(wxMenu_t), intent(in) :: menu
-        integer, intent(in) :: id
-        logical :: checked
-        checked = (wxMenu_IsChecked(menu%ptr, int(id, c_int)) /= 0)
-    end function
-
-    function wx_menu_get_item_count(menu) result(n)
-        type(wxMenu_t), intent(in) :: menu
-        integer :: n
-        n = int(wxMenu_GetMenuItemCount(menu%ptr))
-    end function
-
-    !--- wxMenuBar ---
-
-    function wx_menubar_create() result(menubar)
-        type(wxMenuBar_t) :: menubar
-        menubar%ptr = wxMenuBar_Create(0_c_int)
-    end function
-
-    subroutine wx_menubar_append(menubar, menu, title)
-        type(wxMenuBar_t), intent(in) :: menubar
-        type(wxMenu_t), intent(in) :: menu
-        character(len=*), intent(in) :: title
-        integer(c_int) :: dummy
-        type(c_ptr) :: title_ptr
-        title_ptr = to_wxstring(title)
-        dummy = wxMenuBar_Append(menubar%ptr, menu%ptr, title_ptr)
-        call wxString_Delete(title_ptr)
-    end subroutine
-
-    function wx_menubar_get_menu_count(menubar) result(n)
-        type(wxMenuBar_t), intent(in) :: menubar
-        integer :: n
-        n = int(wxMenuBar_GetMenuCount(menubar%ptr))
-    end function
-
-    function wx_menubar_get_menu(menubar, pos) result(menu)
-        type(wxMenuBar_t), intent(in) :: menubar
-        integer, intent(in) :: pos
-        type(wxMenu_t) :: menu
-        menu%ptr = wxMenuBar_GetMenu(menubar%ptr, int(pos, c_int))
-    end function
-
-    subroutine wx_menubar_enable_top(menubar, pos, enable)
-        type(wxMenuBar_t), intent(in) :: menubar
-        integer, intent(in) :: pos
-        logical, intent(in) :: enable
-        integer(c_int) :: c_en
-        c_en = 0_c_int
-        if (enable) c_en = 1_c_int
-        call wxMenuBar_EnableTop(menubar%ptr, int(pos, c_int), c_en)
-    end subroutine
-
-    !--- wxMenuItem ---
-
-    function wx_menuitem_create(id, text, help) &
-            result(item)
-        integer, intent(in), optional :: id
-        character(len=*), intent(in), optional :: text, help
-        type(wxMenuItem_t) :: item
-
-        ! Create a default menu item then configure
-        item%ptr = wxMenuItem_Create()
-
-        if (present(id)) then
-            call wxMenuItem_SetId(item%ptr, int(id, c_int))
-        end if
-
-        if (present(text)) then
-            block
-                type(c_ptr) :: text_ptr
-                text_ptr = to_wxstring(text)
-                call wxMenuItem_SetItemLabel(item%ptr, text_ptr)
-                call wxString_Delete(text_ptr)
-            end block
-        end if
-
-        if (present(help)) then
-            block
-                type(c_ptr) :: help_ptr
-                help_ptr = to_wxstring(help)
-                call wxMenuItem_SetHelp(item%ptr, help_ptr)
-                call wxString_Delete(help_ptr)
-            end block
-        end if
-    end function
-
-    subroutine wx_menuitem_delete(item)
-        type(wxMenuItem_t), intent(inout) :: item
-        call wxMenuItem_Delete(item%ptr)
-        item%ptr = c_null_ptr
-    end subroutine
-
-    function wx_menuitem_get_id(item) result(id)
-        type(wxMenuItem_t), intent(in) :: item
-        integer :: id
-        id = int(wxMenuItem_GetId(item%ptr))
-    end function
-
-    function wx_menuitem_is_separator(item) result(is_sep)
-        type(wxMenuItem_t), intent(in) :: item
-        logical :: is_sep
-        is_sep = (wxMenuItem_IsSeparator(item%ptr) /= 0)
-    end function
-
-    function wx_menuitem_get_label(item) result(label)
-        type(wxMenuItem_t), intent(in) :: item
-        character(len=:), allocatable :: label
-        type(c_ptr) :: ws_ptr
-        ws_ptr = wxMenuItem_GetItemLabelText(item%ptr)
-        label = from_wxstring(ws_ptr)
-        call wxString_Delete(ws_ptr)
-    end function
-
-    subroutine wx_menuitem_set_label(item, label)
-        type(wxMenuItem_t), intent(in) :: item
-        character(len=*), intent(in) :: label
-        type(c_ptr) :: label_ptr
-        label_ptr = to_wxstring(label)
-        call wxMenuItem_SetItemLabel(item%ptr, label_ptr)
-        call wxString_Delete(label_ptr)
-    end subroutine
-
-    function wx_menuitem_is_checked(item) result(checked)
-        type(wxMenuItem_t), intent(in) :: item
-        logical :: checked
-        checked = (wxMenuItem_IsChecked(item%ptr) /= 0)
-    end function
-
-    subroutine wx_menuitem_check(item, check_)
-        type(wxMenuItem_t), intent(in) :: item
-        logical, intent(in) :: check_
-        integer(c_int) :: c_chk
-        c_chk = 0_c_int
-        if (check_) c_chk = 1_c_int
-        call wxMenuItem_Check(item%ptr, c_chk)
-    end subroutine
-
-    function wx_menuitem_is_enabled(item) result(enabled)
-        type(wxMenuItem_t), intent(in) :: item
-        logical :: enabled
-        enabled = (wxMenuItem_IsEnabled(item%ptr) /= 0)
-    end function
-
-    subroutine wx_menuitem_enable(item, enable)
-        type(wxMenuItem_t), intent(in) :: item
-        logical, intent(in) :: enable
-        integer(c_int) :: c_en
-        c_en = 0_c_int
-        if (enable) c_en = 1_c_int
-        call wxMenuItem_Enable(item%ptr, c_en)
-    end subroutine
-
-end module wx_menus
-)";
-    std::println(stderr, "  Generated wx_menus.f90");
-}
-
-// -------------------------------------------------------------------------
-// wx_sizers.f90 — Sizer wrappers
-// -------------------------------------------------------------------------
-
-void FortranEmitter::GenerateSizersModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
-{
-    ConditionalFileWriter output(outDir / "wx_sizers.f90");
-
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_sizers
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    implicit none
-    private
-
-    ! wxBoxSizer
-    public :: wx_box_sizer_create, wx_box_sizer_get_orientation
-
-    ! wxSizer operations
-    public :: wx_sizer_add_window, wx_sizer_add_sizer
-    public :: wx_sizer_add_spacer, wx_sizer_add_stretch_spacer
-    public :: wx_sizer_layout, wx_sizer_fit, wx_sizer_set_size_hints
-
-    ! Convenience
-    public :: wx_window_set_sizer
-
-contains
-
-    !--- wxBoxSizer ---
-
-    function wx_box_sizer_create(orient) result(sizer)
-        integer, intent(in) :: orient
-        type(wxBoxSizer_t) :: sizer
-        sizer%ptr = wxBoxSizer_Create(int(orient, c_int))
-    end function
-
-    function wx_box_sizer_get_orientation(sizer) result(orient)
-        type(wxBoxSizer_t), intent(in) :: sizer
-        integer :: orient
-        orient = int(wxBoxSizer_GetOrientation(sizer%ptr))
-    end function
-
-    !--- wxSizer operations ---
-
-    subroutine wx_sizer_add_window(sizer, window, proportion, flag, border)
-        class(wxSizer_t), intent(in) :: sizer
-        class(wxWindow_t), intent(in) :: window
-        integer, intent(in), optional :: proportion, flag, border
-        integer(c_int) :: c_prop, c_flag, c_border
-        c_prop = 0_c_int
-        if (present(proportion)) c_prop = int(proportion, c_int)
-        c_flag = 0_c_int
-        if (present(flag)) c_flag = int(flag, c_int)
-        c_border = 0_c_int
-        if (present(border)) c_border = int(border, c_int)
-        call wxSizer_AddWindow(sizer%ptr, window%ptr, &
-            c_prop, c_flag, c_border, c_null_ptr)
-    end subroutine
-
-    subroutine wx_sizer_add_sizer(sizer, child, proportion, flag, border)
-        class(wxSizer_t), intent(in) :: sizer
-        class(wxSizer_t), intent(in) :: child
-        integer, intent(in), optional :: proportion, flag, border
-        integer(c_int) :: c_prop, c_flag, c_border
-        c_prop = 0_c_int
-        if (present(proportion)) c_prop = int(proportion, c_int)
-        c_flag = 0_c_int
-        if (present(flag)) c_flag = int(flag, c_int)
-        c_border = 0_c_int
-        if (present(border)) c_border = int(border, c_int)
-        call wxSizer_AddSizer(sizer%ptr, child%ptr, &
-            c_prop, c_flag, c_border, c_null_ptr)
-    end subroutine
-
-    subroutine wx_sizer_add_spacer(sizer, width, height, proportion, flag, &
-            border)
-        class(wxSizer_t), intent(in) :: sizer
-        integer, intent(in) :: width, height
-        integer, intent(in), optional :: proportion, flag, border
-        integer(c_int) :: c_prop, c_flag, c_border
-        c_prop = 0_c_int
-        if (present(proportion)) c_prop = int(proportion, c_int)
-        c_flag = 0_c_int
-        if (present(flag)) c_flag = int(flag, c_int)
-        c_border = 0_c_int
-        if (present(border)) c_border = int(border, c_int)
-        call wxSizer_Add(sizer%ptr, int(width, c_int), &
-            int(height, c_int), c_prop, c_flag, c_border, c_null_ptr)
-    end subroutine
-
-    subroutine wx_sizer_add_stretch_spacer(sizer, proportion)
-        class(wxSizer_t), intent(in) :: sizer
-        integer, intent(in), optional :: proportion
-        integer(c_int) :: c_prop
-        c_prop = 1_c_int
-        if (present(proportion)) c_prop = int(proportion, c_int)
-        call wxSizer_AddStretchSpacer(sizer%ptr, c_prop)
-    end subroutine
-
-    subroutine wx_sizer_layout(sizer)
-        class(wxSizer_t), intent(in) :: sizer
-        call wxSizer_Layout(sizer%ptr)
-    end subroutine
-
-    subroutine wx_sizer_fit(sizer, window)
-        class(wxSizer_t), intent(in) :: sizer
-        class(wxWindow_t), intent(in) :: window
-        call wxSizer_Fit(sizer%ptr, window%ptr)
-    end subroutine
-
-    subroutine wx_sizer_set_size_hints(sizer, window)
-        class(wxSizer_t), intent(in) :: sizer
-        class(wxWindow_t), intent(in) :: window
-        call wxSizer_SetSizeHints(sizer%ptr, window%ptr)
-    end subroutine
-
-    !--- Convenience ---
-
-    subroutine wx_window_set_sizer(window, sizer)
-        class(wxWindow_t), intent(in) :: window
-        class(wxSizer_t), intent(in) :: sizer
-        call wxWindow_SetSizer(window%ptr, sizer%ptr, 1_c_int)
-    end subroutine
-
-end module wx_sizers
-)";
-    std::println(stderr, "  Generated wx_sizers.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -2618,55 +1240,966 @@ end module wx_events
 }
 
 // -------------------------------------------------------------------------
-// wx_dialogs.f90 — Dialog wrappers
+// Per-class wrapper modules
 // -------------------------------------------------------------------------
 
-void FortranEmitter::GenerateDialogsModule(const ParsedFFI& /* ffi_data */, const fs::path& outDir)
+// The index of the first parameter that is not the receiver. A leading TSelf(...) or a
+// leading TClass(OwnClass) is the receiver and must not become a dummy argument.
+[[nodiscard]] static std::size_t FortranReceiverParamCount(const FunctionDecl& func)
 {
-    ConditionalFileWriter output(outDir / "wx_dialogs.f90");
+    if (func.params.empty())
+    {
+        return 0;
+    }
+    const Param& first_param = func.params.front();
+    if (first_param.macro_name == "TSelf")
+    {
+        return 1;
+    }
+    if (first_param.macro_name == "TClass" && first_param.macro_arg == func.class_name)
+    {
+        return 1;
+    }
+    return 0;
+}
 
-    output << R"(! Code generated by kwxgen. DO NOT EDIT.
-module wx_dialogs
-    use, intrinsic :: iso_c_binding
-    use kwx_types
-    use kwxffi
-    use wx_string, only: to_wxstring
-    implicit none
-    private
+// True when a FunctionDecl is an instance method rather than a factory. A TBool-returning
+// Create() still takes a TSelf receiver and so belongs to the instance-method path; a
+// Create() with a leading TClass(OwnClass) argument constructs an already allocated object
+// and is also an instance method. Only a Create() with neither receiver form is a factory.
+[[nodiscard]] static bool IsFortranInstanceMethod(const FunctionDecl& func)
+{
+    if (!func.is_constructor)
+    {
+        return true;
+    }
+    return func.has_self || FortranReceiverParamCount(func) > 0;
+}
 
-    public :: wx_message_box
+// A constructor must be a factory AND declare a class return. A function whose C declaration
+// carries no return type (for example wxSingleInstanceChecker_Create) parses as an integer and
+// must not be treated as a constructor, or its result would be assigned to a handle field.
+[[nodiscard]] static bool IsFortranConstructor(const FunctionDecl& func)
+{
+    if (!func.is_constructor || IsFortranInstanceMethod(func))
+    {
+        return false;
+    }
+    return func.return_macro == "TClass" || func.return_macro == "TClassRef" || func.returns_owned;
+}
 
-contains
+// True when the only parameter a destructor declares is its receiver.
+[[nodiscard]] static bool IsFortranDestructor(const FunctionDecl& func)
+{
+    return func.is_destructor && func.params.size() == FortranReceiverParamCount(func);
+}
 
-    function wx_message_box(message, caption, style, parent) result(res)
-        character(len=*), intent(in) :: message
-        character(len=*), intent(in), optional :: caption
-        integer, intent(in), optional :: style
-        class(wxWindow_t), intent(in), optional :: parent
-        integer :: res
+// A single wrapper procedure ready to be written into its class module.
+struct FortranWrapperProcedure
+{
+    std::string identifier;
+    std::string base_identifier;  // identifier before the uniqueness suffix
+    std::string signature;        // type-only dummy list, used to detect ambiguous overloads
+    std::string text;
+    bool is_constructor = false;
+    bool is_destructor = false;
+    bool is_function = false;
+};
 
-        type(c_ptr) :: msg_ptr, cap_ptr, parent_ptr
-        integer(c_int) :: c_style
+// State while a single class module is being built.
+struct FortranClassModuleState
+{
+    std::string class_name;
+    std::string module_name;
+    std::string type_name;
+    std::vector<std::string> public_names;
+    std::vector<FortranWrapperProcedure> procedures;
+    std::set<std::string> used_identifiers;
+    bool uses_to_wxstring = false;
+    bool uses_from_wxstring = false;
+    bool uses_from_cstring = false;
+    std::size_t deduplicated_count = 0;
+};
 
-        msg_ptr = to_wxstring(message)
-        if (present(caption)) then
-            cap_ptr = to_wxstring(caption)
+// Make an identifier unique and no longer than the Fortran limit.
+[[nodiscard]] static std::string MakeFortranIdentifierUnique(const std::string& identifier,
+                                                             std::set<std::string>& used)
+{
+    std::string candidate = identifier;
+    for (std::size_t ordinal = 2; used.contains(candidate); ++ordinal)
+    {
+        const std::string suffix = "_" + std::to_string(ordinal);
+        candidate = identifier;
+        if (candidate.size() + suffix.size() > FORTRAN_IDENTIFIER_LIMIT)
+        {
+            candidate.resize(FORTRAN_IDENTIFIER_LIMIT - suffix.size());
+        }
+        candidate += suffix;
+    }
+    used.insert(candidate);
+    return candidate;
+}
+
+// Convert a scalar C type to its Fortran declaration. Returns false when the type is not a
+// plain scalar, so the caller falls back to the raw ISO_C_BINDING expansion.
+[[nodiscard]] static bool FortranScalarDeclaration(const std::string& raw_type,
+                                                   std::string& declaration,
+                                                   std::string& argument_expression,
+                                                   const std::string& name)
+{
+    if (raw_type.empty() || raw_type == "int" || raw_type == "unsigned" ||
+        raw_type == "unsigned int" || raw_type == "TBoolInt" || raw_type == "TUInt" ||
+        raw_type == "TUInt16" || raw_type == "TUInt32" || raw_type == "TArrayLen" ||
+        raw_type == "TByteStringLen")
+    {
+        declaration = "integer(c_int), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "unsigned short")
+    {
+        declaration = "integer(c_short), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "intptr_t" || raw_type == "TIntPtr")
+    {
+        declaration = "integer(c_intptr_t), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "long" || raw_type == "unsigned long")
+    {
+        declaration = "integer(c_long), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "size_t" || raw_type == "wxUIntPtr" || raw_type == "uintptr_t")
+    {
+        declaration = "integer(c_size_t), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "time_t" || raw_type == "TInt64" || raw_type == "int64_t")
+    {
+        declaration = "integer(c_int64_t), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "double")
+    {
+        declaration = "real(c_double), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "float")
+    {
+        declaration = "real(c_float), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "TChar")
+    {
+        declaration = "character(c_char), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "TUInt8")
+    {
+        declaration = "integer(c_int8_t), intent(in) :: " + name;
+        argument_expression = name;
+        return true;
+    }
+    if (raw_type == "TBool")
+    {
+        declaration = "logical, intent(in) :: " + name;
+        argument_expression = "merge(1_c_int, 0_c_int, " + name + ")";
+        return true;
+    }
+    return false;
+}
+
+// True when a parameter is a scalar length argument for a neighbouring buffer. A TStringOut
+// parameter can only be exposed as a Fortran character buffer when the C declaration also
+// names the buffer length; otherwise the caller has to own a raw C buffer.
+[[nodiscard]] static bool HasFortranLengthSibling(const FunctionDecl& func,
+                                                  std::size_t receiver_params)
+{
+    for (std::size_t param_index = receiver_params; param_index < func.params.size(); ++param_index)
+    {
+        const Param& sibling = func.params[param_index];
+        if (ClassifyFortranParam(sibling) != FortranParamKind::scalar)
+        {
+            continue;
+        }
+        const std::string sibling_name = ToLower(sibling.param_name);
+        if (sibling_name.contains("size") || sibling_name.contains("len"))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Type-only key for one dummy argument. Fortran resolves a generic interface on dummy types
+// and ranks, never on names or intent, so two specifics agreeing here would be ambiguous.
+//
+// `integer(c_long)` is folded into `integer(c_int)` because the two are the same kind on the
+// Windows ABIs this binding targets (LLP64, where long is 4 bytes); keeping them distinct
+// would emit a generic that gfortran rejects as ambiguous. The cost is that a long/int
+// overload set is not collected into a generic there, which is safe: both specifics stay
+// callable under their own names.
+[[nodiscard]] static std::string FortranDummySignatureKey(const std::string& declaration)
+{
+    const std::size_t name_pos = declaration.rfind(" :: ");
+    std::string key = declaration.substr(0, name_pos);
+    const std::size_t comma_pos = key.find(',');
+    if (comma_pos != std::string::npos)
+    {
+        key.resize(comma_pos);
+    }
+    std::size_t search_pos = 0;
+    while ((search_pos = key.find("c_long", search_pos)) != std::string::npos)
+    {
+        key.replace(search_pos, std::string("c_long").size(), "c_int");
+        search_pos += std::string("c_int").size();
+    }
+    if (declaration.contains("(:)") || declaration.contains("dimension("))
+    {
+        key += "(:)";
+    }
+    return key;
+}
+
+// Build the wrapper procedure for one model method. `self_type` is the type the receiver is
+// declared as, which is the consumer class for a mixin method.
+static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const FunctionDecl& func,
+                                         const std::string& self_type,
+                                         const std::map<std::string, std::string>& type_names)
+{
+    const std::string c_function = CFuncName(func);
+    const std::size_t receiver_params = FortranReceiverParamCount(func);
+    // Some functions are attached to a class by their C prefix but declare no receiver (a static
+    // helper such as wxColour_ValidName or wxComboCtrl_GetFeatures). Only emit `self` when the
+    // model actually declares one, otherwise the call would pass an extra argument.
+    const bool has_receiver = receiver_params > 0;
+    const bool is_constructor = IsFortranConstructor(func);
+    const bool is_destructor = IsFortranDestructor(func);
+    const bool has_buffer_length = HasFortranLengthSibling(func, receiver_params);
+
+    // Ordinal counts earlier same-named methods in this module so overloads get distinct
+    // identifiers while remaining deterministic.
+    std::string base_identifier;
+    if (is_destructor)
+    {
+        base_identifier = FortranSanitizeIdentifier(ToSnakeCase(state.class_name), 40) + "_delete";
+    }
+    else
+    {
+        base_identifier = FortranMethodIdentifier(state.class_name, func.method_name, 1);
+    }
+    const std::string identifier =
+        MakeFortranIdentifierUnique(base_identifier, state.used_identifiers);
+
+    const std::string receiver_name = "self";
+    // Method parameters occasionally include a C parameter literally named `self`; make the
+    // generated dummy names unique so the receiver and that parameter can coexist.
+    std::set<std::string> dummy_names { receiver_name };
+    std::vector<std::string> dummy_declarations;
+    std::vector<std::string> call_arguments;
+    std::vector<std::string> local_declarations;
+    std::vector<std::string> setup_statements;
+    std::vector<std::string> cleanup_statements;
+
+    const auto make_dummy_name = [&dummy_names](const std::string& base_name)
+    {
+        return MakeFortranIdentifierUnique(FortranSanitizeIdentifier(base_name, 40), dummy_names);
+    };
+
+    if (!is_constructor && has_receiver)
+    {
+        dummy_declarations.push_back("class(" + self_type + "), intent(" +
+                                     std::string(is_destructor ? "inout" : "in") +
+                                     ") :: " + receiver_name);
+        call_arguments.push_back(receiver_name + "%ptr");
+    }
+
+    for (std::size_t param_index = receiver_params; param_index < func.params.size(); ++param_index)
+    {
+        const Param& param = func.params[param_index];
+        const std::string base_name =
+            make_dummy_name(param.param_name.empty() ? "arg" : param.param_name);
+        const FortranParamKind kind = ClassifyFortranParam(param);
+
+        if (kind == FortranParamKind::string_input)
+        {
+            dummy_declarations.push_back("character(len=*), intent(in) :: " + base_name);
+            if (param.raw_type == "TString")
+            {
+                // A bare TString is a UTF-8 C string, not a wxString handle: copy it into a
+                // NUL-terminated buffer and pass the address, because the raw kwxffi
+                // interface declares the argument as type(c_ptr). The buffer is allocatable,
+                // so it is released automatically when the procedure returns.
+                const std::string buffer_name = base_name + "_c";
+                local_declarations.push_back(
+                    "character(kind=c_char, len=:), allocatable, target :: " + buffer_name);
+                setup_statements.push_back(buffer_name + " = trim(" + base_name +
+                                           ") // c_null_char");
+                call_arguments.push_back("c_loc(" + buffer_name + ")");
+            }
+            else
+            {
+                const std::string pointer_name = base_name + "_ptr";
+                local_declarations.push_back("type(c_ptr) :: " + pointer_name);
+                setup_statements.push_back(pointer_name + " = to_wxstring(" + base_name + ")");
+                cleanup_statements.push_back("call wxString_Delete(" + pointer_name + ")");
+                call_arguments.push_back(pointer_name);
+                state.uses_to_wxstring = true;
+            }
+            continue;
+        }
+
+        if (kind == FortranParamKind::string_output)
+        {
+            if (has_buffer_length)
+            {
+                // The C declaration names the buffer length, so a Fortran character array is
+                // the complete contract: the caller sizes it and passes the length alongside.
+                dummy_declarations.push_back(
+                    "character(kind=c_char), dimension(:), intent(out), target, contiguous :: " +
+                    base_name);
+                call_arguments.push_back("c_loc(" + base_name + ")");
+            }
+            else
+            {
+                // Without a length in the C declaration the caller cannot prove the buffer
+                // size, so hand back an untyped pointer it allocates itself.
+                dummy_declarations.push_back("type(c_ptr), intent(out) :: " + base_name);
+                call_arguments.push_back(base_name);
+            }
+            continue;
+        }
+
+        if (kind == FortranParamKind::string_array_input)
+        {
+            // TArrayString(n, p) is `int n, TString *p` — an array of C string pointers. Build
+            // one NUL-terminated buffer per element, collect their addresses, and pass the
+            // count plus the address of the pointer array.
+            const std::string count_name = base_name + "_count";
+            const std::string index_name = base_name + "_index";
+            const std::string length_name = base_name + "_maxlen";
+            const std::string buffer_name = base_name + "_buffer";
+            const std::string pointers_name = base_name + "_ptrs";
+
+            dummy_declarations.push_back("character(len=*), intent(in) :: " + base_name + "(:)");
+            local_declarations.push_back("integer :: " + count_name + ", " + index_name + ", " +
+                                         length_name);
+            local_declarations.push_back(
+                "character(kind=c_char, len=:), allocatable, target :: " + buffer_name + "(:)");
+            local_declarations.push_back("type(c_ptr), allocatable, target :: " + pointers_name +
+                                         "(:)");
+
+            setup_statements.push_back(count_name + " = int(size(" + base_name + "), c_int)");
+            setup_statements.push_back(length_name + " = 1");
+            setup_statements.push_back("if (" + count_name + " > 0) " + length_name +
+                                       " = maxval(len_trim(" + base_name + ")) + 1");
+            // Always allocate at least one element: c_loc() is undefined for an unallocated
+            // allocatable, and a zero-length array would pass an invalid address.
+            setup_statements.push_back("allocate(character(len=" + length_name +
+                                       ") :: " + buffer_name + "(max(1, " + count_name + ")))");
+            setup_statements.push_back("allocate(" + pointers_name + "(max(1, " + count_name +
+                                       ")))");
+            setup_statements.push_back("do " + index_name + " = 1, " + count_name);
+            setup_statements.push_back("    " + buffer_name + "(" + index_name + ") = trim(" +
+                                       base_name + "(" + index_name + ")) // c_null_char");
+            setup_statements.push_back("    " + pointers_name + "(" + index_name + ") = c_loc(" +
+                                       buffer_name + "(" + index_name + "))");
+            setup_statements.push_back("end do");
+
+            call_arguments.push_back(count_name);
+            call_arguments.push_back("c_loc(" + pointers_name + ")");
+            continue;
+        }
+
+        if (kind == FortranParamKind::integer_array_input)
+        {
+            // TArrayInt(n, p) is `int n, int *p`, so the Fortran array can be passed directly
+            // once it is known to be contiguous and addressable.
+            dummy_declarations.push_back(
+                "integer(c_int), intent(in), target, contiguous :: " + base_name + "(:)");
+            call_arguments.push_back("int(size(" + base_name + "), c_int)");
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+
+        if (kind == FortranParamKind::callback)
+        {
+            dummy_declarations.push_back("type(c_funptr), intent(in), value :: " + base_name);
+            call_arguments.push_back(base_name);
+            continue;
+        }
+
+        if (kind == FortranParamKind::opaque_pointer)
+        {
+            // A bare void* is a user-data slot or an untyped buffer. type(c_ptr) is the whole
+            // type, so this is the complete mapping rather than a fallback.
+            dummy_declarations.push_back("type(c_ptr), intent(in), value :: " + base_name);
+            call_arguments.push_back(base_name);
+            continue;
+        }
+
+        if (kind == FortranParamKind::class_pointer || kind == FortranParamKind::self)
+        {
+            const std::map<std::string, std::string>::const_iterator type_iter =
+                type_names.find(param.macro_arg);
+            if (type_iter != type_names.end())
+            {
+                dummy_declarations.push_back("class(" + type_iter->second +
+                                             "_t), intent(in) :: " + base_name);
+                call_arguments.push_back(base_name + "%ptr");
+                continue;
+            }
+            dummy_declarations.push_back("type(c_ptr), intent(in), value :: " + base_name);
+            call_arguments.push_back(base_name);
+            std::println(stderr,
+                         "Fortran: {}.{} parameter '{}' uses an unknown class, "
+                         "falling back to type(c_ptr)",
+                         state.class_name, func.method_name, param.macro_arg);
+            continue;
+        }
+
+        if (kind == FortranParamKind::geometry_output)
+        {
+            // int* outputs become individual scalars; c_loc() supplies the address the C
+            // declaration expects. The *OutVoid spellings are the same thing as void*.
+            std::string element_type = "integer(c_int)";
+            if (param.macro_name == "TSizeOutDouble")
+            {
+                element_type = "real(c_double)";
+            }
+            else if (param.macro_name.ends_with("Long"))
+            {
+                element_type = "integer(c_long)";
+            }
+            for (const std::string& element: FortranSplitMacroArg(param.macro_arg))
+            {
+                const std::string element_name = make_dummy_name(element);
+                dummy_declarations.push_back(element_type +
+                                             ", intent(out), target :: " + element_name);
+                call_arguments.push_back("c_loc(" + element_name + ")");
+            }
+            continue;
+        }
+
+        if (kind == FortranParamKind::geometry)
+        {
+            std::string element_type = "integer(c_int)";
+            if (param.macro_name == "TPointLong" || param.macro_name == "TSizeLong" ||
+                param.macro_name == "TRectLong" || param.macro_name == "TVectorLong")
+            {
+                element_type = "integer(c_long)";
+            }
+            else if (param.macro_name == "TColorRGB")
+            {
+                element_type = "integer(c_int8_t)";
+            }
+            for (const std::string& element: FortranSplitMacroArg(param.macro_arg))
+            {
+                const std::string element_name = make_dummy_name(element);
+                dummy_declarations.push_back(element_type + ", intent(in) :: " + element_name);
+                call_arguments.push_back(element_name);
+            }
+            continue;
+        }
+
+        if (kind == FortranParamKind::scalar)
+        {
+            std::string declaration;
+            std::string argument_expression;
+            if (FortranScalarDeclaration(param.raw_type, declaration, argument_expression,
+                                         base_name))
+            {
+                dummy_declarations.push_back(declaration);
+                call_arguments.push_back(argument_expression);
+                continue;
+            }
+        }
+
+        // Unsupported shape: reuse the raw ISO_C_BINDING expansion so the call still matches
+        // the kwxffi interface exactly, and report the loss of type information once per method.
+        for (const FortranParam& raw_param: ExpandParamToFortran(param))
+        {
+            const std::string raw_name = make_dummy_name(raw_param.name);
+            dummy_declarations.push_back(
+                raw_param.fortran_type +
+                (raw_param.pass_by_value ? ", intent(in), value" : ", intent(in)") +
+                " :: " + raw_name);
+            call_arguments.push_back(raw_name);
+        }
+        std::println(stderr, "Fortran: {}.{} parameter '{}' ({}) falls back to type(c_ptr)",
+                     state.class_name, func.method_name, base_name,
+                     param.raw_type.empty() ? std::string("unknown") : param.raw_type);
+    }
+
+    // Return handling. TBool becomes logical, TClass(wxString) and TString become Fortran
+    // strings, a known class becomes its wrapper type, and everything else keeps the
+    // ISO_C_BINDING type.
+    bool returns_value = !func.return_type.empty() && func.return_type != "void";
+    std::string result_declaration;
+    std::string result_assignment;
+    std::string result_name = "result_value";
+    bool result_is_string = false;
+    bool result_is_cstring = false;
+    bool result_is_wrapper = false;
+
+    if (is_constructor)
+    {
+        returns_value = true;
+        result_name = make_dummy_name("result_object");
+        result_declaration = "type(" + state.type_name + ") :: " + result_name;
+    }
+    else if (returns_value)
+    {
+        const bool returns_class =
+            func.return_macro == "TClass" || func.return_macro == "TClassRef";
+        if (func.return_type == "TString")
+        {
+            // TString is a NUL-terminated UTF-8 C string, so copy it into a Fortran string.
+            // Ownership of the C buffer is not declared by the FFI (some exports strdup()
+            // and some return an internal buffer), so the pointer is deliberately not freed;
+            // wx_string::free_cstring() lets a caller release it when it knows the contract.
+            result_is_cstring = true;
+            result_name = make_dummy_name("result_text");
+            result_declaration = "character(len=:), allocatable :: " + result_name;
+            local_declarations.push_back("type(c_ptr) :: " + result_name + "_ptr");
+            state.uses_from_cstring = true;
+        }
+        else if (returns_class && func.return_arg == "wxString")
+        {
+            result_is_string = true;
+            result_name = make_dummy_name("result_text");
+            result_declaration = "character(len=:), allocatable :: " + result_name;
+            local_declarations.push_back("type(c_ptr) :: " + result_name + "_ptr");
+            state.uses_from_wxstring = true;
+        }
+        else if (returns_class)
+        {
+            const std::map<std::string, std::string>::const_iterator type_iter =
+                type_names.find(func.return_arg);
+            if (type_iter != type_names.end())
+            {
+                result_name = make_dummy_name("result_object");
+                result_is_wrapper = true;
+                result_declaration = "type(" + type_iter->second + "_t) :: " + result_name;
+            }
+            else
+            {
+                result_name = "result_value";
+                result_declaration = "type(c_ptr) :: result_value";
+                std::println(stderr,
+                             "Fortran: {}.{} returns an unknown class '{}', falling back to "
+                             "type(c_ptr)",
+                             state.class_name, func.method_name, func.return_arg);
+            }
+        }
+        else if (func.return_type == "TBool" || func.return_type == "TBoolInt")
+        {
+            result_declaration = "logical :: result_value";
+        }
         else
-            cap_ptr = to_wxstring("Message")
-        end if
-        c_style = ior(wxOK(), wxICON_INFORMATION())
-        if (present(style)) c_style = int(style, c_int)
-        parent_ptr = c_null_ptr
-        if (present(parent)) parent_ptr = parent%ptr
+        {
+            const FortranReturnInfo return_info =
+                FortranReturnType(func.return_type, func.return_macro);
+            result_declaration = return_info.fortran_type + " :: result_value";
+        }
+    }
 
-        res = int(kwxMessageBox(msg_ptr, cap_ptr, c_style, &
-            parent_ptr, -1_c_int, -1_c_int))
+    // Assemble the call expression.
+    std::string call_expression = c_function + "(";
+    for (std::size_t arg_index = 0; arg_index < call_arguments.size(); ++arg_index)
+    {
+        if (arg_index > 0)
+        {
+            call_expression += ", ";
+        }
+        call_expression += call_arguments[arg_index];
+    }
+    call_expression += ")";
 
-        call wxString_Delete(msg_ptr)
-        call wxString_Delete(cap_ptr)
-    end function
+    if (is_constructor)
+    {
+        result_assignment = result_name + "%ptr = " + call_expression + "\n        " + result_name +
+                            "%owned = .true.";
+    }
+    else if (returns_value && result_is_cstring)
+    {
+        result_assignment = result_name + "_ptr = " + call_expression + "\n        " + result_name +
+                            " = from_cstring(" + result_name + "_ptr)";
+    }
+    else if (returns_value && result_is_string)
+    {
+        result_assignment = result_name + "_ptr = " + call_expression + "\n        " + result_name +
+                            " = from_wxstring(" + result_name +
+                            "_ptr)\n        call wxString_Delete(" + result_name + "_ptr)";
+    }
+    else if (returns_value && result_is_wrapper)
+    {
+        const std::string owned_flag = func.returns_owned ? ".true." : ".false.";
+        result_assignment = result_name + " = " + type_names.at(func.return_arg) + "_from_ptr(" +
+                            call_expression + ", " + owned_flag + ")";
+    }
+    else if (returns_value && result_declaration.starts_with("logical"))
+    {
+        result_assignment = result_name + " = (" + call_expression + " /= 0)";
+    }
+    else if (returns_value)
+    {
+        result_assignment = result_name + " = " + call_expression;
+    }
 
-end module wx_dialogs
-)";
-    std::println(stderr, "  Generated wx_dialogs.f90");
+    // Emit the procedure.
+    std::ostringstream text;
+    std::string argument_list;
+    for (const std::string& declaration: dummy_declarations)
+    {
+        const std::size_t name_pos = declaration.rfind(" :: ");
+        // A dummy argument list carries only the name: an array spec such as `x(:)` belongs
+        // in the declaration, not in the list, or the line parses as a malformed definition.
+        std::string dummy_name = declaration.substr(name_pos + 4);
+        const std::size_t shape_pos = dummy_name.find('(');
+        if (shape_pos != std::string::npos)
+        {
+            dummy_name.resize(shape_pos);
+        }
+        argument_list += (argument_list.empty() ? "" : ", ") + dummy_name;
+    }
+
+    if (!returns_value)
+    {
+        text << "    subroutine " << identifier << "(" << argument_list << ")\n";
+        for (const std::string& declaration: dummy_declarations)
+        {
+            text << "        " << declaration << "\n";
+        }
+        for (const std::string& declaration: local_declarations)
+        {
+            text << "        " << declaration << "\n";
+        }
+        for (const std::string& statement: setup_statements)
+        {
+            text << "        " << statement << "\n";
+        }
+        if (is_destructor)
+        {
+            text << "        if (self%owned .and. c_associated(self%ptr)) then\n";
+            text << "            call " << call_expression << "\n";
+            text << "        end if\n";
+            text << "        self%ptr = c_null_ptr\n";
+            text << "        self%owned = .false.\n";
+        }
+        else
+        {
+            text << "        call " << call_expression << "\n";
+        }
+        for (const std::string& statement: cleanup_statements)
+        {
+            text << "        " << statement << "\n";
+        }
+        text << "    end subroutine " << identifier << "\n";
+    }
+    else
+    {
+        text << "    function " << identifier << "(" << argument_list << ") result(" << result_name
+             << ")\n";
+        for (const std::string& declaration: dummy_declarations)
+        {
+            text << "        " << declaration << "\n";
+        }
+        for (const std::string& declaration: local_declarations)
+        {
+            text << "        " << declaration << "\n";
+        }
+        text << "        " << result_declaration << "\n";
+        for (const std::string& statement: setup_statements)
+        {
+            text << "        " << statement << "\n";
+        }
+        text << "        " << result_assignment << "\n";
+        for (const std::string& statement: cleanup_statements)
+        {
+            text << "        " << statement << "\n";
+        }
+        text << "    end function " << identifier << "\n";
+    }
+
+    FortranWrapperProcedure procedure;
+    procedure.identifier = identifier;
+    procedure.base_identifier = base_identifier;
+    for (const std::string& declaration: dummy_declarations)
+    {
+        procedure.signature += FortranDummySignatureKey(declaration);
+        procedure.signature += ";";
+    }
+    procedure.text = text.str();
+    procedure.is_constructor = is_constructor;
+    procedure.is_destructor = is_destructor;
+    procedure.is_function = returns_value;
+    state.procedures.push_back(std::move(procedure));
+    state.public_names.push_back(identifier);
+}
+
+// Collect the valid methods a class module exposes: the class's own methods plus every mixin
+// method. The C function name dedupe key prevents a duplicate wrapper for the same symbol.
+static void CollectFortranClassProcedures(FortranClassModuleState& state,
+                                          const ClassInfo& class_info, const ParsedFFI& ffi_data,
+                                          const std::map<std::string, std::string>& type_names,
+                                          std::set<std::string>& emitted_c_functions)
+{
+    const auto emit_methods = [&](const ClassInfo& method_owner)
+    {
+        for (const FunctionDecl& method: method_owner.methods)
+        {
+            if (!IsValidFunction(method))
+            {
+                continue;
+            }
+            if (!emitted_c_functions.insert(CFuncName(method)).second)
+            {
+                ++state.deduplicated_count;
+                continue;
+            }
+            BuildFortranWrapperProcedure(state, method, state.type_name, type_names);
+        }
+    };
+
+    emit_methods(class_info);
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi_data.mixin_map.find(class_info.name);
+    if (mixin_iter == ffi_data.mixin_map.end())
+    {
+        return;
+    }
+    for (const std::string& mixin_name: mixin_iter->second)
+    {
+        for (const ClassInfo& mixin_class: ffi_data.classes)
+        {
+            if (mixin_class.name == mixin_name)
+            {
+                emit_methods(mixin_class);
+                break;
+            }
+        }
+    }
+}
+
+// Build one generic interface per overload set. Fortran requires every specific of a generic
+// to be the same kind (all functions or all subroutines), so the overload set is split on
+// that first. Fortran also resolves a generic on the dummy types and ranks, so two specifics
+// that agree on every dummy type cannot both be exposed under the base name: the first keeps
+// the base name and the rest remain reachable only under their suffixed identifier. Each
+// skipped specific is reported rather than silently dropped.
+[[nodiscard]] static std::string BuildFortranOverloadInterfaces(FortranClassModuleState& state)
+{
+    std::map<std::pair<std::string, bool>, std::vector<const FortranWrapperProcedure*>> groups;
+    for (const FortranWrapperProcedure& procedure: state.procedures)
+    {
+        groups[std::make_pair(procedure.base_identifier, procedure.is_function)].push_back(
+            &procedure);
+    }
+
+    std::set<std::string> public_names(state.public_names.begin(), state.public_names.end());
+    std::ostringstream interfaces;
+    for (const std::pair<const std::pair<std::string, bool>,
+                         std::vector<const FortranWrapperProcedure*>>& group: groups)
+    {
+        if (group.second.size() < 2)
+        {
+            continue;
+        }
+
+        // The generic takes the first specific's name. That identifier is unique in the
+        // module, so it cannot clash with a procedure from a different overload set.
+        const std::string generic_name = group.second.front()->identifier;
+        std::set<std::string> signatures;
+        std::vector<std::string> specifics;
+        for (const FortranWrapperProcedure* procedure: group.second)
+        {
+            if (!signatures.insert(procedure->signature).second)
+            {
+                std::println(stderr,
+                             "Fortran: {}.{} overload has the same Fortran signature as an "
+                             "earlier specific and is exposed only as '{}'",
+                             state.class_name, group.first.first, procedure->identifier);
+                continue;
+            }
+            specifics.push_back(procedure->identifier);
+        }
+        if (specifics.size() < 2)
+        {
+            continue;
+        }
+
+        interfaces << "    interface " << generic_name << "\n";
+        for (const std::string& specific: specifics)
+        {
+            interfaces << "        module procedure " << specific << "\n";
+        }
+        interfaces << "    end interface\n\n";
+
+        if (public_names.insert(generic_name).second)
+        {
+            state.public_names.push_back(generic_name);
+        }
+    }
+    return interfaces.str();
+}
+
+void FortranEmitter::EmitClassModule(std::ostream& output, const ClassInfo& class_info,
+                                     const ParsedFFI& ffi_data)
+{
+    const std::set<std::string> class_names = CollectFortranClassNames(ffi_data);
+    const std::map<std::string, std::string> type_names = BuildFortranTypeIdentifiers(class_names);
+
+    FortranClassModuleState state;
+    state.class_name = class_info.name;
+    state.module_name = FortranClassModuleName(class_info.name);
+    state.type_name = type_names.at(class_info.name) + "_t";
+
+    std::size_t own_method_count = 0;
+    for (const FunctionDecl& method: class_info.methods)
+    {
+        if (IsValidFunction(method))
+        {
+            ++own_method_count;
+        }
+    }
+    if (own_method_count == 0)
+    {
+        return;
+    }
+
+    std::set<std::string> emitted_c_functions;
+    CollectFortranClassProcedures(state, class_info, ffi_data, type_names, emitted_c_functions);
+
+    // Interfaces must be built before the public statements are written, because the builder
+    // adds a public name for every generic it emits.
+    const std::string interfaces = BuildFortranOverloadInterfaces(state);
+
+    output << "! Code generated by kwxgen. DO NOT EDIT.\n";
+    output << "module " << state.module_name << "\n";
+    output << "    use, intrinsic :: iso_c_binding\n";
+    output << "    use kwx_types\n";
+    output << "    use kwxffi\n";
+
+    std::vector<std::string> string_imports;
+    if (state.uses_to_wxstring)
+    {
+        string_imports.emplace_back("to_wxstring");
+    }
+    if (state.uses_from_wxstring)
+    {
+        string_imports.emplace_back("from_wxstring");
+    }
+    if (state.uses_from_cstring)
+    {
+        string_imports.emplace_back("from_cstring");
+    }
+    if (!string_imports.empty())
+    {
+        output << "    use wx_string, only: ";
+        for (std::size_t import_index = 0; import_index < string_imports.size(); ++import_index)
+        {
+            if (import_index > 0)
+            {
+                output << ", ";
+            }
+            output << string_imports[import_index];
+        }
+        output << "\n";
+    }
+    output << "    implicit none\n";
+    output << "    private\n\n";
+
+    for (const std::string& public_name: state.public_names)
+    {
+        output << "    public :: " << public_name << "\n";
+    }
+    output << interfaces;
+    output << "\ncontains\n\n";
+
+    for (const FortranWrapperProcedure& procedure: state.procedures)
+    {
+        output << procedure.text << "\n";
+    }
+    output << "end module " << state.module_name << "\n";
+}
+
+void FortranEmitter::GenerateClassModules(const ParsedFFI& ffi_data, const fs::path& outDir)
+{
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi_data);
+    std::vector<std::string> ordered_classes(wrapped_classes.begin(), wrapped_classes.end());
+    std::ranges::sort(ordered_classes);
+
+    std::set<std::string> expected_files { "kwxffi_gen.f90", "kwx_types.f90", "wx_string.f90",
+                                           "wx_events.f90" };
+
+    size_t module_count = 0;
+    std::set<std::string> generated_modules;
+    for (const std::string& class_name: ordered_classes)
+    {
+        const ClassInfo* class_info = nullptr;
+        for (const ClassInfo& candidate: ffi_data.classes)
+        {
+            if (candidate.name == class_name)
+            {
+                class_info = &candidate;
+                break;
+            }
+        }
+        if (class_info == nullptr)
+        {
+            continue;
+        }
+
+        bool has_valid_method = false;
+        for (const FunctionDecl& method: class_info->methods)
+        {
+            if (IsValidFunction(method))
+            {
+                has_valid_method = true;
+                break;
+            }
+        }
+        if (!has_valid_method)
+        {
+            continue;
+        }
+
+        const std::string module_name = FortranClassModuleName(class_name);
+        if (!generated_modules.insert(module_name).second)
+        {
+            std::println(stderr,
+                         "Fortran: class '{}' maps to the already generated module '{}', skipped",
+                         class_name, module_name);
+            continue;
+        }
+
+        const fs::path module_path = outDir / (module_name + ".f90");
+        {
+            ConditionalFileWriter output(module_path);
+            EmitClassModule(output, *class_info, ffi_data);
+        }
+        expected_files.insert(module_name + ".f90");
+        ++module_count;
+    }
+
+    const std::size_t removed_count =
+        RemoveStaleGeneratedFiles(outDir, expected_files, std::string_view(".f90"));
+    if (removed_count > 0)
+    {
+        std::println(stderr, "  Removed {} stale generated file(s)", removed_count);
+    }
+
+    std::println(stderr, "  Generated {} class module(s)", module_count);
 }

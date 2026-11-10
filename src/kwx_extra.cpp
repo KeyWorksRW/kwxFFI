@@ -2522,6 +2522,11 @@ extern "C"
         wxLogMessage(*message);
     }
 
+    EXPORT void LogInfo(wxString* message)
+    {
+        wxLogInfo(*message);
+    }
+
     EXPORT void LogVerbose(wxString* message)
     {
         wxLogVerbose(*message);

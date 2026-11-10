@@ -9,11 +9,11 @@ python tests/run_checks.py --static
 ```
 
 `--static` runs only the checks that read the source tree. Without the flag the
-export snapshot and the `deno check` wrapper run too, using the newest `kwxgen`
-binary found under `bin/` or `build/` (override with `--kwxgen <path>`). Each
-check prints one `PASS`, `FAIL`, or `SKIP` line plus a summary; the exit code is
-1 only when a check failed. A checker script that does not exist yet reports
-`SKIP (not implemented yet)`.
+cross-language coverage guard, the export snapshot and the `deno check` wrapper
+run too, using the newest `kwxgen` binary found under `bin/` or `build/`
+(override with `--kwxgen <path>`). Each check prints one `PASS`, `FAIL`, or
+`SKIP` line plus a summary; the exit code is 1 only when a check failed. A
+checker script that does not exist yet reports `SKIP (not implemented yet)`.
 
 ## With CMake and CTest
 
@@ -50,6 +50,12 @@ build-Release.ninja`.
   reported as notes, not errors.
 - `guard_parity` — compares the guard state of each header declaration against
   its definition in `src/*.cpp` and reports declarations with no definition.
+- `binding_coverage` — runs `kwxgen coverage --profile full --require-parity` and
+  compares every backend against the TypeScript reference. The check fails when a
+  backend misses a TypeScript-wrapped class (unless the class is a documented
+  consumer-provided type), exposes fewer valid methods than the parsed model
+  declares for that class, or lags the model's free-function, event, key or
+  constant counts. Skips (exit 77) when no `kwxgen` binary is available.
 - `export_snapshot` — regenerates the export manifest with `kwxgen exports`,
   cross-checks the `.def`/`.map`/`.exp` writers, and compares a count+sha256
   digest with `tests/expected/symbols.sha256`. `kwxgen exports` always emits the

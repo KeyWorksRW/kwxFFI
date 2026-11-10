@@ -13,6 +13,7 @@
 #include "kwx_date_locale_extra.h"
 #include "kwx_dialogs_extra.h"
 #include "kwx_file_stream_extra.h"
+#include "kwx_gesture_extra.h"
 #include "kwx_grid_extra.h"
 #include "kwx_hook_exports.h"
 #include "kwx_html.h"
@@ -1327,8 +1328,8 @@ void wxCalendarCtrlBase_GetHolidayColourBg(TSelf(wxCalendarCtrlBase) pObject,
                                            TClassRef(wxColour) ref);
 void wxCalendarCtrlBase_GetHolidayColourFg(TSelf(wxCalendarCtrlBase) pObject,
                                            TClassRef(wxColour) ref);
-int wxCalendarCtrlBase_HitTest(TSelf(wxCalendarCtrlBase) pObject, TPoint(x, y), void* date,
-                               void* weekday);
+int wxCalendarCtrlBase_HitTest(TSelf(wxCalendarCtrlBase) pObject, TPoint(x, y),
+                               TClass(wxDateTime) date, int* weekday);
 void wxCalendarCtrlBase_Mark(TSelf(wxCalendarCtrlBase) pObject, int day, TBool mark);
 void wxCalendarCtrlBase_ResetAttr(TSelf(wxCalendarCtrlBase) pObject, int day);
 void wxCalendarCtrlBase_SetAttr(TSelf(wxCalendarCtrlBase) pObject, int day, void* attr);
@@ -1357,7 +1358,8 @@ void wxCalendarCtrl_GetHighlightColourBg(TSelf(wxCalendarCtrl) pObject, TClassRe
 void wxCalendarCtrl_GetHighlightColourFg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHolidayColourBg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHolidayColourFg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
-int wxCalendarCtrl_HitTest(TSelf(wxCalendarCtrl) pObject, TPoint(x, y), void* date, void* weekday);
+int wxCalendarCtrl_HitTest(TSelf(wxCalendarCtrl) pObject, TPoint(x, y), TClass(wxDateTime) date,
+                           int* weekday);
 void wxCalendarCtrl_Mark(TSelf(wxCalendarCtrl) pObject, int day, TBool mark);
 void wxCalendarCtrl_ResetAttr(TSelf(wxCalendarCtrl) pObject, int day);
 void wxCalendarCtrl_SetAttr(TSelf(wxCalendarCtrl) pObject, int day, void* attr);
@@ -1383,6 +1385,10 @@ TClassDef(wxCalendarDateAttr) TClass(wxCalendarDateAttr)
     wxCalendarDateAttr_Create(void* textColour, void* backColour, void* borderColour, void* font,
                               int border);
 TClass(wxCalendarDateAttr) wxCalendarDateAttr_CreateDefault();
+// The (border, colBorder) constructor overload. Without it a binding can only reach that
+// shape by CreateDefault + SetBorder + SetBorderColour, which leaves HasBorderColour() false
+// until the colour is set.
+TClass(wxCalendarDateAttr) wxCalendarDateAttr_CreateBorder(int border, TClass(wxColour) colBorder);
 void wxCalendarDateAttr_Delete(TSelf(wxCalendarDateAttr) pObject);
 void wxCalendarDateAttr_GetBackgroundColour(TSelf(wxCalendarDateAttr) pObject,
                                             TClassRef(wxColour) ref);
@@ -1422,6 +1428,9 @@ void wxCaret_SetBlinkTime(int milliseconds);
 void wxCaret_SetSize(TSelf(wxCaret) pObject, TSize(width, height));
 void wxCaret_Show(TSelf(wxCaret) pObject);
 
+TClassDef(wxCaretSuspend) TClass(wxCaretSuspend) wxCaretSuspend_Create(TClass(wxWindow) window);
+void wxCaretSuspend_Delete(TSelf(wxCaretSuspend) pObject);
+
 TClassDefExtend(wxCheckBox, wxControl) TClass(wxCheckBox)
     wxCheckBox_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                       TRect(left, top, width, height), int style);
@@ -1444,6 +1453,12 @@ TBool wxCheckListBox_IsChecked(TSelf(wxCheckListBox) pObject, int item);
 
 TClassDefExtend(wxChoice, wxControl) void wxChoice_Append(TSelf(wxChoice) pObject,
                                                           TClass(wxString) item);
+// Append with untyped (void*) client data.  The pointer is stored, not copied, and is
+// owned by the caller — wxWidgets does not delete it.
+int wxChoice_AppendWithClientData(TSelf(wxChoice) pObject, TClass(wxString) item, void* clientData);
+// Append with a wxClientData object; the control takes ownership of it.
+int wxChoice_AppendWithClientObject(TSelf(wxChoice) pObject, TClass(wxString) item,
+                                    TClass(wxClientData) clientData);
 void wxChoice_Clear(TSelf(wxChoice) pObject);
 TClass(wxChoice) wxChoice_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height),
                                  TArrayString(n, str), int style);
@@ -1454,6 +1469,7 @@ int wxChoice_GetSelection(TSelf(wxChoice) pObject);
 TClass(wxString) wxChoice_GetString(TSelf(wxChoice) pObject, int index);
 void wxChoice_SetSelection(TSelf(wxChoice) pObject, int index);
 void wxChoice_SetString(TSelf(wxChoice) pObject, int index, TClass(wxString) str);
+TBool wxChoice_SetStringSelection(TSelf(wxChoice) pObject, TClass(wxString) str);
 void wxChoice_SetColumns(TSelf(wxChoice) pObject, int n);
 int wxChoice_GetColumns(TSelf(wxChoice) pObject);
 int wxChoice_GetCurrentSelection(TSelf(wxChoice) pObject);
@@ -1493,6 +1509,12 @@ TBool wxClipboard_IsSupported(TSelf(wxClipboard) pObject, TClass(wxDataFormat) f
 TBool wxClipboard_Open(TSelf(wxClipboard) pObject);
 TBool wxClipboard_SetData(TSelf(wxClipboard) pObject, TClass(wxDataObject) data);
 void wxClipboard_UsePrimarySelection(TSelf(wxClipboard) pObject, TBool primary);
+
+TClassDefExtend(wxCollapsibleHeaderCtrl, wxControl) TClass(wxCollapsibleHeaderCtrl)
+    wxCollapsibleHeaderCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) label,
+                                   TRect(x, y, width, height), int style);
+TBool wxCollapsibleHeaderCtrl_IsCollapsed(TSelf(wxCollapsibleHeaderCtrl) pObject);
+void wxCollapsibleHeaderCtrl_SetCollapsed(TSelf(wxCollapsibleHeaderCtrl) pObject, TBool collapsed);
 
 TClassDefExtend(wxCollapsiblePane, wxControl) TClass(wxCollapsiblePane)
     wxCollapsiblePane_Create(TClass(wxWindow) parent, int id, TClass(wxString) label,
@@ -2040,7 +2062,8 @@ TClassDefExtend(wxDirDialog, wxDialog) TClass(wxDirDialog)
 TClass(wxString) wxDirDialog_GetMessage(TSelf(wxDirDialog) pObject);
 TClass(wxString) wxDirDialog_GetPath(TSelf(wxDirDialog) pObject);
 int wxDirDialog_GetStyle(TSelf(wxDirDialog) pObject);
-TArrayLen wxDirDialog_GetPaths(TSelf(wxDirDialog) pObject, TArrayStringOutVoid paths);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen wxDirDialog_GetPaths(TSelf(wxDirDialog) pObject, TArrayStringOutVoid paths, int capacity);
 void wxDirDialog_SetMessage(TSelf(wxDirDialog) pObject, TClass(wxString) msg);
 void wxDirDialog_SetPath(TSelf(wxDirDialog) pObject, TClass(wxString) pth);
 void wxDirDialog_SetStyle(TSelf(wxDirDialog) pObject, int style);
@@ -2158,8 +2181,18 @@ TClassDefExtend(wxDrawWindow, wxWindow) TClass(wxDrawWindow)
     wxDrawWindow_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height),
                         int style);
 
-TClassDefExtend(wxDropFilesEvent, wxEvent) TClass(wxPoint)
-    wxDropFilesEvent_GetPosition(TSelf(wxDropFilesEvent) pObject);
+// wxDPIChangedEvent carries the DPI pairing that produced the event, so a difference of
+// the two sizes is the scale change the window must apply.
+TClassDefExtend(wxDPIChangedEvent, wxEvent) TClass(wxSize)
+    wxDPIChangedEvent_GetOldDPI(TSelf(wxDPIChangedEvent) pObject);
+TClass(wxSize) wxDPIChangedEvent_GetNewDPI(TSelf(wxDPIChangedEvent) pObject);
+
+// wxDisplayChangedEvent has no methods of its own; the wrapper exists so a port can
+// downcast the untyped event pointer and call the inherited wxEvent methods.
+TClassDefExtend(wxDisplayChangedEvent, wxEvent)
+
+    TClassDefExtend(wxDropFilesEvent, wxEvent) TClass(wxPoint)
+        wxDropFilesEvent_GetPosition(TSelf(wxDropFilesEvent) pObject);
 int wxDropFilesEvent_GetNumberOfFiles(TSelf(wxDropFilesEvent) pObject);
 TClass(wxString) wxDropFilesEvent_GetFile(TSelf(wxDropFilesEvent) pObject, int index);
 
@@ -2212,6 +2245,7 @@ TClassDefExtend(wxEvtHandler, wxObject) void wxEvtHandler_AddPendingEvent(TSelf(
                                                                               pObject,
                                                                           TClass(wxEvent) event);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+void wxEvtHandler_CallAfter(TSelf(wxEvtHandler) pObject, TClass(wxClosure) closure);
 TClass(wxClientData) wxEvtHandler_GetClientData(TSelf(wxEvtHandler) pObject);
 int wxEvtHandler_Bind(TSelf(wxEvtHandler) pObject, int first, int last, int type,
                       TClass(wxClosure) closure);
@@ -2220,6 +2254,12 @@ TClass(wxEvtHandler) wxEvtHandler_Create();
 void wxEvtHandler_Delete(TSelf(wxEvtHandler) pObject);
 int wxEvtHandler_Disconnect(TSelf(wxEvtHandler) pObject, int first, int last, int type, int id);
 int wxEvtHandler_Unbind(TSelf(wxEvtHandler) pObject, int first, int last, int type);
+// Removes the single handler wxEvtHandler_Bind() installed for this closure and
+// id/type range.  wxEvtHandler_Unbind() above takes no closure, so it removes
+// every bound handler that matches the range; this form leaves the others in
+// place.  Returns non-zero when one handler was removed.
+TBool wxEvtHandler_UnbindClosure(TSelf(wxEvtHandler) pObject, int first, int last, int type,
+                                 TClass(wxClosure) closure);
 TBool wxEvtHandler_GetEvtHandlerEnabled(TSelf(wxEvtHandler) pObject);
 TClass(wxEvtHandler) wxEvtHandler_GetNextHandler(TSelf(wxEvtHandler) pObject);
 TClass(wxEvtHandler) wxEvtHandler_GetPreviousHandler(TSelf(wxEvtHandler) pObject);
@@ -2248,7 +2288,9 @@ TClassDef(wxFFile)
 void wxFileDataObject_AddFile(TSelf(wxFileDataObject) pObject, TClass(wxString) filename);
 TClass(wxFileDataObject) FileDataObject_Create(TArrayString(count, list));
 void FileDataObject_Delete(TSelf(wxFileDataObject) pObject);
-TArrayLen FileDataObject_GetFilenames(TSelf(wxFileDataObject) pObject, TArrayStringOutVoid list);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen FileDataObject_GetFilenames(TSelf(wxFileDataObject) pObject, TArrayStringOutVoid list,
+                                      int capacity);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxFFile_IsOpened(TSelf(wxFFile) pObject);
 TBool wxFFile_ReadAll(TSelf(wxFFile) pObject, void* str, TClass(wxMBConv) conv);
@@ -2264,11 +2306,15 @@ TBool wxFileDialog_SetCustomizeHook(TSelf(wxFileDialog) pObject,
                                     TClass(wxFileDialogCustomizeHook) customizeHook);
 TClass(wxString) wxFileDialog_GetDirectory(TSelf(wxFileDialog) pObject);
 TClass(wxString) wxFileDialog_GetFilename(TSelf(wxFileDialog) pObject);
-TArrayLen wxFileDialog_GetFilenames(TSelf(wxFileDialog) pObject, TArrayStringOutVoid paths);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen wxFileDialog_GetFilenames(TSelf(wxFileDialog) pObject, TArrayStringOutVoid paths,
+                                    int capacity);
 int wxFileDialog_GetFilterIndex(TSelf(wxFileDialog) pObject);
 TClass(wxString) wxFileDialog_GetMessage(TSelf(wxFileDialog) pObject);
 TClass(wxString) wxFileDialog_GetPath(TSelf(wxFileDialog) pObject);
-TArrayLen wxFileDialog_GetPaths(TSelf(wxFileDialog) pObject, TArrayStringOutVoid paths);
+// Fills at most capacity entries; the return value is the total available count.
+TArrayLen wxFileDialog_GetPaths(TSelf(wxFileDialog) pObject, TArrayStringOutVoid paths,
+                                int capacity);
 int wxFileDialog_GetStyle(TSelf(wxFileDialog) pObject);
 TClass(wxString) wxFileDialog_GetWildcard(TSelf(wxFileDialog) pObject);
 void wxFileDialog_SetDirectory(TSelf(wxFileDialog) pObject, TClass(wxString) dir);
@@ -4293,8 +4339,12 @@ void wxVariantVector_AddBool(void* vec, TBool value);
 size_t wxVariantVector_GetCount(void* vec);
 void wxVariantVector_Clear(void* vec);
 
-TClass(wxDatePickerCtrl) wxDatePickerCtrl_Create(TClass(wxWindow) parent, int id, int x, int y,
-                                                 int width, int height, long style);
+// wxDatePickerCtrl derives from wxControl through the native
+// wxDateTimePickerCtrl/wxDatePickerCtrlBase chain, which is not wrapped, so
+// wxControl is the nearest wrapped ancestor.
+TClassDefExtend(wxDatePickerCtrl, wxControl) TClass(wxDatePickerCtrl)
+    wxDatePickerCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxDateTime) date, int x, int y,
+                            int width, int height, long style);
 void wxDatePickerCtrl_SetValue(TSelf(wxDatePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxDatePickerCtrl_GetValue(TSelf(wxDatePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxDatePickerCtrl_SetRange(TSelf(wxDatePickerCtrl) pObject, TClass(wxDateTime) dt1,
@@ -4329,8 +4379,12 @@ void wxFontPickerCtrl_SetSelectedFont(TSelf(wxFontPickerCtrl) pObject, TClass(wx
 int wxFontPickerCtrl_GetMaxPointSize(TSelf(wxFontPickerCtrl) pObject);
 void wxFontPickerCtrl_SetMaxPointSize(TSelf(wxFontPickerCtrl) pObject, int maxSize);
 
-TClass(wxTimePickerCtrl) wxTimePickerCtrl_Create(TClass(wxWindow) parent, int id, int x, int y,
-                                                 int width, int height, long style);
+// wxTimePickerCtrl derives from wxControl through the native
+// wxDateTimePickerCtrl/wxTimePickerCtrlBase chain, which is not wrapped, so
+// wxControl is the nearest wrapped ancestor.
+TClassDefExtend(wxTimePickerCtrl, wxControl) TClass(wxTimePickerCtrl)
+    wxTimePickerCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxDateTime) date, int x, int y,
+                            int width, int height, long style);
 void wxTimePickerCtrl_SetValue(TSelf(wxTimePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxTimePickerCtrl_GetValue(TSelf(wxTimePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxTimePickerCtrl_SetTime(TSelf(wxTimePickerCtrl) pObject, int hour, int min, int sec);
@@ -4444,6 +4498,8 @@ void wxPanel_SetFocusIgnoringChildren(TSelf(wxPanel) pObject);
 // include/kwx_helper_hooks.h.
 EXPORT void wxPanel_SetOnTransferDataFromWindow(TSelf(wxPanel) pObject, void* pFunction);
 EXPORT void wxPanel_SetOnTransferDataToWindow(TSelf(wxPanel) pObject, void* pFunction);
+EXPORT void wxPanel_SetOnDoGetBestClientSize(TSelf(wxPanel) pObject, void* pFunction);
+EXPORT void wxPanel_SetOnScrollWindow(TSelf(wxPanel) pObject, void* pFunction);
 
 TClassDefExtend(wxPathList, wxList)
 
@@ -5970,8 +6026,10 @@ TClass(wxString) wxTextValidator_GetCharExcludes(TSelf(wxTextValidator) pObject)
 TClass(wxString) wxTextValidator_GetCharIncludes(TSelf(wxTextValidator) pObject);
 void wxTextValidator_SetCharExcludes(TSelf(wxTextValidator) pObject, TClass(wxString) chars);
 void wxTextValidator_SetCharIncludes(TSelf(wxTextValidator) pObject, TClass(wxString) chars);
-TArrayLen wxTextValidator_GetExcludes(TSelf(wxTextValidator) pObject, TArrayStringOutVoid ref);
-TArrayLen wxTextValidator_GetIncludes(TSelf(wxTextValidator) pObject, TArrayStringOutVoid ref);
+// Returns a newly allocated array of strings; the caller owns it and must free each
+// entry and the array itself.  count receives the number of entries.
+void* wxTextValidator_GetExcludes(TSelf(wxTextValidator) pObject, int* count);
+void* wxTextValidator_GetIncludes(TSelf(wxTextValidator) pObject, int* count);
 void wxTextValidator_SetExcludes(TSelf(wxTextValidator) pObject, TStringVoid list, int count);
 void wxTextValidator_SetIncludes(TSelf(wxTextValidator) pObject, TStringVoid list, int count);
 TClass(wxValidator) wxTextValidator_Clone(TSelf(wxTextValidator) pObject);

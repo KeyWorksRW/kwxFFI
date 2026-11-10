@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <algorithm>
+
 // wxDirDialog inherits from wxDialog (wxTopLevelWindow).
 // Additional methods available via:
 //   wxWindow_* — base window methods (see wx_window.cpp)
@@ -55,15 +57,20 @@ extern "C"
 #endif
     }
 
-    EXPORT int wxDirDialog_GetPaths(wxDirDialog* self, void* paths)
+    EXPORT int wxDirDialog_GetPaths(wxDirDialog* self, void* paths, int capacity)
     {
-        wxArrayString arr;
-        self->GetPaths(arr);
+        wxArrayString paths_array;
+        self->GetPaths(paths_array);
+        const size_t limit =
+            capacity > 0 ? std::min(paths_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (paths)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) paths)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(paths)[index] =
+                    strdup(paths_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(paths_array.GetCount());
     }
 }

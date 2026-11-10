@@ -3,6 +3,8 @@
 
 #include "kwx_wrapper.h"
 
+#include <algorithm>
+
 wxDragResult kwxTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
     if (on_data_func)
@@ -213,15 +215,20 @@ extern "C"
         ((wxFileDataObject*) self)->AddFile(*files);
     }
 
-    EXPORT int FileDataObject_GetFilenames(void* self, void* list)
+    EXPORT int FileDataObject_GetFilenames(void* self, void* list, int capacity)
     {
-        wxArrayString arr = ((wxFileDataObject*) self)->GetFilenames();
+        wxArrayString files_array = ((wxFileDataObject*) self)->GetFilenames();
+        const size_t limit =
+            capacity > 0 ? std::min(files_array.GetCount(), static_cast<size_t>(capacity)) : 0;
         if (list)
         {
-            for (unsigned int i = 0; i < arr.GetCount(); i++)
-                ((const char**) list)[i] = strdup(arr.Item(i).utf8_string().data());
+            for (size_t index = 0; index < limit; ++index)
+            {
+                static_cast<const char**>(list)[index] =
+                    strdup(files_array.Item(index).utf8_string().data());
+            }
         }
-        return arr.GetCount();
+        return static_cast<int>(files_array.GetCount());
     }
 
     EXPORT void* BitmapDataObject_Create(wxBitmap* bitmap)

@@ -506,6 +506,16 @@ extern "C"
         return s;
     }
 
+    EXPORT wxSize* wxDPIChangedEvent_GetOldDPI(wxDPIChangedEvent* self)
+    {
+        return new wxSize(self->GetOldDPI());
+    }
+
+    EXPORT wxSize* wxDPIChangedEvent_GetNewDPI(wxDPIChangedEvent* self)
+    {
+        return new wxSize(self->GetNewDPI());
+    }
+
     EXPORT wxPoint* wxMoveEvent_GetPosition(wxMoveEvent* self)
     {
         wxPoint* pt = new wxPoint();

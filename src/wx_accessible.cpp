@@ -376,6 +376,11 @@ extern "C"
         return self->GetOrCreateAccessible();
     }
 
+    EXPORT void* wxWindow_CreateAccessible(wxWindow* self)
+    {
+        return self->CreateAccessible();
+    }
+
     EXPORT void wxWindow_SetAccessibleName(wxWindow* self, wxString* name)
     {
         self->SetAccessibleName(*name);
@@ -515,6 +520,11 @@ extern "C"
     }
 
     EXPORT void* wxWindow_GetOrCreateAccessible([[maybe_unused]] wxWindow* self)
+    {
+        return nullptr;
+    }
+
+    EXPORT void* wxWindow_CreateAccessible([[maybe_unused]] wxWindow* self)
     {
         return nullptr;
     }

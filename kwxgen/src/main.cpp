@@ -40,6 +40,7 @@
 #include "exports_gen.h"
 #include "json_dump.h"
 #include "keys_parser.h"
+#include "lang/lang_common.h"
 #include "lang/lang_fortran.h"
 #include "lang/lang_go.h"
 #include "lang/lang_julia.h"
@@ -52,13 +53,16 @@
 #include "profile.h"
 #include "verify.h"
 
+#include <algorithm>
 #include <array>
 #include <charconv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <print>
+#include <set>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -79,6 +83,7 @@ static constexpr std::string_view CMD_DIFF = "diff";
 static constexpr std::string_view CMD_LANGS = "langs";
 static constexpr std::string_view CMD_PROFILES = "profiles";
 static constexpr std::string_view CMD_ALL_MD_FILES = "all_md_files";
+static constexpr std::string_view CMD_COVERAGE = "coverage";
 
 // Argument flags
 static constexpr std::string_view ARG_HEADERS = "--headers";
@@ -97,6 +102,9 @@ static constexpr std::string_view ARG_DENO_LOG = "--deno-log";
 static constexpr std::string_view ARG_DENO_CHECK = "--deno-check";
 static constexpr std::string_view ARG_RENAME_REPORT = "--rename-report";
 static constexpr std::string_view ARG_CONSTANTS_VALUES = "--constants-values";
+static constexpr std::string_view ARG_JSON = "--json";
+static constexpr std::string_view ARG_INVENTORY = "--inventory";
+static constexpr std::string_view ARG_REQUIRE_PARITY = "--require-parity";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
@@ -116,13 +124,17 @@ static void PrintUsage(const char* prog_name)
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
     std::println(stderr, "  {} profiles", prog_name);
+    std::println(stderr,
+                 "  {} coverage --headers <dir> --defs <file> [--lang <lang>] [--profile <name>] "
+                 "[--json <file>] [--inventory <file>] [--require-parity]",
+                 prog_name);
     std::println(stderr, "");
     std::println(stderr, "Global options (for generate/verify):");
     std::println(
         stderr,
         "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
     std::println(stderr,
-                 "  --profile <name>   Surface profile: full or gui (default: per language; run "
+                 "  --profile <name>   Surface profile: full or gui (default: full; run "
                  "`{} profiles`)",
                  prog_name);
     std::println(stderr,
@@ -160,6 +172,9 @@ struct Args
     std::string rename_report;        // --rename-report (TypeScript only)
     bool deno_check = false;          // --deno-check
     std::string constants_values;     // --constants-values (NAME<TAB>VALUE dump)
+    std::string json_path;            // --json (coverage report)
+    std::string inventory_path;       // --inventory (coverage Markdown table)
+    bool require_parity = false;      // --require-parity (coverage gate)
 };
 
 static constexpr std::string_view CONFIG_FILE_NAME = "kwxgen.config.json";
@@ -264,6 +279,18 @@ static bool LoadConfigFile(Args& args)
         else if (argument == ARG_CONSTANTS_VALUES && i + 1 < argc)
         {
             args.constants_values = argv[++i];
+        }
+        else if (argument == ARG_JSON && i + 1 < argc)
+        {
+            args.json_path = argv[++i];
+        }
+        else if (argument == ARG_INVENTORY && i + 1 < argc)
+        {
+            args.inventory_path = argv[++i];
+        }
+        else if (argument == ARG_REQUIRE_PARITY)
+        {
+            args.require_parity = true;
         }
         else if (argument == ARG_ALL_MD_FILES)
         {
@@ -572,6 +599,286 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     return profile;
 }
 
+// -------------------------------------------------------------------------
+// Coverage reports
+// -------------------------------------------------------------------------
+
+// True when class_name appears in either coverage list.
+[[nodiscard]] static bool CoverageHasClass(const CoverageInfo& report,
+                                           const std::string& class_name)
+{
+    return std::ranges::find(report.wrapped_classes, class_name) != report.wrapped_classes.end() ||
+           std::ranges::find(report.consumer_provided_classes, class_name) !=
+               report.consumer_provided_classes.end();
+}
+
+// Number of valid model methods a wrapped class must expose: its own valid methods plus the
+// valid methods of every mixin it consumes.
+[[nodiscard]] static size_t ModelMethodCount(const std::string& class_name, const ParsedFFI& ffi)
+{
+    size_t model_count = 0;
+    for (const auto& cls: ffi.classes)
+    {
+        if (cls.name != class_name)
+        {
+            continue;
+        }
+        for (const auto& func: cls.methods)
+        {
+            if (IsValidFunction(func))
+            {
+                ++model_count;
+            }
+        }
+        break;
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi.mixin_map.find(class_name);
+    if (mixin_iter == ffi.mixin_map.end())
+    {
+        return model_count;
+    }
+    for (const std::string& mixin_name: mixin_iter->second)
+    {
+        for (const auto& cls: ffi.classes)
+        {
+            if (cls.name != mixin_name)
+            {
+                continue;
+            }
+            for (const auto& func: cls.methods)
+            {
+                if (IsValidFunction(func))
+                {
+                    ++model_count;
+                }
+            }
+            break;
+        }
+    }
+    return model_count;
+}
+
+// Sum the per-class method counts in a report.
+[[nodiscard]] static size_t CoverageMethodTotal(const CoverageInfo& report)
+{
+    size_t method_total = 0;
+    for (const auto& [class_name, count]: report.method_counts_by_class)
+    {
+        std::ignore = class_name;
+        method_total += count;
+    }
+    return method_total;
+}
+
+// Print one coverage table row per language backend.
+static void PrintCoverageTable(const std::vector<std::pair<std::string, CoverageInfo>>& reports)
+{
+    std::println("{:<11} | {:>7} | {:>8} | {:>7} | {:>7} | {:>4} | {:>6} | {:>4} | {:>9}", "lang",
+                 "wrapped", "consumer", "skipped", "methods", "free", "events", "keys",
+                 "constants");
+    for (const auto& [language, report]: reports)
+    {
+        std::println("{:<11} | {:>7} | {:>8} | {:>7} | {:>7} | {:>4} | {:>6} | {:>4} | {:>9}",
+                     language, report.wrapped_classes.size(),
+                     report.consumer_provided_classes.size(), report.skipped_classes.size(),
+                     CoverageMethodTotal(report), report.free_function_count, report.event_count,
+                     report.key_count, report.constant_count);
+    }
+}
+
+// Write a deterministic JSON object keyed by language.  Hand-written because the report has a
+// small fixed shape and the command must not depend on the model serializer.
+[[nodiscard]] static std::string
+    CoverageJson(const std::vector<std::pair<std::string, CoverageInfo>>& reports)
+{
+    std::ostringstream json;
+    // The program-local locale adds digit-group separators, which are invalid JSON numbers.
+    json.imbue(std::locale::classic());
+    json << "{\n";
+    bool first_language = true;
+    for (const auto& [language, report]: reports)
+    {
+        json << (first_language ? "" : ",\n");
+        first_language = false;
+        json << "  \"" << language << "\": {\n";
+
+        const auto write_strings = [&json](const char* key, const std::vector<std::string>& values)
+        {
+            json << "    \"" << key << "\": [";
+            for (size_t i = 0; i < values.size(); ++i)
+            {
+                if (i != 0)
+                {
+                    json << ", ";
+                }
+                json << "\"" << values[i] << "\"";
+            }
+            json << "],\n";
+        };
+        write_strings("wrapped_classes", report.wrapped_classes);
+        write_strings("consumer_provided_classes", report.consumer_provided_classes);
+        write_strings("skipped_classes", report.skipped_classes);
+
+        const auto write_counts =
+            [&json](const char* key, const std::map<std::string, size_t>& counts)
+        {
+            json << "    \"" << key << "\": {";
+            bool first_entry = true;
+            for (const auto& [name, count]: counts)
+            {
+                json << (first_entry ? "" : ", ") << "\"" << name << "\": " << count;
+                first_entry = false;
+            }
+            json << "},\n";
+        };
+        write_counts("method_counts_by_class", report.method_counts_by_class);
+        write_counts("deduplicated_method_counts_by_class",
+                     report.deduplicated_method_counts_by_class);
+
+        json << "    \"deduplicated_method_count\": " << report.deduplicated_method_count << ",\n";
+        json << "    \"free_function_count\": " << report.free_function_count << ",\n";
+        json << "    \"event_count\": " << report.event_count << ",\n";
+        json << "    \"key_count\": " << report.key_count << ",\n";
+        json << "    \"constant_count\": " << report.constant_count << "\n";
+        json << "  }";
+    }
+    json << "\n}\n";
+    return json.str();
+}
+
+// Write the Markdown inventory: one row per parsed class with a yes/no cell per backend.
+[[nodiscard]] static bool
+    WriteCoverageInventory(const std::string& path, const ParsedFFI& ffi,
+                           const std::vector<std::pair<std::string, CoverageInfo>>& reports)
+{
+    std::ofstream output(path, std::ios::binary | std::ios::trunc);
+    if (!output.is_open())
+    {
+        std::println(stderr, "Error: cannot write inventory '{}'", path);
+        return false;
+    }
+    // The program-local locale adds digit-group separators; the table must stay plain.
+    output.imbue(std::locale::classic());
+
+    output << "# kwxgen coverage inventory\n\n";
+    output << "Generated by `kwxgen coverage --inventory`. `yes` means the backend wraps the "
+              "class or the target runtime provides it.\n\n";
+    output << "| class | methods | gui | fortran | go | julia | lua | rust | typescript |\n";
+    output << "|---|---|---|---|---|---|---|---|---|\n";
+
+    for (const auto& cls: ffi.classes)
+    {
+        size_t method_count = 0;
+        for (const auto& func: cls.methods)
+        {
+            if (IsValidFunction(func))
+            {
+                ++method_count;
+            }
+        }
+
+        output << "| " << cls.name << " | " << method_count << " | "
+               << (IsGuiExcludedClass(cls.name) ? "yes" : "no") << " |";
+        for (const auto& [language, report]: reports)
+        {
+            std::ignore = language;
+            output << " " << (CoverageHasClass(report, cls.name) ? "yes" : "no") << " |";
+        }
+        output << "\n";
+    }
+    return true;
+}
+
+// Compare every language against the TypeScript reference.  Returns true when no class,
+// method or symbol is missing; prints each shortfall.
+[[nodiscard]] static bool
+    CheckCoverageParity(const ParsedFFI& ffi,
+                        const std::vector<std::pair<std::string, CoverageInfo>>& reports)
+{
+    const CoverageInfo* reference = nullptr;
+    for (const auto& [language, report]: reports)
+    {
+        if (language == "typescript")
+        {
+            reference = &report;
+        }
+    }
+    if (reference == nullptr)
+    {
+        std::println(stderr, "Error: parity check needs the TypeScript reference report");
+        return false;
+    }
+
+    bool parity_ok = true;
+    for (const auto& [language, report]: reports)
+    {
+        if (language == "typescript")
+        {
+            continue;
+        }
+
+        for (const std::string& class_name: reference->wrapped_classes)
+        {
+            if (!CoverageHasClass(report, class_name))
+            {
+                std::println("  MISSING CLASS  {}: {}", language, class_name);
+                parity_ok = false;
+                continue;
+            }
+
+            const size_t model_count = ModelMethodCount(class_name, ffi);
+            size_t wrapped_count = 0;
+            const std::map<std::string, size_t>::const_iterator wrapped_iter =
+                report.method_counts_by_class.find(class_name);
+            if (wrapped_iter != report.method_counts_by_class.end())
+            {
+                wrapped_count += wrapped_iter->second;
+            }
+            const std::map<std::string, size_t>::const_iterator collapsed_iter =
+                report.deduplicated_method_counts_by_class.find(class_name);
+            if (collapsed_iter != report.deduplicated_method_counts_by_class.end())
+            {
+                wrapped_count += collapsed_iter->second;
+            }
+            if (wrapped_count < model_count)
+            {
+                std::println("  METHOD SHORTFALL {}: {} ({} wrapped, {} model)", language,
+                             class_name, wrapped_count, model_count);
+                parity_ok = false;
+            }
+        }
+
+        if (report.free_function_count < ffi.free_functions.size())
+        {
+            std::println("  FREE FUNCTION SHORTFALL {}: {} of {}", language,
+                         report.free_function_count, ffi.free_functions.size());
+            parity_ok = false;
+        }
+        if (report.event_count < ffi.events.size())
+        {
+            std::println("  EVENT SHORTFALL {}: {} of {}", language, report.event_count,
+                         ffi.events.size());
+            parity_ok = false;
+        }
+        if (report.key_count < ffi.keys.size())
+        {
+            std::println("  KEY SHORTFALL {}: {} of {}", language, report.key_count,
+                         ffi.keys.size());
+            parity_ok = false;
+        }
+        if (report.constant_count < ffi.constants.size())
+        {
+            std::println("  CONSTANT SHORTFALL {}: {} of {}", language, report.constant_count,
+                         ffi.constants.size());
+            parity_ok = false;
+        }
+    }
+
+    return parity_ok;
+}
+
 int main(int argc, char* argv[])
 {
     Args args;
@@ -869,6 +1176,133 @@ int main(int argc, char* argv[])
 
         std::ignore = fs::remove_all(temp_dir);
         return deno_result.success ? 0 : 1;
+    }
+
+    if (args.command == CMD_COVERAGE)
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::println(stderr, "Error: 'coverage' requires --headers and --defs");
+            return 1;
+        }
+
+        // The default is the language default only when --lang selects a backend; a report
+        // over every backend always describes the full surface.
+        std::string profile = args.profile;
+        if (profile.empty())
+        {
+            profile =
+                args.lang.empty() ? std::string("full") : DefaultProfileForLanguage(args.lang);
+        }
+        if (!IsKnownProfile(profile))
+        {
+            std::println(stderr, "Error: unknown profile '{}'", profile);
+            return 1;
+        }
+
+        const std::vector<std::unique_ptr<LanguageEmitter>> emitters = CreateEmitters();
+        std::vector<const LanguageEmitter*> selected;
+        if (args.lang.empty())
+        {
+            for (const auto& emitter: emitters)
+            {
+                selected.push_back(emitter.get());
+            }
+        }
+        else
+        {
+            const LanguageEmitter* const emitter = FindEmitter(emitters, args.lang);
+            if (!emitter)
+            {
+                std::println(stderr, "Error: unknown language '{}'", args.lang);
+                std::print(stderr, "Available:");
+                for (const auto& entry: emitters)
+                {
+                    std::print(stderr, " {}", entry->Name());
+                }
+                std::println(stderr, "");
+                return 1;
+            }
+            selected.push_back(emitter);
+        }
+
+        std::println(stderr, "Parsing...");
+        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
+        const ParsedFFI profiled_ffi = ApplyProfile(parsed_ffi, profile);
+
+        std::vector<std::pair<std::string, CoverageInfo>> reports;
+        for (const LanguageEmitter* const emitter: selected)
+        {
+            reports.emplace_back(std::string(emitter->Name()), emitter->Coverage(profiled_ffi));
+        }
+
+        // The parity gate always needs the TypeScript reference, even when --lang picked
+        // exactly one other backend.
+        if (args.require_parity && args.lang != "typescript")
+        {
+            bool has_reference = false;
+            for (const auto& [language, report]: reports)
+            {
+                std::ignore = report;
+                if (language == "typescript")
+                {
+                    has_reference = true;
+                }
+            }
+            if (!has_reference)
+            {
+                const std::vector<std::unique_ptr<LanguageEmitter>> all_emitters = CreateEmitters();
+                if (const LanguageEmitter* const reference_emitter =
+                        FindEmitter(all_emitters, "typescript"))
+                {
+                    reports.emplace_back("typescript", reference_emitter->Coverage(profiled_ffi));
+                }
+            }
+        }
+
+        std::println(stderr, "");
+        PrintCoverageTable(reports);
+
+        if (!args.json_path.empty())
+        {
+            std::ofstream json_output(args.json_path, std::ios::binary | std::ios::trunc);
+            if (!json_output.is_open())
+            {
+                std::println(stderr, "Error: cannot write JSON report '{}'", args.json_path);
+                return 1;
+            }
+            json_output << CoverageJson(reports);
+            std::println(stderr, "Coverage JSON written to {}", args.json_path);
+        }
+
+        if (!args.inventory_path.empty())
+        {
+            if (!WriteCoverageInventory(args.inventory_path, profiled_ffi, reports))
+            {
+                return 1;
+            }
+            std::println(stderr, "Coverage inventory written to {}", args.inventory_path);
+        }
+
+        if (!args.require_parity)
+        {
+            return 0;
+        }
+
+        std::println("");
+        std::println("Parity check against the TypeScript reference (profile: {}):", profile);
+        if (CheckCoverageParity(profiled_ffi, reports))
+        {
+            std::println("Coverage parity: OK");
+            return 0;
+        }
+        std::println("Coverage parity: FAILED");
+        return 1;
     }
 
     if (args.command == CMD_ALL_MD_FILES)

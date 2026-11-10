@@ -18,6 +18,7 @@ public:
     VerifyResult Verify(const ParsedFFI& parsed_ffi,
                         const std::filesystem::path& directory) override;
     std::string_view Name() const override { return "go"; }
+    [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& parsed_ffi) const override;
 
 private:
     static void GenerateGlueFile(const ParsedFFI& parsed_ffi, const std::filesystem::path& out_dir);

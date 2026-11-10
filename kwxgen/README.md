@@ -45,9 +45,16 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
 - `kwxffi_gen.f90` — the `kwxffi` module: every class method, free function, event, key
   and constant as an `ISO_C_BINDING` `interface` body. This is the single entry point for
   the raw C API; import the names you need with `only:`.
-- `kwx_types.f90`, `wx_string.f90` — opaque pointer types and string conversion helpers.
-- `wx_window.f90`, `wx_frame.f90`, `wx_controls.f90`, `wx_menus.f90`, `wx_sizers.f90`,
-  `wx_events.f90`, `wx_dialogs.f90` — idiomatic wrappers over a subset of the raw API.
+- `kwx_types.f90` — the generated type tree: one `type, extends(parent_t)` declaration
+  per parsed class (rooted at `wxObject_t`) plus a `<class>_from_ptr` constructor.
+- `wx_string.f90` — the string helper module (`to_wxstring`, `from_wxstring`,
+  `from_cstring`).
+- `wx_string_methods.f90` — the `wxString` class module. It is generated like every other
+  class; the `_methods` suffix keeps it distinct from the `wx_string` helper module.
+- `wx_events.f90` — event connection and accessor wrappers.
+- one `<module>.f90` per class with at least one valid method, named from the class
+  (`wxFrame` → `wx_frame.f90`, `wxTextCtrl` → `wx_text_ctrl.f90`). The module set follows
+  the parsed model; no class list is hardcoded.
 
 Compile and `use` normally:
 
@@ -198,6 +205,14 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
   shapes keep working. A member that cannot share the inherited name — same parameters
   and a different return type — is exposed as `<Name>__<DeclaringClass>`; `generate`
   prints these renames as one block at the end of the run.
+  A wrapper class is imported by value only when that cannot close a module cycle. When a
+  method returns a wrapper whose `extends` chain leads back to the declaring class, the
+  return keeps the raw `Pointer` contract: an eager value import would leave the base class
+  binding in its temporal dead zone and the generated corpus would fail to load with a
+  `ReferenceError`. `generate` reports each such downgrade as
+  `TypeScript: <class>: <Class> return stays raw Pointer (import cycle)`. The decision is
+  propagated down the inheritance chain, so a re-declared member keeps the ancestor's
+  annotation instead of being renamed.
 - `kwx_gen.ts` — Master barrel re-export of every generated module.
 
 Run with:
@@ -241,18 +256,64 @@ extern/kwxFFI/bin/Debug/kwxgen verify \
     --dir     <your-output-dir>/
 ```
 
+## Consumer regeneration
+
+`full` is the default profile, but pass `--profile full` explicitly in a script so a
+future default change cannot silently shrink a consumer's surface. From each consumer
+checkout (the sibling repositories `kwxFortran`, `kwxGO`, `kwxJulia`, `kwxLuaJIT`,
+`kwxRust`, `kwxTypeScript`):
+
+```sh
+# 1. Build kwxgen
+cmake -S extern/kwxFFI/kwxgen -B build/kwxgen -G Ninja
+cmake --build build/kwxgen --config Release
+
+# 2. Regenerate the bindings at full coverage
+extern/kwxFFI/bin/Release/kwxgen generate \
+    --headers extern/kwxFFI/include \
+    --defs    extern/kwxFFI/src/kwx_defs.cpp \
+    --lang    <lang> --profile full \
+    --out     <gen-dir>
+
+# 3. Verify the generated tree is current
+extern/kwxFFI/bin/Release/kwxgen verify \
+    --headers extern/kwxFFI/include \
+    --defs    extern/kwxFFI/src/kwx_defs.cpp \
+    --lang    <lang> --profile full \
+    --dir     <gen-dir>
+
+# 4. Rebuild the consumer bindings
+<rebuild>
+```
+
+| Language | `<lang>` | `<gen-dir>` | `<rebuild>` |
+|---|---|---|---|
+| Fortran | `fortran` | `src/gen/` | `cmake --build build` |
+| Go | `go` | `wx/` | `go build ./...` |
+| Julia | `julia` | `src/gen/` | `julia --project -e 'using Pkg; Pkg.precompile()'` |
+| LuaJIT | `luajit` | `lua/wx/` | `luajit -e "require('kwxffi_idiomatic_gen')"` |
+| Rust | `rust` | `crate/` | `cargo check --manifest-path crate/Cargo.toml` |
+| TypeScript | `typescript` | `gen/` | `deno check gen/kwx_gen.ts` |
+
+The Rust backend emits a complete crate (`Cargo.toml` plus `src/`), so its `--out`
+points at the crate root. `verify` lists the stale files when the committed tree is not
+current. Commit the regenerated tree together with the kwxFFI update.
+
 ---
 
 ## Current Coverage
 
-| Category | Count |
-|---|---|
-| Classes | 657 |
-| Class methods | 7,966 |
-| Events | 308 |
-| Key constants | 99 |
-| Defined constants | 1,411 |
-| Free functions | 214 |
+Coverage follows the parsed headers, so it is a report, not a table in this file:
+
+```sh
+kwxgen coverage --headers include --defs src/kwx_defs.cpp --profile full
+```
+
+One row per backend shows `wrapped`, `consumer`, `skipped`, `methods`, `free`, `events`,
+`keys` and `constants`. `--json <file>` writes a deterministic JSON report,
+`--inventory <file>` writes one Markdown row per parsed class with a `yes`/`no` cell per
+backend, and `--require-parity` exits non-zero when any backend lags the TypeScript
+reference. The test suite runs that gate as `binding_coverage`.
 
 ## Building
 
@@ -302,7 +363,7 @@ Parses the headers and generates binding source files for the specified language
 | `--lang <lang>` | Target language (see `kwxgen langs`) |
 | `--out <dir>` | Output directory for generated files |
 | `--libname <name>` | Runtime shared-lib name embedded in bindings (default: `kwxFFI`) |
-| `--profile <name>` | Surface profile: `full` or `gui` (default: per language — see [Profiles](#profiles)) |
+| `--profile <name>` | Surface profile: `full` or `gui` (default: `full` — see [Profiles](#profiles)) |
 | `--rename-report <file>` | Write a JSON report of TypeScript member renames (TypeScript only) |
 
 ### `verify` — Verify existing bindings
@@ -375,18 +436,30 @@ Default profile per language:
 | Language | Default profile |
 |---|---|
 | `fortran` | `full` |
-| `go` | `gui` |
-| `julia` | `gui` |
+| `go` | `full` |
+| `julia` | `full` |
 | `luajit` | `full` |
+| `rust` | `full` |
 | `typescript` | `full` |
+
+`full` is the default for every backend: each one exposes every class with at least one
+valid method plus a wrapper type for every zero-method direct `wxEvent` subclass. `gui` is
+never a default — pass `--profile gui` to opt down to the base-utility-filtered surface.
 
 The `exports` command always emits the complete surface and rejects `--profile`.
 
 ### Profile categories
 
 Every class in the parsed model belongs to exactly one category. The authoritative,
-regenerated list is `.private/coverage_expansion_inventory.md` (one line per class:
-`name | method count | category | owning phase`).
+regenerated list is the coverage inventory:
+
+```sh
+kwxgen coverage --headers include --defs src/kwx_defs.cpp \
+    --inventory .private/coverage_expansion_inventory.md
+```
+
+It writes one Markdown row per parsed class:
+`class | methods | gui | fortran | go | julia | lua | rust | typescript`.
 
 | Category | In `gui`? | Meaning |
 |---|---|---|
@@ -415,15 +488,16 @@ not on macOS), so wrapping them would break the macOS build.
 
 ### Rule: a new class must be classified
 
-Adding a class to `include/` without classifying it is a defect: an unclassified
-base-utility class silently leaks into the Go and Julia surface. To add a class:
+Adding a class to `include/` without classifying it is a defect: `--profile gui` would
+still wrap a base-utility class the runtime already provides. To add a class:
 
 1. Run `kwxgen parse --headers include --defs src/kwx_defs.cpp --out <model.json>`.
-2. Regenerate `.private/coverage_expansion_inventory.md` from the new model.
+2. Regenerate the inventory with
+   `kwxgen coverage --headers include --defs src/kwx_defs.cpp --inventory .private/coverage_expansion_inventory.md`.
 3. If the class is `base-utility`, add its exact name to `GuiExcludedClasses()` in
    `kwxgen/src/profile.cpp`, keeping the list sorted.
-4. Confirm `kwxgen generate --lang go --profile gui --out <temp>` omits it while
-   `--profile full` includes it.
+4. Confirm `kwxgen generate --lang go --profile gui --out <temp>` omits it while the
+   default `full` profile includes it.
 
 A `base-utility` class that a retained signature still references (as an ancestor,
 mixin, parameter type or return type) is added back automatically, so the generated

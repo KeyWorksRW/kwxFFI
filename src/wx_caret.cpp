@@ -69,4 +69,14 @@ extern "C"
     {
         wxCaret::SetBlinkTime(milliseconds);
     }
+
+    EXPORT wxCaretSuspend* wxCaretSuspend_Create(wxWindow* window)
+    {
+        return new wxCaretSuspend(window);
+    }
+
+    EXPORT void wxCaretSuspend_Delete(wxCaretSuspend* self)
+    {
+        delete self;
+    }
 }

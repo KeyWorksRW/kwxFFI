@@ -25,7 +25,10 @@ void wxLog_Flush(TSelf(wxLog) pObject);
 TBool wxLog_HasPendingMessages(TSelf(wxLog) pObject);
 void wxLog_FlushActive(TSelf(wxLog) pObject);
 void* wxLog_GetActiveTarget();
-void* wxLog_SetActiveTarget(TClass(wxLog) pLogger);
+// Returns the previously installed target.  wxWidgets hands ownership of it to
+// the caller, so the declaration is marked TClassOwned: the generated binding
+// returns a wrapper whose Delete() actually frees it.
+TClassOwned(wxLog) wxLog_SetActiveTarget(TClass(wxLog) pLogger);
 void wxLog_Suspend(TSelf(wxLog) pObject);
 void wxLog_Resume(TSelf(wxLog) pObject);
 void wxLog_SetVerbose(TSelf(wxLog) pObject, TBool bVerbose);

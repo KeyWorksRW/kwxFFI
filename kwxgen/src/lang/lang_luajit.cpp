@@ -15,12 +15,19 @@
 #include <filesystem>
 #include <print>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 // NOLINTBEGIN(readability-magic-string)
 
 namespace fs = std::filesystem;
+
+// Classes excluded from idiomatic generation: the string helper type's lifecycle is managed
+// by kwxffi_helpers_gen.lua, so the class is consumer-provided rather than wrapped.
+static const std::unordered_set<std::string> kSkipClass = {
+    "wxString"  // Lifecycle managed by kwxffi_helpers_gen.lua
+};
 
 // Emit a single C function declaration for ffi.cdef.
 static void EmitCDecl(std::ostream& stream, const std::string& return_type,
@@ -388,6 +395,168 @@ VerifyResult LuaJITEmitter::Verify(const ParsedFFI& /* ffi_data */, const fs::pa
     result.success = false;
     result.messages.emplace_back("LuaJIT verify: use 'kwxgen verify' command instead");
     return result;
+}
+
+// -------------------------------------------------------------------------
+// Coverage report
+// -------------------------------------------------------------------------
+
+// The Lua member name the idiomatic emitter publishes for a method, or an empty string when
+// the emitter skips the method entirely.  Coverage() uses this so the reported counts match
+// the emitted modules: constructors land on M.<name>, a destructor without extra parameters
+// lands on M:Delete, and every other method keeps its own name.
+[[nodiscard]] static std::string LuaEmittedMemberName(const FunctionDecl& func)
+{
+    if (!IsValidFunction(func))
+    {
+        return "";
+    }
+    if (func.is_constructor && !func.has_self)
+    {
+        return func.method_name;
+    }
+    if (func.is_destructor)
+    {
+        bool has_non_self_params = false;
+        for (const auto& param: func.params)
+        {
+            if (param.macro_name != "TSelf")
+            {
+                has_non_self_params = true;
+            }
+        }
+        if (!has_non_self_params)
+        {
+            return "Delete";
+        }
+    }
+    return func.method_name;
+}
+
+CoverageInfo LuaJITEmitter::Coverage(const ParsedFFI& ffi_data) const
+{
+    CoverageInfo report;
+    report.free_function_count = ffi_data.free_functions.size();
+    report.event_count = ffi_data.events.size();
+    report.key_count = ffi_data.keys.size();
+    report.constant_count = ffi_data.constants.size();
+
+    for (const std::string& skip_name: kSkipClass)
+    {
+        report.consumer_provided_classes.push_back(skip_name);
+    }
+
+    // The same policy GenerateIdiomaticClasses() uses, so the report describes what is emitted.
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi_data);
+
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    class_index.reserve(ffi_data.classes.size());
+    for (const auto& class_decl: ffi_data.classes)
+    {
+        class_index.emplace(class_decl.name, &class_decl);
+    }
+
+    for (const auto& class_decl: ffi_data.classes)
+    {
+        if (kSkipClass.contains(class_decl.name))
+        {
+            // The idiomatic module is intentionally omitted; kwxffi_helpers_gen.lua owns the
+            // lifecycle instead. GenerateClasses() still emits the raw ffi.cdef declarations for
+            // these methods, so they do reach the backend output and belong in the count.
+            size_t raw_count = 0;
+            for (const auto& func: class_decl.methods)
+            {
+                if (IsValidFunction(func))
+                {
+                    ++raw_count;
+                }
+            }
+            if (raw_count != 0)
+            {
+                report.method_counts_by_class[class_decl.name] = raw_count;
+            }
+            continue;  // already reported as consumer-provided
+        }
+        if (!wrapped_classes.contains(class_decl.name))
+        {
+            report.skipped_classes.push_back(class_decl.name);
+            continue;
+        }
+
+        report.wrapped_classes.push_back(class_decl.name);
+
+        // Member names are unique per Lua module, so a repeated name collapses onto the
+        // already-emitted wrapper instead of producing a second function.
+        std::set<std::string> emitted_names;
+        size_t wrapped_count = 0;
+        size_t collapsed_count = 0;
+
+        for (const auto& func: class_decl.methods)
+        {
+            const std::string member_name = LuaEmittedMemberName(func);
+            if (member_name.empty())
+            {
+                continue;
+            }
+            if (emitted_names.insert(member_name).second)
+            {
+                ++wrapped_count;
+            }
+            else
+            {
+                ++collapsed_count;
+            }
+        }
+
+        // The consumer module merges each wrapped mixin's exported members, so its mixin
+        // methods are part of what the consumer actually emits.
+        const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+            ffi_data.mixin_map.find(class_decl.name);
+        if (mixin_iter != ffi_data.mixin_map.end())
+        {
+            for (const std::string& mixin_name: mixin_iter->second)
+            {
+                if (!wrapped_classes.contains(mixin_name) || kSkipClass.contains(mixin_name))
+                {
+                    continue;
+                }
+                const std::unordered_map<std::string, const ClassInfo*>::const_iterator
+                    mixin_found = class_index.find(mixin_name);
+                if (mixin_found == class_index.end())
+                {
+                    continue;
+                }
+                for (const auto& func: mixin_found->second->methods)
+                {
+                    const std::string member_name = LuaEmittedMemberName(func);
+                    if (member_name.empty())
+                    {
+                        continue;
+                    }
+                    if (emitted_names.insert(member_name).second)
+                    {
+                        ++wrapped_count;
+                    }
+                    else
+                    {
+                        ++collapsed_count;
+                    }
+                }
+            }
+        }
+
+        report.method_counts_by_class[class_decl.name] = wrapped_count;
+        if (collapsed_count != 0)
+        {
+            report.deduplicated_method_counts_by_class[class_decl.name] = collapsed_count;
+            report.deduplicated_method_count += collapsed_count;
+        }
+    }
+
+    std::ranges::sort(report.wrapped_classes);
+    std::ranges::sort(report.consumer_provided_classes);
+    std::ranges::sort(report.skipped_classes);
+    return report;
 }
 
 // -------------------------------------------------------------------------
@@ -827,15 +996,8 @@ void LuaJITEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo
     output << "local _H = require(\"kwxffi_helpers_gen\")\n";
     output << "\n";
 
-    // Build the set of wrapped classes for parent resolution.
-    std::unordered_set<std::string> wrapped_classes;
-    for (const auto& other: ffi_data.classes)
-    {
-        if (!other.methods.empty() && other.name != "wxString")
-        {
-            wrapped_classes.insert(other.name);
-        }
-    }
+    // Build the set of wrapped classes (shared policy) for parent resolution.
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi_data);
 
     // Check for a wrapped parent to inherit methods from.
     const std::string parent_name = FindWrappedParent(class_info.name, ffi_data, wrapped_classes);
@@ -1078,17 +1240,18 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
     master << "local M = {}\n";
     master << "\n";
 
-    static const std::unordered_set<std::string> kSkipClass = {
-        "wxString"  // Lifecycle managed by kwxffi_helpers_gen.lua
-    };
-
     size_t class_count = 0;
     size_t skipped_count = 0;
     size_t method_count = 0;
 
+    // The shared policy is the single source of truth for which classes get a module. It
+    // includes zero-method direct wxEvent subclasses, which still need a wrapper so a caller
+    // can downcast an event pointer and reuse the inherited wxEvent accessors.
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi_data);
+
     for (const auto& class_decl: ffi_data.classes)
     {
-        if (class_decl.methods.empty())
+        if (!wrapped_classes.contains(class_decl.name))
         {
             continue;
         }
