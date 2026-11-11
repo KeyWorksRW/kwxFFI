@@ -117,7 +117,7 @@ void wxHtmlEasyPrinting_SetHeader(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxSt
 void wxHtmlEasyPrinting_SetFooter(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxString) footer,
                                   int pg);
 void wxHtmlEasyPrinting_SetFonts(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxString) normal_face,
-                                 TClass(wxString) fixed_face, int* sizes);
+                                 TClass(wxString) fixed_face, TIntArrayIn sizes);
 void wxHtmlEasyPrinting_SetStandardFonts(TSelf(wxHtmlEasyPrinting) pObject, int size,
                                          TClass(wxString) normal_face, TClass(wxString) fixed_face);
 void* wxHtmlEasyPrinting_GetPrintData(TSelf(wxHtmlEasyPrinting) pObject);
@@ -137,7 +137,7 @@ void wxHtmlPrintout_SetHtmlText(TSelf(wxHtmlPrintout) pObject, TClass(wxString) 
 void wxHtmlPrintout_SetHeader(TSelf(wxHtmlPrintout) pObject, TClass(wxString) header, int pg);
 void wxHtmlPrintout_SetFooter(TSelf(wxHtmlPrintout) pObject, TClass(wxString) footer, int pg);
 void wxHtmlPrintout_SetFonts(TSelf(wxHtmlPrintout) pObject, TClass(wxString) normal_face,
-                             TClass(wxString) fixed_face, int* sizes);
+                             TClass(wxString) fixed_face, TIntArrayIn sizes);
 void wxHtmlPrintout_SetStandardFonts(TSelf(wxHtmlPrintout) pObject, int size,
                                      TClass(wxString) normal_face, TClass(wxString) fixed_face);
 void wxHtmlPrintout_SetMargins(TSelf(wxHtmlPrintout) pObject, float top, float bottom, float left,

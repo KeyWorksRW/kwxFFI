@@ -39,7 +39,7 @@ TUInt32 wxSocketBase_GetLastIOReadSize(TSelf(wxSocketBase) pObject);
 TUInt32 wxSocketBase_GetLastIOWriteSize(TSelf(wxSocketBase) pObject);
 void wxSocketBase_ShutdownOutput(TSelf(wxSocketBase) pObject);
 TBool wxSocketBase_GetOption(TSelf(wxSocketBase) pObject, int level, int option_name,
-                             void* option_value, int* option_length);
+                             void* option_value, TIntInOut option_length);
 TBool wxSocketBase_SetOption(TSelf(wxSocketBase) pObject, int level, int option_name,
                              void* option_value, int option_length);
 TClass(wxEvtHandler) wxSocketBase_GetEventHandler(TSelf(wxSocketBase) pObject);

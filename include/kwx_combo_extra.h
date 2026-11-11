@@ -33,7 +33,7 @@ void wxComboPopup_OnComboKeyEvent(TClass(wxComboPopup) pObject, TClass(wxKeyEven
 void wxComboPopup_OnComboCharEvent(TClass(wxComboPopup) pObject, TClass(wxKeyEvent) event);
 void wxComboPopup_OnComboDoubleClick(TClass(wxComboPopup) pObject);
 void wxComboPopup_GetAdjustedSize(TClass(wxComboPopup) pObject, int minWidth, int prefHeight,
-                                  int maxHeight, int* width, int* height);
+                                  int maxHeight, TSizeOut(width, height));
 TBool wxComboPopup_LazyCreate(TClass(wxComboPopup) pObject);
 void wxComboPopup_Dismiss(TClass(wxComboPopup) pObject);
 TBool wxComboPopup_IsCreated(TClass(wxComboPopup) pObject);

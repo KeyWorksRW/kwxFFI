@@ -59,7 +59,7 @@ TBool wxHandleFatalExceptions(TBool doit);
 
 TBool wxGetKeyState(int key);
 TBool wxSetDetectableAutoRepeat(TBool flag);
-void wxGetMousePosition(int* x, int* y);
+void wxGetMousePosition(TPointOut(x, y));
 void wxInfoMessageBox(TClass(wxWindow) parent);
 void wxRegisterId(int id);
 int wxGetCurrentId();

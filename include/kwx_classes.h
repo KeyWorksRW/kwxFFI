@@ -32,9 +32,21 @@
 #include "kwx_spec_residual.h"
 #include "kwx_thread_extra.h"
 
+// Classes named only by a TClass/TSelf signature type in this header set. They have no
+// wrapper block of their own, but a binding generator needs the name so the pointer gets
+// a wrapper type instead of an anonymous handle.
+// clang-format off
+TClassDef(wxItemAttr)
+TClassDef(wxOverlay)
+TClassDef(wxHtmlWindowInterface)
+TClassDef(wxOwnerDrawn)
+TClassDefExtend(wxGridCellAttrProvider, wxClientDataContainer)
+TClassDefExtend(wxToolBarToolBase, wxObject)
+TClassDefExtend(wxWebViewConfiguration, wxObject)
 TClassDefExtend(kwxArtProv, wxArtProvider) TClass(kwxArtProv)
     kwxArtProv_Create(void* pObject, void* callback);
 void kwxArtProv_Release(TSelf(kwxArtProv) pObject);
+// clang-format on
 
 TClassDefExtend(kwxClient, wxClient) TClass(kwxClient)
     kwxClient_Create(void* kwxObject, void* connectFunc);
@@ -243,7 +255,7 @@ void wxAnimation_Delete(TSelf(wxAnimation) self);
 int wxAnimation_GetDelay(TSelf(wxAnimation) self, int frame);
 int wxAnimation_GetFrameCount(TSelf(wxAnimation) self);
 void wxAnimation_GetFrame(TSelf(wxAnimation) self, int frame, TClass(wxImage) image);
-void wxAnimation_GetSize(TSelf(wxAnimation) self, int* width, int* height);
+void wxAnimation_GetSize(TSelf(wxAnimation) self, TSizeOut(width, height));
 TBool wxAnimation_IsOk(TSelf(wxAnimation) self);
 TBool wxAnimation_LoadFile(TSelf(wxAnimation) self, TClass(wxString) filename, int type);
 TBool wxAnimation_Load(TSelf(wxAnimation) self, TClass(wxInputStream) stream, int type);
@@ -343,7 +355,7 @@ void wxAuiDefaultTabArt_DrawTab(TSelf(wxAuiDefaultTabArt) pObject, TClass(wxDC) 
                                 TClass(wxWindow) window, TClass(wxAuiNotebookPage) pane,
                                 TClass(wxRect) inRect, int closeButtonState,
                                 TClass(wxRect) outTabRect, TClass(wxRect) outButtonRect,
-                                int* xExtent);
+                                TIntOut xExtent);
 void wxAuiDefaultTabArt_DrawButton(TSelf(wxAuiDefaultTabArt) pObject, TClass(wxDC) dc,
                                    TClass(wxWindow) window, TClass(wxRect) inRect, int bitmapId,
                                    int buttonState, int orientation, TClass(wxRect) outRect);
@@ -351,7 +363,7 @@ int wxAuiDefaultTabArt_GetIndentSize(TSelf(wxAuiDefaultTabArt) pObject);
 TClass(wxSize) wxAuiDefaultTabArt_GetTabSize(TSelf(wxAuiDefaultTabArt) pObject, TClass(wxDC) dc,
                                              TClass(wxWindow) window, TClass(wxString) caption,
                                              TClass(wxBitmap) bitmap, TBool active,
-                                             int closeButtonState, int* xExtent);
+                                             int closeButtonState, TIntOut xExtent);
 int wxAuiDefaultTabArt_ShowDropDown(TSelf(wxAuiDefaultTabArt) pObject, TClass(wxWindow) window,
                                     TClass(wxAuiNotebookPageArray) items, int activeIdx);
 int wxAuiDefaultTabArt_GetBestTabCtrlSize(TSelf(wxAuiDefaultTabArt) pObject,
@@ -642,7 +654,7 @@ void wxAuiNotebook_SetTabCtrlHeight(TSelf(wxAuiNotebook) pObject, int height);
 TBool wxAuiNotebook_ShowWindowMenu(TSelf(wxAuiNotebook) pObject);
 void wxAuiNotebook_SetUniformBitmapSize(TSelf(wxAuiNotebook) pObject, TSize(width, height));
 void wxAuiNotebook_Split(TSelf(wxAuiNotebook) pObject, int page, int direction);
-int wxAuiNotebook_HitTest(TSelf(wxAuiNotebook) pObject, TPoint(point_x, point_y), long* flags);
+int wxAuiNotebook_HitTest(TSelf(wxAuiNotebook) pObject, TPoint(point_x, point_y), TLongOut flags);
 TClassOwned(wxAuiTabCtrlArray) wxAuiNotebook_GetAllTabCtrls(TSelf(wxAuiNotebook) pObject);
 TClassOwned(wxArrayInt) wxAuiNotebook_GetPagesInDisplayOrder(TSelf(wxAuiNotebook) pObject,
                                                              TClass(wxAuiTabCtrl) tabCtrl);
@@ -756,14 +768,14 @@ void wxAuiTabArt_DrawButton(TSelf(wxAuiTabArt) pObject, TClass(wxDC) dc, TClass(
 void wxAuiTabArt_DrawTab(TSelf(wxAuiTabArt) pObject, TClass(wxDC) dc, TClass(wxWindow) window,
                          TClass(wxAuiNotebookPage) page, TClass(wxRect) rect,
                          int close_button_state, TClass(wxRect) outTabRect,
-                         TClass(wxRect) outButtonRect, int* x_extent);
+                         TClass(wxRect) outButtonRect, TIntOut x_extent);
 int wxAuiTabArt_GetBestTabCtrlSize(TSelf(wxAuiTabArt) pObject, TClass(wxWindow) window,
                                    TClass(wxAuiNotebookPageArray) pages, TSize(width, height));
 int wxAuiTabArt_GetIndentSize(TSelf(wxAuiTabArt) pObject);
 TClass(wxSize)
     wxAuiTabArt_GetTabSize(TSelf(wxAuiTabArt) pObject, TClass(wxDC) dc, TClass(wxWindow) window,
                            TClass(wxString) caption, TClass(wxBitmap) bitmap, TBool active,
-                           int close_button_state, int* x_extent);
+                           int close_button_state, TIntOut x_extent);
 void wxAuiTabArt_SetFlags(TSelf(wxAuiTabArt) pObject, int flags);
 void wxAuiTabArt_SetMeasuringFont(TSelf(wxAuiTabArt) pObject, TClass(wxFont) font);
 void wxAuiTabArt_SetNormalFont(TSelf(wxAuiTabArt) pObject, TClass(wxFont) font);
@@ -789,7 +801,7 @@ void wxAuiSimpleTabArt_DrawTab(TSelf(wxAuiSimpleTabArt) pObject, TClass(wxDC) dc
                                TClass(wxWindow) window, TClass(wxAuiNotebookPage) pane,
                                TClass(wxRect) inRect, int closeButtonState,
                                TClass(wxRect) outTabRect, TClass(wxRect) outButtonRect,
-                               int* xExtent);
+                               TIntOut xExtent);
 void wxAuiSimpleTabArt_DrawButton(TSelf(wxAuiSimpleTabArt) pObject, TClass(wxDC) dc,
                                   TClass(wxWindow) window, TClass(wxRect) inRect, int bitmapId,
                                   int buttonState, int orientation, TClass(wxRect) outRect);
@@ -797,7 +809,7 @@ int wxAuiSimpleTabArt_GetIndentSize(TSelf(wxAuiSimpleTabArt) pObject);
 TClass(wxSize) wxAuiSimpleTabArt_GetTabSize(TSelf(wxAuiSimpleTabArt) pObject, TClass(wxDC) dc,
                                             TClass(wxWindow) window, TClass(wxString) caption,
                                             TClass(wxBitmap) bitmap, TBool active,
-                                            int closeButtonState, int* xExtent);
+                                            int closeButtonState, TIntOut xExtent);
 int wxAuiSimpleTabArt_ShowDropDown(TSelf(wxAuiSimpleTabArt) pObject, TClass(wxWindow) window,
                                    TClass(wxAuiNotebookPageArray) items, int activeIdx);
 int wxAuiSimpleTabArt_GetBestTabCtrlSize(TSelf(wxAuiSimpleTabArt) pObject, TClass(wxWindow) window,
@@ -835,8 +847,8 @@ TBool wxAuiManager_DetachPane(TSelf(wxAuiManager) pObject, TClass(wxWindow) wind
 // Returns a borrowed pointer to the manager's pane array; its items are the live panes.
 TClass(wxAuiPaneInfoArray) wxAuiManager_GetAllPanes(TSelf(wxAuiManager) pObject);
 TClass(wxAuiDockArt) wxAuiManager_GetArtProvider(TSelf(wxAuiManager) pObject);
-void wxAuiManager_GetDockSizeConstraint(TSelf(wxAuiManager) pObject, double* widthPct,
-                                        double* heightPct);
+void wxAuiManager_GetDockSizeConstraint(TSelf(wxAuiManager) pObject,
+                                        TSizeOutDouble(widthPct, heightPct));
 int wxAuiManager_GetFlags(TSelf(wxAuiManager) pObject);
 TClass(wxWindow) wxAuiManager_GetManagedWindow(TSelf(wxAuiManager) pObject);
 void wxAuiManager_HideHint(TSelf(wxAuiManager) pObject);
@@ -1030,8 +1042,8 @@ TClassDefExtend(wxBookCtrlBase, wxControl) TBool
                                      int winid, TPoint(x, y), TSize(width, height), long style,
                                      TClass(wxString) name);
 void wxBookCtrlBase_SetPageSize(TSelf(wxBookCtrlBase) pObject, TSize(width, height));
-int wxBookCtrlBase_HitTest(TSelf(wxBookCtrlBase) pObject, TPoint(x, y), long* flags);
-int wxBookCtrlBase_HitTestFlags(TSelf(wxBookCtrlBase) pObject, TPoint(x, y), int* flags);
+int wxBookCtrlBase_HitTest(TSelf(wxBookCtrlBase) pObject, TPoint(x, y), TLongOut flags);
+int wxBookCtrlBase_HitTestFlags(TSelf(wxBookCtrlBase) pObject, TPoint(x, y), TIntOut flags);
 int wxBookCtrlBase_GetPageImage(TSelf(wxBookCtrlBase) pObject, int nPage);
 TBool wxBookCtrlBase_SetPageImage(TSelf(wxBookCtrlBase) pObject, int page, int image);
 TClass(wxString) wxBookCtrlBase_GetPageText(TSelf(wxBookCtrlBase) pObject, int nPage);
@@ -1126,9 +1138,8 @@ TClass(wxBitmap) wxBitmap_CreateDefault();
 TClass(wxBitmap) wxBitmap_CreateEmpty(TSize(width, height), int depth);
 TClass(wxBitmap) wxBitmap_CreateFromXPM(TSelf(wxBitmap) data);
 TClass(wxBitmap) wxBitmap_CreateLoad(TClass(wxString) name, int type);
-TClass(wxBitmap) wxBitmap_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
-TClass(wxBitmap)
-    wxBitmap_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
+TClass(wxBitmap) wxBitmap_CreateFromData(TBytesIn data, size_t size, int bitmap_type);
+TClass(wxBitmap) wxBitmap_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
 void wxBitmap_Delete(TSelf(wxBitmap) pObject);
 void* wxBitmap_FindHandlerByExtension(TSelf(wxBitmap) extension, int type);
 void* wxBitmap_FindHandlerByName(TClass(wxString) name);
@@ -1205,19 +1216,18 @@ TClass(wxBitmapBundle) wxBitmapBundle_FromBitmaps(TClass(wxBitmapVector) bitmaps
 TClass(wxBitmap) wxBitmapBundle_GetBitmap(TSelf(wxBitmapBundle) pObject, TClass(wxSize) size);
 TClass(wxSize) wxBitmapBundle_GetDefaultSize(TSelf(wxBitmapBundle) pObject);
 TBool wxBitmapBundle_IsOk(TSelf(wxBitmapBundle) pObject);
+TClass(wxBitmapBundle) wxBitmapBundle_CreateFromData(TBytesIn data, size_t size, int bitmap_type);
 TClass(wxBitmapBundle)
-    wxBitmapBundle_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
+    wxBitmapBundle_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
 TClass(wxBitmapBundle)
-    wxBitmapBundle_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
-TClass(wxBitmapBundle) wxBitmapBundle_CreateFromSVGBase64(const unsigned char* base64, size_t len,
-                                                          int default_w, int default_h);
+    wxBitmapBundle_CreateFromSVGBase64(TBytesIn base64, size_t len, int default_w, int default_h);
 TClass(wxBitmapBundle) wxBitmapBundle_FromSVGFile(TClass(wxString) file, TSize(width, height));
 
 TClassDef(wxBitmapBundleBuilder) TClass(wxBitmapBundleBuilder) wxBitmapBundleBuilder_Create();
-void wxBitmapBundleBuilder_AddData(TSelf(wxBitmapBundleBuilder) builder, const unsigned char* data,
-                                   size_t size, int bitmap_type);
-void wxBitmapBundleBuilder_AddBase64(TSelf(wxBitmapBundleBuilder) builder,
-                                     const unsigned char* base64, size_t len, int bitmap_type);
+void wxBitmapBundleBuilder_AddData(TSelf(wxBitmapBundleBuilder) builder, TBytesIn data, size_t size,
+                                   int bitmap_type);
+void wxBitmapBundleBuilder_AddBase64(TSelf(wxBitmapBundleBuilder) builder, TBytesIn base64,
+                                     size_t len, int bitmap_type);
 TClass(wxBitmapBundle) wxBitmapBundleBuilder_Build(TSelf(wxBitmapBundleBuilder) builder);
 
 TClassDefExtend(wxBoxSizer, wxSizer) TClass(wxSize) wxBoxSizer_CalcMin(TSelf(wxBoxSizer) pObject);
@@ -1329,7 +1339,7 @@ void wxCalendarCtrlBase_GetHolidayColourBg(TSelf(wxCalendarCtrlBase) pObject,
 void wxCalendarCtrlBase_GetHolidayColourFg(TSelf(wxCalendarCtrlBase) pObject,
                                            TClassRef(wxColour) ref);
 int wxCalendarCtrlBase_HitTest(TSelf(wxCalendarCtrlBase) pObject, TPoint(x, y),
-                               TClass(wxDateTime) date, int* weekday);
+                               TClass(wxDateTime) date, TIntOut weekday);
 void wxCalendarCtrlBase_Mark(TSelf(wxCalendarCtrlBase) pObject, int day, TBool mark);
 void wxCalendarCtrlBase_ResetAttr(TSelf(wxCalendarCtrlBase) pObject, int day);
 void wxCalendarCtrlBase_SetAttr(TSelf(wxCalendarCtrlBase) pObject, int day, void* attr);
@@ -1359,7 +1369,7 @@ void wxCalendarCtrl_GetHighlightColourFg(TSelf(wxCalendarCtrl) pObject, TClassRe
 void wxCalendarCtrl_GetHolidayColourBg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 void wxCalendarCtrl_GetHolidayColourFg(TSelf(wxCalendarCtrl) pObject, TClassRef(wxColour) ref);
 int wxCalendarCtrl_HitTest(TSelf(wxCalendarCtrl) pObject, TPoint(x, y), TClass(wxDateTime) date,
-                           int* weekday);
+                           TIntOut weekday);
 void wxCalendarCtrl_Mark(TSelf(wxCalendarCtrl) pObject, int day, TBool mark);
 void wxCalendarCtrl_ResetAttr(TSelf(wxCalendarCtrl) pObject, int day);
 void wxCalendarCtrl_SetAttr(TSelf(wxCalendarCtrl) pObject, int day, void* attr);
@@ -1448,7 +1458,8 @@ TClass(wxCheckListBox)
     wxCheckListBox_Create(TClass(wxWindow) parent, int id, TRect(left, top, width, height),
                           TArrayString(n, str), int style);
 void wxCheckListBox_Delete(TSelf(wxCheckListBox) pObject);
-int wxCheckListBox_GetCheckedItems(TSelf(wxCheckListBox) pObject, int* checkedItems, int allocated);
+int wxCheckListBox_GetCheckedItems(TSelf(wxCheckListBox) pObject, TIntArrayOut checkedItems,
+                                   int allocated);
 TBool wxCheckListBox_IsChecked(TSelf(wxCheckListBox) pObject, int item);
 
 TClassDefExtend(wxChoice, wxControl) void wxChoice_Append(TSelf(wxChoice) pObject,
@@ -1549,8 +1560,7 @@ void* wxClosure_GetData(TSelf(wxClosure) pObject);
 TClassDefExtend(wxColour, wxObject) TUInt8 wxColour_Alpha(TSelf(wxColour) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxString) wxColour_GetAsString(TSelf(wxColour) pObject, long flags);
-void wxColour_MakeDisabled(unsigned char* r, unsigned char* g, unsigned char* b,
-                           unsigned char brightness);
+void wxColour_MakeDisabled(TByteOut r, TByteOut g, TByteOut b, unsigned char brightness);
 void wxColour_Assign(TSelf(wxColour) pObject, void* other);
 TUInt8 wxColour_Blue(TSelf(wxColour) pObject);
 void wxColour_Copy(TSelf(wxColour) pObject, void* other);
@@ -1748,10 +1758,10 @@ void wxControl_SetLabelText(TSelf(wxControl) pObject, TClass(wxString) text);
 TClass(wxString) wxControl_GetLabelText(TSelf(wxControl) pObject);
 TBool wxControl_SetLabelMarkup(TSelf(wxControl) pObject, TClass(wxString) markup);
 int wxControl_GetAlignment(TSelf(wxControl) pObject);
-void wxControl_GetSizeFromText(TSelf(wxControl) pObject, TClass(wxString) text, int* width,
-                               int* height);
-void wxControl_GetSizeFromTextSize(TSelf(wxControl) pObject, int xlen, int ylen, int* width,
-                                   int* height);
+void wxControl_GetSizeFromText(TSelf(wxControl) pObject, TClass(wxString) text,
+                               TSizeOut(width, height));
+void wxControl_GetSizeFromTextSize(TSelf(wxControl) pObject, int xlen, int ylen,
+                                   TSizeOut(width, height));
 TClass(wxString) wxControl_RemoveMnemonics(TClass(wxString) str);
 TClass(wxString) wxControl_EscapeMnemonics(TClass(wxString) str);
 
@@ -2010,7 +2020,7 @@ void* wxDateTime_ParseDate(TSelf(wxDateTime) pObject, void* date);
 void* wxDateTime_ParseDateTime(TSelf(wxDateTime) pObject, void* datetime);
 void* wxDateTime_ParseFormat(TSelf(wxDateTime) pObject, void* date, void* format, void* dateDef);
 void* wxDateTime_ParseRfc822Date(TSelf(wxDateTime) pObject, void* date);
-void* wxDateTime_ParseTime(TSelf(wxDateTime) pObject, TClass(wxTime) time);
+void* wxDateTime_ParseTime(TSelf(wxDateTime) pObject, TClass(wxString) time);
 void wxDateTime_ResetTime(TSelf(wxDateTime) pObject);
 void wxDateTime_Set(TSelf(wxDateTime) pObject, int day, int month, int year, int hour, int minute,
                     int second, int millisec);
@@ -2585,8 +2595,8 @@ TBool wxGauge_IsVertical(TSelf(wxGauge) self);
 TClassDefExtend(wxGenericDirCtrl, wxControl)
 
     TClassDefExtend(wxGenericValidator, wxValidator) TClass(wxGenericValidator)
-        wxGenericValidator_CreateInt(int* value);
-TClass(wxGenericValidator) wxGenericValidator_CreateBool(TBool* value);
+        wxGenericValidator_CreateInt(TIntIn value);
+TClass(wxGenericValidator) wxGenericValidator_CreateBool(TBoolIn value);
 TClass(wxGenericValidator) wxGenericValidator_CreateString(TClass(wxString) value);
 void wxGenericValidator_Delete(TSelf(wxGenericValidator) pObject);
 
@@ -2937,11 +2947,11 @@ TClass(wxSizerItem)
     wxGridBagSizer_AddSpacer(TSelf(wxGridBagSizer) pObject, int width, int height, int row, int col,
                              int rowspan, int colspan, int flag, int border, void* userData);
 void wxGridBagSizer_GetItemPosition(TSelf(wxGridBagSizer) pObject, TClass(wxWindow) window,
-                                    int* row, int* col);
+                                    TPointOut(row, col));
 void wxGridBagSizer_GetItemPositionSizer(TSelf(wxGridBagSizer) pObject, TClass(wxSizer) sizer,
-                                         int* row, int* col);
-void wxGridBagSizer_GetItemPositionIndex(TSelf(wxGridBagSizer) pObject, size_t index, int* row,
-                                         int* col);
+                                         TPointOut(row, col));
+void wxGridBagSizer_GetItemPositionIndex(TSelf(wxGridBagSizer) pObject, size_t index,
+                                         TPointOut(row, col));
 TBool wxGridBagSizer_SetItemPosition(TSelf(wxGridBagSizer) pObject, TClass(wxWindow) window,
                                      int row, int col);
 TBool wxGridBagSizer_SetItemPositionSizer(TSelf(wxGridBagSizer) pObject, TClass(wxSizer) sizer,
@@ -2949,11 +2959,11 @@ TBool wxGridBagSizer_SetItemPositionSizer(TSelf(wxGridBagSizer) pObject, TClass(
 TBool wxGridBagSizer_SetItemPositionIndex(TSelf(wxGridBagSizer) pObject, size_t index, int row,
                                           int col);
 void wxGridBagSizer_GetItemSpan(TSelf(wxGridBagSizer) pObject, TClass(wxWindow) window,
-                                int* rowspan, int* colspan);
+                                TSizeOut(rowspan, colspan));
 void wxGridBagSizer_GetItemSpanSizer(TSelf(wxGridBagSizer) pObject, TClass(wxSizer) sizer,
-                                     int* rowspan, int* colspan);
-void wxGridBagSizer_GetItemSpanIndex(TSelf(wxGridBagSizer) pObject, size_t index, int* rowspan,
-                                     int* colspan);
+                                     TSizeOut(rowspan, colspan));
+void wxGridBagSizer_GetItemSpanIndex(TSelf(wxGridBagSizer) pObject, size_t index,
+                                     TSizeOut(rowspan, colspan));
 TBool wxGridBagSizer_SetItemSpan(TSelf(wxGridBagSizer) pObject, TClass(wxWindow) window,
                                  int rowspan, int colspan);
 TBool wxGridBagSizer_SetItemSpanSizer(TSelf(wxGridBagSizer) pObject, TClass(wxSizer) sizer,
@@ -2967,7 +2977,7 @@ TBool wxGridBagSizer_CheckForIntersection(TSelf(wxGridBagSizer) pObject, TClass(
 TBool wxGridBagSizer_CheckForIntersectionPos(TSelf(wxGridBagSizer) pObject, int row, int col,
                                              int rowspan, int colspan,
                                              TClass(wxGBSizerItem) excludeItem);
-void wxGridBagSizer_GetEmptyCellSize(TSelf(wxGridBagSizer) pObject, int* width, int* height);
+void wxGridBagSizer_GetEmptyCellSize(TSelf(wxGridBagSizer) pObject, TSizeOut(width, height));
 void wxGridBagSizer_SetEmptyCellSize(TSelf(wxGridBagSizer) pObject, int width, int height);
 
 TClassDefExtend(wxGridTableBase, wxObject)
@@ -3056,8 +3066,8 @@ TBool wxHtmlHelpController_DisplaySection(TSelf(wxHtmlHelpController) pObject,
 TBool wxHtmlHelpController_DisplaySectionNumber(TSelf(wxHtmlHelpController) pObject, int sectionNo);
 TClass(wxFrame) wxHtmlHelpController_GetFrame(TSelf(wxHtmlHelpController) pObject);
 void* wxHtmlHelpController_GetFrameParameters(TSelf(wxHtmlHelpController) pObject, void* title,
-                                              int* width, int* height, int* pos_x, int* pos_y,
-                                              int* newFrameEachTime);
+                                              TIntOut width, TIntOut height, TIntOut pos_x,
+                                              TIntOut pos_y, TIntOut newFrameEachTime);
 TBool wxHtmlHelpController_Initialize(TSelf(wxHtmlHelpController) pObject, TClass(wxString) file);
 TBool wxHtmlHelpController_KeywordSearch(TSelf(wxHtmlHelpController) pObject,
                                          TClass(wxString) keyword);
@@ -3153,17 +3163,15 @@ void wxIconBundle_Assign(TSelf(wxIconBundle) pObject, TClassRef(wxIconBundle) re
 TClass(wxIconBundle) wxIconBundle_CreateDefault();
 TClass(wxIconBundle) wxIconBundle_CreateFromFile(TClass(wxString) file, int type);
 TClass(wxIconBundle) wxIconBundle_CreateFromIcon(TClass(wxIcon) icon);
-TClass(wxIconBundle)
-    wxIconBundle_CreateFromData(const unsigned char* data, size_t size, int bitmap_type);
-TClass(wxIconBundle)
-    wxIconBundle_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
+TClass(wxIconBundle) wxIconBundle_CreateFromData(TBytesIn data, size_t size, int bitmap_type);
+TClass(wxIconBundle) wxIconBundle_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
 void wxIconBundle_Delete(TSelf(wxIconBundle) pObject);
 void wxIconBundle_GetIcon(TSelf(wxIconBundle) pObject, TSize(width, height), int flags,
                           TClassRef(wxIcon) ref);
-void wxIconBundle_AddIconFromData(TSelf(wxIconBundle) pObject, const unsigned char* data,
-                                  size_t size, int bitmap_type);
-void wxIconBundle_AddIconFromBase64(TSelf(wxIconBundle) pObject, const unsigned char* base64,
-                                    size_t len, int bitmap_type);
+void wxIconBundle_AddIconFromData(TSelf(wxIconBundle) pObject, TBytesIn data, size_t size,
+                                  int bitmap_type);
+void wxIconBundle_AddIconFromBase64(TSelf(wxIconBundle) pObject, TBytesIn base64, size_t len,
+                                    int bitmap_type);
 
 TClassDefExtend(wxIconizeEvent, wxEvent) TClass(wxIconizeEvent)
     wxIconizeEvent_Create(int winid, TBool iconized);
@@ -3175,25 +3183,22 @@ void wxIdleEvent_RequestMore(TSelf(wxIdleEvent) pObject, TBool needMore);
 
 TClassDefExtend(wxImage, wxObject) TBool wxImage_CanRead(TClass(wxString) name);
 void wxImage_ConvertToBitmap(TSelf(wxImage) pObject, TClassRef(wxBitmap) bitmap);
-TByteStringLen wxImage_ConvertToByteString(TSelf(wxImage) pObject, int type, TByteStringOut data);
-TByteStringLen wxImage_ConvertToLazyByteString(TSelf(wxImage) pObject, int type,
-                                               TByteStringLazyOut data);
+TByteStringLen wxImage_ConvertToByteString(TSelf(wxImage) pObject, int type, TBytesOut data);
+TByteStringLen wxImage_ConvertToLazyByteString(TSelf(wxImage) pObject, int type, TBytesOut data);
 int wxImage_CountColours(TSelf(wxImage) pObject, int stopafter);
 void wxImage_Copy(TSelf(wxImage) pObject, TClassRef(wxImage) image);
 TClass(wxImage) wxImage_CreateDefault();
 TClass(wxImage) wxImage_CreateFromBitmap(TClass(wxBitmap) bitmap);
 // TClass(wxImage) wxImage_CreateFromByteString( TByteString(data,length), int
 // type );
-TClass(wxImage) wxImage_CreateFromByteString(TSize(width, height), TByteString(data, length));
+TClass(wxImage) wxImage_CreateFromByteString(TSize(width, height), TBytesIn data);
 // TClass(wxImage) wxImage_CreateFromLazyByteString(
 // TByteStringLazy(data,length), int type );
-TClass(wxImage)
-    wxImage_CreateFromLazyByteString(TSize(width, height), TByteStringLazy(data, length));
+TClass(wxImage) wxImage_CreateFromLazyByteString(TSize(width, height), TBytesIn data);
 TClass(wxImage) wxImage_CreateFromData(TSize(width, height), void* data);
 TClass(wxImage) wxImage_CreateFromFile(TClass(wxString) name);
-TClass(wxImage)
-    wxImage_CreateFromDataEncoded(const unsigned char* data, size_t size, int bitmap_type);
-TClass(wxImage) wxImage_CreateFromBase64(const unsigned char* base64, size_t len, int bitmap_type);
+TClass(wxImage) wxImage_CreateFromDataEncoded(TBytesIn data, size_t size, int bitmap_type);
+TClass(wxImage) wxImage_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
 TClass(wxImage) wxImage_CreateSized(TSize(width, height));
 void wxImage_Destroy(TSelf(wxImage) pObject);
 TChar wxImage_GetBlue(TSelf(wxImage) pObject, TPoint(x, y));
@@ -3456,7 +3461,7 @@ int wxListBox_FindString(TSelf(wxListBox) pObject, TClass(wxString) str);
 TClass(wxClientData) wxListBox_GetClientData(TSelf(wxListBox) pObject, int index);
 int wxListBox_GetCount(TSelf(wxListBox) pObject);
 int wxListBox_GetSelection(TSelf(wxListBox) pObject);
-int wxListBox_GetSelections(TSelf(wxListBox) pObject, int* aSelections, int allocated);
+int wxListBox_GetSelections(TSelf(wxListBox) pObject, TIntArrayOut aSelections, int allocated);
 TClass(wxString) wxListBox_GetString(TSelf(wxListBox) pObject, int index);
 void wxListBox_InsertItems(TSelf(wxListBox) pObject, void* items, int pos, int count);
 TBool wxListBox_IsSelected(TSelf(wxListBox) pObject, int index);
@@ -3505,7 +3510,7 @@ int wxListCtrl_GetNextItem(TSelf(wxListCtrl) pObject, int item, int geometry, in
 int wxListCtrl_GetSelectedItemCount(TSelf(wxListCtrl) pObject);
 void wxListCtrl_GetTextColour(TSelf(wxListCtrl) pObject, TClassRef(wxColour) ref);
 int wxListCtrl_GetTopItem(TSelf(wxListCtrl) pObject);
-int wxListCtrl_HitTest(TSelf(wxListCtrl) pObject, TPoint(x, y), void* flags, long* pSubItem);
+int wxListCtrl_HitTest(TSelf(wxListCtrl) pObject, TPoint(x, y), void* flags, TLongOut pSubItem);
 int wxListCtrl_InsertColumn(TSelf(wxListCtrl) pObject, int col, TClass(wxString) heading,
                             int format, int width);
 int wxListCtrl_InsertColumnFromInfo(TSelf(wxListCtrl) pObject, int col, TClass(wxListItem) info);
@@ -3534,9 +3539,9 @@ void wxListCtrl_SetSingleStyle(TSelf(wxListCtrl) pObject, int style, TBool add);
 void wxListCtrl_SetTextColour(TSelf(wxListCtrl) pObject, TClass(wxColour) col);
 void wxListCtrl_SetWindowStyleFlag(TSelf(wxListCtrl) pObject, int style);
 TBool wxListCtrl_SortItems(TSelf(wxListCtrl) pObject, void* compareFunc, void* obj);
-TBool wxListCtrl_GetSubItemRect(TSelf(wxListCtrl) pObject, long item, long subItem, int* x, int* y,
-                                int* width, int* height, int code);
-void wxListCtrl_GetViewRect(TSelf(wxListCtrl) pObject, int* x, int* y, int* width, int* height);
+TBool wxListCtrl_GetSubItemRect(TSelf(wxListCtrl) pObject, long item, long subItem,
+                                TRectOut(x, y, width, height), int code);
+void wxListCtrl_GetViewRect(TSelf(wxListCtrl) pObject, TRectOut(x, y, width, height));
 TBool wxListCtrl_HasCheckBoxes(TSelf(wxListCtrl) pObject);
 TBool wxListCtrl_EnableCheckBoxes(TSelf(wxListCtrl) pObject, TBool enable);
 TBool wxListCtrl_IsItemChecked(TSelf(wxListCtrl) pObject, long item);
@@ -3998,7 +4003,7 @@ int wxNotebook_GetPageImage(TSelf(wxNotebook) pObject, int nPage);
 TClass(wxString) wxNotebook_GetPageText(TSelf(wxNotebook) pObject, int nPage);
 int wxNotebook_GetRowCount(TSelf(wxNotebook) pObject);
 int wxNotebook_GetSelection(TSelf(wxNotebook) pObject);
-int wxNotebook_HitTest(TSelf(wxNotebook) pObject, TPoint(x, y), long* flags);
+int wxNotebook_HitTest(TSelf(wxNotebook) pObject, TPoint(x, y), TLongOut flags);
 TBool wxNotebook_InsertPage(TSelf(wxNotebook) pObject, int nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxNotebook_RemovePage(TSelf(wxNotebook) pObject, int nPage);
@@ -4042,7 +4047,7 @@ int wxChoicebook_GetPageCount(TSelf(wxChoicebook) pObject);
 int wxChoicebook_GetPageImage(TSelf(wxChoicebook) pObject, int nPage);
 TClass(wxString) wxChoicebook_GetPageText(TSelf(wxChoicebook) pObject, int nPage);
 int wxChoicebook_GetSelection(TSelf(wxChoicebook) pObject);
-int wxChoicebook_HitTest(TSelf(wxChoicebook) pObject, TPoint(x, y), long* flags);
+int wxChoicebook_HitTest(TSelf(wxChoicebook) pObject, TPoint(x, y), TLongOut flags);
 TBool wxChoicebook_InsertPage(TSelf(wxChoicebook) pObject, int nPage, TClass(wxWindow) pPage,
                               TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxChoicebook_RemovePage(TSelf(wxChoicebook) pObject, int nPage);
@@ -4072,7 +4077,7 @@ int wxListbook_GetPageCount(TSelf(wxListbook) pObject);
 int wxListbook_GetPageImage(TSelf(wxListbook) pObject, int nPage);
 TClass(wxString) wxListbook_GetPageText(TSelf(wxListbook) pObject, int nPage);
 int wxListbook_GetSelection(TSelf(wxListbook) pObject);
-int wxListbook_HitTest(TSelf(wxListbook) pObject, TPoint(x, y), long* flags);
+int wxListbook_HitTest(TSelf(wxListbook) pObject, TPoint(x, y), TLongOut flags);
 TBool wxListbook_InsertPage(TSelf(wxListbook) pObject, int nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxListbook_RemovePage(TSelf(wxListbook) pObject, int nPage);
@@ -4127,7 +4132,7 @@ int wxToolbook_GetPageImage(TSelf(wxToolbook) pObject, int nPage);
 TClass(wxString) wxToolbook_GetPageText(TSelf(wxToolbook) pObject, int nPage);
 int wxToolbook_GetSelection(TSelf(wxToolbook) pObject);
 TClass(wxToolBarBase) wxToolbook_GetToolBar(TSelf(wxToolbook) pObject);
-int wxToolbook_HitTest(TSelf(wxToolbook) pObject, TPoint(x, y), long* flags);
+int wxToolbook_HitTest(TSelf(wxToolbook) pObject, TPoint(x, y), TLongOut flags);
 TBool wxToolbook_InsertPage(TSelf(wxToolbook) pObject, int nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxToolbook_RemovePage(TSelf(wxToolbook) pObject, int nPage);
@@ -4158,7 +4163,7 @@ int wxTreebook_GetPageParent(TSelf(wxTreebook) pObject, int nPage);
 TClass(wxString) wxTreebook_GetPageText(TSelf(wxTreebook) pObject, int nPage);
 int wxTreebook_GetSelection(TSelf(wxTreebook) pObject);
 TClass(wxTreeCtrl) wxTreebook_GetTreeCtrl(TSelf(wxTreebook) pObject);
-int wxTreebook_HitTest(TSelf(wxTreebook) pObject, TPoint(x, y), long* flags);
+int wxTreebook_HitTest(TSelf(wxTreebook) pObject, TPoint(x, y), TLongOut flags);
 TBool wxTreebook_InsertPage(TSelf(wxTreebook) pObject, int nPage, TClass(wxWindow) pPage,
                             TClass(wxString) strText, TBool bSelect, int imageId);
 TBool wxTreebook_InsertSubPage(TSelf(wxTreebook) pObject, int nPage, TClass(wxWindow) pPage,
@@ -4227,8 +4232,7 @@ void wxDataViewCtrl_EnsureVisible(TSelf(wxDataViewCtrl) pObject, TClass(wxDataVi
 void wxDataViewCtrl_HitTest(TSelf(wxDataViewCtrl) pObject, int x, int y,
                             TClass(wxDataViewItem) item, TClass(wxDataViewColumn) * col);
 void wxDataViewCtrl_GetItemRect(TSelf(wxDataViewCtrl) pObject, TClass(wxDataViewItem) item,
-                                TClass(wxDataViewColumn) column, int* x, int* y, int* width,
-                                int* height);
+                                TClass(wxDataViewColumn) column, TRectOut(x, y, width, height));
 void wxDataViewCtrl_EditItem(TSelf(wxDataViewCtrl) pObject, TClass(wxDataViewItem) item,
                              TClass(wxDataViewColumn) column);
 int wxDataViewCtrl_GetCountPerPage(TSelf(wxDataViewCtrl) pObject);
@@ -4388,7 +4392,8 @@ TClassDefExtend(wxTimePickerCtrl, wxControl) TClass(wxTimePickerCtrl)
 void wxTimePickerCtrl_SetValue(TSelf(wxTimePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxTimePickerCtrl_GetValue(TSelf(wxTimePickerCtrl) pObject, TClass(wxDateTime) dateTime);
 void wxTimePickerCtrl_SetTime(TSelf(wxTimePickerCtrl) pObject, int hour, int min, int sec);
-TBool wxTimePickerCtrl_GetTime(TSelf(wxTimePickerCtrl) pObject, int* hour, int* min, int* sec);
+TBool wxTimePickerCtrl_GetTime(TSelf(wxTimePickerCtrl) pObject, TIntOut hour, TIntOut min,
+                               TIntOut sec);
 
 TClassDefExtend(wxNotebookEvent, wxNotifyEvent)
 
@@ -5026,8 +5031,8 @@ TClass(wxRibbonButtonBarButtonBase)
     wxRibbonButtonBar_GetItemById(TSelf(wxRibbonButtonBar) self, int button_id);
 int wxRibbonButtonBar_GetItemId(TSelf(wxRibbonButtonBar) self,
                                 TClass(wxRibbonButtonBarButtonBase) button);
-void wxRibbonButtonBar_GetItemRect(TSelf(wxRibbonButtonBar) self, int button_id, int* x, int* y,
-                                   int* width, int* height);
+void wxRibbonButtonBar_GetItemRect(TSelf(wxRibbonButtonBar) self, int button_id,
+                                   TRectOut(x, y, width, height));
 TClass(wxRibbonButtonBarButtonBase) wxRibbonButtonBar_GetActiveItem(TSelf(wxRibbonButtonBar) self);
 TClass(wxRibbonButtonBarButtonBase) wxRibbonButtonBar_GetHoveredItem(TSelf(wxRibbonButtonBar) self);
 void wxRibbonButtonBar_SetItemClientData(TSelf(wxRibbonButtonBar) self,
@@ -5124,8 +5129,8 @@ size_t wxRibbonToolBar_GetToolCount(TSelf(wxRibbonToolBar) self);
 int wxRibbonToolBar_GetToolId(TSelf(wxRibbonToolBar) self, TClass(wxRibbonToolBarToolBase) tool);
 TClass(wxRibbonToolBarToolBase) wxRibbonToolBar_GetActiveTool(TSelf(wxRibbonToolBar) self);
 int wxRibbonToolBar_GetToolPos(TSelf(wxRibbonToolBar) self, int tool_id);
-void wxRibbonToolBar_GetToolRect(TSelf(wxRibbonToolBar) self, int tool_id, int* x, int* y,
-                                 int* width, int* height);
+void wxRibbonToolBar_GetToolRect(TSelf(wxRibbonToolBar) self, int tool_id,
+                                 TRectOut(x, y, width, height));
 void wxRibbonToolBar_EnableTool(TSelf(wxRibbonToolBar) self, int tool_id, TBool enable);
 TBool wxRibbonToolBar_GetToolEnabled(TSelf(wxRibbonToolBar) self, int tool_id);
 TClass(wxString) wxRibbonToolBar_GetToolHelpString(TSelf(wxRibbonToolBar) self, int tool_id);
@@ -5158,7 +5163,7 @@ void wxRichTextCtrl_MarkDirty(TSelf(wxRichTextCtrl) self);
 void wxRichTextCtrl_DiscardEdits(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_IsEditable(TSelf(wxRichTextCtrl) self);
 void wxRichTextCtrl_SetEditable(TSelf(wxRichTextCtrl) self, TBool editable);
-void wxRichTextCtrl_GetSelection(TSelf(wxRichTextCtrl) self, long* from, long* to);
+void wxRichTextCtrl_GetSelection(TSelf(wxRichTextCtrl) self, TLongOut from, TLongOut to);
 void wxRichTextCtrl_SetSelection(TSelf(wxRichTextCtrl) self, long from, long toPos);
 void wxRichTextCtrl_SelectAll(TSelf(wxRichTextCtrl) self);
 void wxRichTextCtrl_SelectNone(TSelf(wxRichTextCtrl) self);
@@ -5198,7 +5203,7 @@ TBool wxRichTextCtrl_SetFont(TSelf(wxRichTextCtrl) self, TClass(wxFont) font);
 TBool wxRichTextCtrl_SetFontStyle(TSelf(wxRichTextCtrl) self, long start, long end,
                                   TClass(wxFont) font);
 long wxRichTextCtrl_XYToPosition(TSelf(wxRichTextCtrl) self, long x, long y);
-TBool wxRichTextCtrl_PositionToXY(TSelf(wxRichTextCtrl) self, long pos, long* x, long* y);
+TBool wxRichTextCtrl_PositionToXY(TSelf(wxRichTextCtrl) self, long pos, TPointOutLong(x, y));
 void wxRichTextCtrl_ShowPosition(TSelf(wxRichTextCtrl) self, long position);
 void wxRichTextCtrl_SetReadOnly(TSelf(wxRichTextCtrl) self, TBool readOnly);
 TBool wxRichTextCtrl_IsReadOnly(TSelf(wxRichTextCtrl) self);
@@ -5418,7 +5423,7 @@ void wxScrolledWindow_ViewStart(TSelf(wxScrolledWindow) pObject, TPointOutVoid(x
 int wxScrolledWindow_GetScrollLines(TSelf(wxScrolledWindow) pObject, int orient);
 TBool wxScrolledWindow_IsScrollbarShown(TSelf(wxScrolledWindow) pObject, int orient);
 void wxScrolledWindow_DisableKeyboardScrolling(TSelf(wxScrolledWindow) pObject);
-void wxScrolledWindow_GetViewStartPixels(TSelf(wxScrolledWindow) pObject, int* x, int* y);
+void wxScrolledWindow_GetViewStartPixels(TSelf(wxScrolledWindow) pObject, TPointOut(x, y));
 
 TClassDefExtend(wxSearchCtrl, wxControl) TClass(wxSearchCtrl)
     wxSearchCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) value,
@@ -5773,7 +5778,8 @@ void wxStaticBitmap_SetIcon(TSelf(wxStaticBitmap) pObject, TClass(wxIcon) icon);
 TClassDefExtend(wxStaticBox, wxControl) TClass(wxStaticBox)
     wxStaticBox_Create(TClass(wxWindow) parent, int id, TClass(wxString) text,
                        TRect(left, top, width, height), int style);
-void wxStaticBox_GetBordersForSizer(TSelf(wxStaticBox) self, int* borderTop, int* borderOther);
+void wxStaticBox_GetBordersForSizer(TSelf(wxStaticBox) self, TIntOut borderTop,
+                                    TIntOut borderOther);
 
 TClassDefExtend(wxStaticBoxSizer, wxBoxSizer) TClass(wxSize)
     wxStaticBoxSizer_CalcMin(TSelf(wxStaticBoxSizer) pObject);
@@ -5818,12 +5824,12 @@ int wxStatusBar_GetBorderX(TSelf(wxStatusBar) pObject);
 int wxStatusBar_GetBorderY(TSelf(wxStatusBar) pObject);
 int wxStatusBar_GetFieldsCount(TSelf(wxStatusBar) pObject);
 TClass(wxString) wxStatusBar_GetStatusText(TSelf(wxStatusBar) pObject, int number);
-void wxStatusBar_SetFieldsCount(TSelf(wxStatusBar) pObject, int number, int* widths);
+void wxStatusBar_SetFieldsCount(TSelf(wxStatusBar) pObject, TArrayInt(number, widths));
 void wxStatusBar_SetMinHeight(TSelf(wxStatusBar) pObject, int height);
 void wxStatusBar_SetStatusText(TSelf(wxStatusBar) pObject, TClass(wxString) text, int number);
-void wxStatusBar_SetStatusWidths(TSelf(wxStatusBar) pObject, int count, int* widths);
-TBool wxStatusBar_GetFieldRect(TSelf(wxStatusBar) pObject, int i, int* x, int* y, int* w, int* h);
-void wxStatusBar_SetStatusStyles(TSelf(wxStatusBar) pObject, int n, const int* styles);
+void wxStatusBar_SetStatusWidths(TSelf(wxStatusBar) pObject, TArrayInt(count, widths));
+TBool wxStatusBar_GetFieldRect(TSelf(wxStatusBar) pObject, int i, TRectOut(x, y, w, h));
+void wxStatusBar_SetStatusStyles(TSelf(wxStatusBar) pObject, int n, TIntArrayIn styles);
 void wxStatusBar_PushStatusText(TSelf(wxStatusBar) pObject, TClass(wxString) text, int field);
 void wxStatusBar_PopStatusText(TSelf(wxStatusBar) pObject, int field);
 int wxStatusBar_GetStatusWidth(TSelf(wxStatusBar) pObject, int n);
@@ -5927,7 +5933,7 @@ TBool wxTextCtrl_IsEditable(TSelf(wxTextCtrl) pObject);
 TBool wxTextCtrl_IsModified(TSelf(wxTextCtrl) pObject);
 TBool wxTextCtrl_LoadFile(TSelf(wxTextCtrl) pObject, TClass(wxString) file, int fileType);
 void wxTextCtrl_Paste(TSelf(wxTextCtrl) pObject);
-int wxTextCtrl_PositionToXY(TSelf(wxTextCtrl) pObject, long pos, long* x, long* y);
+int wxTextCtrl_PositionToXY(TSelf(wxTextCtrl) pObject, long pos, TPointOutLong(x, y));
 void wxTextCtrl_Redo(TSelf(wxTextCtrl) pObject);
 void wxTextCtrl_Remove(TSelf(wxTextCtrl) pObject, long from, long toPos);
 void wxTextCtrl_Replace(TSelf(wxTextCtrl) pObject, long from, long toPos, TClass(wxString) value);
@@ -5958,9 +5964,9 @@ TClassDefExtend(wxTextDataObject, wxDataObjectSimple) TClass(wxTextDataObject)
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxString) wxTextDataObject_GetText(TSelf(wxTextDataObject) pObject);
 void wxTextDataObject_SetText(TSelf(wxTextDataObject) pObject, TClass(wxString) text);
-void TextDataObject_Delete(TSelf(TextDataObject) pObject);
-TClass(wxString) TextDataObject_GetText(TSelf(TextDataObject) pObject);
-void TextDataObject_SetText(TSelf(TextDataObject) pObject, TClass(wxString) text);
+void TextDataObject_Delete(TSelf(wxTextDataObject) pObject);
+TClass(wxString) TextDataObject_GetText(TSelf(wxTextDataObject) pObject);
+void TextDataObject_SetText(TSelf(wxTextDataObject) pObject, TClass(wxString) text);
 
 TClassDefExtend(wxTextDropTarget, wxDropTarget)
 
@@ -5994,7 +6000,7 @@ long wxTextEntry_GetLastPosition(TClass(wxTextEntry) self);
 void wxTextEntry_SetSelection(TClass(wxTextEntry) self, long from, long to);
 void wxTextEntry_SelectAll(TClass(wxTextEntry) self);
 void wxTextEntry_SelectNone(TClass(wxTextEntry) self);
-void wxTextEntry_GetSelection(TClass(wxTextEntry) self, long* from, long* to);
+void wxTextEntry_GetSelection(TClass(wxTextEntry) self, TLongOut from, TLongOut to);
 TBool wxTextEntry_HasSelection(TClass(wxTextEntry) self);
 TClass(wxString) wxTextEntry_GetStringSelection(TClass(wxTextEntry) self);
 TBool wxTextEntry_IsEditable(TClass(wxTextEntry) self);
@@ -6004,7 +6010,7 @@ void wxTextEntry_ForceUpper(TClass(wxTextEntry) self);
 TBool wxTextEntry_SetHint(TClass(wxTextEntry) self, TClass(wxString) hint);
 TClass(wxString) wxTextEntry_GetHint(TClass(wxTextEntry) self);
 TBool wxTextEntry_SetMargins(TClass(wxTextEntry) self, int left, int top);
-void wxTextEntry_GetMargins(TClass(wxTextEntry) self, int* left, int* top);
+void wxTextEntry_GetMargins(TClass(wxTextEntry) self, TPointOut(left, top));
 TBool wxTextEntry_AutoComplete(TClass(wxTextEntry) self, int count, void* items);
 TBool wxTextEntry_AutoCompleteFileNames(TClass(wxTextEntry) self);
 TBool wxTextEntry_AutoCompleteDirectories(TClass(wxTextEntry) self);
@@ -6028,8 +6034,8 @@ void wxTextValidator_SetCharExcludes(TSelf(wxTextValidator) pObject, TClass(wxSt
 void wxTextValidator_SetCharIncludes(TSelf(wxTextValidator) pObject, TClass(wxString) chars);
 // Returns a newly allocated array of strings; the caller owns it and must free each
 // entry and the array itself.  count receives the number of entries.
-void* wxTextValidator_GetExcludes(TSelf(wxTextValidator) pObject, int* count);
-void* wxTextValidator_GetIncludes(TSelf(wxTextValidator) pObject, int* count);
+void* wxTextValidator_GetExcludes(TSelf(wxTextValidator) pObject, TIntOut count);
+void* wxTextValidator_GetIncludes(TSelf(wxTextValidator) pObject, TIntOut count);
 void wxTextValidator_SetExcludes(TSelf(wxTextValidator) pObject, TStringVoid list, int count);
 void wxTextValidator_SetIncludes(TSelf(wxTextValidator) pObject, TStringVoid list, int count);
 TClass(wxValidator) wxTextValidator_Clone(TSelf(wxTextValidator) pObject);
@@ -6254,7 +6260,7 @@ int wxTreeCtrl_GetChildrenCount(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) 
 int wxTreeCtrl_GetCount(TSelf(wxTreeCtrl) pObject);
 TClass(wxTextCtrl) wxTreeCtrl_GetEditControl(TSelf(wxTreeCtrl) pObject);
 void wxTreeCtrl_GetFirstChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
-                              void** cookie, TClassRef(wxTreeItemId) result);
+                              TCookie cookie, TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetFirstVisibleItem(TSelf(wxTreeCtrl) pObject, TClassRef(wxTreeItemId) result);
 TClass(wxImageList) wxTreeCtrl_GetImageList(TSelf(wxTreeCtrl) pObject);
 int wxTreeCtrl_GetIndent(TSelf(wxTreeCtrl) pObject);
@@ -6264,7 +6270,7 @@ TClass(wxString) wxTreeCtrl_GetItemText(TSelf(wxTreeCtrl) pObject, TClass(wxTree
 void wxTreeCtrl_GetLastChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
                              TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetNextChild(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
-                             void** cookie, TClassRef(wxTreeItemId) result);
+                             TCookie cookie, TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetNextSibling(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
                                TClassRef(wxTreeItemId) result);
 void wxTreeCtrl_GetNextVisible(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) inputItem,
@@ -6280,7 +6286,7 @@ void wxTreeCtrl_GetSelection(TSelf(wxTreeCtrl) pObject, TClassRef(wxTreeItemId) 
 TArrayLen wxTreeCtrl_GetSelections(TSelf(wxTreeCtrl) pObject, TArrayIntPtrOutVoid selections);
 int wxTreeCtrl_GetSpacing(TSelf(wxTreeCtrl) pObject);
 TClass(wxImageList) wxTreeCtrl_GetStateImageList(TSelf(wxTreeCtrl) pObject);
-void wxTreeCtrl_HitTest(TSelf(wxTreeCtrl) pObject, TPoint(x, y), int* flags,
+void wxTreeCtrl_HitTest(TSelf(wxTreeCtrl) pObject, TPoint(x, y), TIntOut flags,
                         TClassRef(wxTreeItemId) item);
 void wxTreeCtrl_InsertItem(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItemId) parent,
                            TClass(wxTreeItemId) idPrevious, TClass(wxString) text, int image,
@@ -6439,8 +6445,8 @@ TBool wxTreeListCtrl_AreAllChildrenInState(TSelf(wxTreeListCtrl) pObject,
 // Sorting
 void wxTreeListCtrl_SetSortColumn(TSelf(wxTreeListCtrl) pObject, unsigned col,
                                   TBool ascendingOrder);
-TBool wxTreeListCtrl_GetSortColumn(TSelf(wxTreeListCtrl) pObject, unsigned* col,
-                                   TBool* ascendingOrder);
+TBool wxTreeListCtrl_GetSortColumn(TSelf(wxTreeListCtrl) pObject, TUIntOut col,
+                                   TBoolOut ascendingOrder);
 
 // View window
 TClass(wxWindow) wxTreeListCtrl_GetView(TSelf(wxTreeListCtrl) pObject);
@@ -6692,8 +6698,8 @@ int wxWindow_GetScrollRange(TSelf(wxWindow) pObject, int orient);
 int wxWindow_GetScrollThumb(TSelf(wxWindow) pObject, int orient);
 TClass(wxSize) wxWindow_GetSize(TSelf(wxWindow) pObject);
 TClass(wxSizer) wxWindow_GetSizer(TSelf(wxWindow) pObject);
-void wxWindow_GetTextExtent(TSelf(wxWindow) pObject, TClass(wxString) string, int* x, int* y,
-                            int* descent, int* externalLeading, TClass(wxFont) theFont);
+void wxWindow_GetTextExtent(TSelf(wxWindow) pObject, TClass(wxString) string, TIntOut x, TIntOut y,
+                            TIntOut descent, TIntOut externalLeading, TClass(wxFont) theFont);
 TClass(wxString) wxWindow_GetToolTip(TSelf(wxWindow) pObject);
 TClass(wxRegion) wxWindow_GetUpdateRegion(TSelf(wxWindow) pObject);
 TClass(wxValidator) wxWindow_GetValidator(TSelf(wxWindow) pObject);

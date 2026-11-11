@@ -450,6 +450,29 @@ static std::string Capitalize(const std::string& text)
     return {};
 }
 
+// CGo type of the pointee behind a scalar-pointer macro. The wrapper accepts a bare
+// unsafe.Pointer, so the generated call casts it to the type the C prototype expects.
+[[nodiscard]] static std::string GoScalarPointerCType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "C.long";
+    }
+    if (c_type == "double")
+    {
+        return "C.double";
+    }
+    if (c_type == "unsigned")
+    {
+        return "C.uint";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "C.ulong";
+    }
+    return "C.int";
+}
+
 // Convert one Param to one or more GoParams.
 static std::vector<GoParam> ConvertParam(const Param& param, const std::string& reserved_name = {})
 {
@@ -599,6 +622,17 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
         return result;
     }
 
+    // Scalar value passed through a pointer: the caller owns the storage.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        const std::string name =
+            ParamName(param.param_name.empty() ? "arg" : param.param_name, reserved_name);
+        result.push_back({ name, "unsafe.Pointer",
+                           "(*" + GoScalarPointerCType(scalar_pointer.c_type) + ")(" + name + ")",
+                           "", "", true });
+        return result;
+    }
+
     // Single parameter
     GoParam go_param;
     go_param.name = ParamName(param.param_name.empty() ? "arg" : param.param_name, reserved_name);
@@ -741,6 +775,38 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
         // char* output buffer: pass as unsafe.Pointer
         go_param.go_type = "unsafe.Pointer";
         go_param.cgo_expr = "(*C.char)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "TBytesIn" || param.raw_type == "TBytesOut" ||
+             param.raw_type == "TByteOut")
+    {
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*C.uchar)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "TCharOut")
+    {
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*C.char)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "TIntArrayIn" || param.raw_type == "TIntArrayOut" ||
+             param.raw_type == "TIntIn" || param.raw_type == "TBoolIn")
+    {
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*C.int)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "TDoubleArrayOut")
+    {
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*C.double)(" + go_param.name + ")";
+        go_param.needs_unsafe = true;
+    }
+    else if (param.raw_type == "TCookie")
+    {
+        go_param.go_type = "unsafe.Pointer";
+        go_param.cgo_expr = "(*unsafe.Pointer)(" + go_param.name + ")";
         go_param.needs_unsafe = true;
     }
     else

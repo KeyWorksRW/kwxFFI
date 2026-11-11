@@ -130,6 +130,21 @@ enum class FortranParamKind
     class_pointer,
     callback,
     scalar,
+    scalar_output,
+    scalar_input_output,
+    byte_array_input,
+    byte_array_output,
+    byte_scalar_output,
+    char_scalar_output,
+    int_array_input,
+    int_array_output,
+    intptr_array_output,
+    double_array_output,
+    int_scalar_input,
+    bool_scalar_input,
+    cookie,
+    string_array_output,
+    object_array_output,
     opaque_pointer,
     raw_pointer
 };
@@ -197,14 +212,78 @@ enum class FortranParamKind
         return FortranParamKind::opaque_pointer;
     }
 
+    if (param.raw_type == "TBytesIn")
+    {
+        return FortranParamKind::byte_array_input;
+    }
+    if (param.raw_type == "TBytesOut")
+    {
+        return FortranParamKind::byte_array_output;
+    }
+    if (param.raw_type == "TByteOut")
+    {
+        return FortranParamKind::byte_scalar_output;
+    }
+    if (param.raw_type == "TCharOut")
+    {
+        return FortranParamKind::char_scalar_output;
+    }
+    if (param.raw_type == "TIntArrayIn")
+    {
+        return FortranParamKind::int_array_input;
+    }
+    if (param.raw_type == "TIntArrayOut")
+    {
+        return FortranParamKind::int_array_output;
+    }
+    if (param.raw_type == "TDoubleArrayOut")
+    {
+        return FortranParamKind::double_array_output;
+    }
+    if (param.raw_type == "TIntIn")
+    {
+        return FortranParamKind::int_scalar_input;
+    }
+    if (param.raw_type == "TBoolIn")
+    {
+        return FortranParamKind::bool_scalar_input;
+    }
+    if (param.raw_type == "TCookie")
+    {
+        return FortranParamKind::cookie;
+    }
+    if (param.raw_type == "TArrayStringOut" || param.raw_type == "TArrayStringOutVoid")
+    {
+        return FortranParamKind::string_array_output;
+    }
+    if (param.raw_type == "TArrayIntOutVoid")
+    {
+        return FortranParamKind::int_array_output;
+    }
+    if (param.raw_type == "TArrayIntPtrOut" || param.raw_type == "TArrayIntPtrOutVoid" ||
+        param.raw_type == "TArrayIntOut")
+    {
+        return FortranParamKind::intptr_array_output;
+    }
+    if (param.macro_name == "TArrayObjectOut" || param.macro_name == "TArrayObjectOutVoid")
+    {
+        return FortranParamKind::object_array_output;
+    }
+
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        return scalar_pointer.is_in_out ? FortranParamKind::scalar_input_output :
+                                          FortranParamKind::scalar_output;
+    }
+
     const std::string& raw = param.raw_type;
     if (raw.empty() || raw == "int" || raw == "long" || raw == "double" || raw == "float" ||
         raw == "unsigned" || raw == "unsigned int" || raw == "unsigned long" || raw == "size_t" ||
         raw == "time_t" || raw == "wxUIntPtr" || raw == "uintptr_t" || raw == "TInt64" ||
         raw == "int64_t" || raw == "TBool" || raw == "TBoolInt" || raw == "TChar" ||
-        raw == "TUInt8" || raw == "TUInt16" || raw == "TUInt32" || raw == "TUInt" ||
-        raw == "unsigned short" || raw == "intptr_t" || raw == "TIntPtr" || raw == "TArrayLen" ||
-        raw == "TByteStringLen")
+        raw == "unsigned char" || raw == "TUInt8" || raw == "TUInt16" || raw == "TUInt32" ||
+        raw == "TUInt" || raw == "unsigned short" || raw == "intptr_t" || raw == "TIntPtr" ||
+        raw == "TArrayLen" || raw == "TByteStringLen")
     {
         return FortranParamKind::scalar;
     }

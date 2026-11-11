@@ -30,6 +30,7 @@
 // at the call site.
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <sstream>
 #include <string>
@@ -266,6 +267,22 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     if (param_in.macro_name == "TArrayObjectOutVoid")
     {
         const std::string pname = param_in.param_name.empty() ? "arr" : param_in.param_name;
+        result.push_back({ "\"pointer\"", TsEscapeName(pname) });
+        return result;
+    }
+
+    if (IsTypedPointerMacro(param_in.raw_type))
+    {
+        const std::string pname = param_in.param_name.empty() ? "arg_" : param_in.param_name;
+        result.push_back({ "\"pointer\"", TsEscapeName(pname) });
+        return result;
+    }
+
+    // Scalar value passed through a pointer: the FFI layer sees a generic pointer and the
+    // runtime API keeps its existing Pointer shape.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param_in, scalar_pointer))
+    {
+        const std::string pname = param_in.param_name.empty() ? "arg_" : param_in.param_name;
         result.push_back({ "\"pointer\"", TsEscapeName(pname) });
         return result;
     }

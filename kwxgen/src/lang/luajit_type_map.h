@@ -4,6 +4,7 @@
 // for use in LuaJIT ffi.cdef blocks.
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <sstream>
 #include <string>
@@ -77,6 +78,28 @@ inline std::string LuaJITReturnType(const std::string& return_type, const std::s
 
     // Fallback
     return "int";
+}
+
+// C type of the pointee behind a scalar-pointer macro.
+[[nodiscard]] inline std::string LuaJITScalarPointerType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "long*";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "unsigned long*";
+    }
+    if (c_type == "double")
+    {
+        return "double*";
+    }
+    if (c_type == "unsigned")
+    {
+        return "unsigned int*";
+    }
+    return "int*";
 }
 
 // Split comma-separated macro arg: "x, y" → {"x", "y"}
@@ -166,6 +189,20 @@ inline std::vector<LuaCParam> ExpandParamToC(const Param& p)
     {
         std::string name = p.param_name.empty() ? "arr" : p.param_name;
         result.push_back({ "void*", name });
+        return result;
+    }
+
+    if (IsTypedPointerMacro(p.raw_type))
+    {
+        result.push_back({ "void*", p.param_name.empty() ? "arg" : p.param_name });
+        return result;
+    }
+
+    // Scalar value passed through a pointer.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(p, scalar_pointer))
+    {
+        result.push_back({ LuaJITScalarPointerType(scalar_pointer.c_type),
+                           p.param_name.empty() ? "arg" : p.param_name });
         return result;
     }
 

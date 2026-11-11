@@ -131,7 +131,7 @@ EXPORT void kwxPreferencesPage_Delete(TSelf(kwxPreferencesPage) pObject);
 // its result setter yields an empty name, a null window or no icon.
 EXPORT void kwxPreferencesPage_SetOnGetName(TSelf(kwxPreferencesPage) pObject, void* pFunction);
 // Call from the GetName callback with a UTF-8 char*; the name is copied.
-EXPORT void kwxPreferencesPage_SetOnGetNameResult(TSelf(kwxPreferencesPage) pObject, TChar* name);
+EXPORT void kwxPreferencesPage_SetOnGetNameResult(TSelf(kwxPreferencesPage) pObject, TString name);
 EXPORT void kwxPreferencesPage_SetOnCreateWindow(TSelf(kwxPreferencesPage) pObject,
                                                  void* pFunction);
 // Call from the CreateWindow callback with the wxWindow* it created.  The page
@@ -183,7 +183,7 @@ TClassDef(wxPreferencesPage) EXPORT void wxPreferencesPage_Delete(TSelf(wxPrefer
 EXPORT void wxPreferencesPage_SetOnGetName(TSelf(wxPreferencesPage) pObject, void* pFunction);
 EXPORT void wxPreferencesPage_SetOnCreateWindow(TSelf(wxPreferencesPage) pObject, void* pFunction);
 EXPORT void wxPreferencesPage_SetOnGetIcon(TSelf(wxPreferencesPage) pObject, void* pFunction);
-EXPORT void wxPreferencesPage_SetOnGetNameResult(TSelf(wxPreferencesPage) pObject, TChar* name);
+EXPORT void wxPreferencesPage_SetOnGetNameResult(TSelf(wxPreferencesPage) pObject, TString name);
 EXPORT void wxPreferencesPage_SetOnCreateWindowResult(TSelf(wxPreferencesPage) pObject,
                                                       TClass(wxWindow) window);
 EXPORT void wxPreferencesPage_SetOnGetIconResult(TSelf(wxPreferencesPage) pObject,

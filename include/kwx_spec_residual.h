@@ -177,14 +177,14 @@ TClass(wxGBSizerItem)
     wxGBSizerItem_CreateSpacer(int width, int height, int row, int col, int rowspan, int colspan,
                                int flag, int border, TClass(wxObject) user_data);
 void wxGBSizerItem_Delete(TSelf(wxGBSizerItem) pObject);
-void wxGBSizerItem_GetPos(TSelf(wxGBSizerItem) pObject, int* row, int* col);
+void wxGBSizerItem_GetPos(TSelf(wxGBSizerItem) pObject, TPointOut(row, col));
 void wxGBSizerItem_SetPos(TSelf(wxGBSizerItem) pObject, int row, int col);
-void wxGBSizerItem_GetSpan(TSelf(wxGBSizerItem) pObject, int* rowspan, int* colspan);
+void wxGBSizerItem_GetSpan(TSelf(wxGBSizerItem) pObject, TSizeOut(rowspan, colspan));
 TBool wxGBSizerItem_SetSpan(TSelf(wxGBSizerItem) pObject, int rowspan, int colspan);
 TBool wxGBSizerItem_Intersects(TSelf(wxGBSizerItem) pObject, TClass(wxGBSizerItem) other);
 TBool wxGBSizerItem_IntersectsPos(TSelf(wxGBSizerItem) pObject, int row, int col, int rowspan,
                                   int colspan);
-void wxGBSizerItem_GetEndPos(TSelf(wxGBSizerItem) pObject, int* row, int* col);
+void wxGBSizerItem_GetEndPos(TSelf(wxGBSizerItem) pObject, TPointOut(row, col));
 TClass(wxGridBagSizer) wxGBSizerItem_GetGBSizer(TSelf(wxGBSizerItem) pObject);
 void wxGBSizerItem_SetGBSizer(TSelf(wxGBSizerItem) pObject, TClass(wxGridBagSizer) sizer);
 
@@ -208,8 +208,8 @@ TClassDef(wxAffineMatrix2D) TClass(wxAffineMatrix2D) wxAffineMatrix2D_Create();
 void wxAffineMatrix2D_Delete(TSelf(wxAffineMatrix2D) pObject);
 void wxAffineMatrix2D_Set(TSelf(wxAffineMatrix2D) pObject, double m11, double m12, double m21,
                           double m22, double tr_x, double tr_y);
-void wxAffineMatrix2D_Get(TSelf(wxAffineMatrix2D) pObject, double* m11, double* m12, double* m21,
-                          double* m22, double* tr_x, double* tr_y);
+void wxAffineMatrix2D_Get(TSelf(wxAffineMatrix2D) pObject, TDoubleOut m11, TDoubleOut m12,
+                          TDoubleOut m21, TDoubleOut m22, TDoubleOut tr_x, TDoubleOut tr_y);
 void wxAffineMatrix2D_Concat(TSelf(wxAffineMatrix2D) pObject, TClass(wxAffineMatrix2D) other);
 TBool wxAffineMatrix2D_Invert(TSelf(wxAffineMatrix2D) pObject);
 TBool wxAffineMatrix2D_IsIdentity(TSelf(wxAffineMatrix2D) pObject);
@@ -218,8 +218,10 @@ void wxAffineMatrix2D_Translate(TSelf(wxAffineMatrix2D) pObject, double dx, doub
 void wxAffineMatrix2D_Scale(TSelf(wxAffineMatrix2D) pObject, double x_scale, double y_scale);
 void wxAffineMatrix2D_Rotate(TSelf(wxAffineMatrix2D) pObject, double radians);
 void wxAffineMatrix2D_Mirror(TSelf(wxAffineMatrix2D) pObject, int direction);
-void wxAffineMatrix2D_TransformPoint(TSelf(wxAffineMatrix2D) pObject, double* x, double* y);
-void wxAffineMatrix2D_TransformDistance(TSelf(wxAffineMatrix2D) pObject, double* x, double* y);
+void wxAffineMatrix2D_TransformPoint(TSelf(wxAffineMatrix2D) pObject, TDoubleInOut x,
+                                     TDoubleInOut y);
+void wxAffineMatrix2D_TransformDistance(TSelf(wxAffineMatrix2D) pObject, TDoubleInOut x,
+                                        TDoubleInOut y);
 
 // ---------------------------------------------------------------------------
 // wxArtProvider

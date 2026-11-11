@@ -65,6 +65,63 @@ inline std::string CFuncName(const FunctionDecl& func)
     return func.class_name + "_" + func.method_name;
 }
 
+// A single scalar passed through a pointer, declared in kwx_types.h with one of the
+// scalar-pointer macros (TIntOut, TLongOut, TDoubleOut, ...).  `c_type` is the pointee type;
+// each backend maps it to its own scalar type.  `is_in_out` is true when the callee reads the
+// incoming value before overwriting it — that distinction must survive into the binding,
+// because Fortran declares OUT and INOUT differently.
+struct ScalarPointerInfo
+{
+    std::string c_type;      // "int", "long", "double", "TBool", "unsigned", "unsigned long"
+    bool is_in_out = false;  // true for T*InOut macros
+};
+
+// Recognise the scalar-pointer macros. Returns false for every other parameter shape.
+[[nodiscard]] inline bool LookupScalarPointer(const Param& param, ScalarPointerInfo& info)
+{
+    struct Entry
+    {
+        std::string_view name;
+        std::string_view c_type;
+        bool is_in_out;
+    };
+    static constexpr Entry ENTRIES[] = {
+        { "TIntOut", "int", false },        { "TLongOut", "long", false },
+        { "TDoubleOut", "double", false },  { "TBoolOut", "TBool", false },
+        { "TUIntOut", "unsigned", false },  { "TIntInOut", "int", true },
+        { "TDoubleInOut", "double", true }, { "TULongInOut", "unsigned long", true },
+    };
+    for (const Entry& entry: ENTRIES)
+    {
+        if (param.raw_type == entry.name || param.macro_name == entry.name)
+        {
+            info.c_type = entry.c_type;
+            info.is_in_out = entry.is_in_out;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Recognise the descriptive pointer macros (TBytesIn, TIntArrayOut, TCookie, ...). They are
+// object-like macros, so the parser records the spelling in Param::raw_type and leaves
+// Param::macro_name empty. Every backend maps them to a pointer of some kind.
+[[nodiscard]] inline bool IsTypedPointerMacro(const std::string& raw_type)
+{
+    static constexpr std::string_view TYPED_POINTER_MACROS[] = {
+        "TBytesIn",     "TBytesOut",       "TByteOut", "TCharOut", "TIntArrayIn",
+        "TIntArrayOut", "TDoubleArrayOut", "TIntIn",   "TBoolIn",  "TCookie"
+    };
+    for (const std::string_view name: TYPED_POINTER_MACROS)
+    {
+        if (raw_type == name)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Write the standard "do not edit" header comment to a generated file.
 //   commentPrefix  — the single-line comment leader for the target language ("//", "#", "--")
 //   extraNewline   — emit a second blank line after the header (Go/Rust/Julia style)

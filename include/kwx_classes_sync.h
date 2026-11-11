@@ -24,10 +24,10 @@ TClassDef(kwxPrintout) void* kwxPrintout_Create(void* title, void* self, void* f
                                                 void* DoOnPageInfo);
 void kwxPrintout_Delete(TSelf(kwxPrintout) pObject);
 void* kwxPrintout_GetDC(TSelf(kwxPrintout) pObject);
-void kwxPrintout_GetPageSizeMM(void* pObject, int* width, int* height);
-void kwxPrintout_GetPageSizePixels(void* pObject, int* width, int* height);
-void kwxPrintout_GetPPIPrinter(void* pObject, int* x, int* y);
-void kwxPrintout_GetPPIScreen(void* pObject, int* x, int* y);
+void kwxPrintout_GetPageSizeMM(void* pObject, TSizeOut(width, height));
+void kwxPrintout_GetPageSizePixels(void* pObject, TSizeOut(width, height));
+void kwxPrintout_GetPPIPrinter(void* pObject, TPointOut(x, y));
+void kwxPrintout_GetPPIScreen(void* pObject, TPointOut(x, y));
 TClass(wxString) kwxPrintout_GetTitle(TSelf(kwxPrintout) pObject);
 TBool kwxPrintout_IsPreview(TSelf(kwxPrintout) pObject);
 void kwxPrintout_SetDC(TSelf(kwxPrintout) pObject, TClass(wxDC) dc);
@@ -88,7 +88,7 @@ TBool wxClassInfo_IsKindOfEx(TSelf(wxClassInfo) pObject, TClass(wxClassInfo) cla
 
 TClassDef(wxClipboard) void wxClipboard_Delete(TSelf(wxClipboard) pObject);
 
-TClassDefExtend(wxColorPickerCtrl, wxControl) TClass(wxColourPickerCtrl)
+TClassDefExtend(wxColorPickerCtrl, wxControl) TClass(wxColorPickerCtrl)
     wxColorPickerCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxColour) colour, int x, int y,
                              int width, int height, int style);
 void wxColorPickerCtrl_GetColour(TSelf(wxColorPickerCtrl) pObject, TClass(wxColour) colour);
@@ -115,7 +115,7 @@ int wxComboCtrl_GetFeatures();
 TClass(wxString) wxComboCtrl_GetHint(TSelf(wxComboCtrl) pObject);
 long wxComboCtrl_GetInsertionPoint(TSelf(wxComboCtrl) pObject);
 long wxComboCtrl_GetLastPosition(TSelf(wxComboCtrl) pObject);
-void wxComboCtrl_GetMargins(TSelf(wxComboCtrl) pObject, int* left, int* top);
+void wxComboCtrl_GetMargins(TSelf(wxComboCtrl) pObject, TPointOut(left, top));
 TClass(wxComboPopup) wxComboCtrl_GetPopupControl(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_GetPopupWindow(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetPopupWindowState(TSelf(wxComboCtrl) pObject);
@@ -206,14 +206,14 @@ TClass(wxSize) wxDisplay_GetRawPPI(TSelf(wxDisplay) pObject);
 void wxDisplay_ResetMode(TSelf(wxDisplay) pObject);
 void* wxDisplay_CreateFromWindow(TClass(wxWindow) win);
 void wxDisplay_Delete(TSelf(wxDisplay) pObject);
-void wxDisplay_GetClientArea(TSelf(wxDisplay) pObject, int* x, int* y, int* width, int* height);
+void wxDisplay_GetClientArea(TSelf(wxDisplay) pObject, TRectOut(x, y, width, height));
 int wxDisplay_GetCount();
 TClassOwned(wxVideoMode) wxDisplay_GetCurrentMode(TSelf(wxDisplay) pObject);
 int wxDisplay_GetFromPoint(int x, int y);
 int wxDisplay_GetFromWindow(TClass(wxWindow) win);
-void wxDisplay_GetGeometry(TSelf(wxDisplay) pObject, int* x, int* y, int* width, int* height);
+void wxDisplay_GetGeometry(TSelf(wxDisplay) pObject, TRectOut(x, y, width, height));
 TClass(wxString) wxDisplay_GetName(TSelf(wxDisplay) pObject);
-void wxDisplay_GetPPI(TSelf(wxDisplay) pObject, int* width, int* height);
+void wxDisplay_GetPPI(TSelf(wxDisplay) pObject, TSizeOut(width, height));
 double wxDisplay_GetScaleFactor(TSelf(wxDisplay) pObject);
 TBool wxDisplay_IsOk(TSelf(wxDisplay) pObject);
 TBool wxDisplay_IsPrimary(TSelf(wxDisplay) pObject);
@@ -316,10 +316,10 @@ TBool wxGenericDragImage_UpdateBackingFromWindow(TSelf(wxGenericDragImage) pObje
                                                  int ydest, int destWidth, int destHeight);
 
 TClassDef(wxGLCanvas) TClass(wxGLCanvas)
-    wxGLCanvas_Create(TClass(wxWindow) parent, int windowID, int* attributes, int x, int y,
+    wxGLCanvas_Create(TClass(wxWindow) parent, int windowID, TIntArrayIn attributes, int x, int y,
                       int width, int height, int style, TClass(wxString) title,
                       TClass(wxPalette) palette);
-TBool wxGLCanvas_IsDisplaySupported(int* attributes);
+TBool wxGLCanvas_IsDisplaySupported(TIntArrayIn attributes);
 TBool wxGLCanvas_IsExtensionSupported(TClass(wxString) extension);
 TBool wxGLCanvas_SetColour(TSelf(wxGLCanvas) pObject, TClass(wxColour) colour);
 TBool wxGLCanvas_SetCurrent(TSelf(wxGLCanvas) pObject, TClass(wxGLContext) ctxt);
@@ -386,8 +386,8 @@ void wxGraphicsContext_DrawEllipse(TSelf(wxGraphicsContext) pObject, double x, d
                                    double width, double height);
 void wxGraphicsContext_DrawIcon(TSelf(wxGraphicsContext) pObject, TClass(wxIcon) icon, double x,
                                 double y, double width, double height);
-void wxGraphicsContext_DrawLines(TSelf(wxGraphicsContext) pObject, size_t count, TClass(wxDouble) x,
-                                 TClass(wxDouble) y, int fillStyle);
+void wxGraphicsContext_DrawLines(TSelf(wxGraphicsContext) pObject, size_t count, void* x, void* y,
+                                 int fillStyle);
 void wxGraphicsContext_DrawPath(TSelf(wxGraphicsContext) pObject, TClass(wxGraphicsPath) path,
                                 int fillStyle);
 void wxGraphicsContext_DrawRectangle(TSelf(wxGraphicsContext) pObject, double x, double y,
@@ -402,10 +402,11 @@ void wxGraphicsContext_FillPath(TSelf(wxGraphicsContext) pObject, TClass(wxGraph
                                 int fillStyle);
 void* wxGraphicsContext_GetNativeContext(TSelf(wxGraphicsContext) pObject);
 void wxGraphicsContext_GetPartialTextExtents(TSelf(wxGraphicsContext) pObject,
-                                             TClass(wxString) text, double* widths, size_t count);
+                                             TClass(wxString) text, TDoubleArrayOut widths,
+                                             size_t count);
 void wxGraphicsContext_GetTextExtent(TSelf(wxGraphicsContext) pObject, TClass(wxString) text,
-                                     TClass(wxDouble) width, TClass(wxDouble) height,
-                                     TClass(wxDouble) descent, TClass(wxDouble) externalLeading);
+                                     TDoubleOut width, TDoubleOut height, TDoubleOut descent,
+                                     TDoubleOut externalLeading);
 void wxGraphicsContext_PopState(TSelf(wxGraphicsContext) pObject);
 void wxGraphicsContext_PushState(TSelf(wxGraphicsContext) pObject);
 void wxGraphicsContext_ResetClip(TSelf(wxGraphicsContext) pObject);
@@ -424,8 +425,8 @@ void wxGraphicsContext_SetTransform(TSelf(wxGraphicsContext) pObject,
                                     TClass(wxGraphicsMatrix) matrix);
 void wxGraphicsContext_StrokeLine(TSelf(wxGraphicsContext) pObject, double x1, double y1, double x2,
                                   double y2);
-void wxGraphicsContext_StrokeLines(TSelf(wxGraphicsContext) pObject, size_t count,
-                                   TClass(wxDouble) x, TClass(wxDouble) y, int fillStyle);
+void wxGraphicsContext_StrokeLines(TSelf(wxGraphicsContext) pObject, size_t count, void* x, void* y,
+                                   int fillStyle);
 void wxGraphicsContext_StrokeLinesStartAndEnd(TSelf(wxGraphicsContext) pObject, size_t count,
                                               TClass(wxPoint2DDouble) beginPoints,
                                               TClass(wxPoint2DDouble) endPoints);
@@ -439,9 +440,8 @@ TClassDef(wxGraphicsMatrix) void wxGraphicsMatrix_Concat(TSelf(wxGraphicsMatrix)
                                                          TClass(wxGraphicsMatrix) matrix);
 TClass(wxGraphicsMatrix) wxGraphicsMatrix_Create();
 void wxGraphicsMatrix_Delete(TSelf(wxGraphicsMatrix) pObject);
-void wxGraphicsMatrix_Get(TSelf(wxGraphicsMatrix) pObject, TClass(wxDouble) a, TClass(wxDouble) b,
-                          TClass(wxDouble) c, TClass(wxDouble) d, TClass(wxDouble) tx,
-                          TClass(wxDouble) ty);
+void wxGraphicsMatrix_Get(TSelf(wxGraphicsMatrix) pObject, TDoubleOut a, TDoubleOut b, TDoubleOut c,
+                          TDoubleOut d, TDoubleOut tx, TDoubleOut ty);
 void* wxGraphicsMatrix_GetNativeMatrix(TSelf(wxGraphicsMatrix) pObject);
 void wxGraphicsMatrix_Invert(TSelf(wxGraphicsMatrix) pObject);
 TBool wxGraphicsMatrix_IsEqual(TSelf(wxGraphicsMatrix) pObject, TClass(wxGraphicsMatrix) t);
@@ -450,10 +450,10 @@ void wxGraphicsMatrix_Rotate(TSelf(wxGraphicsMatrix) pObject, double angle);
 void wxGraphicsMatrix_Scale(TSelf(wxGraphicsMatrix) pObject, double xScale, double yScale);
 void wxGraphicsMatrix_Set(TSelf(wxGraphicsMatrix) pObject, double a, double b, double c, double d,
                           double tx, double ty);
-void wxGraphicsMatrix_TransformDistance(TSelf(wxGraphicsMatrix) pObject, TClass(wxDouble) dx,
-                                        TClass(wxDouble) dy);
-void wxGraphicsMatrix_TransformPoint(TSelf(wxGraphicsMatrix) pObject, TClass(wxDouble) x,
-                                     TClass(wxDouble) y);
+void wxGraphicsMatrix_TransformDistance(TSelf(wxGraphicsMatrix) pObject, TDoubleInOut dx,
+                                        TDoubleInOut dy);
+void wxGraphicsMatrix_TransformPoint(TSelf(wxGraphicsMatrix) pObject, TDoubleInOut x,
+                                     TDoubleInOut y);
 void wxGraphicsMatrix_Translate(TSelf(wxGraphicsMatrix) pObject, double dx, double dy);
 
 TClassDef(wxGraphicsObject) TClass(wxGraphicsObject) wxGraphicsObject_Create();
@@ -461,9 +461,11 @@ void wxGraphicsObject_Delete(TSelf(wxGraphicsObject) pObject);
 TClass(wxGraphicsRenderer) wxGraphicsObject_GetRenderer(TSelf(wxGraphicsObject) pObject);
 TBool wxGraphicsObject_IsNull(TSelf(wxGraphicsObject) pObject);
 
-TClassDef(wxGraphicsPath) void wxGraphicsPath_AddArc(TSelf(wxGraphicsPath) pObject, double x,
-                                                     double y, double r, double startAngle,
-                                                     double endAngle, TBool clockwise);
+TClassDefExtend(wxGraphicsBitmap, wxGraphicsObject)
+
+    TClassDef(wxGraphicsPath) void wxGraphicsPath_AddArc(TSelf(wxGraphicsPath) pObject, double x,
+                                                         double y, double r, double startAngle,
+                                                         double endAngle, TBool clockwise);
 void wxGraphicsPath_AddArcToPoint(TSelf(wxGraphicsPath) pObject, double x1, double y1, double x2,
                                   double y2, double r);
 void wxGraphicsPath_AddCircle(TSelf(wxGraphicsPath) pObject, double x, double y, double r);
@@ -482,10 +484,9 @@ void wxGraphicsPath_AddRoundedRectangle(TSelf(wxGraphicsPath) pObject, double x,
 void wxGraphicsPath_CloseSubpath(TSelf(wxGraphicsPath) pObject);
 void wxGraphicsPath_Contains(TSelf(wxGraphicsPath) pObject, double x, double y, int fillStyle);
 void wxGraphicsPath_Delete(TSelf(wxGraphicsPath) pObject);
-void wxGraphicsPath_GetBox(TSelf(wxGraphicsPath) pObject, TClass(wxDouble) x, TClass(wxDouble) y,
-                           TClass(wxDouble) width, TClass(wxDouble) height);
-void wxGraphicsPath_GetCurrentPoint(TSelf(wxGraphicsPath) pObject, TClass(wxDouble) x,
-                                    TClass(wxDouble) y);
+void wxGraphicsPath_GetBox(TSelf(wxGraphicsPath) pObject, TDoubleOut x, TDoubleOut y,
+                           TDoubleOut width, TDoubleOut height);
+void wxGraphicsPath_GetCurrentPoint(TSelf(wxGraphicsPath) pObject, TDoubleOut x, TDoubleOut y);
 void* wxGraphicsPath_GetNativePath(TSelf(wxGraphicsPath) pObject);
 void wxGraphicsPath_MoveToPoint(TSelf(wxGraphicsPath) pObject, double x, double y);
 void wxGraphicsPath_Transform(TSelf(wxGraphicsPath) pObject, TClass(wxGraphicsMatrix) matrix);
@@ -512,8 +513,8 @@ TClass(wxGraphicsRenderer)
     wxGraphicsRenderer_GetDirect2DRenderer(TSelf(wxGraphicsRenderer) pObject);
 TClass(wxGraphicsRenderer) wxGraphicsRenderer_GetGDIPlusRenderer(TSelf(wxGraphicsRenderer) pObject);
 TClass(wxString) wxGraphicsRenderer_GetName(TSelf(wxGraphicsRenderer) pObject);
-void wxGraphicsRenderer_GetVersion(TSelf(wxGraphicsRenderer) pObject, int* major, int* minor,
-                                   int* micro);
+void wxGraphicsRenderer_GetVersion(TSelf(wxGraphicsRenderer) pObject, TIntOut major, TIntOut minor,
+                                   TIntOut micro);
 
 TClassDef(wxGridCellTextEnterEditor) TClass(wxGridCellTextEnterEditor)
     wxGridCellTextEnterEditor_Ctor();
@@ -599,7 +600,7 @@ void wxHtmlWindow_ReadCustomization(TSelf(wxHtmlWindow) pObject, TClass(wxConfig
                                     TClass(wxString) path);
 void wxHtmlWindow_SetBorders(TSelf(wxHtmlWindow) pObject, int borders);
 void wxHtmlWindow_SetFonts(TSelf(wxHtmlWindow) pObject, TClass(wxString) normal_face,
-                           TClass(wxString) fixed_face, int* sizes);
+                           TClass(wxString) fixed_face, TIntArrayIn sizes);
 int wxHtmlWindow_SetPage(TSelf(wxHtmlWindow) pObject, TClass(wxString) source);
 void wxHtmlWindow_SetRelatedFrame(TSelf(wxHtmlWindow) pObject, TClass(wxFrame) frame,
                                   TClass(wxString) format);
@@ -633,7 +634,7 @@ void wxHyperlinkCtrl_SetVisited(TSelf(wxHyperlinkCtrl) pObject, TBool visited);
 void wxHyperlinkCtrl_SetVisitedColour(TSelf(wxHyperlinkCtrl) pObject, TClass(wxColour) colour);
 
 TClassDef(wxImage) TClass(wxImage)
-    wxImage_CreateFromDataEx(int width, int height, TClass(wxUint8) data, TBool isStaticData);
+    wxImage_CreateFromDataEx(int width, int height, void* data, TBool isStaticData);
 void wxImage_Delete(TSelf(wxImage) pObject);
 
 TClassDef(wxInputSink) TClass(wxInputSink)
@@ -821,10 +822,10 @@ TClass(wxRect) wxPrintout_GetLogicalPageMarginsRect(TSelf(wxPrintout) pObject,
                                                     TClass(wxPageSetupDialogData) pageSetupData);
 void wxPrintout_MapScreenSizeToPage(TSelf(wxPrintout) pObject);
 void wxPrintout_OffsetLogicalOrigin(TSelf(wxPrintout) pObject, int xoff, int yoff);
-void wxPrintout_GetPageSizeMM(void* pObject, int* width, int* height);
-void wxPrintout_GetPageSizePixels(void* pObject, int* width, int* height);
-void wxPrintout_GetPPIPrinter(void* pObject, int* x, int* y);
-void wxPrintout_GetPPIScreen(void* pObject, int* x, int* y);
+void wxPrintout_GetPageSizeMM(void* pObject, TSizeOut(width, height));
+void wxPrintout_GetPageSizePixels(void* pObject, TSizeOut(width, height));
+void wxPrintout_GetPPIPrinter(void* pObject, TPointOut(x, y));
+void wxPrintout_GetPPIScreen(void* pObject, TPointOut(x, y));
 TClass(wxString) wxPrintout_GetTitle(void* pObject);
 TBool wxPrintout_IsPreview(TSelf(wxPrintout) pObject);
 void wxPrintout_SetDC(void* pObject, void* dc);
@@ -844,16 +845,17 @@ TBool wxProgressDialog_Update(TSelf(wxProgressDialog) pObject, int value);
 TBool wxProgressDialog_UpdateWithMessage(TSelf(wxProgressDialog) pObject, int value,
                                          TClass(wxString) message);
 TBool wxProgressDialog_UpdateWithSkip(TSelf(wxProgressDialog) pObject, int value,
-                                      TClass(wxString) message, int* skip);
-TBool wxProgressDialog_Pulse(TSelf(wxProgressDialog) pObject, TClass(wxString) message, int* skip);
+                                      TClass(wxString) message, TIntInOut skip);
+TBool wxProgressDialog_Pulse(TSelf(wxProgressDialog) pObject, TClass(wxString) message,
+                             TIntInOut skip);
 
 TClassDefExtend(wxGenericProgressDialog, wxDialog) TClass(wxGenericProgressDialog)
     wxGenericProgressDialog_Create(TClass(wxString) title, TClass(wxString) message, int maximum,
                                    TClass(wxWindow) parent, int style);
 TBool wxGenericProgressDialog_Update(TSelf(wxGenericProgressDialog) pObject, int value,
-                                     TClass(wxString) message, int* skip);
+                                     TClass(wxString) message, TIntInOut skip);
 TBool wxGenericProgressDialog_Pulse(TSelf(wxGenericProgressDialog) pObject,
-                                    TClass(wxString) message, int* skip);
+                                    TClass(wxString) message, TIntInOut skip);
 void wxGenericProgressDialog_Resume(TSelf(wxGenericProgressDialog) pObject);
 void wxGenericProgressDialog_Delete(TSelf(wxGenericProgressDialog) pObject);
 
@@ -1508,11 +1510,10 @@ TClassDefExtend(wxVListBox, wxVScrolledWindow) void wxVListBox_Clear(TSelf(wxVLi
 TBool wxVListBox_Create(TSelf(wxVListBox) pObject, TClass(wxWindow) parent, int id, int x, int y,
                         int width, int height, long style, TClass(wxString) name);
 TBool wxVListBox_DeselectAll(TSelf(wxVListBox) pObject);
-int wxVListBox_GetFirstSelected(TSelf(wxVListBox) pObject, unsigned long* cookie);
+int wxVListBox_GetFirstSelected(TSelf(wxVListBox) pObject, TULongInOut cookie);
 size_t wxVListBox_GetItemCount(TSelf(wxVListBox) pObject);
-void wxVListBox_GetItemRect(TSelf(wxVListBox) pObject, size_t item, int* x, int* y, int* width,
-                            int* height);
-int wxVListBox_GetNextSelected(TSelf(wxVListBox) pObject, unsigned long* cookie);
+void wxVListBox_GetItemRect(TSelf(wxVListBox) pObject, size_t item, TRectOut(x, y, width, height));
+int wxVListBox_GetNextSelected(TSelf(wxVListBox) pObject, TULongInOut cookie);
 size_t wxVListBox_GetSelectedCount(TSelf(wxVListBox) pObject);
 int wxVListBox_GetSelection(TSelf(wxVListBox) pObject);
 void wxVListBox_GetSelectionBackground(TSelf(wxVListBox) pObject, TClass(wxColour) colour);
@@ -1567,17 +1568,16 @@ void kwxBell();
 void kwxEndBusyCursor();
 void kwxFree(void* pObject);
 TClass(wxPoint) kwxGetMousePosition();
-int kwxGetPixelRGB(TClass(wxUint8) buffer, int width, int x, int y);
-int kwxGetPixelRGBA(TClass(wxUint8) buffer, int width, int x, int y);
-void kwxInitPixelsRGB(TClass(wxUint8) buffer, int width, int height, int rgb);
-void kwxInitPixelsRGBA(TClass(wxUint8) buffer, int width, int height, int rgba);
+int kwxGetPixelRGB(void* buffer, int width, int x, int y);
+int kwxGetPixelRGBA(void* buffer, int width, int x, int y);
+void kwxInitPixelsRGB(void* buffer, int width, int height, int rgb);
+void kwxInitPixelsRGBA(void* buffer, int width, int height, int rgba);
 int kwxIsBusy();
 void* kwxMalloc(int size);
-void kwxSetPixelRGB(TClass(wxUint8) buffer, int width, int x, int y, int rgb);
-void kwxSetPixelRGBA(TClass(wxUint8) buffer, int width, int x, int y, unsigned int rgba);
-void kwxSetPixelRowRGB(TClass(wxUint8) buffer, int width, int x, int y, int rgb0, int rgb1,
-                       int count);
-void kwxSetPixelRowRGBA(TClass(wxUint8) buffer, int width, int x, int y, unsigned int rgba0,
+void kwxSetPixelRGB(void* buffer, int width, int x, int y, int rgb);
+void kwxSetPixelRGBA(void* buffer, int width, int x, int y, unsigned int rgba);
+void kwxSetPixelRowRGB(void* buffer, int width, int x, int y, int rgb0, int rgb1, int count);
+void kwxSetPixelRowRGBA(void* buffer, int width, int x, int y, unsigned int rgba0,
                         unsigned int rgba1, unsigned int count);
 TClass(wxColour) kwxSystemSettingsGetColour(int systemColour);
 void kwxWakeUpIdle();

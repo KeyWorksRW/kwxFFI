@@ -22,17 +22,18 @@ extern "C"
         return new wxImage(width, height);
     }
 
-    EXPORT wxImage* wxImage_CreateFromByteString(const wxSize& text, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromByteString(int width, int height, const unsigned char* data)
     {
-        return new wxImage(text, data);
+        return new wxImage(wxSize(width, height), const_cast<unsigned char*>(data));
     }
 
-    EXPORT wxImage* wxImage_CreateFromLazyByteString(const wxSize& text, unsigned char* data)
+    EXPORT wxImage* wxImage_CreateFromLazyByteString(int width, int height,
+                                                     const unsigned char* data)
     {
-        return new wxImage(text, data);
+        return new wxImage(wxSize(width, height), const_cast<unsigned char*>(data));
     }
 
-    EXPORT size_t wxImage_ConvertToByteString(wxImage* self, wxBitmapType type, char* data)
+    EXPORT size_t wxImage_ConvertToByteString(wxImage* self, wxBitmapType type, unsigned char* data)
     {
         wxMemoryOutputStream out;
         self->SaveFile(out, type);
@@ -42,7 +43,8 @@ extern "C"
         return out.CopyTo(data, len);
     }
 
-    EXPORT size_t wxImage_ConvertToLazyByteString(wxImage* self, wxBitmapType type, char* data)
+    EXPORT size_t wxImage_ConvertToLazyByteString(wxImage* self, wxBitmapType type,
+                                                  unsigned char* data)
     {
         wxMemoryOutputStream out;
         self->SaveFile(out, type);

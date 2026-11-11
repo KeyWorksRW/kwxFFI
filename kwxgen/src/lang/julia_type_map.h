@@ -3,6 +3,7 @@
 // Julia type mapping: converts parsed FFI model types to Julia ccall type strings.
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <sstream>
 #include <string>
@@ -79,6 +80,50 @@ inline std::string JuliaReturnType(const std::string& return_type, const std::st
 
     // Fallback
     return "Cint";
+}
+
+// ccall type for the pointee of a scalar-pointer macro (raw layer).
+[[nodiscard]] inline std::string JuliaScalarPointerType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "Ptr{Clong}";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "Ptr{Culong}";
+    }
+    if (c_type == "double")
+    {
+        return "Ptr{Cdouble}";
+    }
+    if (c_type == "unsigned")
+    {
+        return "Ptr{Cuint}";
+    }
+    return "Ptr{Cint}";
+}
+
+// Ref type for the same parameter in the idiomatic layer.
+[[nodiscard]] inline std::string JuliaScalarRefType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "Ref{Clong}";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "Ref{Culong}";
+    }
+    if (c_type == "double")
+    {
+        return "Ref{Cdouble}";
+    }
+    if (c_type == "unsigned")
+    {
+        return "Ref{Cuint}";
+    }
+    return "Ref{Int32}";
 }
 
 // Split comma-separated macro arg: "x, y" → {"x", "y"}
@@ -168,6 +213,20 @@ inline std::vector<JuliaParam> ExpandParamToJulia(const Param& p)
     {
         std::string name = p.param_name.empty() ? "arr" : p.param_name;
         result.push_back({ "Ptr{Cvoid}", name });
+        return result;
+    }
+
+    if (IsTypedPointerMacro(p.raw_type))
+    {
+        result.push_back({ "Ptr{Cvoid}", p.param_name.empty() ? "arg" : p.param_name });
+        return result;
+    }
+
+    // Scalar value passed through a pointer.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(p, scalar_pointer))
+    {
+        result.push_back({ JuliaScalarPointerType(scalar_pointer.c_type),
+                           p.param_name.empty() ? "arg" : p.param_name });
         return result;
     }
 

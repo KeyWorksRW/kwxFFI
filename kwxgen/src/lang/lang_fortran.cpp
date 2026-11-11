@@ -1300,6 +1300,7 @@ struct FortranWrapperProcedure
     std::string identifier;
     std::string base_identifier;  // identifier before the uniqueness suffix
     std::string signature;        // type-only dummy list, used to detect ambiguous overloads
+    std::string identity;         // full dummy declaration identity, redundant-duplicate key
     std::string text;
     bool is_constructor = false;
     bool is_destructor = false;
@@ -1404,7 +1405,7 @@ struct FortranClassModuleState
         argument_expression = name;
         return true;
     }
-    if (raw_type == "TUInt8")
+    if (raw_type == "TUInt8" || raw_type == "unsigned char")
     {
         declaration = "integer(c_int8_t), intent(in) :: " + name;
         argument_expression = name;
@@ -1417,6 +1418,21 @@ struct FortranClassModuleState
         return true;
     }
     return false;
+}
+
+// Fortran type of the pointee behind a scalar-pointer macro. Fortran has no unsigned
+// integer, so T*Out and TUIntOut share integer(c_int) exactly as their value parameters do.
+[[nodiscard]] static std::string FortranScalarPointerType(const std::string& c_type)
+{
+    if (c_type == "long" || c_type == "unsigned long")
+    {
+        return "integer(c_long)";
+    }
+    if (c_type == "double")
+    {
+        return "real(c_double)";
+    }
+    return "integer(c_int)";
 }
 
 // True when a parameter is a scalar length argument for a neighbouring buffer. A TStringOut
@@ -1471,11 +1487,23 @@ struct FortranClassModuleState
     return key;
 }
 
+// Full dummy declaration with the dummy name removed. Two procedures that agree on this for
+// every dummy (same types, intents and attributes, in the same order) are the same Fortran
+// procedure: a class method also emitted for a mixin it overrides, or one operation declared
+// under a second C symbol. Only one of them is emitted.
+[[nodiscard]] static std::string FortranDummyIdentityKey(const std::string& declaration)
+{
+    const std::size_t name_pos = declaration.rfind(" :: ");
+    return name_pos == std::string::npos ? declaration : declaration.substr(0, name_pos);
+}
+
 // Build the wrapper procedure for one model method. `self_type` is the type the receiver is
-// declared as, which is the consumer class for a mixin method.
+// declared as, which is the consumer class for a mixin method. `is_mixin_method` is true when
+// the method comes from a mixin, which allows the folded-signature duplicate rule below.
 static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const FunctionDecl& func,
                                          const std::string& self_type,
-                                         const std::map<std::string, std::string>& type_names)
+                                         const std::map<std::string, std::string>& type_names,
+                                         bool is_mixin_method)
 {
     const std::string c_function = CFuncName(func);
     const std::size_t receiver_params = FortranReceiverParamCount(func);
@@ -1498,8 +1526,6 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
     {
         base_identifier = FortranMethodIdentifier(state.class_name, func.method_name, 1);
     }
-    const std::string identifier =
-        MakeFortranIdentifierUnique(base_identifier, state.used_identifiers);
 
     const std::string receiver_name = "self";
     // Method parameters occasionally include a C parameter literally named `self`; make the
@@ -1648,6 +1674,87 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
             continue;
         }
 
+        if (kind == FortranParamKind::byte_array_input)
+        {
+            dummy_declarations.push_back(
+                "integer(c_int8_t), dimension(:), intent(in), target, contiguous :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::byte_array_output)
+        {
+            dummy_declarations.push_back(
+                "integer(c_int8_t), dimension(:), intent(out), target, contiguous :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::byte_scalar_output)
+        {
+            dummy_declarations.push_back("integer(c_int8_t), intent(out), target :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::char_scalar_output)
+        {
+            dummy_declarations.push_back("character(kind=c_char), intent(out), target :: " +
+                                         base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::int_array_input)
+        {
+            dummy_declarations.push_back(
+                "integer(c_int), dimension(:), intent(in), target, contiguous :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::int_array_output)
+        {
+            dummy_declarations.push_back(
+                "integer(c_int), dimension(:), intent(out), target, contiguous :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::intptr_array_output)
+        {
+            dummy_declarations.push_back(
+                "integer(c_intptr_t), dimension(:), intent(out), target, contiguous :: " +
+                base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::double_array_output)
+        {
+            dummy_declarations.push_back(
+                "real(c_double), dimension(:), intent(out), target, contiguous :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::int_scalar_input ||
+            kind == FortranParamKind::bool_scalar_input)
+        {
+            // The C function retains this pointer (wxGenericValidator stores it), so the
+            // caller's storage must persist; INTENT(INOUT) documents that and forbids a
+            // temporary copy.
+            dummy_declarations.push_back("integer(c_int), intent(inout), target :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::cookie)
+        {
+            dummy_declarations.push_back("type(c_ptr), intent(inout), target :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+        if (kind == FortranParamKind::string_array_output ||
+            kind == FortranParamKind::object_array_output)
+        {
+            dummy_declarations.push_back("type(c_ptr), dimension(:), intent(out), target :: " +
+                                         base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
+            continue;
+        }
+
         if (kind == FortranParamKind::class_pointer || kind == FortranParamKind::self)
         {
             const std::map<std::string, std::string>::const_iterator type_iter =
@@ -1688,6 +1795,30 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
                                              ", intent(out), target :: " + element_name);
                 call_arguments.push_back("c_loc(" + element_name + ")");
             }
+            continue;
+        }
+
+        if (kind == FortranParamKind::scalar_output ||
+            kind == FortranParamKind::scalar_input_output)
+        {
+            ScalarPointerInfo scalar_pointer;
+            std::ignore = LookupScalarPointer(param, scalar_pointer);
+            const std::string intent =
+                (kind == FortranParamKind::scalar_input_output) ? "inout" : "out";
+            if (scalar_pointer.c_type == "TBool" && kind == FortranParamKind::scalar_output)
+            {
+                // The C function writes an int. Expose a logical and convert after the call,
+                // matching how TBool inputs are converted from logical.
+                const std::string value_name = make_dummy_name(base_name + "_value");
+                dummy_declarations.push_back("logical, intent(out) :: " + base_name);
+                local_declarations.push_back("integer(c_int), target :: " + value_name);
+                call_arguments.push_back("c_loc(" + value_name + ")");
+                cleanup_statements.push_back(base_name + " = (" + value_name + " /= 0)");
+                continue;
+            }
+            dummy_declarations.push_back(FortranScalarPointerType(scalar_pointer.c_type) +
+                                         ", intent(" + intent + "), target :: " + base_name);
+            call_arguments.push_back("c_loc(" + base_name + ")");
             continue;
         }
 
@@ -1814,6 +1945,35 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
         }
     }
 
+    // Drop a wrapper that repeats a procedure already emitted for this module: same method
+    // name and same dummy declarations, or a mixin overload that only differs in a C type
+    // that folds to the same Fortran type (int vs long). The first occurrence (the class's
+    // own method) wins; a Fortran caller cannot tell the copies apart.
+    std::string identity;
+    std::string signature;
+    for (const std::string& declaration: dummy_declarations)
+    {
+        identity += FortranDummyIdentityKey(declaration);
+        identity += ";";
+        signature += FortranDummySignatureKey(declaration);
+        signature += ";";
+    }
+    for (const FortranWrapperProcedure& existing: state.procedures)
+    {
+        if (existing.base_identifier != base_identifier || existing.is_function != returns_value)
+        {
+            continue;
+        }
+        if (existing.identity == identity || (is_mixin_method && existing.signature == signature))
+        {
+            ++state.deduplicated_count;
+            return;
+        }
+    }
+
+    const std::string identifier =
+        MakeFortranIdentifierUnique(base_identifier, state.used_identifiers);
+
     // Assemble the call expression.
     std::string call_expression = c_function + "(";
     for (std::size_t arg_index = 0; arg_index < call_arguments.size(); ++arg_index)
@@ -1935,11 +2095,8 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
     FortranWrapperProcedure procedure;
     procedure.identifier = identifier;
     procedure.base_identifier = base_identifier;
-    for (const std::string& declaration: dummy_declarations)
-    {
-        procedure.signature += FortranDummySignatureKey(declaration);
-        procedure.signature += ";";
-    }
+    procedure.identity = std::move(identity);
+    procedure.signature = std::move(signature);
     procedure.text = text.str();
     procedure.is_constructor = is_constructor;
     procedure.is_destructor = is_destructor;
@@ -1955,7 +2112,7 @@ static void CollectFortranClassProcedures(FortranClassModuleState& state,
                                           const std::map<std::string, std::string>& type_names,
                                           std::set<std::string>& emitted_c_functions)
 {
-    const auto emit_methods = [&](const ClassInfo& method_owner)
+    const auto emit_methods = [&](const ClassInfo& method_owner, bool is_mixin_method)
     {
         for (const FunctionDecl& method: method_owner.methods)
         {
@@ -1968,11 +2125,12 @@ static void CollectFortranClassProcedures(FortranClassModuleState& state,
                 ++state.deduplicated_count;
                 continue;
             }
-            BuildFortranWrapperProcedure(state, method, state.type_name, type_names);
+            BuildFortranWrapperProcedure(state, method, state.type_name, type_names,
+                                         is_mixin_method);
         }
     };
 
-    emit_methods(class_info);
+    emit_methods(class_info, false);
 
     const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
         ffi_data.mixin_map.find(class_info.name);
@@ -1986,7 +2144,7 @@ static void CollectFortranClassProcedures(FortranClassModuleState& state,
         {
             if (mixin_class.name == mixin_name)
             {
-                emit_methods(mixin_class);
+                emit_methods(mixin_class, true);
                 break;
             }
         }
@@ -1997,8 +2155,9 @@ static void CollectFortranClassProcedures(FortranClassModuleState& state,
 // to be the same kind (all functions or all subroutines), so the overload set is split on
 // that first. Fortran also resolves a generic on the dummy types and ranks, so two specifics
 // that agree on every dummy type cannot both be exposed under the base name: the first keeps
-// the base name and the rest remain reachable only under their suffixed identifier. Each
-// skipped specific is reported rather than silently dropped.
+// the base name and the rest remain reachable only under their suffixed identifier. Exact
+// duplicate wrappers are already dropped in BuildFortranWrapperProcedure, so reporting here
+// only covers a pair that becomes ambiguous after the c_long/c_int folding.
 [[nodiscard]] static std::string BuildFortranOverloadInterfaces(FortranClassModuleState& state)
 {
     std::map<std::pair<std::string, bool>, std::vector<const FortranWrapperProcedure*>> groups;

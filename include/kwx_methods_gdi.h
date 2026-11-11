@@ -85,7 +85,7 @@ int wxDC_GetLayoutDirection(TSelf(wxDC) pObject);
 TClass(wxSize) wxDC_GetTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
 TClass(wxSize) wxDC_GetMultiLineTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
 TBool wxDC_GetPartialTextExtents(TSelf(wxDC) pObject, TClass(wxString) text, int count,
-                                 int* widths);
+                                 TIntArrayOut widths);
 TClass(wxPoint) wxDC_DeviceToLogical(TSelf(wxDC) pObject, TPoint(x, y));
 TClass(wxPoint) wxDC_LogicalToDevice(TSelf(wxDC) pObject, TPoint(x, y));
 TClass(wxSize) wxDC_DeviceToLogicalRel(TSelf(wxDC) pObject, TSize(width, height));
@@ -147,7 +147,7 @@ TClass(wxImage) wxImage_ChangeLightness(TSelf(wxImage) pObject, int alpha);
 void wxImage_SetRGBRect(TSelf(wxImage) pObject, TRect(x, y, width, height), TColorRGB(r, g, b));
 void wxImage_SetAlpha(TSelf(wxImage) pObject, TPoint(x, y), TChar alpha);
 TChar wxImage_GetAlphaPixel(TSelf(wxImage) pObject, TPoint(x, y));
-TBool wxImage_FindFirstUnusedColour(TSelf(wxImage) pObject, TChar* r, TChar* g, TChar* b,
+TBool wxImage_FindFirstUnusedColour(TSelf(wxImage) pObject, TCharOut r, TCharOut g, TCharOut b,
                                     TChar startR, TChar startG, TChar startB);
 TBool wxImage_SetMaskFromImage(TSelf(wxImage) pObject, TClass(wxImage) mask, TColorRGB(mr, mg, mb));
 TBool wxImage_ConvertAlphaToMask(TSelf(wxImage) pObject, TChar threshold);
@@ -175,7 +175,7 @@ void wxImage_SetAlphaData(TSelf(wxImage) pObject, void* alpha, TBool staticData)
 void wxImage_InitAlpha(TSelf(wxImage) pObject);
 void wxImage_ClearAlpha(TSelf(wxImage) pObject);
 TBool wxImage_IsTransparent(TSelf(wxImage) pObject, TPoint(x, y), TChar threshold);
-TBool wxImage_GetOrFindMaskColour(TSelf(wxImage) pObject, TChar* r, TChar* g, TChar* b);
+TBool wxImage_GetOrFindMaskColour(TSelf(wxImage) pObject, TCharOut r, TCharOut g, TCharOut b);
 TBool wxImage_HasPalette(TSelf(wxImage) pObject);
 TClass(wxPalette) wxImage_GetPalette(TSelf(wxImage) pObject);
 void wxImage_SetPalette(TSelf(wxImage) pObject, TClass(wxPalette) palette);

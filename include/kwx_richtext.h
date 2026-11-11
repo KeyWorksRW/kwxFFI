@@ -9,9 +9,18 @@
 //   src/wx_richtextstyles.cpp  - style list box and buffer data object
 // kwxgen merges these blocks with the existing wxRichTextCtrl block in kwx_classes.h.
 
+// Attribute and style classes that appear in the rich-text signatures below but have no
+// wrapper block of their own.
+// clang-format off
+TClassDefExtend(wxRichTextAttr, wxTextAttr)
+TClassDefExtend(wxRichTextProperties, wxObject)
+TClassDefExtend(wxRichTextStyleDefinition, wxObject)
+TClassDefExtend(wxRichTextStyleSheet, wxObject)
+
 TClassDefExtend(wxRichTextObject, wxObject)
 
     TClass(wxRichTextObject) wxRichTextObject_GetParent(TSelf(wxRichTextObject) self);
+// clang-format on
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxRichTextProperties) wxRichTextObject_GetProperties(TSelf(wxRichTextObject) pObject);
 TClass(wxRichTextObject) wxRichTextObject_GetFirstChild(TSelf(wxRichTextObject) self);
@@ -21,7 +30,7 @@ void wxRichTextObject_SetPosition(TSelf(wxRichTextObject) self, TPoint(x, y));
 void wxRichTextObject_GetSize(TSelf(wxRichTextObject) self, TSizeOut(w, h));
 void wxRichTextObject_SetSize(TSelf(wxRichTextObject) self, TSize(w, h));
 void wxRichTextObject_GetRect(TSelf(wxRichTextObject) self, TRectOut(x, y, w, h));
-void wxRichTextObject_GetRange(TSelf(wxRichTextObject) self, long* start, long* end);
+void wxRichTextObject_GetRange(TSelf(wxRichTextObject) self, TLongOut start, TLongOut end);
 void wxRichTextObject_SetRange(TSelf(wxRichTextObject) self, long start, long end);
 void wxRichTextObject_GetAttributes(TSelf(wxRichTextObject) self, TClass(wxRichTextAttr) attr);
 void wxRichTextObject_SetAttributes(TSelf(wxRichTextObject) self, TClass(wxRichTextAttr) attr);
@@ -67,15 +76,15 @@ void wxRichTextParagraphLayoutBox_Clear(TSelf(wxRichTextParagraphLayoutBox) self
 void wxRichTextParagraphLayoutBox_Reset(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_AddParagraph(TSelf(wxRichTextParagraphLayoutBox) self,
                                                TClass(wxString) text,
-                                               TClass(wxRichTextAttr) paraStyle, long* start,
-                                               long* end);
+                                               TClass(wxRichTextAttr) paraStyle, TLongOut start,
+                                               TLongOut end);
 void wxRichTextParagraphLayoutBox_AddParagraphs(TSelf(wxRichTextParagraphLayoutBox) self,
                                                 TClass(wxString) text,
-                                                TClass(wxRichTextAttr) paraStyle, long* start,
-                                                long* end);
+                                                TClass(wxRichTextAttr) paraStyle, TLongOut start,
+                                                TLongOut end);
 void wxRichTextParagraphLayoutBox_AddImage(TSelf(wxRichTextParagraphLayoutBox) self,
                                            TClass(wxImage) image, TClass(wxRichTextAttr) paraStyle,
-                                           long* start, long* end);
+                                           TLongOut start, TLongOut end);
 TClass(wxString) wxRichTextParagraphLayoutBox_GetText(TSelf(wxRichTextParagraphLayoutBox) self);
 TBool wxRichTextParagraphLayoutBox_DeleteRange(TSelf(wxRichTextParagraphLayoutBox) self, long start,
                                                long end);
@@ -94,7 +103,7 @@ int wxRichTextParagraphLayoutBox_GetParagraphLength(TSelf(wxRichTextParagraphLay
 long wxRichTextParagraphLayoutBox_XYToPosition(TSelf(wxRichTextParagraphLayoutBox) self, long x,
                                                long y);
 TBool wxRichTextParagraphLayoutBox_PositionToXY(TSelf(wxRichTextParagraphLayoutBox) self,
-                                                long position, long* x, long* y);
+                                                long position, TPointOutLong(x, y));
 TBool wxRichTextParagraphLayoutBox_SetDefaultStyle(TSelf(wxRichTextParagraphLayoutBox) self,
                                                    TClass(wxRichTextAttr) style);
 void wxRichTextParagraphLayoutBox_GetDefaultStyle(TSelf(wxRichTextParagraphLayoutBox) self,
@@ -154,9 +163,9 @@ TClassDefExtend(wxRichTextBuffer, wxRichTextParagraphLayoutBox)
 void wxRichTextBuffer_AddHandler(void* handler);
 void wxRichTextBuffer_Delete(TSelf(wxRichTextBuffer) self);
 void wxRichTextBuffer_AddParagraph(TSelf(wxRichTextBuffer) self, TClass(wxString) text,
-                                   TClass(wxRichTextAttr) paraStyle, long* start, long* end);
+                                   TClass(wxRichTextAttr) paraStyle, TLongOut start, TLongOut end);
 TBool wxRichTextBuffer_DeleteRange(TSelf(wxRichTextBuffer) self, long start, long end);
-void wxRichTextBuffer_GetRange(TSelf(wxRichTextBuffer) self, long* start, long* end);
+void wxRichTextBuffer_GetRange(TSelf(wxRichTextBuffer) self, TLongOut start, TLongOut end);
 TClass(wxString) wxRichTextBuffer_GetText(TSelf(wxRichTextBuffer) self);
 void wxRichTextBuffer_Clear(TSelf(wxRichTextBuffer) self);
 TBool wxRichTextBuffer_LoadFile(TSelf(wxRichTextBuffer) self, TClass(wxString) filename, int type);
@@ -235,7 +244,7 @@ void wxRichTextEvent_SetOldStyleSheet(TSelf(wxRichTextEvent) self,
 TClass(wxRichTextStyleSheet) wxRichTextEvent_GetNewStyleSheet(TSelf(wxRichTextEvent) self);
 void wxRichTextEvent_SetNewStyleSheet(TSelf(wxRichTextEvent) self,
                                       TClass(wxRichTextStyleSheet) sheet);
-void wxRichTextEvent_GetRange(TSelf(wxRichTextEvent) self, long* start, long* end);
+void wxRichTextEvent_GetRange(TSelf(wxRichTextEvent) self, TLongOut start, TLongOut end);
 void wxRichTextEvent_SetRange(TSelf(wxRichTextEvent) self, long start, long end);
 int wxRichTextEvent_GetCharacter(TSelf(wxRichTextEvent) self);
 void wxRichTextEvent_SetCharacter(TSelf(wxRichTextEvent) self, int character);
@@ -267,9 +276,10 @@ TBool wxRichTextCtrl_IsSingleLine(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_IsMultiLine(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_HasSelection(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_HasUnfocusedSelection(TSelf(wxRichTextCtrl) self);
-void wxRichTextCtrl_GetSelectionRange(TSelf(wxRichTextCtrl) self, long* start, long* end);
+void wxRichTextCtrl_GetSelectionRange(TSelf(wxRichTextCtrl) self, TLongOut start, TLongOut end);
 void wxRichTextCtrl_SetSelectionRange(TSelf(wxRichTextCtrl) self, long start, long end);
-void wxRichTextCtrl_GetInternalSelectionRange(TSelf(wxRichTextCtrl) self, long* start, long* end);
+void wxRichTextCtrl_GetInternalSelectionRange(TSelf(wxRichTextCtrl) self, TLongOut start,
+                                              TLongOut end);
 void wxRichTextCtrl_SetInternalSelectionRange(TSelf(wxRichTextCtrl) self, long start, long end);
 TBool wxRichTextCtrl_SelectWord(TSelf(wxRichTextCtrl) self, long position);
 long wxRichTextCtrl_GetDelayedLayoutThreshold(TSelf(wxRichTextCtrl) self);
@@ -304,10 +314,10 @@ TClass(wxRichTextStyleSheet) wxRichTextCtrl_PopStyleSheet(TSelf(wxRichTextCtrl) 
 TBool wxRichTextCtrl_ApplyStyleSheet(TSelf(wxRichTextCtrl) self,
                                      TClass(wxRichTextStyleSheet) styleSheet);
 TBool wxRichTextCtrl_SetDefaultStyleToCursorStyle(TSelf(wxRichTextCtrl) self);
-void wxRichTextCtrl_AddParagraph(TSelf(wxRichTextCtrl) self, TClass(wxString) text, long* start,
-                                 long* end);
-void wxRichTextCtrl_AddImage(TSelf(wxRichTextCtrl) self, TClass(wxImage) image, long* start,
-                             long* end);
+void wxRichTextCtrl_AddParagraph(TSelf(wxRichTextCtrl) self, TClass(wxString) text, TLongOut start,
+                                 TLongOut end);
+void wxRichTextCtrl_AddImage(TSelf(wxRichTextCtrl) self, TClass(wxImage) image, TLongOut start,
+                             TLongOut end);
 TBool wxRichTextCtrl_WriteImageBitmap(TSelf(wxRichTextCtrl) self, TClass(wxBitmap) bitmap,
                                       int bitmapType, TClass(wxRichTextAttr) textAttr);
 TBool wxRichTextCtrl_WriteImageBlock(TSelf(wxRichTextCtrl) self,
@@ -377,7 +387,7 @@ TClass(wxRichTextObject) wxRichTextCtrl_GetSelectionAnchorObject(TSelf(wxRichTex
 void wxRichTextCtrl_Freeze(TSelf(wxRichTextCtrl) self);
 void wxRichTextCtrl_Thaw(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_IsFrozen(TSelf(wxRichTextCtrl) self);
-int wxRichTextCtrl_HitTest(TSelf(wxRichTextCtrl) self, TPoint(x, y), long* position);
+int wxRichTextCtrl_HitTest(TSelf(wxRichTextCtrl) self, TPoint(x, y), TLongOut position);
 void wxRichTextCtrl_SetCaretPosition(TSelf(wxRichTextCtrl) self, long position,
                                      TBool showAtLineStart);
 long wxRichTextCtrl_GetAdjustedCaretPosition(TSelf(wxRichTextCtrl) self, long caretPosition);

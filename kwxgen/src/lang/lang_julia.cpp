@@ -435,6 +435,15 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         return result;
     }
 
+    // Scalar output / in-out pointer.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        std::string name = param.param_name.empty() ? "arg" : param.param_name;
+        name = JuliaEscapeName(name);
+        result.push_back({ name + "::" + JuliaScalarRefType(scalar_pointer.c_type), name, "", "" });
+        return result;
+    }
+
     // Bool pointer (output parameter).
     if (param.raw_type == "TBool*")
     {

@@ -580,7 +580,13 @@ struct RustConvertContext
     safe_param.name = UniqueParamName(
         RustSafeParamName(param.param_name.empty() ? "arg" : param.param_name), context);
 
-    if (param.macro_name == "TSelf")
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        safe_param.safe_type = RustScalarPointerSafeType(scalar_pointer.c_type);
+        safe_param.ffi_expr =
+            safe_param.name + " as " + RustScalarPointerFfiType(scalar_pointer.c_type);
+    }
+    else if (param.macro_name == "TSelf")
     {
         const std::string trait_name = TraitForClass(param.macro_arg, context.parent_classes);
         safe_param.safe_type =
@@ -698,6 +704,11 @@ struct RustConvertContext
         else if (raw_type == "size_t")
         {
             safe_param.safe_type = "usize";
+            safe_param.ffi_expr = safe_param.name;
+        }
+        else if (IsTypedPointerMacro(raw_type))
+        {
+            safe_param.safe_type = "*mut c_void";
             safe_param.ffi_expr = safe_param.name;
         }
         else if (raw_type.contains('*'))

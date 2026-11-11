@@ -37,7 +37,7 @@ TClassDef(wxDateTime) void wxDateTime_SetFromTimeT(TSelf(wxDateTime) pObject, ti
 void wxDateTime_SetFromJDN(TSelf(wxDateTime) pObject, double julian_day);
 TClass(wxDateTime) wxDateTime_CreateFromTimeT(time_t ticks);
 TClass(wxDateTime) wxDateTime_CreateFromJDN(double julian_day);
-TBool wxDateTime_GetFirstWeekDay(int* first_week_day);
+TBool wxDateTime_GetFirstWeekDay(TIntOut first_week_day);
 TClass(wxString) wxDateTime_GetEnglishMonthName(int month, int flags);
 TClass(wxString) wxDateTime_GetEnglishWeekDayName(int weekday, int flags);
 void wxDateTime_GetDateOnly(TSelf(wxDateTime) pObject, TClassRef(wxDateTime) ref);
@@ -255,8 +255,8 @@ TClassDef(wxNumberFormatter) TClass(wxString) wxNumberFormatter_ToStringLong(lon
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxString) wxNumberFormatter_ToString(long val, int style);
 TClass(wxString) wxNumberFormatter_Format(TClass(wxString) format, double value);
-TBool wxNumberFormatter_FromStringLong(TClass(wxString) text, long* value);
-TBool wxNumberFormatter_FromStringDouble(TClass(wxString) text, double* value);
+TBool wxNumberFormatter_FromStringLong(TClass(wxString) text, TLongOut value);
+TBool wxNumberFormatter_FromStringDouble(TClass(wxString) text, TDoubleOut value);
 void wxNumberFormatter_RemoveTrailingZeroes(TClass(wxString) text);
 TClass(wxString) wxNumberFormatter_RemoveCurrencySymbolOrCode(TClass(wxString) text, int style);
 
@@ -409,6 +409,6 @@ void wxVariant_Append(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 void wxVariant_Insert(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 TBool wxVariant_Member(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 void wxVariant_ClearList(TSelf(wxVariant) pObject);
-TBool wxVariant_ConvertToLong(TSelf(wxVariant) pObject, long* value);
-TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, double* value);
-TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, int* value);
+TBool wxVariant_ConvertToLong(TSelf(wxVariant) pObject, TLongOut value);
+TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, TDoubleOut value);
+TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, TIntOut value);

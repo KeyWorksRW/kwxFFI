@@ -272,6 +272,14 @@ static std::vector<LuaIdiomParam> ConvertToLuaIdiomParams(const Param& param, bo
         return result;
     }
 
+    // Scalar output / in-out pointer: the caller owns the storage, so pass it through.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        const std::string name = LuaEscapeName(param.param_name.empty() ? "arg" : param.param_name);
+        result.push_back({ name, name, "", "" });
+        return result;
+    }
+
     // TBool -> boolean to int conversion.
     if (param.macro_name == "TBool" || param.raw_type == "TBool")
     {
