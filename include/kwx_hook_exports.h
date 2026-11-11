@@ -122,19 +122,72 @@ EXPORT void kwxValidator_SetOnTransferToWindow(TSelf(kwxValidator) pObject, void
 TClassDefExtend(kwxPreferencesPage, wxPreferencesPage) EXPORT
     void* kwxPreferencesPage_Create(void* pObject);
 EXPORT void kwxPreferencesPage_Delete(TSelf(kwxPreferencesPage) pObject);
+// The <Base>_Delete spelling, declared in the wxPreferencesPage block below, is
+// the same delete on the same helper object.
+// GetName()/CreateWindow()/GetIcon() return char*/wxWindow*/wxBitmapBundle*, which
+// the void-only FFI callback ABI cannot carry.  The SetOn* setters install a void
+// callback, and that callback publishes its result with the matching
+// SetOn*Result call before it returns.  A callback that returns without calling
+// its result setter yields an empty name, a null window or no icon.
 EXPORT void kwxPreferencesPage_SetOnGetName(TSelf(kwxPreferencesPage) pObject, void* pFunction);
+// Call from the GetName callback with a UTF-8 char*; the name is copied.
+EXPORT void kwxPreferencesPage_SetOnGetNameResult(TSelf(kwxPreferencesPage) pObject, TChar* name);
 EXPORT void kwxPreferencesPage_SetOnCreateWindow(TSelf(kwxPreferencesPage) pObject,
                                                  void* pFunction);
+// Call from the CreateWindow callback with the wxWindow* it created.  The page
+// takes ownership of that window, so the caller must not delete it.
+EXPORT void kwxPreferencesPage_SetOnCreateWindowResult(TSelf(kwxPreferencesPage) pObject,
+                                                       TClass(wxWindow) window);
 EXPORT void kwxPreferencesPage_SetOnGetIcon(TSelf(kwxPreferencesPage) pObject, void* pFunction);
+// Call from the GetIcon callback with a wxBitmapBundle* allocated with new; the
+// page copies it and deletes the original.
+EXPORT void kwxPreferencesPage_SetOnGetIconResult(TSelf(kwxPreferencesPage) pObject,
+                                                  TClass(wxBitmapBundle) bundle);
+
+TClassDef(wxPreferencesEditor) TClass(wxPreferencesEditor)
+    wxPreferencesEditor_Create(TClass(wxString) title);
+void wxPreferencesEditor_Delete(TSelf(wxPreferencesEditor) pObject);
+// The editor takes ownership of the page and deletes it when it is destroyed.
+void wxPreferencesEditor_AddPage(TSelf(wxPreferencesEditor) pObject,
+                                 TClass(wxPreferencesPage) page);
+void wxPreferencesEditor_Show(TSelf(wxPreferencesEditor) pObject, TClass(wxWindow) parent);
+void wxPreferencesEditor_Dismiss(TSelf(wxPreferencesEditor) pObject);
+// Non-zero when the platform applies a page's changes immediately (OS X, GTK+)
+// rather than only when the user confirms the dialog (MSW).
+TBool wxPreferencesEditor_ShouldApplyChangesImmediately();
+// Non-zero when Show() blocks until the dialog is dismissed.
+TBool wxPreferencesEditor_ShownModally();
+
+// Kind: 0 = General, 1 = Advanced.  The block is deliberately parentless: the
+// C++ helper behind these functions derives from wxStockPreferencesPage, not from
+// kwxPreferencesPage, so a binding must not inherit the kwxPreferencesPage
+// setters (they down-cast their receiver).
+TClassDef(wxStockPreferencesPage) TClass(wxStockPreferencesPage)
+    wxStockPreferencesPage_Create(int kind);
+void wxStockPreferencesPage_Delete(TSelf(wxStockPreferencesPage) pObject);
+int wxStockPreferencesPage_GetKind(TSelf(wxStockPreferencesPage) pObject);
+// CreateWindow() is still pure on the stock page, so this helper supplies the
+// callback-driven override the two stock kinds need to become usable.
+EXPORT void wxStockPreferencesPage_SetOnCreateWindow(TSelf(wxStockPreferencesPage) pObject,
+                                                     void* pFunction);
+// Call from the CreateWindow callback with the wxWindow* it created; the page
+// takes ownership of that window.
+EXPORT void wxStockPreferencesPage_SetOnCreateWindowResult(TSelf(wxStockPreferencesPage) pObject,
+                                                           TClass(wxWindow) window);
 
 // wxPreferencesPage had no declaration block at all, so the <Base>_SetOn
 // spellings the portability matrix resolves an ovh row to get their own block
 // here.  The receiver is the same kwxPreferencesPage helper object.
 
-TClassDef(wxPreferencesPage) EXPORT
-    void wxPreferencesPage_SetOnGetName(TSelf(wxPreferencesPage) pObject, void* pFunction);
+TClassDef(wxPreferencesPage) EXPORT void wxPreferencesPage_Delete(TSelf(wxPreferencesPage) pObject);
+EXPORT void wxPreferencesPage_SetOnGetName(TSelf(wxPreferencesPage) pObject, void* pFunction);
 EXPORT void wxPreferencesPage_SetOnCreateWindow(TSelf(wxPreferencesPage) pObject, void* pFunction);
 EXPORT void wxPreferencesPage_SetOnGetIcon(TSelf(wxPreferencesPage) pObject, void* pFunction);
+EXPORT void wxPreferencesPage_SetOnGetNameResult(TSelf(wxPreferencesPage) pObject, TChar* name);
+EXPORT void wxPreferencesPage_SetOnCreateWindowResult(TSelf(wxPreferencesPage) pObject,
+                                                      TClass(wxWindow) window);
+EXPORT void wxPreferencesPage_SetOnGetIconResult(TSelf(wxPreferencesPage) pObject,
+                                                 TClass(wxBitmapBundle) bundle);
 
 TClassDefExtend(kwxHtmlListBox, wxHtmlListBox) EXPORT TClass(kwxHtmlListBox)
     kwxHtmlListBox_Create(void* pObject, TClass(wxWindow) parent, int id,

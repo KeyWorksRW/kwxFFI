@@ -83,6 +83,7 @@
 #include <wx/persist/window.h>
 #include <wx/platinfo.h>
 #include <wx/popupwin.h>
+#include <wx/preferences.h>
 #include <wx/print.h>
 #include <wx/propdlg.h>
 #include <wx/propgrid/advprops.h>

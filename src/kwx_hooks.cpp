@@ -483,8 +483,11 @@ bool kwxValidator::TransferToWindow()
 // wxPreferencesPage
 //
 // GetName() and CreateWindow() are pure virtual, so both need a callback for
-// the class to be instantiable at all; an unset callback yields an empty name
-// and no window rather than an assertion.
+// the class to be instantiable at all.  The callbacks are void-returning (the
+// FFI ABI has no other shape), so each override clears its scratch result,
+// invokes the callback, and then returns whatever the callback published.  An
+// unset callback — or one that publishes nothing — yields an empty name, no
+// window or no icon rather than an assertion.
 // ---------------------------------------------------------------------------
 
 kwxPreferencesPage::kwxPreferencesPage(void* pObject) : wxPreferencesPage()
@@ -493,6 +496,8 @@ kwxPreferencesPage::kwxPreferencesPage(void* pObject) : wxPreferencesPage()
     m_get_name_func = nullptr;
     m_create_window_func = nullptr;
     m_get_icon_func = nullptr;
+    m_result_window = nullptr;
+    m_result_icon = nullptr;
 }
 
 wxString kwxPreferencesPage::GetName() const
@@ -501,13 +506,9 @@ wxString kwxPreferencesPage::GetName() const
     {
         return wxString();
     }
-    void* raw_name = m_get_name_func(m_object);
-    if (!raw_name)
-    {
-        return wxString();
-    }
-    const wxString page_name(static_cast<const char*>(raw_name));
-    return page_name;
+    m_result_name.clear();
+    m_get_name_func(m_object);
+    return m_result_name;
 }
 
 wxWindow* kwxPreferencesPage::CreateWindow(wxWindow* parent)
@@ -516,7 +517,9 @@ wxWindow* kwxPreferencesPage::CreateWindow(wxWindow* parent)
     {
         return nullptr;
     }
-    return static_cast<wxWindow*>(m_create_window_func(m_object, parent));
+    m_result_window = nullptr;
+    m_create_window_func(m_object, parent);
+    return m_result_window;
 }
 
 // GetIcon() is not pure virtual, so an unset callback keeps the wxWidgets
@@ -528,15 +531,32 @@ wxBitmapBundle kwxPreferencesPage::GetIcon() const
         return wxPreferencesPage::GetIcon();
     }
 
-    wxBitmapBundle* raw_icon = static_cast<wxBitmapBundle*>(m_get_icon_func(m_object));
-    if (!raw_icon)
+    m_result_icon = nullptr;
+    m_get_icon_func(m_object);
+    if (!m_result_icon)
     {
         return wxBitmapBundle();
     }
 
-    const wxBitmapBundle page_icon = *raw_icon;
-    delete raw_icon;
+    const wxBitmapBundle page_icon = *m_result_icon;
+    delete m_result_icon;
+    m_result_icon = nullptr;
     return page_icon;
+}
+
+// ---------------------------------------------------------------------------
+// wxStockPreferencesPage
+// ---------------------------------------------------------------------------
+
+wxWindow* kwxStockPreferencesPage::CreateWindow(wxWindow* parent)
+{
+    if (!m_create_window_func)
+    {
+        return nullptr;
+    }
+    m_result_window = nullptr;
+    m_create_window_func(nullptr, parent);
+    return m_result_window;
 }
 
 // ---------------------------------------------------------------------------
@@ -1708,6 +1728,98 @@ extern "C"
         self->SetOnGetIcon(pFunction);
     }
 
+    EXPORT void kwxPreferencesPage_SetOnGetNameResult(kwxPreferencesPage* self, const char* name)
+    {
+        self->SetNameResult(name);
+    }
+
+    EXPORT void kwxPreferencesPage_SetOnCreateWindowResult(kwxPreferencesPage* self,
+                                                           wxWindow* window)
+    {
+        self->SetCreateWindowResult(window);
+    }
+
+    EXPORT void kwxPreferencesPage_SetOnGetIconResult(kwxPreferencesPage* self,
+                                                      wxBitmapBundle* bundle)
+    {
+        self->SetGetIconResult(bundle);
+    }
+
+    // wxStockPreferencesPage ------------------------------------------------
+
+    // The receiver of every function below is a kwxStockPreferencesPage, because
+    // the wxStockPreferencesPage base is abstract (CreateWindow is pure).  The
+    // symbols use the wx<Class>_ name so they match the declaration block.
+
+    EXPORT void* wxStockPreferencesPage_Create(int kind)
+    {
+        // Only the two stock kinds exist; anything else is the General page.
+        const wxStockPreferencesPage::Kind page_kind =
+            (kind == wxStockPreferencesPage::Kind_Advanced) ?
+                wxStockPreferencesPage::Kind_Advanced :
+                wxStockPreferencesPage::Kind_General;
+        return (void*) new kwxStockPreferencesPage(page_kind);
+    }
+
+    EXPORT int wxStockPreferencesPage_GetKind(wxStockPreferencesPage* self)
+    {
+        return static_cast<int>(static_cast<kwxStockPreferencesPage*>(self)->GetKind());
+    }
+
+    EXPORT void wxStockPreferencesPage_Delete(wxStockPreferencesPage* self)
+    {
+        delete static_cast<kwxStockPreferencesPage*>(self);
+    }
+
+    EXPORT void wxStockPreferencesPage_SetOnCreateWindow(wxStockPreferencesPage* self,
+                                                         void* pFunction)
+    {
+        static_cast<kwxStockPreferencesPage*>(self)->SetOnCreateWindow(pFunction);
+    }
+
+    EXPORT void wxStockPreferencesPage_SetOnCreateWindowResult(wxStockPreferencesPage* self,
+                                                               wxWindow* window)
+    {
+        static_cast<kwxStockPreferencesPage*>(self)->SetCreateWindowResult(window);
+    }
+
+    // wxPreferencesEditor ----------------------------------------------------
+
+    EXPORT void* wxPreferencesEditor_Create(wxString* title)
+    {
+        return (void*) new wxPreferencesEditor(title ? *title : wxString());
+    }
+
+    EXPORT void wxPreferencesEditor_Delete(wxPreferencesEditor* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxPreferencesEditor_AddPage(wxPreferencesEditor* self, wxPreferencesPage* page)
+    {
+        self->AddPage(page);
+    }
+
+    EXPORT void wxPreferencesEditor_Show(wxPreferencesEditor* self, wxWindow* parent)
+    {
+        self->Show(parent);
+    }
+
+    EXPORT void wxPreferencesEditor_Dismiss(wxPreferencesEditor* self)
+    {
+        self->Dismiss();
+    }
+
+    EXPORT int wxPreferencesEditor_ShouldApplyChangesImmediately()
+    {
+        return wxPreferencesEditor::ShouldApplyChangesImmediately() ? 1 : 0;
+    }
+
+    EXPORT int wxPreferencesEditor_ShownModally()
+    {
+        return wxPreferencesEditor::ShownModally() ? 1 : 0;
+    }
+
     // wxEvtHandler alias: the portability matrix also resolves an ovh row to
     // the <Base>_ spelling, which is declared in the existing wxEvtHandler block
     // of include/kwx_classes_sync.h.
@@ -1740,6 +1852,11 @@ extern "C"
         static_cast<kwxValidator*>(self)->SetOnTransferToWindow(pFunction);
     }
 
+    EXPORT void wxPreferencesPage_Delete(wxPreferencesPage* self)
+    {
+        delete static_cast<kwxPreferencesPage*>(self);
+    }
+
     EXPORT void wxPreferencesPage_SetOnGetName(wxPreferencesPage* self, void* pFunction)
     {
         static_cast<kwxPreferencesPage*>(self)->SetOnGetName(pFunction);
@@ -1753,6 +1870,22 @@ extern "C"
     EXPORT void wxPreferencesPage_SetOnGetIcon(wxPreferencesPage* self, void* pFunction)
     {
         static_cast<kwxPreferencesPage*>(self)->SetOnGetIcon(pFunction);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnGetNameResult(wxPreferencesPage* self, const char* name)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetNameResult(name);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnCreateWindowResult(wxPreferencesPage* self, wxWindow* window)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetCreateWindowResult(window);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnGetIconResult(wxPreferencesPage* self,
+                                                     wxBitmapBundle* bundle)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetGetIconResult(bundle);
     }
 
     // kwxHtmlListBox --------------------------------------------------------
