@@ -26,6 +26,7 @@
 #include "kwx_platform_aliases.h"
 #include "kwx_process.h"
 #include "kwx_propgrid_extra.h"
+#include "kwx_propgrid_hooks.h"
 #include "kwx_regex_xml_extra.h"
 #include "kwx_ribbon_extra.h"
 #include "kwx_richtext.h"

@@ -156,6 +156,7 @@ set( FFI_SRC_FILES
     src/wx_propertygridmanager.cpp
     src/wx_propertysheetdialog.cpp
     src/wx_propgrid.cpp
+    src/kwx_propgrid_hooks.cpp
     src/wx_radiobox.cpp
     src/wx_radiobutton.cpp
     src/wx_rc.cpp
@@ -245,6 +246,7 @@ set( FFI_HDR_FILES
     include/kwx_richtext.h
     include/kwx_grid_extra.h
     include/kwx_propgrid_extra.h
+    include/kwx_propgrid_hooks.h
     include/kwx_regex_xml_extra.h
     include/kwx_ribbon_extra.h
     include/kwx_methods_window.h

@@ -1081,7 +1081,10 @@ struct EmittedOverload
         bool present = false;
         for (const auto& existing: combined)
         {
-            if (IsSameSignature(existing, overload))
+            // C++ cannot overload on return type: a derived declaration repeating an
+            // inherited parameter list hides the base one, so the nearest entry wins even
+            // when the return types differ (a covariant override).
+            if (HasSameParameters(existing, overload))
             {
                 present = true;
                 break;
@@ -1156,7 +1159,9 @@ struct MemberNameResolution
             bool already_own = false;
             for (const auto& own_entry: own_overloads)
             {
-                if (IsSameSignature(own_entry, overload))
+                // The own declaration overrides any inherited member with the same
+                // parameter list; re-emitting the base signature would repeat it.
+                if (HasSameParameters(own_entry, overload))
                 {
                     already_own = true;
                     break;
@@ -1208,7 +1213,7 @@ struct MemberNameResolution
                 bool already_own = false;
                 for (const auto& own_entry: own_overloads)
                 {
-                    if (IsSameSignature(own_entry, overload))
+                    if (HasSameParameters(own_entry, overload))
                     {
                         already_own = true;
                         break;
