@@ -4,7 +4,7 @@
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 /////////////////////////////////////////////////////////////////////////////
-// CR: [11-06-2026]
+// CR: [11-11-2026]
 
 // Generated file structure:
 //   kwx_ffi_gen.ts          — dlopen with every C symbol (classes + free functions +
@@ -14,6 +14,9 @@
 //                             integer values come from one lazily-filled C table.
 //   kwx_constants_table_gen.cpp — Generated C side of that table.
 //   kwx_free_functions_gen.ts — TypeScript wrappers for non-class C functions.
+//   kwx_class_registry_gen.ts — Runtime registry of the generated wrapper classes; every
+//                             class module registers itself so a cyclic return site can
+//                             construct the wrapper without a value import.
 //   wx{Class}_gen.ts        — One file per class with a TypeScript class that wraps the FFI.
 //   kwx_gen.ts              — Master barrel re-export of every generated module.
 
@@ -87,22 +90,6 @@ namespace fs = std::filesystem;
     return out;
 }
 
-// True if a non-constructor method's first parameter is TClass(ClassName) matching
-// the function's own class — acts as the implicit "self" receiver for mixin methods.
-// NOTE: this heuristic exists only for mixin methods, which are declared against the
-// mixin class with a TClass(mixin) receiver instead of TSelf.  The parser sets has_self
-// for genuine receivers, so a real method's first parameter is never mistaken for the
-// receiver.  Do NOT widen this predicate without that guarantee.
-[[nodiscard]] static bool IsPseudoSelf(const FunctionDecl& func)
-{
-    if (func.has_self || func.class_name.empty() || func.params.empty())
-    {
-        return false;
-    }
-    const Param& first = func.params[0];
-    return first.macro_name == "TClass" && first.macro_arg == func.class_name;
-}
-
 // True if a destructor names the receiver (TSelf, or TClass of its own class) and has no
 // item-index/other params.
 [[nodiscard]] static bool IsTrueDestructor(const FunctionDecl& func)
@@ -124,73 +111,6 @@ namespace fs = std::filesystem;
             continue;
         }
         return false;
-    }
-    return true;
-}
-
-// True if a class passes its object through an explicit TClass(OwnClass) first parameter
-// instead of TSelf for most of its methods (mixin/value-object shape: wxTextEntry,
-// wxItemContainer, wxDataViewItemArray).  For those the parameter is a receiver, not an
-// argument.
-[[nodiscard]] static bool UsesExplicitReceiver(const ClassInfo& cls)
-{
-    size_t receiver_count = 0;
-    size_t method_count = 0;
-    for (const auto& method: cls.methods)
-    {
-        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
-        {
-            continue;
-        }
-        if (method.has_self)
-        {
-            return false;  // the class names its receiver with TSelf
-        }
-        ++method_count;
-        if (IsPseudoSelf(method))
-        {
-            ++receiver_count;
-        }
-    }
-    return receiver_count > 0 && (receiver_count * 2U) > method_count;
-}
-
-// True for a function declared inside a TClassDef block that has no receiver at all: no
-// TSelf, no TClass(own class) pseudo-self, and no receiver-named first parameter.  Such a
-// function is static in wxWidgets and must be emitted at module scope, not as an instance
-// method that forwards this._ptr.
-[[nodiscard]] static bool IsStaticClassFunction(const FunctionDecl& func,
-                                                const ClassInfo* owning_class)
-{
-    if (func.class_name.empty())
-    {
-        return false;
-    }
-    if (func.is_constructor || func.is_destructor || func.method_name == "Ctor")
-    {
-        return false;
-    }
-    if (func.has_self)
-    {
-        return false;
-    }
-    // IsPseudoSelf also matches a TClass(own class) *argument* (wxLog_SetActiveTarget takes
-    // the new target, wxArtProvider_PushBack the provider), so it only denotes a receiver in
-    // a class that declares no TSelf receiver at all.
-    if (IsPseudoSelf(func) && UsesExplicitReceiver(*owning_class))
-    {
-        return false;
-    }
-    // Hand-written wrappers (wxStyledTextCtrl and friends) pass the object pointer as an
-    // explicit first parameter; those blocks keep their instance-method shape.
-    if (!func.params.empty())
-    {
-        const Param& first = func.params[0];
-        if (first.macro_name.empty() && first.raw_type == "void*" &&
-            (first.param_name == "pObject" || first.param_name == "self"))
-        {
-            return false;
-        }
     }
     return true;
 }
@@ -482,6 +402,16 @@ struct WrapParam
 // ReferenceError.
 static std::unordered_map<std::string, std::unordered_set<std::string>> s_denied_wrapped_returns;
 
+// Wrapped-class returns routed through the runtime class registry at runtime, keyed by
+// (declaring class, returned class).  Reported afterwards as a single summary line.
+static std::set<std::pair<std::string, std::string>> s_registry_return_sites;
+
+// Per-file: wrapped classes whose return must be built through kwx_class_registry_gen.ts,
+// and whether this file therefore needs to import getClass().  Reset at the top of
+// EmitClassFile() and consumed when that file's import block is written.
+static std::set<std::string> s_registry_return_types;
+static bool s_uses_class_registry = false;
+
 [[nodiscard]] static bool IsDeniedWrappedReturn(const std::string& owner,
                                                 const std::string& returned)
 {
@@ -515,12 +445,18 @@ static std::unordered_map<std::string, std::unordered_set<std::string>> s_denied
         // A free or static function has no enclosing class, so an unowned TClass
         // return stays a raw Pointer.  Marking the declaration TClassOwned opts it
         // into a wrapper that owns (and can release) the allocation.
-        // A wrapper whose value import would close a module cycle keeps the raw Pointer
-        // contract so the generated module graph evaluates without a TDZ ReferenceError.
+        // A wrapper whose value import would close a module cycle stays typed, but it is
+        // constructed through the runtime class registry instead of by value import, so
+        // the generated module graph never gains that edge and cannot throw a TDZ
+        // ReferenceError.
         if (IsWrappedClassReturn(func, wrapped_classes) &&
-            (!class_name.empty() || func.returns_owned) &&
-            !IsDeniedWrappedReturn(class_name, func.return_arg))
+            (!class_name.empty() || func.returns_owned))
         {
+            if (IsDeniedWrappedReturn(class_name, func.return_arg))
+            {
+                s_registry_return_types.insert(func.return_arg);
+                s_uses_class_registry = true;
+            }
             return func.return_arg + " | null";
         }
         return "Pointer";
@@ -590,21 +526,26 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     // with TClassOwned, so only genuinely borrowed pointers get the non-owning
     // wrapper.  A free or static function (class_name empty) wraps only when the
     // declaration is TClassOwned; otherwise its raw Pointer contract is unchanged.
-    // A denied return keeps the raw Pointer contract; WrapReturnType applied the same
-    // decision, so the emitted annotation and this body cannot disagree.
-    if (IsWrappedClassReturn(func, wrapped_classes) &&
-        (!class_name.empty() || func.returns_owned) &&
-        !IsDeniedWrappedReturn(class_name, func.return_arg))
+    // WrapReturnType applied the same decision, so the emitted annotation and this body
+    // cannot disagree.  A denied return is constructed through the runtime class registry:
+    // the class is looked up by name so the file needs only a type-only import.
+    if (IsWrappedClassReturn(func, wrapped_classes) && (!class_name.empty() || func.returns_owned))
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
-        if (func.returns_owned)
+        const std::string_view borrowed_suffix = func.returns_owned ? "" : ", true";
+        if (IsDeniedWrappedReturn(class_name, func.return_arg))
         {
-            output << indent << "return new " << func.return_arg << "(rawPtr);\n";
+            s_registry_return_types.insert(func.return_arg);
+            s_uses_class_registry = true;
+            output << indent << "const WrapperClass = getClass<" << func.return_arg << ">(\""
+                   << func.return_arg << "\");\n";
+            output << indent << "return new WrapperClass(rawPtr" << borrowed_suffix << ");\n";
         }
         else
         {
-            output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+            output << indent << "return new " << func.return_arg << "(rawPtr" << borrowed_suffix
+                   << ");\n";
         }
         return;
     }
@@ -729,8 +670,7 @@ static void ReserveWrappedReturnEdge(TsModuleEdges& edges, const TsModuleEdges& 
     if (TsEdgesReachThroughExtends(edges, extends_edges, returned, importer))
     {
         s_denied_wrapped_returns[owner].insert(returned);
-        std::println(stderr, "  TypeScript: {}: {} return stays raw Pointer (import cycle)", owner,
-                     returned);
+        s_registry_return_sites.emplace(owner, returned);
         return;
     }
     edges[importer].insert(returned);
@@ -745,6 +685,7 @@ static void ReserveWrappedReturnEdge(TsModuleEdges& edges, const TsModuleEdges& 
 static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
 {
     s_denied_wrapped_returns.clear();
+    s_registry_return_sites.clear();
 
     const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi);
 
@@ -806,7 +747,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
         for (const auto& func: cls.methods)
         {
             if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                IsStaticClassFunction(func, &cls))
+                IsStaticClassFunction(func, cls))
             {
                 continue;
             }
@@ -835,7 +776,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
             for (const auto& func: mixin_found->second->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_found->second))
+                    IsStaticClassFunction(func, *mixin_found->second))
                 {
                     continue;
                 }
@@ -844,6 +785,9 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
             }
         }
     }
+
+    std::println(stderr, "  class registry:          {} cyclic return sites",
+                 s_registry_return_sites.size());
 
     // A derived class can re-declare an inherited member, and its annotation has to match
     // the ancestor's override contract.  Deny the same returns down the inheritance chain,
@@ -930,7 +874,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
     {
         for (const auto& func: cls.methods)
         {
-            if (IsValidFunction(func) && IsStaticClassFunction(func, &cls))
+            if (IsValidFunction(func) && IsStaticClassFunction(func, cls))
             {
                 return true;
             }
@@ -1321,7 +1265,7 @@ struct MemberNameResolution
             {
                 continue;  // factories are module-level, not inherited statics
             }
-            if (IsStaticClassFunction(func, &parent_class))
+            if (IsStaticClassFunction(func, parent_class))
             {
                 continue;  // a static is not an inherited instance member
             }
@@ -1355,7 +1299,7 @@ struct MemberNameResolution
                 for (const auto& func: mixin_class->methods)
                 {
                     if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                        IsStaticClassFunction(func, mixin_class))
+                        IsStaticClassFunction(func, *mixin_class))
                     {
                         continue;
                     }
@@ -2049,6 +1993,7 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
     GenerateConstantsTableC(ffi, out_dir);
     GenerateHelpers(ffi, out_dir);
     GenerateFreeFunctions(ffi, out_dir);
+    GenerateClassRegistry(out_dir);
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
 
@@ -2120,7 +2065,7 @@ static void
         {
             member_key = TsFactoryName(cls.name, func);
         }
-        else if (IsStaticClassFunction(func, &cls))
+        else if (IsStaticClassFunction(func, cls))
         {
             member_key = TsEscapeName(func.method_name);
         }
@@ -2155,7 +2100,7 @@ static void
             for (const auto& func: mixin_found->second->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_found->second))
+                    IsStaticClassFunction(func, *mixin_found->second))
                 {
                     continue;
                 }
@@ -2758,7 +2703,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     {
         for (const auto& func: cls.methods)
         {
-            if (!IsValidFunction(func) || !IsStaticClassFunction(func, &cls))
+            if (!IsValidFunction(func) || !IsStaticClassFunction(func, cls))
             {
                 continue;
             }
@@ -2851,6 +2796,10 @@ void TypeScriptEmitter::EmitClassFile(
     const std::unordered_map<std::string, const ClassInfo*>& class_index,
     const std::unordered_set<std::string>& wrapped_classes)
 {
+    // The import block at the end of this function consumes this per-file state.
+    s_registry_return_types.clear();
+    s_uses_class_registry = false;
+
     // Find the nearest wrapped ancestor for extends-based inheritance.
     const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
     const AncestorMembers ancestors =
@@ -2908,6 +2857,11 @@ void TypeScriptEmitter::EmitClassFile(
     // Both the method wrappers here and the factories below append to this set.
     std::set<std::string> return_imports;
     std::set<std::string> emitted_instance_names;
+    // Signatures already emitted under each member name.  The FFI corpus declares some methods
+    // twice under two C-symbol spellings with an identical visible signature; those duplicates
+    // are harmless and dropped silently, while a duplicate with a different signature is a
+    // genuinely lost overload and still reports a warning.
+    std::unordered_map<std::string, std::vector<AncestorMemberInfo>> emitted_signatures;
     for (const auto& func: cls.methods)
     {
         if (!IsValidFunction(func))
@@ -2925,7 +2879,7 @@ void TypeScriptEmitter::EmitClassFile(
             continue;
         }
         // Skip statics (emitted at module scope in kwx_free_functions_gen.ts)
-        if (IsStaticClassFunction(func, &cls))
+        if (IsStaticClassFunction(func, cls))
         {
             continue;
         }
@@ -2933,6 +2887,21 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string method_name = TsMethodName(cls.name, func);
         if (emitted_instance_names.contains(method_name))
         {
+            const std::unordered_map<std::string, std::vector<AncestorMemberInfo>>::const_iterator
+                recorded = emitted_signatures.find(method_name);
+            if (recorded != emitted_signatures.end())
+            {
+                const AncestorMemberInfo signature =
+                    BuildAncestorMemberInfo(func, cls.name, wrapped_classes);
+                if (std::ranges::any_of(recorded->second,
+                                        [&signature](const AncestorMemberInfo& existing)
+                                        {
+                                            return IsSameSignature(existing, signature);
+                                        }))
+                {
+                    continue;  // duplicate with the same visible signature
+                }
+            }
             std::println(stderr, "  Warning: {}: dropping duplicate method {} (C symbol {})",
                          cls.name, method_name, CFuncName(func));
             continue;  // skip duplicate overload
@@ -2940,6 +2909,8 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string emitted_name = EmitInstanceMethod(
             body, ancestors, cls.name, func, emitted_instance_names, wrapped_classes);
         emitted_instance_names.insert(emitted_name);
+        emitted_signatures[emitted_name].push_back(
+            BuildAncestorMemberInfo(func, cls.name, wrapped_classes));
         if (IsWrappedClassReturn(func, wrapped_classes) &&
             !IsDeniedWrappedReturn(cls.name, func.return_arg))
         {
@@ -2969,7 +2940,7 @@ void TypeScriptEmitter::EmitClassFile(
             for (const auto& func: mixin_class->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_class))
+                    IsStaticClassFunction(func, *mixin_class))
                 {
                     continue;
                 }
@@ -2987,6 +2958,8 @@ void TypeScriptEmitter::EmitClassFile(
                 const std::string emitted_name = EmitInstanceMethod(
                     body, ancestors, mixin_name, func, emitted_instance_names, wrapped_classes);
                 emitted_instance_names.insert(emitted_name);
+                emitted_signatures[emitted_name].push_back(
+                    BuildAncestorMemberInfo(func, mixin_name, wrapped_classes));
                 if (IsWrappedClassReturn(func, wrapped_classes) &&
                     !IsDeniedWrappedReturn(mixin_name, func.return_arg))
                 {
@@ -3088,6 +3061,14 @@ void TypeScriptEmitter::EmitClassFile(
 
     const std::string body_str = body.str();
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (s_uses_class_registry)
+    {
+        output << "import { getClass, registerClass } from \"./kwx_class_registry_gen.ts\";\n";
+    }
+    else
+    {
+        output << "import { registerClass } from \"./kwx_class_registry_gen.ts\";\n";
+    }
     if (body_str.find("Pointer") != std::string::npos)
     {
         output << "import { Pointer } from \"kwx/platform\";\n";
@@ -3107,8 +3088,23 @@ void TypeScriptEmitter::EmitClassFile(
         output << "import { " << imported_class << " } from \"" << TsClassImportPath(imported_class)
                << "\";\n";
     }
+    // A cyclic return keeps its wrapper type through a type-only import: no value edge is
+    // created, so the module graph cannot close a cycle through this file.
+    for (const std::string& registry_type: s_registry_return_types)
+    {
+        if (registry_type == cls.name || registry_type == parent_name ||
+            return_imports.contains(registry_type))
+        {
+            continue;
+        }
+        output << "import type { " << registry_type << " } from \""
+               << TsClassImportPath(registry_type) << "\";\n";
+    }
     output << "\n";
     output << body_str;
+
+    // Comes after the class declaration so the class binding is initialized when it runs.
+    output << "registerClass(\"" << cls.name << "\", " << cls.name << ");\n";
 }
 
 void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& out_dir)
@@ -3151,6 +3147,49 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
 
     std::println(stderr, "  class files:             {} classes, {} methods", class_names.size(),
                  total_methods);
+}
+
+// -------------------------------------------------------------------------
+// kwx_class_registry_gen.ts — runtime registry of generated wrapper classes
+// -------------------------------------------------------------------------
+
+void TypeScriptEmitter::GenerateClassRegistry(const fs::path& out_dir)
+{
+    const fs::path file_path = out_dir / "kwx_class_registry_gen.ts";
+    ConditionalFileWriter output(file_path);
+
+    WriteGeneratedHeader(output, "//");
+
+    output << R"TS(import type { Pointer } from "kwx/platform";
+
+export type WxWrapperConstructor<T> = new (ptr: Pointer, borrowed?: boolean) => T;
+
+const s_registered = new Map<string, WxWrapperConstructor<unknown>>();
+
+/** Register a generated wrapper class so cyclic return sites can construct it. */
+export function registerClass<T>(name: string, wrapper: WxWrapperConstructor<T>): void
+{
+    s_registered.set(name, wrapper as WxWrapperConstructor<unknown>);
+}
+
+/**
+ * Look up a generated wrapper class.  Throws when that class module was never evaluated,
+ * which can only happen when neither the class module nor the kwx_gen.ts barrel was imported.
+ */
+export function getClass<T>(name: string): WxWrapperConstructor<T>
+{
+    const wrapper = s_registered.get(name);
+    if (wrapper === undefined)
+    {
+        throw new Error(
+            `kwxFFI: wrapper class ${name} is not loaded - import its module or the kwx_gen.ts barrel before calling this method`,
+        );
+    }
+    return wrapper as WxWrapperConstructor<T>;
+}
+)TS";
+
+    std::println(stderr, "  kwx_class_registry_gen.ts: emitted");
 }
 
 // -------------------------------------------------------------------------

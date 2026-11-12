@@ -212,6 +212,16 @@ inline std::vector<RustFFIParam> ExpandParamToRustFFI(const Param& param)
         return result;
     }
 
+    // Output long geometry parameters → *mut c_long pointers
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        for (auto& n: RustSplitMacroArg(param.macro_arg))
+        {
+            result.push_back({ "*mut c_long", RustEscapeName(n) });
+        }
+        return result;
+    }
+
     // Output geometry void pointers
     if (param.macro_name == "TPointOutVoid" || param.macro_name == "TSizeOutVoid" ||
         param.macro_name == "TRectOutVoid" || param.macro_name == "TVectorOutVoid")

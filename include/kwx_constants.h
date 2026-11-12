@@ -1,6 +1,8 @@
 #pragma once
 
 #include "kwx_types.h"
+// WXFFI_EXPORT is used by the constant declarations further down.
+#include "kwx_def.h"
 
 TClass(wxAcceleratorTable) Null_AcceleratorTable();
 TClass(wxBitmap) Null_Bitmap();
@@ -35,6 +37,24 @@ void wxMutexGui_Leave();
 void* kwxUtf8Buffer_Create(TClass(wxString) str);
 TString kwxUtf8Buffer_Data(void* buf);
 void kwxUtf8Buffer_Delete(void* buf);
+
+// wxGrid::TabBehaviour values, passed to wxGrid_SetTabBehaviour().  They are
+// exported from src/kwx_defs.cpp; the declarations live here because this is
+// the header the constant table scans for WXFFI_EXPORT entries.
+WXFFI_EXPORT(int, expTab_Stop)();
+WXFFI_EXPORT(int, expTab_Wrap)();
+WXFFI_EXPORT(int, expTab_Leave)();
+
+// wxGridActivationSource::Origin and wxGridActivationResult::Action values.
+// The TryActivate callback installed by
+// kwxGridCellActivatableEditorHook_SetOnTryActivate receives the origin and
+// reports the action with these values.
+WXFFI_EXPORT(int, expGridActivationProgram)();
+WXFFI_EXPORT(int, expGridActivationKey)();
+WXFFI_EXPORT(int, expGridActivationMouse)();
+WXFFI_EXPORT(int, expGridActivationIgnore)();
+WXFFI_EXPORT(int, expGridActivationChange)();
+WXFFI_EXPORT(int, expGridActivationShowEditor)();
 
 // ---------------------------------------------------------------------------
 // System information
@@ -156,6 +176,17 @@ TClass(wxString) wxGetStockLabel(int id, long flags);
 TClass(wxAcceleratorEntry) wxGetStockAccelerator(int id);
 TClass(wxString) wxGetStockHelpString(int id, int client);
 
+// ---------------------------------------------------------------------------
+// Persistence (wx/persist.h). RegisterAndRestore is a template, so each
+// concrete control type gets its own C entry point; `NoName` omits the name
+// argument. Implementations live in src/kwx_extra.cpp.
+// ---------------------------------------------------------------------------
+
+TBool wxPersistentRegisterAndRestore(TClass(wxFrame) frame, TClass(wxString) name);
+TBool wxPersistentRegisterAndRestoreNoName(TClass(wxFrame) frame);
+TBool wxPersistentRegisterAndRestoreTreebook(TClass(wxTreebook) book, TClass(wxString) name);
+TBool wxPersistentRegisterAndRestoreTreebookNoName(TClass(wxTreebook) book);
+
 WXFFI_EXPORT(int, expRIBBON_BAR_DEFAULT_STYLE)();
 WXFFI_EXPORT(int, expRIBBON_BAR_FOLDBAR_STYLE)();
 WXFFI_EXPORT(int, expRIBBON_BAR_SHOW_PAGE_LABELS)();
@@ -184,6 +215,29 @@ WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_NORMAL)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_HOVERED)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_ACTIVE)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_DISABLED)();
+
+// wxAnimationType values (wx/animate.h)
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_INVALID)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_GIF)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_ANI)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_WEBP)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_ANY)();
+
+// Control style / enumeration constants whose exported accessors use the legacy `exp`
+// spelling (wx/collpane.h, wx/propgrid/manager.h, wx/treelist.h, wx/webview.h).
+WXFFI_EXPORT(int, expCP_DEFAULT_STYLE)();
+WXFFI_EXPORT(int, expCP_NO_TLW_RESIZE)();
+WXFFI_EXPORT(int, expPGMAN_DEFAULT_STYLE)();
+WXFFI_EXPORT(int, expTL_SINGLE)();
+WXFFI_EXPORT(int, expTL_NO_HEADER)();
+WXFFI_EXPORT(int, expWEBVIEW_NAV_ACTION_NONE)();
+WXFFI_EXPORT(int, expWEBVIEW_NAV_ACTION_OTHER)();
+WXFFI_EXPORT(int, expWEBVIEW_RELOAD_DEFAULT)();
+WXFFI_EXPORT(int, expWEBVIEW_RELOAD_NO_CACHE)();
+
+// wxPopupWindow style flag (wx/popupwin.h:23).  Popup samples OR it with
+// wxBORDER_NONE so the controls inside the popup receive mouse input.
+WXFFI_EXPORT(int, expPU_CONTAINS_CONTROLS)();
 
 // Legacy wxLog free functions (Phase 13); implementations live in src/kwx_extra.cpp.
 void LogError(TClass(wxString) message);

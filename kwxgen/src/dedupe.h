@@ -24,3 +24,12 @@
 // declaration. Class methods take precedence over free functions, so a method binding is
 // never replaced by a bare function binding. Returns the number of declarations removed.
 std::size_t RemoveDuplicateFunctions(ParsedFFI& ffi_data);
+
+// Drops constants whose generated names collide.  The bindings name a constant by
+// ConstantDecl::constant_name, and the same logical constant is exported twice: the public
+// accessor in kwx_constants.h (expX) and the legacy table-generated copy in kwx_defs.cpp
+// (expwxX, e.g. the RIBBON_* family).  Keeping both makes every language emit the definition
+// twice; at module load time Julia reports a method-overwrite error during precompilation.
+// The expX spelling wins because it is the one the public header documents.  Returns the
+// number of constants removed.
+std::size_t RemoveDuplicateConstants(ParsedFFI& ffi_data);

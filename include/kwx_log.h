@@ -34,15 +34,18 @@ void wxLog_Resume(TSelf(wxLog) pObject);
 void wxLog_SetVerbose(TSelf(wxLog) pObject, TBool bVerbose);
 TBool wxLog_GetVerbose(TSelf(wxLog) pObject);
 void wxLog_DontCreateOnDemand(TSelf(wxLog) pObject);
-void wxLog_AddTraceMask(TSelf(wxLog) pObject, void* str);
-void wxLog_RemoveTraceMask(TSelf(wxLog) pObject, void* str);
-void wxLog_SetTimestamp(TSelf(wxLog) pObject, void* timestamp);
+void wxLog_AddTraceMask(TSelf(wxLog) pObject, TString str);
+void wxLog_RemoveTraceMask(TSelf(wxLog) pObject, TString str);
+void wxLog_SetTimestamp(TSelf(wxLog) pObject, TString timestamp);
 void* wxLog_GetTimestamp(TSelf(wxLog) pObject);
-TBool wxLog_IsAllowedTraceMask(TSelf(wxLog) pObject, void* mask);
+TBool wxLog_IsAllowedTraceMask(TSelf(wxLog) pObject, TString mask);
 TBool wxLog_EnableLogging(TBool enable);
 TBool wxLog_IsEnabled();
 void wxLog_SetLogLevel(int level);
 int wxLog_GetLogLevel();
+// wxLog::DisableTimestamp() is a static one-liner (SetTimestamp(wxEmptyString))
+// that the samples need to keep log output identical to the C++ original.
+void wxLog_DisableTimestamp();
 int wxLog_GetComponentLevel(TClass(wxString) component);
 void wxLog_SetComponentLevel(TClass(wxString) component, int level);
 TBool wxLog_IsLevelEnabled(int level, TClass(wxString) component);
@@ -85,6 +88,11 @@ void wxLogNull_Delete(TSelf(wxLogNull) pObject);
 TClassDefExtend(wxLogTextCtrl, wxLog) TClass(wxLogTextCtrl)
     wxLogTextCtrl_Create(TClass(wxTextCtrl) text);
 void wxLogTextCtrl_Delete(TSelf(wxLogTextCtrl) pObject);
+// wxLogTextCtrl has no DisableTimestamp() of its own: wxWidgets inherits the static
+// wxLog::DisableTimestamp(), so logger->DisableTimestamp() works on the text-control
+// log target in C++.  The flat Julia/Lua wrappers cannot inherit it, so give every
+// port the same call shape instead of forcing wxLog::SetTimestamp(wxEmptyString).
+void wxLogTextCtrl_DisableTimestamp(TSelf(wxLogTextCtrl) pObject);
 
 TClassDefExtend(wxLogWindow, wxLogInterposer) TClass(wxLogWindow)
     wxLogWindow_Create(TClass(wxFrame) parent, TClass(wxString) title, TBool showit,

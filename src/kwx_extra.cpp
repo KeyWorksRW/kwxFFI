@@ -18,7 +18,11 @@
 #include <wx/textctrl.h>
 
 #include <wx/numdlg.h>
+#include <wx/persist.h>
+#include <wx/persist/toplevel.h>
+#include <wx/persist/treebook.h>
 #include <wx/power.h>
+#include <wx/wupdlock.h>
 
 // Forward declarations for event types used below
 class wxInputSinkEvent;
@@ -1318,7 +1322,9 @@ extern "C"
 
     EXPORT wxString* wxString_CreateUTF8(utf8char* buffer)
     {
-        return new wxString(buffer);
+        // The bytes are UTF-8 (see wxUSE_UNICODE_UTF8 in wx/setup.h), so they must not be
+        // reinterpreted through the current ANSI codepage the way the char* constructor does.
+        return new wxString(wxString::FromUTF8(buffer));
     }
 
     EXPORT wxString* wxString_CreateLen(char* buffer, int len)
@@ -1333,9 +1339,14 @@ extern "C"
 
     EXPORT int wxString_GetString(wxString* self, char* buffer)
     {
+        const std::string utf8 = self->utf8_string();
         if (buffer)
-            memcpy(buffer, self->utf8_string().data(), self->Length());
-        return self->Length();
+        {
+            memcpy(buffer, utf8.data(), utf8.size());
+            buffer[utf8.size()] = '\0';
+        }
+        // Byte count, not character count: the caller's buffer is sized in bytes.
+        return static_cast<int>(utf8.size());
     }
 
     EXPORT size_t wxString_Length(wxString* self)
@@ -2080,6 +2091,12 @@ extern "C"
         *colour = wxGetColourFromUser(parent, *colInit);
     }
 
+    EXPORT void wxGetColourFromUserEx(wxWindow* parent, wxColour* colInit, wxString* caption,
+                                      wxColour* colour)
+    {
+        *colour = wxGetColourFromUser(parent, *colInit, *caption);
+    }
+
     EXPORT void wxGetFontFromUser(wxWindow* parent, wxFont* fontInit, wxFont* font)
     {
         *font = wxGetFontFromUser(parent, *fontInit);
@@ -2108,6 +2125,17 @@ extern "C"
         }
     }
 
+    // String-returning variant of wxGetPasswordFromUser.  The int/char* two-phase API above
+    // cannot be consumed by managed runtimes (cgo hands the callee a temporary copy of the
+    // caller's string), so this variant allocates a wxString the binding layer copies and frees.
+    EXPORT wxString* wxGetPasswordFromUserEx(char* message, char* caption, char* defaultText,
+                                             wxWindow* parent)
+    {
+        wxString* result = new wxString();
+        *result = wxGetPasswordFromUser(message, caption, defaultText, parent);
+        return result;
+    }
+
     EXPORT int wxGetTextFromUser(char* message, char* caption, char* defaultText, wxWindow* parent,
                                  int x, int y, int center, char* buffer)
     {
@@ -2130,6 +2158,15 @@ extern "C"
         {
             return 0;
         }
+    }
+
+    // String-returning variant of wxGetTextFromUser; see wxGetPasswordFromUserEx.
+    EXPORT wxString* wxGetTextFromUserEx(char* message, char* caption, char* defaultText,
+                                         wxWindow* parent, int x, int y, int center)
+    {
+        wxString* result = new wxString();
+        *result = wxGetTextFromUser(message, caption, defaultText, parent, x, y, center != 0);
+        return result;
     }
 
     EXPORT long wxGetNumberFromUser(wxString* message, wxString* prompt, wxString* caption,
@@ -2875,6 +2912,47 @@ extern "C"
     EXPORT void* kwxSetActiveLogTarget(void* pLogger)
     {
         return wxLog::SetActiveTarget(static_cast<wxLog*>(pLogger));
+    }
+
+    EXPORT wxWindowUpdateLocker* wxWindowUpdateLocker_Create(wxWindow* win)
+    {
+        return new wxWindowUpdateLocker(win);
+    }
+
+    EXPORT void wxWindowUpdateLocker_Delete(wxWindowUpdateLocker* pObject)
+    {
+        delete pObject;
+    }
+
+    // wxPersistentRegisterAndRestore is a template keyed on the concrete control
+    // type; the strongly typed pointer below is what makes wxCreatePersistentObject
+    // resolve to the wxTopLevelWindow/wxTreebook overloads.
+    EXPORT int wxPersistentRegisterAndRestore(wxFrame* frame, wxString* name)
+    {
+        if (!frame || !name)
+            return 0;
+        return wxPersistentRegisterAndRestore(frame, *name) ? 1 : 0;
+    }
+
+    EXPORT int wxPersistentRegisterAndRestoreNoName(wxFrame* frame)
+    {
+        if (!frame)
+            return 0;
+        return wxPersistentRegisterAndRestore(frame) ? 1 : 0;
+    }
+
+    EXPORT int wxPersistentRegisterAndRestoreTreebook(wxTreebook* book, wxString* name)
+    {
+        if (!book || !name)
+            return 0;
+        return wxPersistentRegisterAndRestore(book, *name) ? 1 : 0;
+    }
+
+    EXPORT int wxPersistentRegisterAndRestoreTreebookNoName(wxTreebook* book)
+    {
+        if (!book)
+            return 0;
+        return wxPersistentRegisterAndRestore(book) ? 1 : 0;
     }
 
 }  // extern "C"

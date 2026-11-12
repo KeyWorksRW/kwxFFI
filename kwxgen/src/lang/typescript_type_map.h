@@ -212,6 +212,16 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
         return result;
     }
 
+    // Output long geometry: long* output pointers → "pointer"
+    if (param_in.macro_name == "TPointOutLong" || param_in.macro_name == "TSizeOutLong")
+    {
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
+        {
+            result.push_back({ "\"pointer\"", TsEscapeName(name_str) });
+        }
+        return result;
+    }
+
     if (param_in.macro_name == "TPointOutVoid" || param_in.macro_name == "TSizeOutVoid" ||
         param_in.macro_name == "TRectOutVoid" || param_in.macro_name == "TVectorOutVoid")
     {

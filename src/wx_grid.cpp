@@ -8,8 +8,45 @@
 
 #include "kwx_grid.h"
 
+#include <vector>
+
+// wxGridBlocks has no public constructor, so the exported
+// wxGridBlockCoordsArray is a heap vector that a binding can fill and index.
+typedef std::vector<wxGridBlockCoords> wxGridBlockCoordsArray;
+
 extern "C"
 {
+    EXPORT wxGridBlockCoordsArray* wxGridBlockCoordsArray_Create()
+    {
+        return new wxGridBlockCoordsArray();
+    }
+
+    EXPORT void wxGridBlockCoordsArray_Delete(wxGridBlockCoordsArray* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxGridBlockCoordsArray_GetCount(wxGridBlockCoordsArray* self)
+    {
+        return (int) self->size();
+    }
+
+    EXPORT void wxGridBlockCoordsArray_ItemTopLeft(wxGridBlockCoordsArray* self, int index,
+                                                   int* row, int* col)
+    {
+        const wxGridCellCoords topLeft = self->at(index).GetTopLeft();
+        *row = topLeft.GetRow();
+        *col = topLeft.GetCol();
+    }
+
+    EXPORT void wxGridBlockCoordsArray_ItemBottomRight(wxGridBlockCoordsArray* self, int index,
+                                                       int* row, int* col)
+    {
+        const wxGridCellCoords bottomRight = self->at(index).GetBottomRight();
+        *row = bottomRight.GetRow();
+        *col = bottomRight.GetCol();
+    }
+
     EXPORT wxGridCellCoordsArray* wxGridCellCoordsArray_Create()
     {
         return new wxGridCellCoordsArray();
@@ -164,6 +201,11 @@ extern "C"
     EXPORT void* wxGridCellAttr_Ctor()
     {
         return (void*) new wxGridCellAttr();
+    }
+
+    EXPORT wxGridCellAttr* wxGridCellAttr_Clone(wxGridCellAttr* self)
+    {
+        return self->Clone();
     }
 
     EXPORT void wxGridCellAttr_IncRef(wxGridCellAttr* self)
@@ -1158,6 +1200,15 @@ extern "C"
         *array = self->GetSelectionBlockBottomRight();
     }
 
+    EXPORT void wxGrid_GetSelectedBlocks(wxGrid* self, wxGridBlockCoordsArray* array)
+    {
+        array->clear();
+        for (const wxGridBlockCoords& block: self->GetSelectedBlocks())
+        {
+            array->push_back(block);
+        }
+    }
+
     EXPORT int wxGrid_GetSelectedRows(wxGrid* self, void* array)
     {
         wxArrayInt arr = self->GetSelectedRows();
@@ -1832,5 +1883,743 @@ extern "C"
     EXPORT void wxGrid_SetColFormatDate(void* pObject, int col, void* format)
     {
         ((wxGrid*) pObject)->SetColFormatDate(col, *(wxString*) format);
+    }
+
+    // -----------------------------------------------------------------------
+    // Methods used by the grid sample's menus (wx/generic/grid.h).
+    // -----------------------------------------------------------------------
+    EXPORT int wxGrid_FreezeTo(wxGrid* self, int row, int col)
+    {
+        return self->FreezeTo(row, col);
+    }
+
+    EXPORT int wxGrid_IsFrozen(wxGrid* self)
+    {
+        return self->IsFrozen();
+    }
+
+    EXPORT void wxGrid_SetGridFrozenBorderColour(wxGrid* self, wxColour* col)
+    {
+        self->SetGridFrozenBorderColour(*col);
+    }
+
+    EXPORT int wxGrid_UseNativeColHeader(wxGrid* self, bool native)
+    {
+        return self->UseNativeColHeader(native);
+    }
+
+    EXPORT void wxGrid_SetUseNativeColLabels(wxGrid* self, bool native)
+    {
+        self->SetUseNativeColLabels(native);
+    }
+
+    EXPORT int wxGrid_EnableHidingColumns(wxGrid* self, bool enable)
+    {
+        return self->EnableHidingColumns(enable);
+    }
+
+    EXPORT int wxGrid_CanHideColumns(wxGrid* self)
+    {
+        return self->CanHideColumns();
+    }
+
+    EXPORT int wxGrid_EnableDragRowMove(wxGrid* self, bool enable)
+    {
+        return self->EnableDragRowMove(enable);
+    }
+
+    EXPORT int wxGrid_EnableDragColMove(wxGrid* self, bool enable)
+    {
+        return self->EnableDragColMove(enable);
+    }
+
+    EXPORT void wxGrid_EnableDragCell(wxGrid* self, bool enable)
+    {
+        self->EnableDragCell(enable);
+    }
+
+    EXPORT void wxGrid_EnableDragRowLabelSize(wxGrid* self, bool enable)
+    {
+        self->EnableDragRowLabelSize(enable);
+    }
+
+    EXPORT void wxGrid_EnableDragColLabelSize(wxGrid* self, bool enable)
+    {
+        self->EnableDragColLabelSize(enable);
+    }
+
+    EXPORT void wxGrid_SetTabBehaviour(wxGrid* self, int behaviour)
+    {
+        self->SetTabBehaviour(static_cast<wxGrid::TabBehaviour>(behaviour));
+    }
+
+    EXPORT void wxGrid_SetCellOverflow(wxGrid* self, int row, int col, bool allow)
+    {
+        self->SetCellOverflow(row, col, allow);
+    }
+
+    EXPORT void wxGrid_SetDefaultCellOverflow(wxGrid* self, bool allow)
+    {
+        self->SetDefaultCellOverflow(allow);
+    }
+
+    EXPORT void wxGrid_SetCellFitMode(wxGrid* self, int row, int col, wxGridFitMode* fitMode)
+    {
+        self->SetCellFitMode(row, col, *fitMode);
+    }
+
+    EXPORT void wxGrid_SetDefaultCellFitMode(wxGrid* self, wxGridFitMode* fitMode)
+    {
+        self->SetDefaultCellFitMode(*fitMode);
+    }
+
+    EXPORT void wxGrid_GetCornerLabelAlignment(wxGrid* self, int* horiz, int* vert)
+    {
+        self->GetCornerLabelAlignment(horiz, vert);
+    }
+
+    EXPORT void wxGrid_SetCornerLabelAlignment(wxGrid* self, int horiz, int vert)
+    {
+        self->SetCornerLabelAlignment(horiz, vert);
+    }
+
+    EXPORT int wxGrid_GetCornerLabelTextOrientation(wxGrid* self)
+    {
+        return self->GetCornerLabelTextOrientation();
+    }
+
+    EXPORT void wxGrid_SetCornerLabelTextOrientation(wxGrid* self, int textOrientation)
+    {
+        self->SetCornerLabelTextOrientation(textOrientation);
+    }
+
+    EXPORT int wxGrid_GetCellHighlightPenWidth(wxGrid* self)
+    {
+        return self->GetCellHighlightPenWidth();
+    }
+
+    EXPORT void wxGrid_SetCellHighlightPenWidth(wxGrid* self, int width)
+    {
+        self->SetCellHighlightPenWidth(width);
+    }
+
+    EXPORT int wxGrid_GetCellHighlightROPenWidth(wxGrid* self)
+    {
+        return self->GetCellHighlightROPenWidth();
+    }
+
+    EXPORT void wxGrid_SetCellHighlightROPenWidth(wxGrid* self, int width)
+    {
+        self->SetCellHighlightROPenWidth(width);
+    }
+
+    EXPORT void wxGrid_DeselectCell(wxGrid* self, int row, int col)
+    {
+        self->DeselectCell(row, col);
+    }
+
+    EXPORT void wxGrid_DeselectCol(wxGrid* self, int col)
+    {
+        self->DeselectCol(col);
+    }
+
+    EXPORT void wxGrid_DeselectRow(wxGrid* self, int row)
+    {
+        self->DeselectRow(row);
+    }
+
+    EXPORT void wxGrid_DisableOverlaySelection(wxGrid* self)
+    {
+        self->DisableOverlaySelection();
+    }
+
+    EXPORT void wxGrid_ForceRefresh(wxGrid* self)
+    {
+        self->ForceRefresh();
+    }
+
+    EXPORT void wxGrid_AutoSizeRowLabelSize(wxGrid* self, int row)
+    {
+        self->AutoSizeRowLabelSize(row);
+    }
+
+    EXPORT void wxGrid_AutoSizeColLabelSize(wxGrid* self, int col)
+    {
+        self->AutoSizeColLabelSize(col);
+    }
+
+    EXPORT void wxGrid_DisableRowResize(wxGrid* self, int row)
+    {
+        self->DisableRowResize(row);
+    }
+
+    EXPORT void wxGrid_HideCol(wxGrid* self, int col)
+    {
+        self->HideCol(col);
+    }
+
+    EXPORT void wxGrid_ShowCol(wxGrid* self, int col)
+    {
+        self->ShowCol(col);
+    }
+
+    EXPORT void wxGrid_HideRow(wxGrid* self, int row)
+    {
+        self->HideRow(row);
+    }
+
+    EXPORT void wxGrid_ShowRow(wxGrid* self, int row)
+    {
+        self->ShowRow(row);
+    }
+
+    EXPORT void wxGrid_SetAttr(wxGrid* self, int row, int col, wxGridCellAttr* attr)
+    {
+        // SetAttr() takes ownership of attr; a null attr is explicitly allowed
+        // and only exercises the reference counting path.
+        self->SetAttr(row, col, attr);
+    }
+
+    EXPORT void wxGrid_AssignTable(wxGrid* self, wxGridTableBase* table, int selmode)
+    {
+        self->AssignTable(table, (wxGrid::wxGridSelectionModes) selmode);
+    }
+
+    EXPORT int wxGrid_GetRowPos(wxGrid* self, int idx)
+    {
+        return self->GetRowPos(idx);
+    }
+
+    EXPORT int wxGrid_GetColPos(wxGrid* self, int idx)
+    {
+        return self->GetColPos(idx);
+    }
+
+    EXPORT int wxGrid_GetRowAt(wxGrid* self, int pos)
+    {
+        return self->GetRowAt(pos);
+    }
+
+    EXPORT int wxGrid_GetColAt(wxGrid* self, int pos)
+    {
+        return self->GetColAt(pos);
+    }
+
+    EXPORT void wxGrid_SetColPos(wxGrid* self, int idx, int pos)
+    {
+        self->SetColPos(idx, pos);
+    }
+
+    EXPORT void wxGrid_ResetColPos(wxGrid* self)
+    {
+        self->ResetColPos();
+    }
+
+    EXPORT int wxGrid_GetSelectionMode(wxGrid* self)
+    {
+        return (int) self->GetSelectionMode();
+    }
+
+    EXPORT int wxGrid_GetSortingColumn(wxGrid* self)
+    {
+        return self->GetSortingColumn();
+    }
+
+    EXPORT int wxGrid_IsSortingBy(wxGrid* self, int col)
+    {
+        return self->IsSortingBy(col);
+    }
+
+    EXPORT int wxGrid_IsSortOrderAscending(wxGrid* self)
+    {
+        return self->IsSortOrderAscending();
+    }
+
+    EXPORT void wxGrid_SetSortingColumn(wxGrid* self, int col, bool ascending)
+    {
+        self->SetSortingColumn(col, ascending);
+    }
+
+    EXPORT void wxGrid_Render(wxGrid* self, wxDC* dc, int x, int y, int width, int height,
+                              int topLeftRow, int topLeftCol, int bottomRightRow,
+                              int bottomRightCol, int style)
+    {
+        // wxDefaultSize is (-1, -1): wxDefaultPosition and wxDefaultSize are
+        // both defaults for Render(), so a negative size is passed through
+        // only when the caller really wants the default.
+        const wxSize size = (width < 0 || height < 0) ? wxDefaultSize : wxSize(width, height);
+        self->Render(*dc, wxPoint(x, y), size, wxGridCellCoords(topLeftRow, topLeftCol),
+                     wxGridCellCoords(bottomRightRow, bottomRightCol), style);
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridFitMode
+    // -----------------------------------------------------------------------
+    EXPORT void* wxGridFitMode_Create()
+    {
+        return static_cast<void*>(new wxGridFitMode());
+    }
+
+    EXPORT void* wxGridFitMode_CreateClip()
+    {
+        return static_cast<void*>(new wxGridFitMode(wxGridFitMode::Clip()));
+    }
+
+    EXPORT void* wxGridFitMode_CreateOverflow()
+    {
+        return static_cast<void*>(new wxGridFitMode(wxGridFitMode::Overflow()));
+    }
+
+    EXPORT void* wxGridFitMode_CreateEllipsize(int ellipsizeMode)
+    {
+        return static_cast<void*>(
+            new wxGridFitMode(wxGridFitMode::Ellipsize((wxEllipsizeMode) ellipsizeMode)));
+    }
+
+    EXPORT void wxGridFitMode_Delete(wxGridFitMode* self)
+    {
+        delete self;
+    }
+
+    // -----------------------------------------------------------------------
+    // wxGridCellBoolRenderer
+    // -----------------------------------------------------------------------
+    EXPORT void* wxGridCellBoolRenderer_Ctor()
+    {
+        return (void*) new wxGridCellBoolRenderer();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Grid override hooks (declarations in include/kwx_grid_extra.h).
+//
+// The grid sample overrides four extension points a foreign language cannot
+// derive from itself: cell rendering, the activatable editor path, the column
+// header renderer and the cell attribute provider.  Each class below forwards
+// the virtuals to callbacks; a callback that must produce a value publishes it
+// with the matching Set*Result function on the same object.  An unset callback
+// keeps the base class behaviour.
+// ---------------------------------------------------------------------------
+
+typedef void (*kwxGridRendererDrawFunc)(void* pObject, void* grid, void* attr, void* dc, int x,
+                                        int y, int width, int height, int row, int col,
+                                        int isSelected);
+typedef void (*kwxGridRendererBestSizeFunc)(void* pObject, void* grid, void* attr, void* dc,
+                                            int row, int col);
+typedef void (*kwxGridEditorTryActivateFunc)(void* pObject, int row, int col, void* grid,
+                                             int origin, void* event);
+typedef void (*kwxGridEditorDoActivateFunc)(void* pObject, int row, int col, void* grid);
+typedef void (*kwxGridHeaderDrawLabelFunc)(void* pObject, void* grid, void* dc, void* value, int x,
+                                           int y, int width, int height, int horizAlign,
+                                           int vertAlign, int textOrientation);
+typedef void (*kwxGridHeaderDrawRectFunc)(void* pObject, void* grid, void* dc, int x, int y,
+                                          int width, int height);
+typedef void (*kwxGridHeaderDrawHighlightedFunc)(void* pObject, void* grid, void* dc, int x, int y,
+                                                 int width, int height, int rowOrCol, int flags);
+typedef void (*kwxGridProviderGetColumnHeaderRendererFunc)(void* pObject, int col);
+typedef void (*kwxGridProviderGetAttrFunc)(void* pObject, int row, int col, int kind);
+
+// ---------------------------------------------------------------------------
+// kwxGridCellRendererHook
+// ---------------------------------------------------------------------------
+
+class kwxGridCellRendererHook : public wxGridCellStringRenderer
+{
+private:
+    void* m_object;
+    kwxGridRendererDrawFunc m_draw_func;
+    kwxGridRendererBestSizeFunc m_best_size_func;
+    wxSize m_best_size;
+
+public:
+    explicit kwxGridCellRendererHook(void* pObject) :
+        m_object(pObject), m_draw_func(nullptr), m_best_size_func(nullptr),
+        m_best_size(wxDefaultSize)
+    {
+    }
+
+    void SetOnDraw(void* pFunction) { m_draw_func = (kwxGridRendererDrawFunc) pFunction; }
+    void SetOnGetBestSize(void* pFunction)
+    {
+        m_best_size_func = (kwxGridRendererBestSizeFunc) pFunction;
+    }
+    void SetGetBestSizeResult(int width, int height) { m_best_size = wxSize(width, height); }
+
+    void Draw(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc, const wxRect& rect, int row, int col,
+              bool isSelected) override
+    {
+        if (!m_draw_func)
+        {
+            wxGridCellStringRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+            return;
+        }
+
+        // The same preparation the sample renderers do: background from the
+        // attribute, then the text colour and font.  The callback draws the
+        // cell content itself, so a character renderer calls
+        // wxGridCellStringRenderer_Draw() on this object before decorating it.
+        wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
+        SetTextColoursAndFont(grid, attr, dc, isSelected);
+        m_draw_func(m_object, &grid, &attr, &dc, rect.x, rect.y, rect.width, rect.height, row, col,
+                    isSelected ? 1 : 0);
+    }
+
+    wxSize GetBestSize(wxGrid& grid, wxGridCellAttr& attr, wxDC& dc, int row, int col) override
+    {
+        if (!m_best_size_func)
+        {
+            return wxGridCellStringRenderer::GetBestSize(grid, attr, dc, row, col);
+        }
+
+        m_best_size = wxDefaultSize;
+        m_best_size_func(m_object, &grid, &attr, &dc, row, col);
+        return m_best_size;
+    }
+
+    wxGridCellRenderer* Clone() const override
+    {
+        kwxGridCellRendererHook* clone = new kwxGridCellRendererHook(m_object);
+        clone->m_draw_func = m_draw_func;
+        clone->m_best_size_func = m_best_size_func;
+        return clone;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// kwxGridCellActivatableEditorHook
+// ---------------------------------------------------------------------------
+
+class kwxGridCellActivatableEditorHook : public wxGridCellActivatableEditor
+{
+private:
+    void* m_object;
+    kwxGridEditorTryActivateFunc m_try_activate_func;
+    kwxGridEditorDoActivateFunc m_do_activate_func;
+    int m_result_action;
+    wxString m_result_value;
+
+public:
+    explicit kwxGridCellActivatableEditorHook(void* pObject) :
+        m_object(pObject), m_try_activate_func(nullptr), m_do_activate_func(nullptr),
+        m_result_action(wxGridActivationResult::Ignore)
+    {
+    }
+
+    void SetOnTryActivate(void* pFunction)
+    {
+        m_try_activate_func = (kwxGridEditorTryActivateFunc) pFunction;
+    }
+    void SetOnDoActivate(void* pFunction)
+    {
+        m_do_activate_func = (kwxGridEditorDoActivateFunc) pFunction;
+    }
+    void SetTryActivateResult(int action) { m_result_action = action; }
+    void SetTryActivateValue(wxString* value) { m_result_value = value ? *value : wxString(); }
+
+    wxGridActivationResult TryActivate(int row, int col, wxGrid* grid,
+                                       const wxGridActivationSource& actSource) override
+    {
+        if (!m_try_activate_func)
+        {
+            return wxGridActivationResult::DoEdit();
+        }
+
+        m_result_action = wxGridActivationResult::Ignore;
+        m_result_value.clear();
+
+        void* event = nullptr;
+        switch (actSource.GetOrigin())
+        {
+            case wxGridActivationSource::Key:
+                event = (void*) &actSource.GetKeyEvent();
+                break;
+            case wxGridActivationSource::Mouse:
+                event = (void*) &actSource.GetMouseEvent();
+                break;
+            default:
+                break;
+        }
+
+        m_try_activate_func(m_object, row, col, grid, (int) actSource.GetOrigin(), event);
+
+        switch (m_result_action)
+        {
+            case wxGridActivationResult::Change:
+                return wxGridActivationResult::DoChange(m_result_value);
+            case wxGridActivationResult::ShowEditor:
+                return wxGridActivationResult::DoEdit();
+            default:
+                return wxGridActivationResult::DoNothing();
+        }
+    }
+
+    void DoActivate(int row, int col, wxGrid* grid) override
+    {
+        // The base implementation only asserts: an unset callback means the
+        // editor never reports activation, so there is nothing to do.
+        if (m_do_activate_func)
+        {
+            m_do_activate_func(m_object, row, col, grid);
+        }
+    }
+
+    wxString GetValue() const override { return m_result_value; }
+
+    wxGridCellEditor* Clone() const override
+    {
+        kwxGridCellActivatableEditorHook* clone = new kwxGridCellActivatableEditorHook(m_object);
+        clone->m_try_activate_func = m_try_activate_func;
+        clone->m_do_activate_func = m_do_activate_func;
+        return clone;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// kwxGridColumnHeaderRendererHook
+// ---------------------------------------------------------------------------
+
+class kwxGridColumnHeaderRendererHook : public wxGridColumnHeaderRenderer
+{
+private:
+    void* m_object;
+    kwxGridHeaderDrawLabelFunc m_draw_label_func;
+    kwxGridHeaderDrawRectFunc m_draw_border_func;
+    kwxGridHeaderDrawHighlightedFunc m_draw_highlighted_func;
+
+public:
+    explicit kwxGridColumnHeaderRendererHook(void* pObject) :
+        m_object(pObject), m_draw_label_func(nullptr), m_draw_border_func(nullptr),
+        m_draw_highlighted_func(nullptr)
+    {
+    }
+
+    void SetOnDrawLabel(void* pFunction)
+    {
+        m_draw_label_func = (kwxGridHeaderDrawLabelFunc) pFunction;
+    }
+    void SetOnDrawBorder(void* pFunction)
+    {
+        m_draw_border_func = (kwxGridHeaderDrawRectFunc) pFunction;
+    }
+    void SetOnDrawHighlighted(void* pFunction)
+    {
+        m_draw_highlighted_func = (kwxGridHeaderDrawHighlightedFunc) pFunction;
+    }
+
+    void DrawLabel(const wxGrid& grid, wxDC& dc, const wxString& value, const wxRect& rect,
+                   int horizAlign, int vertAlign, int textOrientation) const override
+    {
+        if (!m_draw_label_func)
+        {
+            wxGridColumnHeaderRenderer::DrawLabel(grid, dc, value, rect, horizAlign, vertAlign,
+                                                  textOrientation);
+            return;
+        }
+        m_draw_label_func(m_object, (void*) &grid, &dc, (void*) &value, rect.x, rect.y, rect.width,
+                          rect.height, horizAlign, vertAlign, textOrientation);
+    }
+
+    void DrawBorder(const wxGrid& grid, wxDC& dc, wxRect& rect) const override
+    {
+        // The base class has no implementation to fall back on.
+        if (m_draw_border_func)
+        {
+            m_draw_border_func(m_object, (void*) &grid, &dc, rect.x, rect.y, rect.width,
+                               rect.height);
+        }
+    }
+
+    void DrawHighlighted(const wxGrid& grid, wxDC& dc, wxRect& rect, int rowOrCol,
+                         int flags = 0) const override
+    {
+        if (!m_draw_highlighted_func)
+        {
+            wxGridColumnHeaderRenderer::DrawHighlighted(grid, dc, rect, rowOrCol, flags);
+            return;
+        }
+        m_draw_highlighted_func(m_object, (void*) &grid, &dc, rect.x, rect.y, rect.width,
+                                rect.height, rowOrCol, flags);
+    }
+};
+
+// ---------------------------------------------------------------------------
+// kwxGridCellAttrProviderHook
+// ---------------------------------------------------------------------------
+
+class kwxGridCellAttrProviderHook : public wxGridCellAttrProvider
+{
+private:
+    void* m_object;
+    kwxGridProviderGetColumnHeaderRendererFunc m_get_column_header_renderer_func;
+    void* m_column_header_renderer;
+    kwxGridProviderGetAttrFunc m_get_attr_func;
+    mutable wxGridCellAttr* m_attr_result;
+
+public:
+    explicit kwxGridCellAttrProviderHook(void* pObject) :
+        m_object(pObject), m_get_column_header_renderer_func(nullptr),
+        m_column_header_renderer(nullptr), m_get_attr_func(nullptr), m_attr_result(nullptr)
+    {
+    }
+
+    void SetOnGetColumnHeaderRenderer(void* pFunction)
+    {
+        m_get_column_header_renderer_func = (kwxGridProviderGetColumnHeaderRendererFunc) pFunction;
+    }
+    void SetGetColumnHeaderRendererResult(void* renderer) { m_column_header_renderer = renderer; }
+
+    void SetOnGetAttr(void* pFunction) { m_get_attr_func = (kwxGridProviderGetAttrFunc) pFunction; }
+    void SetGetAttrResult(void* attr) { m_attr_result = static_cast<wxGridCellAttr*>(attr); }
+
+    const wxGridColumnHeaderRenderer& GetColumnHeaderRenderer(int col) override
+    {
+        if (m_get_column_header_renderer_func)
+        {
+            m_column_header_renderer = nullptr;
+            m_get_column_header_renderer_func(m_object, col);
+            if (m_column_header_renderer)
+            {
+                return *static_cast<wxGridColumnHeaderRenderer*>(m_column_header_renderer);
+            }
+        }
+        return wxGridCellAttrProvider::GetColumnHeaderRenderer(col);
+    }
+
+    wxGridCellAttr* GetAttr(int row, int col, wxGridCellAttr::wxAttrKind kind) const override
+    {
+        if (m_get_attr_func)
+        {
+            m_attr_result = nullptr;
+            m_get_attr_func(m_object, row, col, (int) kind);
+            if (m_attr_result)
+            {
+                return m_attr_result;
+            }
+        }
+        return wxGridCellAttrProvider::GetAttr(row, col, kind);
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Exported wrappers
+// ---------------------------------------------------------------------------
+
+extern "C"
+{
+    EXPORT void* kwxGridCellRendererHook_Create(void* pObject)
+    {
+        return new kwxGridCellRendererHook(pObject);
+    }
+
+    EXPORT void kwxGridCellRendererHook_SetOnDraw(kwxGridCellRendererHook* self, void* pFunction)
+    {
+        self->SetOnDraw(pFunction);
+    }
+
+    EXPORT void kwxGridCellRendererHook_SetOnGetBestSize(kwxGridCellRendererHook* self,
+                                                         void* pFunction)
+    {
+        self->SetOnGetBestSize(pFunction);
+    }
+
+    EXPORT void kwxGridCellRendererHook_SetGetBestSizeResult(kwxGridCellRendererHook* self,
+                                                             int width, int height)
+    {
+        self->SetGetBestSizeResult(width, height);
+    }
+
+    EXPORT void* kwxGridCellActivatableEditorHook_Create(void* pObject)
+    {
+        return new kwxGridCellActivatableEditorHook(pObject);
+    }
+
+    EXPORT void
+        kwxGridCellActivatableEditorHook_SetOnTryActivate(kwxGridCellActivatableEditorHook* self,
+                                                          void* pFunction)
+    {
+        self->SetOnTryActivate(pFunction);
+    }
+
+    EXPORT void
+        kwxGridCellActivatableEditorHook_SetOnDoActivate(kwxGridCellActivatableEditorHook* self,
+                                                         void* pFunction)
+    {
+        self->SetOnDoActivate(pFunction);
+    }
+
+    EXPORT void kwxGridCellActivatableEditorHook_SetTryActivateResult(
+        kwxGridCellActivatableEditorHook* self, int action)
+    {
+        self->SetTryActivateResult(action);
+    }
+
+    EXPORT void
+        kwxGridCellActivatableEditorHook_SetTryActivateValue(kwxGridCellActivatableEditorHook* self,
+                                                             wxString* value)
+    {
+        self->SetTryActivateValue(value);
+    }
+
+    EXPORT void* kwxGridColumnHeaderRendererHook_Create(void* pObject)
+    {
+        return new kwxGridColumnHeaderRendererHook(pObject);
+    }
+
+    EXPORT void
+        kwxGridColumnHeaderRendererHook_SetOnDrawLabel(kwxGridColumnHeaderRendererHook* self,
+                                                       void* pFunction)
+    {
+        self->SetOnDrawLabel(pFunction);
+    }
+
+    EXPORT void
+        kwxGridColumnHeaderRendererHook_SetOnDrawBorder(kwxGridColumnHeaderRendererHook* self,
+                                                        void* pFunction)
+    {
+        self->SetOnDrawBorder(pFunction);
+    }
+
+    EXPORT void
+        kwxGridColumnHeaderRendererHook_SetOnDrawHighlighted(kwxGridColumnHeaderRendererHook* self,
+                                                             void* pFunction)
+    {
+        self->SetOnDrawHighlighted(pFunction);
+    }
+
+    EXPORT void* kwxGridCellAttrProviderHook_Create(void* pObject)
+    {
+        return new kwxGridCellAttrProviderHook(pObject);
+    }
+
+    EXPORT void
+        kwxGridCellAttrProviderHook_SetOnGetColumnHeaderRenderer(kwxGridCellAttrProviderHook* self,
+                                                                 void* pFunction)
+    {
+        self->SetOnGetColumnHeaderRenderer(pFunction);
+    }
+
+    EXPORT void kwxGridCellAttrProviderHook_SetGetColumnHeaderRendererResult(
+        kwxGridCellAttrProviderHook* self, wxGridColumnHeaderRenderer* renderer)
+    {
+        self->SetGetColumnHeaderRendererResult(renderer);
+    }
+
+    EXPORT void kwxGridCellAttrProviderHook_SetOnGetAttr(kwxGridCellAttrProviderHook* self,
+                                                         void* pFunction)
+    {
+        self->SetOnGetAttr(pFunction);
+    }
+
+    EXPORT void kwxGridCellAttrProviderHook_SetGetAttrResult(kwxGridCellAttrProviderHook* self,
+                                                             wxGridCellAttr* attr)
+    {
+        self->SetGetAttrResult(attr);
+    }
+
+    EXPORT wxGridCellAttr*
+        kwxGridCellAttrProviderHook_GetBaseAttr(kwxGridCellAttrProviderHook* self, int row, int col,
+                                                int kind)
+    {
+        return self->wxGridCellAttrProvider::GetAttr(row, col, (wxGridCellAttr::wxAttrKind) kind);
     }
 }

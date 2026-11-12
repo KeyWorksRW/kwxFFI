@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -123,5 +124,54 @@ std::size_t RemoveDuplicateFunctions(ParsedFFI& ffi_data)
     }
     ffi_data.free_functions = std::move(unique_free_functions);
 
+    return removed_count;
+}
+
+// The public header exports the accessor as expX; the generated table spells its legacy copy
+// expwxX.  They compute the same value, so either can satisfy constant_name.
+[[nodiscard]] static bool PreferConstant(const ConstantDecl& candidate,
+                                         const ConstantDecl& incumbent)
+{
+    constexpr std::string_view EXPWX_PREFIX { "expwx" };
+    const bool candidate_is_legacy = candidate.export_name.starts_with(EXPWX_PREFIX);
+    const bool incumbent_is_legacy = incumbent.export_name.starts_with(EXPWX_PREFIX);
+    return incumbent_is_legacy && !candidate_is_legacy;
+}
+
+std::size_t RemoveDuplicateConstants(ParsedFFI& ffi_data)
+{
+    std::vector<ConstantDecl> unique_constants;
+    unique_constants.reserve(ffi_data.constants.size());
+    std::unordered_map<std::string, std::size_t> kept_index;
+    std::size_t removed_count = 0;
+
+    for (const ConstantDecl& constant: ffi_data.constants)
+    {
+        const auto [iter, was_inserted] =
+            kept_index.try_emplace(constant.constant_name, unique_constants.size());
+        if (was_inserted)
+        {
+            unique_constants.push_back(constant);
+            continue;
+        }
+
+        ConstantDecl& incumbent = unique_constants[iter->second];
+        if (PreferConstant(constant, incumbent))
+        {
+            std::cerr << "  Warning: duplicate constant '" << constant.constant_name << "' ('"
+                      << incumbent.export_name << "' vs '" << constant.export_name
+                      << "'); keeping '" << constant.export_name << "'\n";
+            incumbent = constant;
+        }
+        else
+        {
+            std::cerr << "  Warning: duplicate constant '" << constant.constant_name << "' ('"
+                      << incumbent.export_name << "' vs '" << constant.export_name
+                      << "'); keeping '" << incumbent.export_name << "'\n";
+        }
+        ++removed_count;
+    }
+
+    ffi_data.constants = std::move(unique_constants);
     return removed_count;
 }

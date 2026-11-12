@@ -149,6 +149,14 @@ inline std::vector<LuaCParam> ExpandParamToC(const Param& p)
         return result;
     }
 
+    // Output long geometry parameters → long* pointers
+    if (p.macro_name == "TPointOutLong" || p.macro_name == "TSizeOutLong")
+    {
+        for (auto& n: LuaJITSplitMacroArg(p.macro_arg))
+            result.push_back({ "long*", n });
+        return result;
+    }
+
     // Output geometry void pointers
     if (p.macro_name == "TPointOutVoid" || p.macro_name == "TSizeOutVoid" ||
         p.macro_name == "TRectOutVoid" || p.macro_name == "TVectorOutVoid")

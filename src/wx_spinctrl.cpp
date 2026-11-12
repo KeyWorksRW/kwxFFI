@@ -32,6 +32,19 @@ extern "C"
         ((wxSpinCtrl*) pObject)->SetRange(min_val, max_val);
     }
 
+    EXPORT void wxSpinCtrl_SetIncrement(void* pObject, int inc)
+    {
+        ((wxSpinCtrl*) pObject)->SetIncrement(inc);
+    }
+
+    // SetValue(wxString) and SetValue(int) are separate overloads on wxSpinCtrl;
+    // this entry keeps the text form reachable from the C surface.
+    EXPORT void wxSpinCtrl_SetValueString(void* pObject, wxString* value)
+    {
+        if (value)
+            ((wxSpinCtrl*) pObject)->SetValue(*value);
+    }
+
     EXPORT int wxSpinCtrl_GetMin(void* pObject)
     {
         return ((wxSpinCtrl*) pObject)->GetMin();

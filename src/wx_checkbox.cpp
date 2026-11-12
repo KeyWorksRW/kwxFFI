@@ -17,6 +17,20 @@ extern "C"
                                       style, wxDefaultValidator);
     }
 
+    EXPORT void* wxCheckBox_CreateDefault()
+    {
+        return (void*) new wxCheckBox();
+    }
+
+    EXPORT int wxCheckBox_Create2(wxCheckBox* self, wxWindow* parent, int id, wxString* text, int x,
+                                  int y, int width, int height, int style)
+    {
+        return self->Create(parent, id, text ? *text : wxString(), wxPoint(x, y),
+                            wxSize(width, height), style) ?
+                   1 :
+                   0;
+    }
+
     EXPORT void wxCheckBox_Delete(wxCheckBox* self)
     {
         delete self;

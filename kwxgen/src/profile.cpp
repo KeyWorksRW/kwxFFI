@@ -7,7 +7,10 @@
 
 #include "profile.h"
 
+#include "dedupe.h"
+
 #include <array>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -222,10 +225,14 @@ bool IsGuiExcludedClass(std::string_view class_name)
 
 ParsedFFI ApplyProfile(const ParsedFFI& ffi_data, std::string_view profile)
 {
-    // Anything other than `gui` leaves the model untouched.
+    // Anything other than `gui` leaves the class list untouched, but every emitter still needs
+    // the binding-name collisions resolved (see dedupe.h).  The export manifests do not go
+    // through this function, so they keep describing the full C symbol set.
     if (profile != PROFILE_GUI)
     {
-        return ffi_data;
+        ParsedFFI emit_model = ffi_data;
+        std::ignore = RemoveDuplicateConstants(emit_model);
+        return emit_model;
     }
 
     const std::unordered_set<std::string>& excluded_classes = GuiExcludedClasses();
@@ -292,7 +299,9 @@ ParsedFFI ApplyProfile(const ParsedFFI& ffi_data, std::string_view profile)
     filtered_ffi.free_functions = ffi_data.free_functions;
     filtered_ffi.parent_map = ffi_data.parent_map;
     filtered_ffi.mixin_map = ffi_data.mixin_map;
+    filtered_ffi.constant_values = ffi_data.constant_values;
     filtered_ffi.lib_name = ffi_data.lib_name;
 
+    std::ignore = RemoveDuplicateConstants(filtered_ffi);
     return filtered_ffi;
 }

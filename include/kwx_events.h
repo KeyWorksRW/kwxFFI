@@ -310,6 +310,7 @@ int exp_wxEVT_WIZARD_CANCEL();
 int exp_wxEVT_WIZARD_HELP();
 int exp_wxEVT_WIZARD_FINISHED();
 int exp_wxEVT_WIZARD_PAGE_SHOWN();
+int exp_wxEVT_WIZARD_BEFORE_PAGE_CHANGED();
 int exp_wxEVT_DELETE();
 int exp_wxEVT_HTML_CELL_CLICKED();
 int exp_wxEVT_HTML_CELL_MOUSE_HOVER();

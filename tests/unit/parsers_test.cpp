@@ -181,8 +181,9 @@ static void TestProfileFilter()
     CHECK(FindClass(full_ffi.classes, "wxSocketBase") != nullptr);
     CHECK(FindClass(full_ffi.classes, "wxRegEx") != nullptr);
 
-    CHECK_EQ(DefaultProfileForLanguage("go"), std::string("gui"));
-    CHECK_EQ(DefaultProfileForLanguage("julia"), std::string("gui"));
+    // `full` is the default for every language (profile.cpp); `gui` is an explicit opt-down.
+    CHECK_EQ(DefaultProfileForLanguage("go"), std::string("full"));
+    CHECK_EQ(DefaultProfileForLanguage("julia"), std::string("full"));
     CHECK_EQ(DefaultProfileForLanguage("typescript"), std::string("full"));
     CHECK_EQ(DefaultProfileForLanguage("fortran"), std::string("full"));
     CHECK_EQ(DefaultProfileForLanguage("luajit"), std::string("full"));

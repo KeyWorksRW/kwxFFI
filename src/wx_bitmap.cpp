@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/generic/statbmpg.h>
 
 extern "C"
 {
@@ -175,6 +176,61 @@ extern "C"
     EXPORT void wxStaticBitmap_Delete(wxStaticBitmap* self)
     {
         delete self;
+    }
+
+    EXPORT void wxStaticBitmap_SetScaleMode(wxStaticBitmap* self, int scale_mode)
+    {
+        self->SetScaleMode(static_cast<wxStaticBitmap::ScaleMode>(scale_mode));
+    }
+
+    EXPORT int wxStaticBitmap_GetScaleMode(wxStaticBitmap* self)
+    {
+        return static_cast<int>(self->GetScaleMode());
+    }
+
+    // wxGenericStaticBitmap is a sibling of wxStaticBitmap (both derive from
+    // wxStaticBitmapBase), so it needs its own exported class block.
+
+    EXPORT void* wxGenericStaticBitmap_Create(wxWindow* parent, int id, wxBitmap* bitmap, int x,
+                                              int y, int width, int height, int style)
+    {
+        return (void*) new wxGenericStaticBitmap(parent, id, *bitmap, wxPoint(x, y),
+                                                 wxSize(width, height), style);
+    }
+
+    EXPORT void wxGenericStaticBitmap_Delete(wxGenericStaticBitmap* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxGenericStaticBitmap_GetBitmap(wxGenericStaticBitmap* self, wxBitmap* ref)
+    {
+        *ref = self->GetBitmap();
+    }
+
+    EXPORT void wxGenericStaticBitmap_GetIcon(wxGenericStaticBitmap* self, wxIcon* ref)
+    {
+        *ref = self->GetIcon();
+    }
+
+    EXPORT void wxGenericStaticBitmap_SetBitmap(wxGenericStaticBitmap* self, wxBitmap* bitmap)
+    {
+        self->SetBitmap(*bitmap);
+    }
+
+    EXPORT void wxGenericStaticBitmap_SetIcon(wxGenericStaticBitmap* self, wxIcon* icon)
+    {
+        self->SetIcon(*icon);
+    }
+
+    EXPORT void wxGenericStaticBitmap_SetScaleMode(wxGenericStaticBitmap* self, int scale_mode)
+    {
+        self->SetScaleMode(static_cast<wxStaticBitmapBase::ScaleMode>(scale_mode));
+    }
+
+    EXPORT int wxGenericStaticBitmap_GetScaleMode(wxGenericStaticBitmap* self)
+    {
+        return static_cast<int>(self->GetScaleMode());
     }
 
     EXPORT int wxBitmap_Init(wxBitmap* self, int width, int height, int depth)

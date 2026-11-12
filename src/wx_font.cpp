@@ -273,6 +273,11 @@ extern "C"
         self->Convert((const char*) input, (char*) output);
     }
 
+    EXPORT wxString* wxEncodingConverter_ConvertString(wxEncodingConverter* self, wxString* input)
+    {
+        return new wxString(self->Convert(*input));
+    }
+
     EXPORT int wxEncodingConverter_GetPlatformEquivalents(wxEncodingConverter* self, int enc,
                                                           int platform, void* list)
     {

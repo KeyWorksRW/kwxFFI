@@ -127,4 +127,61 @@ extern "C"
     {
         return self->Load(*stream, static_cast<wxAnimationType>(type));
     }
+
+    EXPORT void wxAnimationCtrl_CreateAnimation(wxAnimationCtrl* self, wxAnimation* anim)
+    {
+        *anim = self->CreateAnimation();
+    }
+
+    EXPORT void wxAnimationCtrl_GetCompatibleAnimation(wxAnimation* anim)
+    {
+        *anim = wxAnimationCtrl::CreateCompatibleAnimation();
+    }
+
+    EXPORT void wxAnimationCtrl_SetAnimationBundle(wxAnimationCtrl* self, wxAnimationBundle* bundle)
+    {
+        self->SetAnimation(*bundle);
+    }
+
+    // wxAnimationBundle functions
+    EXPORT wxAnimationBundle* wxAnimationBundle_Create()
+    {
+        return new wxAnimationBundle();
+    }
+
+    EXPORT wxAnimationBundle* wxAnimationBundle_CreateFromAnimation(wxAnimation* anim)
+    {
+        return new wxAnimationBundle(*anim);
+    }
+
+    EXPORT wxAnimationBundle* wxAnimationBundle_CreateFromFile(wxString* filename, int type)
+    {
+        return new wxAnimationBundle(*filename, static_cast<wxAnimationType>(type));
+    }
+
+    EXPORT void wxAnimationBundle_Delete(wxAnimationBundle* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxAnimationBundle_Add(wxAnimationBundle* self, wxAnimation* anim)
+    {
+        self->Add(*anim);
+    }
+
+    EXPORT void wxAnimationBundle_AddFile(wxAnimationBundle* self, wxString* filename, int type)
+    {
+        self->Add(*filename, static_cast<wxAnimationType>(type));
+    }
+
+    EXPORT int wxAnimationBundle_IsOk(wxAnimationBundle* self)
+    {
+        return self->IsOk();
+    }
+
+    WXFFI_CONSTANT_INT(expwxANIMATION_TYPE_INVALID, wxANIMATION_TYPE_INVALID)
+    WXFFI_CONSTANT_INT(expwxANIMATION_TYPE_GIF, wxANIMATION_TYPE_GIF)
+    WXFFI_CONSTANT_INT(expwxANIMATION_TYPE_ANI, wxANIMATION_TYPE_ANI)
+    WXFFI_CONSTANT_INT(expwxANIMATION_TYPE_WEBP, wxANIMATION_TYPE_WEBP)
+    WXFFI_CONSTANT_INT(expwxANIMATION_TYPE_ANY, wxANIMATION_TYPE_ANY)
 }

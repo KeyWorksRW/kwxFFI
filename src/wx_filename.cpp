@@ -659,4 +659,14 @@ extern "C"
         wxString value = ((wxPathList*) pObject)->FindValidPath(*(wxString*) filename);
         return new wxString(value);
     }
+
+    EXPORT wxPathList* wxPathList_Create()
+    {
+        return new wxPathList();
+    }
+
+    EXPORT void wxPathList_Delete(wxPathList* self)
+    {
+        delete self;
+    }
 }

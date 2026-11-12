@@ -107,4 +107,9 @@ extern "C"
     {
         ((wxSlider*) pObject)->SetTick(tickPos);
     }
+
+    EXPORT void wxSlider_SetTickFreq(void* pObject, int freq)
+    {
+        ((wxSlider*) pObject)->SetTickFreq(freq);
+    }
 }

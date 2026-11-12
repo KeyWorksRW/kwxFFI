@@ -248,7 +248,7 @@ TClassDef(wxFileConfig) TClass(wxFileConfig) wxFileConfig_Create(TClass(wxInputS
 TClassDef(wxFileInputStream) TClass(wxFileInputStream)
     wxFileInputStream_Create(TClass(wxString) ofileName);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-int wxFileInputStream_GetLength(TSelf(wxFileInputStream) pObject);
+TInt64 wxFileInputStream_GetLength(TSelf(wxFileInputStream) pObject);
 void wxFileInputStream_Delete(TSelf(wxFileInputStream) pObject);
 TBool wxFileInputStream_IsOk(TSelf(wxFileInputStream) pObject);
 
@@ -540,8 +540,9 @@ void wxHeaderColumnSimple_SetSortOrder(TSelf(wxHeaderColumnSimple) pObject, TBoo
 void wxHeaderColumnSimple_SetTitle(TSelf(wxHeaderColumnSimple) pObject, TClass(wxString) title);
 void wxHeaderColumnSimple_SetWidth(TSelf(wxHeaderColumnSimple) pObject, int width);
 
-TClassDef(wxHeaderCtrl) unsigned int wxHeaderCtrl_GetColumnAt(TSelf(wxHeaderCtrl) pObject,
-                                                              unsigned int pos);
+TClassDefExtend(wxHeaderCtrl, wxControl) unsigned int wxHeaderCtrl_GetColumnAt(TSelf(wxHeaderCtrl)
+                                                                                   pObject,
+                                                                               unsigned int pos);
 unsigned int wxHeaderCtrl_GetColumnCount(TSelf(wxHeaderCtrl) pObject);
 unsigned int wxHeaderCtrl_GetColumnPos(TSelf(wxHeaderCtrl) pObject, unsigned int idx);
 TBool wxHeaderCtrl_IsEmpty(TSelf(wxHeaderCtrl) pObject);
@@ -551,10 +552,8 @@ void wxHeaderCtrl_ResetColumnsOrder(TSelf(wxHeaderCtrl) pObject);
 void wxHeaderCtrl_SetColumnCount(TSelf(wxHeaderCtrl) pObject, unsigned int count);
 void wxHeaderCtrl_UpdateColumn(TSelf(wxHeaderCtrl) pObject, unsigned int idx);
 
-TClassDef(wxHeaderCtrlSimple) void wxHeaderCtrlSimple_AppendColumn(TSelf(wxHeaderCtrlSimple)
-                                                                       pObject,
-                                                                   TClass(wxHeaderColumnSimple)
-                                                                       col);
+TClassDefExtend(wxHeaderCtrlSimple, wxHeaderCtrl) void wxHeaderCtrlSimple_AppendColumn(
+    TSelf(wxHeaderCtrlSimple) pObject, TClass(wxHeaderColumnSimple) col);
 void* wxHeaderCtrlSimple_Create(TClass(wxWindow) parent, int id, int x, int y, int width,
                                 int height, long style);
 void wxHeaderCtrlSimple_DeleteColumn(TSelf(wxHeaderCtrlSimple) pObject, unsigned int idx);
@@ -619,7 +618,7 @@ void wxHVScrolledWindow_RefreshRowsColumns(TSelf(wxHVScrolledWindow) pObject, si
 TBool wxHVScrolledWindow_ScrollToRowColumn(TSelf(wxHVScrolledWindow) pObject, size_t row,
                                            size_t column);
 
-TClassDef(wxHyperlinkCtrl) TClass(wxHyperlinkCtrl)
+TClassDefExtend(wxHyperlinkCtrl, wxControl) TClass(wxHyperlinkCtrl)
     wxHyperlinkCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) label,
                            TClass(wxString) url, int x, int y, int width, int height, int style);
 TClass(wxColour) wxHyperlinkCtrl_GetHoverColour(TSelf(wxHyperlinkCtrl) pObject);
@@ -1595,6 +1594,8 @@ TClass(wxString) wxGetApplicationDir();
 TClass(wxString) wxGetApplicationPath();
 void wxGetColourFromUser(TClass(wxWindow) parent, TClass(wxColour) colInit,
                          TClass(wxColour) colour);
+void wxGetColourFromUserEx(TClass(wxWindow) parent, TClass(wxColour) colInit,
+                           TClass(wxString) caption, TClass(wxColour) colour);
 void wxGetFontFromUser(TClass(wxWindow) parent, TClass(wxFont) fontInit, TClass(wxFont) font);
 long wxGetNumberFromUser(TClass(wxString) message, TClass(wxString) prompt,
                          TClass(wxString) caption, long value, long min, long max,
@@ -1603,6 +1604,10 @@ int wxGetPasswordFromUser(TString message, TString caption, TString defaultText,
                           TClass(wxWindow) parent, TString buffer);
 int wxGetTextFromUser(TString message, TString caption, TString defaultText,
                       TClass(wxWindow) parent, int x, int y, int center, TString buffer);
+TClass(wxString) wxGetPasswordFromUserEx(TString message, TString caption, TString defaultText,
+                                         TClass(wxWindow) parent);
+TClass(wxString) wxGetTextFromUserEx(TString message, TString caption, TString defaultText,
+                                     TClass(wxWindow) parent, int x, int y, int center);
 int wxIsDefined(TString name);
 int wxVersionNumber();
 TClass(wxString) wxVersionString();

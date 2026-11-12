@@ -28,6 +28,10 @@ extern "C"
         self->Position(wxPoint(ptOriginX, ptOriginY), wxSize(sizeW, sizeH));
     }
 
+    // wxPopupWindow style flag (wx/popupwin.h:23): OR with wxBORDER_NONE when
+    // the popup contains controls.
+    WXFFI_CONSTANT_INT(expPU_CONTAINS_CONTROLS, wxPU_CONTAINS_CONTROLS)
+
     // wxPopupTransientWindow
 
     EXPORT void* wxPopupTransientWindow_Create(wxWindow* parent, int flags)

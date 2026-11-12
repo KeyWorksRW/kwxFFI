@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/stream.h>
 #include <wx/wfstream.h>
 
 extern "C"
@@ -61,8 +62,32 @@ extern "C"
             ->SeekO((wxFileOffset) pos, (wxSeekMode) mode);
     }
 
-    EXPORT int wxFileInputStream_GetLength(void* pObject)
+    EXPORT wxFileOffset wxFileInputStream_GetLength(wxFileInputStream* self)
     {
-        return (int) ((wxFileInputStream*) pObject)->GetLength();
+        return self->GetLength();
     }
+
+    // wxStreamToTextRedirector only exists when wxUSE_STD_IOSTREAM is on. The C
+    // exports stay in the surface regardless so bindings compile on every build:
+    // Create reports failure with nullptr and Delete is a no-op when unavailable.
+#if wxUSE_STD_IOSTREAM
+    EXPORT wxStreamToTextRedirector* wxStreamToTextRedirector_Create(wxTextCtrl* textctrl)
+    {
+        if (!textctrl)
+            return nullptr;
+        return new wxStreamToTextRedirector(textctrl);
+    }
+
+    EXPORT void wxStreamToTextRedirector_Delete(wxStreamToTextRedirector* pObject)
+    {
+        delete pObject;
+    }
+#else
+    EXPORT void* wxStreamToTextRedirector_Create([[maybe_unused]] wxTextCtrl* textctrl)
+    {
+        return nullptr;
+    }
+
+    EXPORT void wxStreamToTextRedirector_Delete([[maybe_unused]] void* pObject) {}
+#endif
 }

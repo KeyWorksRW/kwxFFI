@@ -321,6 +321,11 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // call kwxMessageOutputUseStderr() (see kwx_log.h) so that output reaches the console rather
 // than wxMessageOutputBest's modal fallback.
 //
+// ParseArgs() and ParseStringArgs() are Parse()/ParseString() with wxWidgets' own reporting
+// enabled: a help switch or a syntax error is written to the active wxMessageOutput and the
+// call returns -1 (help) or a positive error code.  For a GUI-subsystem process call
+// kwxMessageOutputUseStderr() (see kwx_log.h) first so the text reaches the inherited console.
+//
 // Value types are the wxCmdLineParamType values, flags are combinations of the
 // wxCmdLineEntryFlags values, and GetOptionLong() returns `default_value` when the option was
 // not found or did not hold a number.
@@ -343,6 +348,8 @@ void wxCmdLineParser_AddParam(TSelf(wxCmdLineParser) pObject, TClass(wxString) d
                               int type, int flags);
 int wxCmdLineParser_Parse(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
 int wxCmdLineParser_ParseString(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
+int wxCmdLineParser_ParseArgs(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
+int wxCmdLineParser_ParseStringArgs(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
 TBool wxCmdLineParser_Found(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 int wxCmdLineParser_GetParamCount(TSelf(wxCmdLineParser) pObject);
 TClass(wxString) wxCmdLineParser_GetParam(TSelf(wxCmdLineParser) pObject, int index);

@@ -135,9 +135,18 @@ static std::vector<LuaIdiomParam> ConvertToLuaIdiomParams(const Param& param, bo
 {
     std::vector<LuaIdiomParam> result;
 
-    // Self param -> handled by method receiver (self._ptr); skip.
+    // Self param -> handled by method receiver (self._ptr); skip.  A constructor never takes a
+    // receiver, so its loop skips TSelf before calling here; a non-receiver TSelf (the second
+    // parameter of wxIcon_IsEqual or wxXmlResource_Set) reaches this point only for methods and
+    // must marshal like TClass.
     if (param.macro_name == "TSelf")
     {
+        if (in_constructor)
+        {
+            return result;
+        }
+        const std::string name = LuaEscapeName(param.param_name.empty() ? "arg" : param.param_name);
+        result.push_back({ name, "_H.ptr(" + name + ")", "", "" });
         return result;
     }
 
@@ -167,6 +176,7 @@ static std::vector<LuaIdiomParam> ConvertToLuaIdiomParams(const Param& param, bo
     // Output geometry parameters -> pointer params (pass-through).
     if (param.macro_name == "TPointOut" || param.macro_name == "TSizeOut" ||
         param.macro_name == "TRectOut" || param.macro_name == "TVectorOut" ||
+        param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong" ||
         param.macro_name == "TPointOutVoid" || param.macro_name == "TSizeOutVoid" ||
         param.macro_name == "TRectOutVoid" || param.macro_name == "TVectorOutVoid")
     {
@@ -323,6 +333,17 @@ static std::vector<LuaIdiomParam> ConvertToLuaIdiomParams(const Param& param, bo
         return result;
     }
 
+    // Opaque `void*` argument -> accept a wrapper object or already-raw cdata.  _H.ptr()
+    // returns cdata and nil unchanged, so this only adds wrapper-table support.  A receiver
+    // declared as `void* pObject` / `void* self` never reaches here: the caller skips
+    // parameter 0 for every non-static method.
+    if (param.macro_name.empty() && param.raw_type == "void*")
+    {
+        const std::string name = LuaEscapeName(param.param_name.empty() ? "ptr" : param.param_name);
+        result.push_back({ name, "_H.ptr(" + name + ")", "", "" });
+        return result;
+    }
+
     // Plain C types -> pass through.
     const std::string name = LuaEscapeName(param.param_name.empty() ? "arg" : param.param_name);
     result.push_back({ name, name, "", "" });
@@ -355,25 +376,6 @@ static std::string FindWrappedParent(const std::string& class_name, const Parsed
     return "";
 }
 
-// True if a non-constructor method's first parameter is TClass(ClassName)
-// matching the function's own class — acts as self for mixin interface methods.
-[[nodiscard]] static bool HasPseudoSelf(const FunctionDecl& func)
-{
-    if (func.has_self || func.class_name.empty() || func.params.empty())
-    {
-        return false;
-    }
-    const Param& first = func.params[0];
-    return first.macro_name == "TClass" && first.macro_arg == func.class_name;
-}
-
-// True if a method should use Lua ':' (colon) syntax — i.e., it has
-// either a real TSelf or a pseudo-self TClass(ClassName) first parameter.
-[[nodiscard]] static bool UsesColonSyntax(const FunctionDecl& func)
-{
-    return func.has_self || HasPseudoSelf(func);
-}
-
 // -------------------------------------------------------------------------
 // LuaJITEmitter public interface
 // -------------------------------------------------------------------------
@@ -393,6 +395,7 @@ void LuaJITEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& out_dir)
     // Idiomatic layer
     GenerateHelpers(out_dir);
     GenerateIdiomaticClasses(ffi_data, out_dir);
+    GenerateIdiomaticFreeFunctions(ffi_data, out_dir);
 
     std::println(stderr, "LuaJIT: generated files in {}", out_dir.string());
 }
@@ -571,6 +574,72 @@ CoverageInfo LuaJITEmitter::Coverage(const ParsedFFI& ffi_data) const
 // kwxffi_events_gen.lua
 // -------------------------------------------------------------------------
 
+// Emit the lazily-resolved name table that a raw constants module returns.  Nothing is
+// resolved at require time: each name calls its C accessor on first use and the value is
+// cached in the table, so an older library missing a symbol degrades per-name instead of
+// breaking the whole module.  `subject` names what the table provides.  `wstring_names`
+// names the entries whose accessor returns an owned wxString*, so those are converted to a
+// Lua string and released instead of being cached as a raw pointer.
+static void EmitLazySymbolTable(std::ostream& stream, const std::string& subject,
+                                const std::vector<std::pair<std::string, std::string>>& entries,
+                                const std::unordered_set<std::string>& wstring_names = {})
+{
+    stream << "\nlocal C = ffi.C\n\n";
+
+    if (!wstring_names.empty())
+    {
+        stream << "-- wxString* accessor result -> Lua string.  The accessor returns a new "
+                  "wxString that\n";
+        stream << "-- this module owns, so it is converted and then deleted.\n";
+        stream << "local function _ws_to_str(ptr)\n";
+        stream << "    local buf = C.kwxUtf8Buffer_Create(ptr)\n";
+        stream << "    local str = ffi.string(C.kwxUtf8Buffer_Data(buf))\n";
+        stream << "    C.kwxUtf8Buffer_Delete(buf)\n";
+        stream << "    C.wxString_Delete(ptr)\n";
+        stream << "    return str\n";
+        stream << "end\n\n";
+    }
+
+    // Emit in sorted order so regeneration produces a stable file.
+    std::vector<std::string> sorted_wstring_names(wstring_names.begin(), wstring_names.end());
+    std::ranges::sort(sorted_wstring_names);
+    stream << "local _wstring = {";
+    if (!sorted_wstring_names.empty())
+    {
+        stream << "\n";
+    }
+    for (const auto& name: sorted_wstring_names)
+    {
+        stream << "    " << name << " = true,\n";
+    }
+    stream << "}\n\n";
+
+    stream << "-- " << subject
+           << ".  Each name resolves through its C accessor on first use and is cached in the\n";
+    stream << "-- table.\n";
+    stream << "local _symbols = {\n";
+    for (const auto& [symbol_name, export_name]: entries)
+    {
+        stream << "    " << symbol_name << " = \"" << export_name << "\",\n";
+    }
+    stream << "}\n\n";
+    stream << "local M = setmetatable({}, {\n";
+    stream << "    __index = function(self, name)\n";
+    stream << "        local symbol = _symbols[name]\n";
+    stream << "        if symbol == nil then\n";
+    stream << "            return nil\n";
+    stream << "        end\n";
+    stream << "        local value = C[symbol]()\n";
+    stream << "        if _wstring[name] then\n";
+    stream << "            value = _ws_to_str(value)\n";
+    stream << "        end\n";
+    stream << "        rawset(self, name, value)\n";
+    stream << "        return value\n";
+    stream << "    end,\n";
+    stream << "})\n\n";
+    stream << "return M\n";
+}
+
 void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi_data, const fs::path& out_dir)
 {
     const fs::path path = out_dir / "kwxffi_events_gen.lua";
@@ -598,6 +667,31 @@ void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi_data, const fs::path& ou
     }
 
     writer << "]]\n";
+
+    // Idiomatic table: the exported accessor behind each EVT_* macro name.  Entries are
+    // sorted by name, then by export name, and a duplicate event_name keeps its first entry.
+    std::vector<EventDecl> table_events = ffi_data.events;
+    std::ranges::sort(table_events,
+                      [](const EventDecl& left, const EventDecl& right)
+                      {
+                          if (left.event_name != right.event_name)
+                          {
+                              return left.event_name < right.event_name;
+                          }
+                          return left.export_name < right.export_name;
+                      });
+
+    std::vector<std::pair<std::string, std::string>> entries;
+    std::unordered_set<std::string> emitted_names;
+    for (const auto& event: table_events)
+    {
+        if (emitted_names.insert(event.event_name).second)
+        {
+            entries.emplace_back(event.event_name, event.export_name);
+        }
+    }
+
+    EmitLazySymbolTable(writer, "Event identifiers exported through EVT_* accessors", entries);
 
     std::println(stderr, "  kwxffi_events_gen.lua:       {:L} events", ffi_data.events.size());
 }
@@ -633,6 +727,16 @@ void LuaJITEmitter::GenerateKeys(const ParsedFFI& ffi_data, const fs::path& out_
     }
 
     writer << "]]\n";
+
+    // Idiomatic table: the exported accessor behind each key-name macro.
+    std::vector<std::pair<std::string, std::string>> entries;
+    entries.reserve(sorted.size());
+    for (const auto& key_decl: sorted)
+    {
+        entries.emplace_back(key_decl.key_name, key_decl.export_name);
+    }
+
+    EmitLazySymbolTable(writer, "Key codes exported as K_* accessors", entries);
 
     std::println(stderr, "  kwxffi_keys_gen.lua:         {:L} keys", ffi_data.keys.size());
 }
@@ -670,6 +774,46 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
     }
 
     writer << "]]\n";
+
+    // Idiomatic table: scalar constants plus wxString-returning accessors.  A wxString
+    // accessor hands back a newly allocated wxString, so its value is converted to a Lua
+    // string and released.  Any other pointer-returning accessor would expose a raw pointer
+    // (const wxPen*), so those keep their cdef declaration without an idiomatic entry.
+    std::vector<ConstantDecl> table_constants;
+    for (const auto& constant: ffi_data.constants)
+    {
+        if (!constant.return_type.contains('*') || constant.return_type.contains("wxString"))
+        {
+            table_constants.push_back(constant);
+        }
+    }
+    std::ranges::sort(table_constants,
+                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      {
+                          if (left.constant_name != right.constant_name)
+                          {
+                              return left.constant_name < right.constant_name;
+                          }
+                          return left.export_name < right.export_name;
+                      });
+
+    std::vector<std::pair<std::string, std::string>> entries;
+    std::unordered_set<std::string> wstring_names;
+    std::unordered_set<std::string> emitted_names;
+    for (const auto& constant: table_constants)
+    {
+        if (emitted_names.insert(constant.constant_name).second)
+        {
+            entries.emplace_back(constant.constant_name, constant.export_name);
+            if (constant.return_type.contains("wxString"))
+            {
+                wstring_names.insert(constant.constant_name);
+            }
+        }
+    }
+
+    EmitLazySymbolTable(writer, "Scalar and wxString constants exported as accessors", entries,
+                        wstring_names);
 
     std::println(stderr, "  kwxffi_constants_gen.lua:    {:L} constants",
                  ffi_data.constants.size());
@@ -992,6 +1136,76 @@ static void EmitLuaPostCalls(std::ostream& output,
 }
 
 // -------------------------------------------------------------------------
+// kwxffi_freefuncs_idiomatic_gen.lua
+// -------------------------------------------------------------------------
+
+void LuaJITEmitter::GenerateIdiomaticFreeFunctions(const ParsedFFI& ffi_data,
+                                                   const fs::path& out_dir)
+{
+    const fs::path path = out_dir / "kwxffi_freefuncs_idiomatic_gen.lua";
+    ConditionalFileWriter writer(path);
+    if (!writer.is_open())
+    {
+        std::println(stderr, "Error: cannot create {}", path.string());
+        return;
+    }
+
+    WriteGeneratedHeader(writer, "--", false);
+    writer << "local ffi = require(\"ffi\")\n";
+    writer << "local C = require(\"kwxffi_gen\")\n";
+    writer << "local _H = require(\"kwxffi_helpers_gen\")\n";
+    writer << "\n";
+    writer << "local M = {}\n";
+    writer << "\n";
+
+    size_t count = 0;
+    for (const auto& func: ffi_data.free_functions)
+    {
+        if (!IsValidFunction(func))
+        {
+            continue;
+        }
+
+        // A free function has no receiver, so every parameter is a real argument.
+        std::vector<std::vector<LuaIdiomParam>> param_groups;
+        for (const auto& param: func.params)
+        {
+            param_groups.push_back(ConvertToLuaIdiomParams(param, false));
+        }
+
+        writer << "function M." << CFuncName(func) << "(";
+        EmitLuaParamNames(writer, param_groups);
+        writer << ")\n";
+
+        EmitLuaPreCalls(writer, param_groups);
+
+        const std::string c_call = BuildLuaCCall(func, param_groups, "");
+        if (IsVoidReturn(func.return_type))
+        {
+            writer << "    " << c_call << "\n";
+            EmitLuaPostCalls(writer, param_groups);
+        }
+        else if (HasLuaPostCalls(param_groups))
+        {
+            // Capture result, cleanup, then return.
+            writer << "    local _result = " << LuaReturnExpr(func, c_call) << "\n";
+            EmitLuaPostCalls(writer, param_groups);
+            writer << "    return _result\n";
+        }
+        else
+        {
+            writer << "    return " << LuaReturnExpr(func, c_call) << "\n";
+        }
+        writer << "end\n\n";
+        ++count;
+    }
+
+    writer << "return M\n";
+
+    std::println(stderr, "  kwxffi_freefuncs_idiomatic_gen.lua: {} free functions", count);
+}
+
+// -------------------------------------------------------------------------
 // Per-class idiomatic files + master include
 // -------------------------------------------------------------------------
 
@@ -1023,6 +1237,17 @@ void LuaJITEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo
         output << "local M = {}\n";
     }
     output << "local MT = { __index = M }\n";
+    output << "\n";
+
+    // Wrap a borrowed C pointer, e.g. the wxEvent* handed to an event handler.  Without a
+    // non-owning wrapper the caller cannot reach this class's methods from a raw pointer.
+    output
+        << "--- Wrap an existing C pointer.  The wrapper does not own the native object unless\n";
+    output << "--- `owned` is true, so Delete() is a no-op on a borrowed wrapper.\n";
+    output << "function M.FromPtr(ptr, owned)\n";
+    output << "    if ptr == nil then return nil end\n";
+    output << "    return setmetatable({ _ptr = ptr, _borrowed = not owned }, MT)\n";
+    output << "end\n";
     output << "\n";
 
     // Inject mixin methods (e.g., wxTextEntry methods into wxTextCtrl).
@@ -1113,33 +1338,32 @@ void LuaJITEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo
         }
 
         const bool is_void = IsVoidReturn(func.return_type);
-        const bool pseudo_self = HasPseudoSelf(func);
+        const bool is_static = IsStaticClassFunction(func, class_info, /*member_of_class=*/true);
 
-        // Build idiomatic param list (skip TSelf and pseudo-self first param).
+        // Build idiomatic param list.  A non-static method always takes the receiver as
+        // parameter 0 (TSelf, a TClass(own class) pseudo-self, or an explicit void* pObject /
+        // void* self), so that parameter is skipped unconditionally.  A static method has no
+        // receiver, so every parameter is a real argument.
         std::vector<std::vector<LuaIdiomParam>> param_groups;
         for (size_t pi = 0; pi < func.params.size(); ++pi)
         {
-            const Param& param = func.params[pi];
-            if (param.macro_name == "TSelf")
+            if (!is_static && pi == 0)
             {
-                continue;
+                continue;  // Receiver: forwarded to the C call as self._ptr
             }
-            if (pseudo_self && pi == 0)
-            {
-                continue;  // Skip the TClass(ClassName) acting as self
-            }
-            param_groups.push_back(ConvertToLuaIdiomParams(param, false));
+            param_groups.push_back(ConvertToLuaIdiomParams(func.params[pi], false));
         }
         const bool has_post_calls = HasLuaPostCalls(param_groups);
 
-        output << "function M:" << func.method_name << "(";
+        output << (is_static ? "function M." : "function M:") << func.method_name << "(";
         EmitLuaParamNames(output, param_groups);
         output << ")\n";
 
         EmitLuaPreCalls(output, param_groups);
 
-        // Build the C call expression.
-        const std::string c_call = BuildLuaCCall(func, param_groups, "self._ptr");
+        // Build the C call expression. A receiver-less class function is static in
+        // wxWidgets, so it forwards no object pointer.
+        const std::string c_call = BuildLuaCCall(func, param_groups, is_static ? "" : "self._ptr");
 
         // Emit call and return.
         if (is_void)
@@ -1172,34 +1396,39 @@ void LuaJITEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo
         }
 
         // Check if this is a true destructor (no non-self params) or a list-item
-        // delete (e.g., wxChoice_Delete(self, int index)).
+        // delete (e.g., wxChoice_Delete(self, int index)).  The same receiver rule as the
+        // method loop decides whether parameter 0 is a receiver at all — a static class
+        // function (wxVariantVector_Delete(void* vec)) has none.
+        const bool is_static = IsStaticClassFunction(func, class_info, /*member_of_class=*/true);
         bool has_non_self_params = false;
-        for (const auto& param: func.params)
+        for (size_t pi = 0; pi < func.params.size(); ++pi)
         {
-            if (param.macro_name != "TSelf")
+            if (!is_static && pi == 0)
             {
-                has_non_self_params = true;
+                continue;  // Receiver, not an argument
             }
+            has_non_self_params = true;
         }
 
         if (has_non_self_params)
         {
             // Not a true destructor — emit as a regular method.
             std::vector<std::vector<LuaIdiomParam>> param_groups;
-            for (const auto& param: func.params)
+            for (size_t pi = 0; pi < func.params.size(); ++pi)
             {
-                if (param.macro_name == "TSelf")
+                if (!is_static && pi == 0)
                 {
-                    continue;
+                    continue;  // Receiver: forwarded to the C call as self._ptr
                 }
-                param_groups.push_back(ConvertToLuaIdiomParams(param, false));
+                param_groups.push_back(ConvertToLuaIdiomParams(func.params[pi], false));
             }
 
-            output << "function M:" << func.method_name << "(";
+            output << (is_static ? "function M." : "function M:") << func.method_name << "(";
             EmitLuaParamNames(output, param_groups);
             output << ")\n";
 
-            const std::string c_call = BuildLuaCCall(func, param_groups, "self._ptr");
+            const std::string c_call =
+                BuildLuaCCall(func, param_groups, is_static ? "" : "self._ptr");
 
             const bool is_void = IsVoidReturn(func.return_type);
             if (is_void)
@@ -1217,7 +1446,7 @@ void LuaJITEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo
             // True destructor: guard against double-delete.
             output << "--- Delete the underlying C++ object.\n";
             output << "function M:Delete()\n";
-            output << "    if self._ptr ~= nil then\n";
+            output << "    if self._ptr ~= nil and not self._borrowed then\n";
             output << "        C." << CFuncName(func) << "(self._ptr)\n";
             output << "        self._ptr = nil\n";
             output << "    end\n";
@@ -1295,6 +1524,11 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
         master << "M." << class_decl.name << " = require(\"" << module_name << "\")\n";
     }
 
+    // Free functions live in their own module; merge them in without clobbering a class of
+    // the same name.
+    master << "\n";
+    master << "local _freefuncs = require(\"kwxffi_freefuncs_idiomatic_gen\")\n";
+    master << "for _k, _v in pairs(_freefuncs) do if M[_k] == nil then M[_k] = _v end end\n";
     master << "\nreturn M\n";
 
     std::print(stderr, "  kwxffi_idiomatic_gen.lua:    {} classes, {} methods", class_count,

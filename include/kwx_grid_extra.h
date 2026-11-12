@@ -105,3 +105,106 @@ void wxGridTableMessage_SetTableObject(TSelf(wxGridTableMessage) pObject,
                                        TClass(wxGridTableBase) table);
 void wxGridTableMessage_SetCommandInt(TSelf(wxGridTableMessage) pObject, int command_int);
 void wxGridTableMessage_SetCommandInt2(TSelf(wxGridTableMessage) pObject, int command_int2);
+
+// ---------------------------------------------------------------------------
+// Grid override hooks
+//
+// These classes forward the grid extension points a foreign language cannot
+// derive from itself to callbacks.  The C++ class bodies live in
+// src/wx_grid.cpp; every callback receives the foreign object first, and a
+// callback that must produce a value publishes it with the matching
+// Set*Result function before returning.  An unset callback keeps the base
+// class behaviour.  Pointers passed to a callback are valid only for the
+// duration of that callback; copy any data the binding must keep.
+//
+// Ownership: a renderer created by kwxGridCellRendererHook_Create is owned by
+// the cell attribute or grid it is passed to, an editor by the grid, and a
+// provider by the table, so none of them has a _Delete.  The renderer returned
+// by the provider callback is not owned by the provider and must outlive it.
+// ---------------------------------------------------------------------------
+
+// clang-format off
+
+// Parents that have no wrapper block of their own.  They are named here so the
+// hook classes below resolve their hierarchy.
+TClassDef(wxGridHeaderLabelsRenderer)
+TClassDefExtend(wxGridColumnHeaderRenderer, wxGridHeaderLabelsRenderer)
+TClassDefExtend(wxGridCellActivatableEditor, wxGridCellEditor)
+
+// Cell renderer.  The hook derives from wxGridCellStringRenderer, so a callback
+// that wants the ordinary text rendering first calls
+// wxGridCellStringRenderer_Draw() on this object.
+TClassDefExtend(kwxGridCellRendererHook, wxGridCellStringRenderer)
+    TClass(kwxGridCellRendererHook) kwxGridCellRendererHook_Create(void* pObject);
+void kwxGridCellRendererHook_SetOnDraw(TSelf(kwxGridCellRendererHook) pObject, void* pFunction);
+void kwxGridCellRendererHook_SetOnGetBestSize(TSelf(kwxGridCellRendererHook) pObject,
+                                              void* pFunction);
+// Called from the GetBestSize callback with the size to return.
+void kwxGridCellRendererHook_SetGetBestSizeResult(TSelf(kwxGridCellRendererHook) pObject, int width,
+                                                  int height);
+
+// Activatable editor: TryActivate() reports an action and, for Change, the new
+// cell value.  The callback receives the activation origin (one of
+// wxGridActivationSource::Origin) and the key or mouse event, or null for the
+// Program origin.
+TClassDefExtend(kwxGridCellActivatableEditorHook, wxGridCellActivatableEditor)
+    TClass(kwxGridCellActivatableEditorHook) kwxGridCellActivatableEditorHook_Create(void* pObject);
+void kwxGridCellActivatableEditorHook_SetOnTryActivate(
+    TSelf(kwxGridCellActivatableEditorHook) pObject, void* pFunction);
+void kwxGridCellActivatableEditorHook_SetOnDoActivate(
+    TSelf(kwxGridCellActivatableEditorHook) pObject, void* pFunction);
+// Action is one of wxGridActivationResult::Action.
+void kwxGridCellActivatableEditorHook_SetTryActivateResult(
+    TSelf(kwxGridCellActivatableEditorHook) pObject, int action);
+// Only used with the Change action.
+void kwxGridCellActivatableEditorHook_SetTryActivateValue(
+    TSelf(kwxGridCellActivatableEditorHook) pObject, TClass(wxString) value);
+
+// Column header renderer.  DrawBorder has no base implementation, so without a
+// callback the border is not drawn at all.
+TClassDefExtend(kwxGridColumnHeaderRendererHook, wxGridColumnHeaderRenderer)
+    TClass(kwxGridColumnHeaderRendererHook) kwxGridColumnHeaderRendererHook_Create(void* pObject);
+void kwxGridColumnHeaderRendererHook_SetOnDrawLabel(
+    TSelf(kwxGridColumnHeaderRendererHook) pObject, void* pFunction);
+void kwxGridColumnHeaderRendererHook_SetOnDrawBorder(
+    TSelf(kwxGridColumnHeaderRendererHook) pObject, void* pFunction);
+void kwxGridColumnHeaderRendererHook_SetOnDrawHighlighted(
+    TSelf(kwxGridColumnHeaderRendererHook) pObject, void* pFunction);
+
+// Attribute provider that chooses the column header renderer per column and
+// can supply the cell attributes.
+TClassDefExtend(kwxGridCellAttrProviderHook, wxGridCellAttrProvider)
+    TClass(kwxGridCellAttrProviderHook) kwxGridCellAttrProviderHook_Create(void* pObject);
+void kwxGridCellAttrProviderHook_SetOnGetColumnHeaderRenderer(
+    TSelf(kwxGridCellAttrProviderHook) pObject, void* pFunction);
+// Called from the GetColumnHeaderRenderer callback with the renderer to return
+// for the column; not calling it keeps the default renderer.
+void kwxGridCellAttrProviderHook_SetGetColumnHeaderRendererResult(
+    TSelf(kwxGridCellAttrProviderHook) pObject, TClass(wxGridColumnHeaderRenderer) renderer);
+// Called for every cell attribute lookup.  kind is a
+// wxGridCellAttr::wxAttrKind value.  The callback publishes the attribute to
+// return with SetGetAttrResult; leaving the result unset keeps the provider's
+// own attribute.  The returned pointer is reference-counted: the callback owns
+// the caller's reference and must IncRef a shared attribute before returning it.
+void kwxGridCellAttrProviderHook_SetOnGetAttr(TSelf(kwxGridCellAttrProviderHook) pObject,
+                                              void* pFunction);
+void kwxGridCellAttrProviderHook_SetGetAttrResult(TSelf(kwxGridCellAttrProviderHook) pObject,
+                                                  TClass(wxGridCellAttr) attr);
+// The attribute wxGridCellAttrProvider would return for row/col/kind.  The
+// caller owns the reference and must DecRef it.
+TClass(wxGridCellAttr) kwxGridCellAttrProviderHook_GetBaseAttr(
+    TSelf(kwxGridCellAttrProviderHook) pObject, int row, int col, int kind);
+
+// wxGridBlocks is a range with a private constructor, so the FFI copies the
+// selected blocks into a heap vector that a binding can index.  Each entry is a
+// wxGridBlockCoords (top-left and bottom-right cell).
+TClassDef(wxGridBlockCoordsArray)
+TClass(wxGridBlockCoordsArray) wxGridBlockCoordsArray_Create();
+void wxGridBlockCoordsArray_Delete(TSelf(wxGridBlockCoordsArray) pObject);
+int wxGridBlockCoordsArray_GetCount(TSelf(wxGridBlockCoordsArray) pObject);
+void wxGridBlockCoordsArray_ItemTopLeft(TSelf(wxGridBlockCoordsArray) pObject, int index,
+                                        TPointOut(row, col));
+void wxGridBlockCoordsArray_ItemBottomRight(TSelf(wxGridBlockCoordsArray) pObject, int index,
+                                            TPointOut(row, col));
+
+// clang-format on

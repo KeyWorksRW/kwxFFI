@@ -1005,6 +1005,21 @@ extern "C"
         return self->Parse(false);
     }
 
+    EXPORT int wxCmdLineParser_ParseArgs(wxCmdLineParser* self, int argc, void* argv)
+    {
+        if (argc > 0 && argv != nullptr)
+        {
+            self->SetCmdLine(argc, static_cast<char**>(argv));
+        }
+        return self->Parse(true);
+    }
+
+    EXPORT int wxCmdLineParser_ParseStringArgs(wxCmdLineParser* self, wxString* command_line)
+    {
+        self->SetCmdLine(*command_line);
+        return self->Parse(true);
+    }
+
     EXPORT int wxCmdLineParser_Found(wxCmdLineParser* self, wxString* name)
     {
         return self->Found(*name);

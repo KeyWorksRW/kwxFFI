@@ -378,6 +378,11 @@ extern "C"
         return static_cast<int>(wxLog::GetLogLevel());
     }
 
+    EXPORT void wxLog_DisableTimestamp()
+    {
+        wxLog::DisableTimestamp();
+    }
+
     EXPORT int wxLog_GetComponentLevel(wxString* component)
     {
         return static_cast<int>(wxLog::GetComponentLevel(*component));
@@ -482,6 +487,12 @@ extern "C"
     EXPORT void wxLogTextCtrl_Delete(wxLogTextCtrl* self)
     {
         delete self;
+    }
+
+    EXPORT void wxLogTextCtrl_DisableTimestamp(wxLogTextCtrl* self)
+    {
+        (void) self;
+        wxLog::DisableTimestamp();
     }
 
 #if wxUSE_LOGWINDOW

@@ -467,9 +467,9 @@ extern "C"
         return new wxBitmapBundle(value);
     }
 
-    EXPORT void* wxBitmapBundle_GetBitmap(void* pObject, void* size)
+    EXPORT wxBitmap* wxBitmapBundle_GetBitmap(void* pObject, int width, int height)
     {
-        wxBitmap value = ((wxBitmapBundle*) pObject)->GetBitmap(*(wxSize*) size);
+        wxBitmap value = ((wxBitmapBundle*) pObject)->GetBitmap(wxSize(width, height));
         return new wxBitmap(value);
     }
 

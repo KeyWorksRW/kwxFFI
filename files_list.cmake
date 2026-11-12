@@ -4,6 +4,7 @@ set( FFI_SRC_FILES
 
     src/kwx_apppath.cpp
     src/kwx_aui_serializer.cpp
+    src/kwx_console.cpp
     src/kwx_defs.cpp
     src/kwx_constants_table_gen.cpp
     src/kwx_dragimage.cpp
@@ -259,6 +260,7 @@ set( FFI_HDR_FILES
     include/kwx_log.h
     include/kwx_accessible.h
     include/kwx_combo_extra.h
+    include/kwx_console.h
     include/kwx_helper_cmdline.h
     include/kwx_helper_thread.h
     include/kwx_hook_exports.h

@@ -851,6 +851,18 @@ public:
 // delete it.
 typedef void* (*kwxWizardPageFunc)(void* pObject);
 
+// Out-parameter spelling of the navigation hooks. GetNext()/GetPrev() return a
+// page pointer, which a runtime whose native thunk cannot return a value cannot
+// produce; these callbacks write the page pointer through `page` instead. `page`
+// is initialized to null before the call, so a callback that writes nothing means
+// "last page" (GetNext) or "first page" (GetPrev).
+typedef void (*kwxWizardPageGetPageOutFunc)(void* pObject, void** page);
+
+// Out-parameter spelling of the transfer hooks: write 0 to veto (false) and any
+// other value to accept (true). `result` is initialized to 1 before the call, so a
+// callback that writes nothing keeps wxWidgets' accept-by-default behaviour.
+typedef void (*kwxWizardPageTransferOutFunc)(void* pObject, int* result);
+
 // GetNext() and GetPrev() are both pure virtual (wx/wizard.h:72-73).
 class kwxWizardPage : public wxWizardPage
 {
@@ -858,15 +870,49 @@ private:
     void* m_object;
     kwxWizardPageFunc m_get_next_func;
     kwxWizardPageFunc m_get_prev_func;
+    kwxAppConsoleBoolFunc m_transfer_data_from_window_func;
+    kwxAppConsoleBoolFunc m_transfer_data_to_window_func;
+    kwxWizardPageGetPageOutFunc m_get_next_out_func;
+    kwxWizardPageGetPageOutFunc m_get_prev_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_from_window_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_to_window_out_func;
 
 public:
     explicit kwxWizardPage(void* pObject);
 
     void SetOnGetNext(void* pFunction) { m_get_next_func = (kwxWizardPageFunc) pFunction; }
     void SetOnGetPrev(void* pFunction) { m_get_prev_func = (kwxWizardPageFunc) pFunction; }
+    void SetOnTransferDataFromWindow(void* pFunction)
+    {
+        m_transfer_data_from_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnTransferDataToWindow(void* pFunction)
+    {
+        m_transfer_data_to_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+
+    // An Out callback takes precedence over the returning spelling.
+    void SetOnGetNextOut(void* pFunction)
+    {
+        m_get_next_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnGetPrevOut(void* pFunction)
+    {
+        m_get_prev_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnTransferDataFromWindowOut(void* pFunction)
+    {
+        m_transfer_data_from_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
+    void SetOnTransferDataToWindowOut(void* pFunction)
+    {
+        m_transfer_data_to_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
 
     wxWizardPage* GetNext() const override;
     wxWizardPage* GetPrev() const override;
+    bool TransferDataFromWindow() override;
+    bool TransferDataToWindow() override;
 };
 
 // ---------------------------------------------------------------------------
@@ -899,6 +945,19 @@ public:
         m_process_left_down_func = (kwxPopupLeftDownFunc) pFunction;
     }
     void SetOnOnDismiss(void* pFunction) { m_on_dismiss_func = (kwxTimerFunc) pFunction; }
+
+    // A callback replaces the override above.  A port that needs the C++ shape
+    // "log, then call the wxWidgets implementation" calls the matching
+    // CallBase* function from inside its callback: the qualified call invokes
+    // the wxWidgets implementation directly instead of re-entering the
+    // override (and therefore the callback) through virtual dispatch.
+    void CallBasePopup(wxWindow* focus) { wxPopupTransientWindow::Popup(focus); }
+    bool CallBaseShow(bool show) { return wxPopupTransientWindow::Show(show); }
+    bool CallBaseProcessLeftDown(wxMouseEvent& event)
+    {
+        return wxPopupTransientWindow::ProcessLeftDown(event);
+    }
+    void CallBaseOnDismiss() { wxPopupTransientWindow::OnDismiss(); }
 
     void Popup(wxWindow* focus = nullptr) override;
     bool Show(bool show = true) override;

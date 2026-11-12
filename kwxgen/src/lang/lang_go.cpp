@@ -31,11 +31,16 @@ constexpr std::size_t COMMENT_BANNER_WIDTH = 70;
 constexpr size_t kFixedFileCount =
     7;  // cgo_glue, helpers, constants, events, event_types, keys, functions
 
-// Determine the Go type expression for a constant's return type.
-// Returns the Go wrapper around the C call, e.g., "int(C.expwxFOO())"
-// or "unsafe.Pointer(C.expwxFOO())".
+// Determine the Go expression for a constant.
+// A wxString* constant allocates a fresh wxString, so it is copied into a Go
+// string and freed. Every other constant keeps the raw cgo_ call, e.g.
+// "cgo_expwxFOO()".
 static std::string GoConstantExpr(const ConstantDecl& decl)
 {
+    if (decl.return_type == "wxString*")
+    {
+        return "WxStringToGoAndFree(cgo_" + decl.export_name + "())";
+    }
     return "cgo_" + decl.export_name + "()";
 }
 
@@ -247,21 +252,6 @@ static std::string Capitalize(const std::string& text)
     std::string result = text;
     result[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(result[0])));
     return result;
-}
-
-// True when a non-constructor method's first parameter is TClass(ClassName) for the
-// method's own class. Mixin interfaces (wxTextEntry, wxItemContainer, wxComboPopup)
-// declare their receiver this way instead of TSelf, so it is the receiver for those
-// methods. Constructors are excluded: their first parameter is never the receiver.
-[[nodiscard]] static bool IsPseudoSelf(const FunctionDecl& func_decl)
-{
-    if (func_decl.is_constructor || func_decl.has_self || func_decl.class_name.empty() ||
-        func_decl.params.empty())
-    {
-        return false;
-    }
-    const Param& first_param = func_decl.params.front();
-    return first_param.macro_name == "TClass" && first_param.macro_arg == func_decl.class_name;
 }
 
 // Rename a parameter that would shadow the emitted function's receiver argument.
@@ -516,6 +506,18 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
         {
             const std::string n = ParamName(field, reserved_name);
             result.push_back({ n, "unsafe.Pointer", "(*C.int)(" + n + ")", "", "", true });
+        }
+        return result;
+    }
+
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        // Output long* geometry params — glue receives unsafe.Pointer, casts to (*C.long)
+        // for the C call
+        for (auto& field: SplitMacroArg(param.macro_arg))
+        {
+            const std::string n = ParamName(field, reserved_name);
+            result.push_back({ n, "unsafe.Pointer", "(*C.long)(" + n + ")", "", "", true });
         }
         return result;
     }
@@ -933,8 +935,19 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
     return result;
 }
 
+// True when the declaration returns a freshly created wrapped wx class
+// (TClassOwned(tp)) that the Go caller owns and must free.
+[[nodiscard]] static bool
+    IsOwnedWrappedReturn(const FunctionDecl& func_decl,
+                         const std::unordered_set<std::string>& wrapped_classes)
+{
+    return func_decl.returns_owned && !func_decl.return_arg.empty() &&
+           wrapped_classes.contains(func_decl.return_arg);
+}
+
 // Get Go return type string for a function declaration.
-static std::string GoReturnType(const FunctionDecl& func_decl, const std::string& go_class_name)
+static std::string GoReturnType(const FunctionDecl& func_decl, const std::string& go_class_name,
+                                const std::unordered_set<std::string>& wrapped_classes)
 {
     // True constructors (no self param) return *ClassName
     if (func_decl.is_constructor && !func_decl.has_self && func_decl.return_type != "TBool")
@@ -968,6 +981,12 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
         {
             return "Rect";
         }
+    }
+
+    // TClassOwned(wxFoo) → owning Go wrapper (*Foo)
+    if (IsOwnedWrappedReturn(func_decl, wrapped_classes))
+    {
+        return "*" + StripPrefix(func_decl.return_arg);
     }
 
     // TClass(wxFoo) → unsafe.Pointer
@@ -1076,7 +1095,8 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
 }
 
 // Check if a return type needs the "unsafe" import
-[[nodiscard]] static bool ReturnNeedsUnsafe(const FunctionDecl& func_decl)
+[[nodiscard]] static bool ReturnNeedsUnsafe(const FunctionDecl& func_decl,
+                                            const std::unordered_set<std::string>& wrapped_classes)
 {
     // TClass(wxString) → Go "string", not unsafe.Pointer
     if (func_decl.return_macro == "TClass" && func_decl.return_arg == "wxString")
@@ -1087,6 +1107,12 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
     if (func_decl.return_macro == "TClass" &&
         (func_decl.return_arg == "wxSize" || func_decl.return_arg == "wxPoint" ||
          func_decl.return_arg == "wxRect"))
+    {
+        return false;
+    }
+    // TClassOwned(wxFoo) → owning Go wrapper; the glue still returns
+    // unsafe.Pointer, but the inferred local never names the package.
+    if (IsOwnedWrappedReturn(func_decl, wrapped_classes))
     {
         return false;
     }
@@ -1106,9 +1132,11 @@ static std::string GoReturnType(const FunctionDecl& func_decl, const std::string
 }
 
 // Check if a single free function needs the "unsafe" import
-[[nodiscard]] static bool FunctionNeedsUnsafe(const FunctionDecl& func_decl)
+[[nodiscard]] static bool
+    FunctionNeedsUnsafe(const FunctionDecl& func_decl,
+                        const std::unordered_set<std::string>& wrapped_classes)
 {
-    if (ReturnNeedsUnsafe(func_decl))
+    if (ReturnNeedsUnsafe(func_decl, wrapped_classes))
     {
         return true;
     }
@@ -1465,10 +1493,11 @@ static void EmitConstructor(std::ostream& output, const ClassInfo& /*class_info*
 
 // Emit a method: func (recv *ClassName) MethodName(...)
 static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
-                       const FunctionDecl& func_decl, const std::string& go_class_name)
+                       const FunctionDecl& func_decl, const std::string& go_class_name,
+                       const std::unordered_set<std::string>& wrapped_classes)
 {
     const std::string recv(kReceiverVar);
-    const std::string go_ret_type = GoReturnType(func_decl, go_class_name);
+    const std::string go_ret_type = GoReturnType(func_decl, go_class_name, wrapped_classes);
 
     // Collect non-self Go params; handle multiple TSelf (e.g. wxIcon_IsEqual)
     const bool pseudo_self = IsPseudoSelf(func_decl);
@@ -1569,6 +1598,18 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
         output << "\tretPtr := " << glue_call << "\n";
         output << "\treturn " << value_converter << "(retPtr)\n";
     }
+    else if (go_ret_type.starts_with('*') && IsOwnedWrappedReturn(func_decl, wrapped_classes))
+    {
+        // TClassOwned(wxFoo): the native object is handed to the caller, so the
+        // wrapper owns it and must NOT be marked borrowed.
+        output << "\tptr := " << glue_call << "\n";
+        output << "\tif ptr == nil {\n";
+        output << "\t\treturn nil\n";
+        output << "\t}\n";
+        output << "\tobj := &" << go_ret_type.substr(1) << "{}\n";
+        output << "\tobj.SetPtr(ptr)\n";
+        output << "\treturn obj\n";
+    }
     else
     {
         // Glue already returns the correct Go type
@@ -1581,7 +1622,8 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
 // Emit a C free function (class_name empty, no TSelf) as a package-level Go function.
 // kwxMessageBox → MessageBox, kwxFoo → Foo, wxFoo → Foo
 static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl,
-                             const std::string& go_name)
+                             const std::string& go_name,
+                             const std::unordered_set<std::string>& wrapped_classes)
 {
     std::vector<std::vector<GoParam>> param_groups;
     param_groups.reserve(func_decl.params.size());
@@ -1590,7 +1632,7 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
         param_groups.push_back(ConvertParam(param));
     }
 
-    const std::string go_ret_type = GoReturnType(func_decl, "");
+    const std::string go_ret_type = GoReturnType(func_decl, "", wrapped_classes);
 
     output << "func " << SafeGoIdentifier(go_name) << "(";
     bool first = true;
@@ -1646,6 +1688,18 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
         // copies its fields and frees it, so no pointer escapes to Go.
         output << "\tretPtr := " << glue_call << "\n";
         output << "\treturn " << value_converter << "(retPtr)\n";
+    }
+    else if (go_ret_type.starts_with('*') && IsOwnedWrappedReturn(func_decl, wrapped_classes))
+    {
+        // TClassOwned(wxFoo): the native object is handed to the caller, so the
+        // wrapper owns it and must NOT be marked borrowed.
+        output << "\tptr := " << glue_call << "\n";
+        output << "\tif ptr == nil {\n";
+        output << "\t\treturn nil\n";
+        output << "\t}\n";
+        output << "\tobj := &" << go_ret_type.substr(1) << "{}\n";
+        output << "\tobj.SetPtr(ptr)\n";
+        output << "\treturn obj\n";
     }
     else
     {
@@ -2076,11 +2130,24 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
     WriteGeneratedHeader(writer);
     writer << "package wx\n\n";
 
+    // Only wrapped classes produce a Go type that an owned return can name, so the
+    // set is built exactly as GenerateClassFiles builds it.
+    const std::unordered_set<std::string> policy_classes = CollectWrappedClasses(parsed_ffi);
+    std::unordered_set<std::string> wrapped_classes;
+    wrapped_classes.reserve(policy_classes.size());
+    for (const std::string& wrapped_name: policy_classes)
+    {
+        if (!kHandMaintainedClasses.contains(wrapped_name))
+        {
+            wrapped_classes.insert(wrapped_name);
+        }
+    }
+
     // Check if any emitted free function needs the "unsafe" import
     bool needs_unsafe = false;
     for (const auto& func: free_functions)
     {
-        if (FunctionNeedsUnsafe(*func.decl))
+        if (FunctionNeedsUnsafe(*func.decl, wrapped_classes))
         {
             needs_unsafe = true;
             break;
@@ -2093,7 +2160,7 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
 
     for (const auto& func: free_functions)
     {
-        EmitFreeFunction(writer, *func.decl, func.go_name);
+        EmitFreeFunction(writer, *func.decl, func.go_name, wrapped_classes);
     }
     const size_t count = free_functions.size();
 
@@ -2513,7 +2580,7 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
 
         if (is_free_function || is_class_static)
         {
-            EmitFreeFunction(output, func, member_name);
+            EmitFreeFunction(output, func, member_name, wrapped_classes);
             continue;
         }
 
@@ -2545,7 +2612,7 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
 
             if (has_non_self_params)
             {
-                EmitMethod(output, class_info, func, go_class_name);
+                EmitMethod(output, class_info, func, go_class_name, wrapped_classes);
             }
             else
             {
@@ -2560,7 +2627,7 @@ void GoEmitter::EmitClassFile(std::ostream& output, const ClassInfo& class_info,
         }
         else
         {
-            EmitMethod(output, class_info, func, go_class_name);
+            EmitMethod(output, class_info, func, go_class_name, wrapped_classes);
         }
     }
 }

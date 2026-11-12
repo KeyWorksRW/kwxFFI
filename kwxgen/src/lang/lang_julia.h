@@ -27,6 +27,12 @@ private:
                                       const std::filesystem::path& outDir);
     static void GenerateModule(const std::filesystem::path& outDir, const std::string& libName);
 
+    // Generated type preamble (abstract roots, wxEvent, _wx_wrap) and string runtime
+    // (wxString lifecycle, _wx_take_cstring, _wx_take_wxstring).
+    static void GenerateTypePreamble(const ParsedFFI& parsed_ffi,
+                                     const std::filesystem::path& outDir);
+    static void GenerateStringRuntime(const std::filesystem::path& outDir);
+
     // Idiomatic per-class Julia wrappers (structs + constructors + methods)
     static void GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi,
                                          const std::filesystem::path& outDir);

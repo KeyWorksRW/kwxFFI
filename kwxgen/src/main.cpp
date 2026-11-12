@@ -500,7 +500,9 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     }
 
     // Every emitter keys its output on the C symbol name, so the repeats the headers can
-    // produce (see dedupe.h) must be gone before any emitter sees the model.
+    // produce (see dedupe.h) must be gone before any emitter sees the model.  Constant-name
+    // collisions are resolved in ApplyProfile(), because the export manifests describe the C
+    // library's symbol set and must keep both spellings.
     const std::size_t duplicate_count = RemoveDuplicateFunctions(parsed_ffi);
     if (duplicate_count != 0)
     {
@@ -1038,9 +1040,24 @@ int main(int argc, char* argv[])
         std::println(stderr, "Generating to temp dir: {}", temp_dir.string());
         emitter->Generate(ApplyProfile(parsed_ffi, profile), temp_dir);
 
+        // The Julia emitter adds content checks the file diff cannot make (nothing defines an
+        // anonymous method, every generated signature is unique).  The other backends leave
+        // Verify() unimplemented, so calling it would fail every run.
+        VerifyResult content_result;
+        if (args.lang == "julia")
+        {
+            content_result = emitter->Verify(parsed_ffi, temp_dir);
+        }
+
         std::println(stderr, "Verifying against: {}", args.verify_dir);
         VerifyResult verify_result =
             VerifyGeneratedFiles(temp_dir, args.verify_dir, GeneratedSuffixes(args.lang));
+        if (!content_result.success)
+        {
+            verify_result.success = false;
+        }
+        verify_result.messages.insert(verify_result.messages.end(), content_result.messages.begin(),
+                                      content_result.messages.end());
 
         if (verify_result.success)
         {

@@ -521,6 +521,17 @@ struct RustConvertContext
         return result;
     }
 
+    // Output long geometry passes through as *mut c_long (the C type is already c_long).
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        for (const std::string& component: RustSplitMacroArg(param.macro_arg))
+        {
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
+            result.push_back({ name, "*mut c_long", name, {}, {}, false });
+        }
+        return result;
+    }
+
     if (param.macro_name == "TPointOutVoid" || param.macro_name == "TSizeOutVoid" ||
         param.macro_name == "TRectOutVoid" || param.macro_name == "TVectorOutVoid")
     {

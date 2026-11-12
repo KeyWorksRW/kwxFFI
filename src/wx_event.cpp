@@ -60,6 +60,20 @@ extern "C"
         return new wxCommandEvent((wxEventType) type, id);
     }
 
+    EXPORT void wxContextMenuEvent_GetPosition(wxContextMenuEvent* self, int* x, int* y)
+    {
+        const wxPoint position = self->GetPosition();
+        if (x)
+            *x = position.x;
+        if (y)
+            *y = position.y;
+    }
+
+    EXPORT void wxContextMenuEvent_SetPosition(wxContextMenuEvent* self, int x, int y)
+    {
+        self->SetPosition(wxPoint(x, y));
+    }
+
     EXPORT void wxCommandEvent_Delete(wxCommandEvent* self)
     {
         delete self;
@@ -1566,6 +1580,7 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_WIZARD_HELP)
     MAKE_EVENT_WRAPPER(EVT_WIZARD_FINISHED)
     MAKE_EVENT_WRAPPER(EVT_WIZARD_PAGE_SHOWN)
+    MAKE_EVENT_WRAPPER(EVT_WIZARD_BEFORE_PAGE_CHANGED)
 #endif
 
     MAKE_EVENT_WRAPPER(EVT_USER_FIRST)

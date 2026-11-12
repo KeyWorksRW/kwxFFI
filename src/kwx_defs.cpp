@@ -5,6 +5,7 @@
 
 #include <wx/cmdline.h>
 #include <wx/dir.h>
+#include <wx/dirdlg.h>
 #include <wx/fdrepdlg.h>
 #include <wx/filedlg.h>
 #include <wx/filename.h>
@@ -447,9 +448,21 @@ extern "C"
     {
         return (int) wxRB_GROUP;
     }
+    EXPORT int expwxGA_HORIZONTAL()
+    {
+        return static_cast<int>(wxGA_HORIZONTAL);
+    }
+    EXPORT int expwxGA_PROGRESS()
+    {
+        return static_cast<int>(wxGA_PROGRESS);
+    }
     EXPORT int expwxGA_SMOOTH()
     {
         return (int) wxGA_SMOOTH;
+    }
+    EXPORT int expwxGA_VERTICAL()
+    {
+        return static_cast<int>(wxGA_VERTICAL);
     }
     EXPORT int expwxSL_AUTOTICKS()
     {
@@ -482,6 +495,18 @@ extern "C"
     EXPORT int expwxSL_SELRANGE()
     {
         return (int) wxSL_SELRANGE;
+    }
+    EXPORT int expwxSL_INVERSE()
+    {
+        return static_cast<int>(wxSL_INVERSE);
+    }
+    EXPORT int expwxSL_MIN_MAX_LABELS()
+    {
+        return static_cast<int>(wxSL_MIN_MAX_LABELS);
+    }
+    EXPORT int expwxSL_VALUE_LABEL()
+    {
+        return static_cast<int>(wxSL_VALUE_LABEL);
     }
     EXPORT int expwxBU_AUTODRAW()
     {
@@ -675,6 +700,22 @@ extern "C"
         return (int) wxTBK_HORZ_LAYOUT;
     }
 #endif
+    EXPORT int expwxST_ELLIPSIZE_START()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_START);
+    }
+    EXPORT int expwxST_ELLIPSIZE_MIDDLE()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxST_ELLIPSIZE_END()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_END);
+    }
+    EXPORT int expwxST_WRAP()
+    {
+        return static_cast<int>(wxST_WRAP);
+    }
     EXPORT int expwxST_SIZEGRIP()
     {
         return (int) wxST_SIZEGRIP;
@@ -4013,6 +4054,18 @@ extern "C"
     {
         return (int) wxTE_WORDWRAP;
     }
+    EXPORT int expwxTE_CHARWRAP()
+    {
+        return static_cast<int>(wxTE_CHARWRAP);
+    }
+    EXPORT int expwxTE_DONTWRAP()
+    {
+        return static_cast<int>(wxTE_DONTWRAP);
+    }
+    EXPORT int expwxTE_BESTWRAP()
+    {
+        return static_cast<int>(wxTE_BESTWRAP);
+    }
     EXPORT int expwxEXEC_ASYNC()
     {
         return (int) wxEXEC_ASYNC;
@@ -5035,6 +5088,10 @@ extern "C"
     EXPORT wxString* expwxVERSION_NUM_DOT_STRING()
     {
         return new wxString(wxVERSION_NUM_DOT_STRING);
+    }
+    EXPORT wxString* expwxDirDialogDefaultFolderStr()
+    {
+        return new wxString(wxDirDialogDefaultFolderStr);
     }
     EXPORT wxString* expwxFileSelectorDefaultWildcardStr()
     {
@@ -6693,6 +6750,18 @@ extern "C"
     {
         return static_cast<int>(wxDateTime::Sat);
     }
+    EXPORT int expwxCLRP_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxCLRP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxCLRP_SHOW_LABEL()
+    {
+        return static_cast<int>(wxCLRP_SHOW_LABEL);
+    }
+    EXPORT int expwxCLRP_SHOW_ALPHA()
+    {
+        return static_cast<int>(wxCLRP_SHOW_ALPHA);
+    }
     EXPORT int expwxCLRP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxCLRP_USE_TEXTCTRL);
@@ -6893,9 +6962,17 @@ extern "C"
     {
         return static_cast<int>(wxDIRCTRL_SHOW_FILTERS);
     }
+    EXPORT int expwxDIRP_CHANGE_DIR()
+    {
+        return static_cast<int>(wxDIRP_CHANGE_DIR);
+    }
     EXPORT int expwxDIRP_DEFAULT_STYLE()
     {
         return static_cast<int>(wxDIRP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxDIRP_DIR_MUST_EXIST()
+    {
+        return static_cast<int>(wxDIRP_DIR_MUST_EXIST);
     }
     EXPORT int expwxDIRP_SMALL()
     {
@@ -6965,9 +7042,21 @@ extern "C"
     {
         return static_cast<int>(wxDrag_DefaultMove);
     }
+    EXPORT int expwxELLIPSIZE_NONE()
+    {
+        return static_cast<int>(wxELLIPSIZE_NONE);
+    }
+    EXPORT int expwxELLIPSIZE_START()
+    {
+        return static_cast<int>(wxELLIPSIZE_START);
+    }
     EXPORT int expwxELLIPSIZE_MIDDLE()
     {
         return static_cast<int>(wxELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxELLIPSIZE_END()
+    {
+        return static_cast<int>(wxELLIPSIZE_END);
     }
     EXPORT int expwxEXEC_SHOW_CONSOLE()
     {
@@ -7041,6 +7130,26 @@ extern "C"
     {
         return static_cast<int>(wxFLEX_GROWMODE_NONE);
     }
+    EXPORT int expwxFLP_OPEN()
+    {
+        return static_cast<int>(wxFLP_OPEN);
+    }
+    EXPORT int expwxFLP_SAVE()
+    {
+        return static_cast<int>(wxFLP_SAVE);
+    }
+    EXPORT int expwxFLP_OVERWRITE_PROMPT()
+    {
+        return static_cast<int>(wxFLP_OVERWRITE_PROMPT);
+    }
+    EXPORT int expwxFLP_FILE_MUST_EXIST()
+    {
+        return static_cast<int>(wxFLP_FILE_MUST_EXIST);
+    }
+    EXPORT int expwxFLP_CHANGE_DIR()
+    {
+        return static_cast<int>(wxFLP_CHANGE_DIR);
+    }
     EXPORT int expwxFLP_DEFAULT_STYLE()
     {
         return static_cast<int>(wxFLP_DEFAULT_STYLE);
@@ -7052,6 +7161,14 @@ extern "C"
     EXPORT int expwxFLP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxFLP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxFNTP_FONTDESC_AS_LABEL()
+    {
+        return static_cast<int>(wxFNTP_FONTDESC_AS_LABEL);
+    }
+    EXPORT int expwxFNTP_USEFONT_FOR_LABEL()
+    {
+        return static_cast<int>(wxFNTP_USEFONT_FOR_LABEL);
     }
     EXPORT int expwxFNTP_DEFAULT_STYLE()
     {
@@ -7197,6 +7314,46 @@ extern "C"
     {
         return static_cast<int>(wxGrid::wxGridSelectRowsOrColumns);
     }
+    // wxGrid::TabBehaviour, used by SetTabBehaviour().  The sample derives the
+    // value from its menu ids, so the three enumerators must be reachable.
+    EXPORT int expTab_Stop()
+    {
+        return static_cast<int>(wxGrid::Tab_Stop);
+    }
+    EXPORT int expTab_Wrap()
+    {
+        return static_cast<int>(wxGrid::Tab_Wrap);
+    }
+    EXPORT int expTab_Leave()
+    {
+        return static_cast<int>(wxGrid::Tab_Leave);
+    }
+    // wxGridActivationSource::Origin and wxGridActivationResult::Action, used
+    // by the TryActivate callback of kwxGridCellActivatableEditorHook.
+    EXPORT int expGridActivationProgram()
+    {
+        return static_cast<int>(wxGridActivationSource::Program);
+    }
+    EXPORT int expGridActivationKey()
+    {
+        return static_cast<int>(wxGridActivationSource::Key);
+    }
+    EXPORT int expGridActivationMouse()
+    {
+        return static_cast<int>(wxGridActivationSource::Mouse);
+    }
+    EXPORT int expGridActivationIgnore()
+    {
+        return static_cast<int>(wxGridActivationResult::Ignore);
+    }
+    EXPORT int expGridActivationChange()
+    {
+        return static_cast<int>(wxGridActivationResult::Change);
+    }
+    EXPORT int expGridActivationShowEditor()
+    {
+        return static_cast<int>(wxGridActivationResult::ShowEditor);
+    }
     EXPORT int expwxHDR_SORT_ICON_NONE()
     {
         return static_cast<int>(wxHDR_SORT_ICON_NONE);
@@ -7224,6 +7381,18 @@ extern "C"
     EXPORT int expwxHF_DEFAULT_STYLE()
     {
         return static_cast<int>(wxHF_DEFAULT_STYLE);
+    }
+    EXPORT int expwxHL_ALIGN_LEFT()
+    {
+        return static_cast<int>(wxHL_ALIGN_LEFT);
+    }
+    EXPORT int expwxHL_ALIGN_RIGHT()
+    {
+        return static_cast<int>(wxHL_ALIGN_RIGHT);
+    }
+    EXPORT int expwxHL_ALIGN_CENTRE()
+    {
+        return static_cast<int>(wxHL_ALIGN_CENTRE);
     }
     EXPORT int expwxHL_DEFAULT_STYLE()
     {
@@ -7890,50 +8059,6 @@ extern "C"
     EXPORT int expwxRIBBON_ART_GALLERY_HOVER_BACKGROUND_COLOUR()
     {
         return static_cast<int>(wxRIBBON_ART_GALLERY_HOVER_BACKGROUND_COLOUR);
-    }
-    EXPORT int expwxRIBBON_BAR_DEFAULT_STYLE()
-    {
-        return static_cast<int>(wxRIBBON_BAR_DEFAULT_STYLE);
-    }
-    EXPORT int expwxRIBBON_BAR_FLOW_HORIZONTAL()
-    {
-        return static_cast<int>(wxRIBBON_BAR_FLOW_HORIZONTAL);
-    }
-    EXPORT int expwxRIBBON_BAR_FLOW_VERTICAL()
-    {
-        return static_cast<int>(wxRIBBON_BAR_FLOW_VERTICAL);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_HELP_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_HELP_BUTTON);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_ICONS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_ICONS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_LABELS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_LABELS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_TOGGLE_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_TOGGLE_BUTTON);
-    }
-    EXPORT int expwxRIBBON_PANEL_DEFAULT_STYLE()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_DEFAULT_STYLE);
-    }
-    EXPORT int expwxRIBBON_PANEL_EXT_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_EXT_BUTTON);
-    }
-    EXPORT int expwxRIBBON_PANEL_NO_AUTO_MINIMISE()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_NO_AUTO_MINIMISE);
     }
     EXPORT int expwxRICHTEXT_FIELD_STYLE_COMPOSITE()
     {
@@ -8606,6 +8731,38 @@ extern "C"
     EXPORT int expwxWINDOW_VARIANT_SMALL()
     {
         return static_cast<int>(wxWINDOW_VARIANT_SMALL);
+    }
+    EXPORT int expwxWIZARD_EX_HELPBUTTON()
+    {
+        return static_cast<int>(wxWIZARD_EX_HELPBUTTON);
+    }
+    EXPORT int expwxWIZARD_VALIGN_TOP()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_TOP);
+    }
+    EXPORT int expwxWIZARD_VALIGN_CENTRE()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_CENTRE);
+    }
+    EXPORT int expwxWIZARD_VALIGN_BOTTOM()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_BOTTOM);
+    }
+    EXPORT int expwxWIZARD_HALIGN_LEFT()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_LEFT);
+    }
+    EXPORT int expwxWIZARD_HALIGN_CENTRE()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_CENTRE);
+    }
+    EXPORT int expwxWIZARD_HALIGN_RIGHT()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_RIGHT);
+    }
+    EXPORT int expwxWIZARD_TILE()
+    {
+        return static_cast<int>(wxWIZARD_TILE);
     }
     EXPORT int expwxXML_ELEMENT_NODE()
     {

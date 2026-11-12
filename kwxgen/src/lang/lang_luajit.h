@@ -31,6 +31,8 @@ private:
     static void GenerateHelpers(const std::filesystem::path& out_dir);
     static void GenerateIdiomaticClasses(const ParsedFFI& ffi_data,
                                          const std::filesystem::path& out_dir);
+    static void GenerateIdiomaticFreeFunctions(const ParsedFFI& ffi_data,
+                                               const std::filesystem::path& out_dir);
     static void EmitIdiomaticClassFile(std::ostream& output, const ClassInfo& class_info,
                                        const ParsedFFI& ffi_data);
 };

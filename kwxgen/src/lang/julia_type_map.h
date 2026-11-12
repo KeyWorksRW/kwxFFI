@@ -43,8 +43,11 @@ inline std::string JuliaReturnType(const std::string& return_type, const std::st
         return "Ptr{Cvoid}";
     if (return_type == "TBool" || return_type == "TBoolInt")
         return "Cint";
+    // TString/TStringOut are strdup'ed by the C side (see src/wx_locale.cpp), so the raw
+    // wrapper must hand back a pointer the caller can free (wxstring_gen.jl::_wx_take_cstring).
+    // A Cstring return type would copy the bytes and leak the original buffer.
     if (return_type == "TString" || return_type == "TStringOut")
-        return "Cstring";
+        return "Ptr{Cchar}";
     if (return_type == "TStringVoid")
         return "Ptr{Cvoid}";
     if (return_type == "int" || return_type == "TArrayLen" || return_type == "TByteStringLen")
@@ -170,6 +173,14 @@ inline std::vector<JuliaParam> ExpandParamToJulia(const Param& p)
     {
         for (auto& n: JuliaSplitMacroArg(p.macro_arg))
             result.push_back({ "Ptr{Cint}", n });
+        return result;
+    }
+
+    // Output long geometry parameters → Ptr{Clong} pointers
+    if (p.macro_name == "TPointOutLong" || p.macro_name == "TSizeOutLong")
+    {
+        for (auto& n: JuliaSplitMacroArg(p.macro_arg))
+            result.push_back({ "Ptr{Clong}", n });
         return result;
     }
 

@@ -52,6 +52,15 @@ EXPORT void wxAppConsole_SetOnOnUnhandledException(TSelf(wxAppConsole) pObject, 
 EXPORT void wxAppConsole_SetOnStoreCurrentException(TSelf(wxAppConsole) pObject, void* pFunction);
 EXPORT void wxAppConsole_SetOnRethrowStoredException(TSelf(wxAppConsole) pObject, void* pFunction);
 EXPORT void wxAppConsole_SetOnCreateTraits(TSelf(wxAppConsole) pObject, void* pFunction);
+EXPORT TClass(wxString) wxAppConsole_GetAppName(TSelf(wxAppConsole) pObject);
+EXPORT void wxAppConsole_SetAppName(TSelf(wxAppConsole) pObject, TClass(wxString) name);
+EXPORT TClass(wxString) wxAppConsole_GetAppDisplayName(TSelf(wxAppConsole) pObject);
+EXPORT void wxAppConsole_SetAppDisplayName(TSelf(wxAppConsole) pObject, TClass(wxString) name);
+EXPORT TClass(wxString) wxAppConsole_GetVendorName(TSelf(wxAppConsole) pObject);
+EXPORT void wxAppConsole_SetVendorName(TSelf(wxAppConsole) pObject, TClass(wxString) name);
+EXPORT void wxAppConsole_ExitMainLoop(TSelf(wxAppConsole) pObject);
+EXPORT void wxAppConsole_ProcessPendingEvents(TSelf(wxAppConsole) pObject);
+EXPORT TBool wxAppConsole_Yield(TSelf(wxAppConsole) pObject);
 
 TClassDefExtend(kwxApp, wxApp) EXPORT void* kwxApp_Create(void* pObject);
 EXPORT void kwxApp_Delete(TSelf(kwxApp) pObject);
@@ -340,8 +349,19 @@ EXPORT void kwxVariantData_SetOnGetType(TSelf(kwxVariantData) pObject, void* pFu
 
 TClassDefExtend(kwxWizardPage, wxWizardPage) EXPORT void* kwxWizardPage_Create(void* pObject);
 EXPORT void kwxWizardPage_Delete(TSelf(kwxWizardPage) pObject);
+EXPORT TBool kwxWizardPage_Create2(TSelf(kwxWizardPage) pObject, TClass(wxWizard) parent,
+                                   TClass(wxBitmapBundle) bitmap);
 EXPORT void kwxWizardPage_SetOnGetNext(TSelf(kwxWizardPage) pObject, void* pFunction);
 EXPORT void kwxWizardPage_SetOnGetPrev(TSelf(kwxWizardPage) pObject, void* pFunction);
+EXPORT void kwxWizardPage_SetOnTransferDataFromWindow(TSelf(kwxWizardPage) pObject,
+                                                      void* pFunction);
+EXPORT void kwxWizardPage_SetOnTransferDataToWindow(TSelf(kwxWizardPage) pObject, void* pFunction);
+EXPORT void kwxWizardPage_SetOnGetNextOut(TSelf(kwxWizardPage) pObject, void* pFunction);
+EXPORT void kwxWizardPage_SetOnGetPrevOut(TSelf(kwxWizardPage) pObject, void* pFunction);
+EXPORT void kwxWizardPage_SetOnTransferDataFromWindowOut(TSelf(kwxWizardPage) pObject,
+                                                         void* pFunction);
+EXPORT void kwxWizardPage_SetOnTransferDataToWindowOut(TSelf(kwxWizardPage) pObject,
+                                                       void* pFunction);
 
 TClassDefExtend(kwxPopupTransientWindow, wxPopupTransientWindow) EXPORT
     TClass(kwxPopupTransientWindow)
@@ -355,3 +375,10 @@ EXPORT void kwxPopupTransientWindow_SetOnProcessLeftDown(TSelf(kwxPopupTransient
                                                          void* pFunction);
 EXPORT void kwxPopupTransientWindow_SetOnOnDismiss(TSelf(kwxPopupTransientWindow) pObject,
                                                    void* pFunction);
+EXPORT void kwxPopupTransientWindow_CallBasePopup(TSelf(kwxPopupTransientWindow) pObject,
+                                                  TClass(wxWindow) focus);
+EXPORT TBool kwxPopupTransientWindow_CallBaseShow(TSelf(kwxPopupTransientWindow) pObject,
+                                                  TBool show);
+EXPORT TBool kwxPopupTransientWindow_CallBaseProcessLeftDown(TSelf(kwxPopupTransientWindow) pObject,
+                                                             TClass(wxMouseEvent) event);
+EXPORT void kwxPopupTransientWindow_CallBaseOnDismiss(TSelf(kwxPopupTransientWindow) pObject);

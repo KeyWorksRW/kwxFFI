@@ -982,10 +982,23 @@ kwxWizardPage::kwxWizardPage(void* pObject) : wxWizardPage()
     m_object = pObject;
     m_get_next_func = nullptr;
     m_get_prev_func = nullptr;
+    m_transfer_data_from_window_func = nullptr;
+    m_transfer_data_to_window_func = nullptr;
+    m_get_next_out_func = nullptr;
+    m_get_prev_out_func = nullptr;
+    m_transfer_data_from_window_out_func = nullptr;
+    m_transfer_data_to_window_out_func = nullptr;
 }
 
 wxWizardPage* kwxWizardPage::GetNext() const
 {
+    if (m_get_next_out_func)
+    {
+        void* page = nullptr;
+        m_get_next_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
     // A null return means "last page", which is what wxWizardPage has no base
     // value for (GetNext() is pure virtual, wx/wizard.h:73).
     if (!m_get_next_func)
@@ -997,11 +1010,50 @@ wxWizardPage* kwxWizardPage::GetNext() const
 
 wxWizardPage* kwxWizardPage::GetPrev() const
 {
+    if (m_get_prev_out_func)
+    {
+        void* page = nullptr;
+        m_get_prev_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
     if (!m_get_prev_func)
     {
         return nullptr;
     }
     return (wxWizardPage*) m_get_prev_func(m_object);
+}
+
+bool kwxWizardPage::TransferDataFromWindow()
+{
+    if (m_transfer_data_from_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_from_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_from_window_func)
+    {
+        return wxWizardPage::TransferDataFromWindow();
+    }
+    return m_transfer_data_from_window_func(m_object) != 0;
+}
+
+bool kwxWizardPage::TransferDataToWindow()
+{
+    if (m_transfer_data_to_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_to_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_to_window_func)
+    {
+        return wxWizardPage::TransferDataToWindow();
+    }
+    return m_transfer_data_to_window_func(m_object) != 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -1395,6 +1447,51 @@ extern "C"
     EXPORT void wxAppConsole_SetOnCreateTraits(wxAppConsole* self, void* pFunction)
     {
         static_cast<kwxAppConsole*>(self)->SetOnCreateTraits(pFunction);
+    }
+
+    EXPORT wxString* wxAppConsole_GetAppName(wxAppConsole* self)
+    {
+        return new wxString(self->GetAppName());
+    }
+
+    EXPORT void wxAppConsole_SetAppName(wxAppConsole* self, wxString* name)
+    {
+        self->SetAppName(*name);
+    }
+
+    EXPORT wxString* wxAppConsole_GetAppDisplayName(wxAppConsole* self)
+    {
+        return new wxString(self->GetAppDisplayName());
+    }
+
+    EXPORT void wxAppConsole_SetAppDisplayName(wxAppConsole* self, wxString* name)
+    {
+        self->SetAppDisplayName(*name);
+    }
+
+    EXPORT wxString* wxAppConsole_GetVendorName(wxAppConsole* self)
+    {
+        return new wxString(self->GetVendorName());
+    }
+
+    EXPORT void wxAppConsole_SetVendorName(wxAppConsole* self, wxString* name)
+    {
+        self->SetVendorName(*name);
+    }
+
+    EXPORT void wxAppConsole_ExitMainLoop(wxAppConsole* self)
+    {
+        self->ExitMainLoop();
+    }
+
+    EXPORT void wxAppConsole_ProcessPendingEvents(wxAppConsole* self)
+    {
+        self->ProcessPendingEvents();
+    }
+
+    EXPORT int wxAppConsole_Yield(wxAppConsole* self)
+    {
+        return self->Yield();
     }
 
     // kwxApp ------------------------------------------------------------------
@@ -2485,6 +2582,14 @@ extern "C"
         delete self;
     }
 
+    EXPORT int kwxWizardPage_Create2(kwxWizardPage* self, wxWizard* parent, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return self->Create(parent, bmp) ? 1 : 0;
+    }
+
     EXPORT void kwxWizardPage_SetOnGetNext(kwxWizardPage* self, void* pFunction)
     {
         self->SetOnGetNext(pFunction);
@@ -2495,6 +2600,16 @@ extern "C"
         self->SetOnGetPrev(pFunction);
     }
 
+    EXPORT void kwxWizardPage_SetOnTransferDataFromWindow(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataToWindow(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataToWindow(pFunction);
+    }
+
     EXPORT void wxWizardPage_SetOnGetNext(wxWizardPage* self, void* pFunction)
     {
         static_cast<kwxWizardPage*>(self)->SetOnGetNext(pFunction);
@@ -2503,6 +2618,64 @@ extern "C"
     EXPORT void wxWizardPage_SetOnGetPrev(wxWizardPage* self, void* pFunction)
     {
         static_cast<kwxWizardPage*>(self)->SetOnGetPrev(pFunction);
+    }
+
+    EXPORT int wxWizardPage_Create2(wxWizardPage* self, wxWizard* parent, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return static_cast<kwxWizardPage*>(self)->Create(parent, bmp) ? 1 : 0;
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataFromWindow(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataToWindow(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataToWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnGetNextOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnGetNextOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnGetPrevOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnGetPrevOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataFromWindowOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataFromWindowOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataToWindowOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataToWindowOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnGetNextOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnGetNextOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnGetPrevOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnGetPrevOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataFromWindowOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataFromWindowOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataToWindowOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataToWindowOut(pFunction);
     }
 
     // kwxPopupTransientWindow ------------------------------------------------
@@ -2537,6 +2710,31 @@ extern "C"
                                                        void* pFunction)
     {
         self->SetOnOnDismiss(pFunction);
+    }
+
+    // Base implementations reachable from inside a callback.  CallBase* uses a
+    // qualified call, which bypasses virtual dispatch, so a callback can log
+    // and then delegate without re-entering itself.
+    EXPORT void kwxPopupTransientWindow_CallBasePopup(kwxPopupTransientWindow* self,
+                                                      wxWindow* focus)
+    {
+        self->CallBasePopup(focus);
+    }
+
+    EXPORT int kwxPopupTransientWindow_CallBaseShow(kwxPopupTransientWindow* self, int show)
+    {
+        return self->CallBaseShow(show != 0);
+    }
+
+    EXPORT int kwxPopupTransientWindow_CallBaseProcessLeftDown(kwxPopupTransientWindow* self,
+                                                               wxMouseEvent* event)
+    {
+        return self->CallBaseProcessLeftDown(*event);
+    }
+
+    EXPORT void kwxPopupTransientWindow_CallBaseOnDismiss(kwxPopupTransientWindow* self)
+    {
+        self->CallBaseOnDismiss();
     }
 
     // The <Base>_SetOn spellings the portability matrix also resolves.  The

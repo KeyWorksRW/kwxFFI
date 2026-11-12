@@ -12,10 +12,13 @@
 #include "lang_common.h"
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <print>
 #include <set>
 #include <tuple>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -37,6 +40,38 @@ static const std::unordered_set<std::string> kSkipStruct = {
 static const std::unordered_set<std::string> kSkipClass = {
     "wxString"  // lifecycle managed by core/strings.jl
 };
+
+// Method names that already exist in Base.  A plain `function length(obj::wxTempFile)` in a
+// module creates a new module-local `length` that shadows Base.length inside the module; the
+// same name must be qualified as Base.length so it extends the generic function instead.
+static const std::unordered_set<std::string> kBaseMethodNames = {
+    "append!",  "bind",     "broadcast!", "close",  "compile",       "contains",   "copy",
+    "copy!",    "count",    "delete!",    "detach", "display",       "dump",       "eof",
+    "error",    "float",    "flush",      "get!",   "get_extension", "get_offset", "insert!",
+    "length",   "lock",     "mkdir",      "open",   "parse",         "pause",      "peek",
+    "position", "prepend!", "print",      "pwd",    "read",          "read!",      "rename",
+    "replace",  "replace!", "resize!",    "run",    "seek",          "show",       "size",
+    "sort!",    "time",     "touch",      "unlock", "wait",          "write",      "yield"
+};
+// One entry in a class file's duplicate-dispatch guard: the C symbol that claimed a Julia dispatch
+// signature, and the Julia name the wrapper was emitted under.
+struct JuliaEmittedSignature
+{
+    std::string c_name;
+    std::string julia_name;
+};
+
+// Run-wide tallies for the two duplicate-dispatch populations.  Each collision is detected by a
+// per-class-file map; these counters exist so GenerateIdiomaticClasses can report all of them in
+// one aggregate line instead of one line per case.
+struct JuliaDuplicateTally
+{
+    size_t inherent_mixin_duplicates { 0 };
+    size_t recovered_methods { 0 };
+    size_t recovered_factories { 0 };
+};
+
+static JuliaDuplicateTally s_duplicate_tally;
 
 // Build a C function name from a FunctionDecl.
 
@@ -286,7 +321,8 @@ struct JuliaIdiomParam
     std::string decl;       // "name::Type" — empty for skipped params
     std::string call_expr;  // expression passed to KwxFFI call
     std::string pre_call;   // statement(s) emitted before the call
-    std::string post_call;  // statement(s) emitted after the call
+    std::string post_call;  // statement(s) emitted in the call's finally block
+    std::string preserve;   // variable kept alive across the call with GC.@preserve
 };
 
 // Convert one Param to zero or more idiomatic Julia parameters.
@@ -335,6 +371,17 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         return result;
     }
 
+    // Output long geometry → pass through as Ref{Clong}.
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        for (auto& n: JuliaSplitMacroArg(param.macro_arg))
+        {
+            const std::string escaped = JuliaEscapeName(n);
+            result.push_back({ escaped + "::Ref{Clong}", escaped, "", "" });
+        }
+        return result;
+    }
+
     if (param.macro_name == "TColorRGB")
     {
         for (auto& n: JuliaSplitMacroArg(param.macro_arg))
@@ -375,14 +422,17 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
     // Class pointer params.
     if (param.macro_name == "TClass" || param.macro_name == "TClassRef")
     {
-        // Special case: TClass(wxString) → idiomatic String param with wxString lifecycle.
+        // TClass(wxString): the callee takes an owned wxString*.  The temporary is not a
+        // conversion — the bytes are already UTF-8 — it is the object's lifetime, so it is
+        // created here and released in the call's finally block.
         if (param.macro_arg == "wxString")
         {
             std::string name = param.param_name.empty() ? "str" : param.param_name;
             name = JuliaEscapeName(name);
             const std::string wx_str = name + "_ws";
-            result.push_back({ name + "::String", wx_str + ".ptr",
-                               wx_str + " = wxString(" + name + ")", "delete!(" + wx_str + ")" });
+            result.push_back({ name + "::AbstractString", wx_str + ".ptr",
+                               wx_str + " = wxString(" + name + ")", "Base.delete!(" + wx_str + ")",
+                               "" });
             return result;
         }
 
@@ -406,14 +456,14 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         return result;
     }
 
-    // String input → wxString create/delete.
+    // TString is TChar* (kwx_types.h:160) — raw UTF-8 bytes needing no wrapper, no allocation
+    // and no conversion.  The string stays alive across the ccall via GC.@preserve.
     if (param.raw_type == "TString" || param.macro_name == "TString")
     {
         std::string name = param.param_name.empty() ? "str" : param.param_name;
         name = JuliaEscapeName(name);
-        const std::string wx_str = name + "_ws";
-        result.push_back({ name + "::String", wx_str + ".ptr", wx_str + " = wxString(" + name + ")",
-                           "delete!(" + wx_str + ")" });
+        result.push_back({ name + "::AbstractString", "Base.unsafe_convert(Cstring, " + name + ")",
+                           "", "", name });
         return result;
     }
 
@@ -426,12 +476,13 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         return result;
     }
 
-    // String output buffer.
+    // String output buffer: a byte vector the callee writes into.
     if (param.raw_type == "TStringOut")
     {
         std::string name = param.param_name.empty() ? "buf" : param.param_name;
         name = JuliaEscapeName(name);
-        result.push_back({ name + "::Ptr{UInt8}", name, "", "" });
+        result.push_back({ name + "::AbstractVector{UInt8}",
+                           "Base.unsafe_convert(Ptr{UInt8}, " + name + ")", "", "", name });
         return result;
     }
 
@@ -536,8 +587,17 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
     return result;
 }
 
+// The type half of a Julia parameter declaration ("x::Integer" → "Integer").  Parameter
+// names are irrelevant to dispatch, so this is what duplicate-signature detection compares.
+[[nodiscard]] static std::string JuliaParamType(const std::string& decl)
+{
+    const std::size_t separator = decl.find("::");
+    return separator == std::string::npos ? decl : decl.substr(separator + 2);
+}
+
 // Build the KwxFFI return expression for a function call string.
-static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& call)
+static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& call,
+                                   const std::unordered_set<std::string>& wrapped_classes)
 {
     if (func.return_type == "TBool" || func.return_type == "TBoolInt")
     {
@@ -546,12 +606,35 @@ static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& 
     if (func.return_macro == "TClass" || func.return_macro == "TSelf" ||
         func.return_macro == "TClassRef")
     {
+        const std::string type_name = func.return_arg.empty() ? func.class_name : func.return_arg;
+        if (type_name == "wxString")
+        {
+            // Owned refcounted buffer: copy the text, then release the C++ object.
+            return "_wx_take_wxstring(" + call + ")";
+        }
+        if (type_name == "wxEvent")
+        {
+            // The only kSkipStruct type that is a concrete struct in types_gen.jl.
+            return "wxEvent(" + call + ")";
+        }
+        // A wrapped class gets a typed wrapper; anything else (wxPoint, wxArrayInt, an abstract
+        // root) stays a raw pointer because no struct exists to construct.
+        if (!type_name.empty() && !kSkipStruct.contains(type_name) &&
+            wrapped_classes.contains(type_name))
+        {
+            return "_wx_wrap(" + type_name + ", " + call +
+                   (func.returns_owned ? "; owned = true)" : ")");
+        }
         return call;  // Ptr{Cvoid}
     }
-    if (func.return_type == "TString" || func.return_type == "TStringOut" ||
-        func.return_type == "TStringVoid")
+    if (func.return_type == "TString" || func.return_type == "TStringOut")
     {
-        return "_wx_get_string(" + call + ")";
+        // The C side strdup's the buffer, so copy it and free the original.
+        return "_wx_take_cstring(" + call + ")";
+    }
+    if (func.return_type == "TStringVoid")
+    {
+        return call;  // opaque void*, no ownership contract
     }
     if (func.return_type == "int" || func.return_type == "TArrayLen" ||
         func.return_type == "TByteStringLen")
@@ -593,35 +676,82 @@ static std::string JuliaReturnExpr(const FunctionDecl& func, const std::string& 
 // consumer class when a mixin method is re-emitted through a class that consumes it.
 // explicit_receiver is true when the defining class names its receiver with a leading
 // TClass(own class) parameter instead of TSelf (the mixin shape).
-static void EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
-                                const std::string& julia_cls, bool explicit_receiver)
+// wrapped_classes holds every type with a generated struct, so a class return can be wrapped.
+// emitted maps each Julia dispatch signature already written in this file to the C symbol and
+// Julia name that produced it; a repeated signature must be skipped or renamed because method
+// overwriting is a hard error during precompilation.
+static bool EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
+                                const std::string& julia_cls, bool explicit_receiver,
+                                const std::unordered_set<std::string>& wrapped_classes,
+                                std::unordered_map<std::string, JuliaEmittedSignature>& emitted)
 {
     if (!IsValidFunction(func) || (func.is_constructor && !func.has_self))
     {
-        return;
+        return false;
     }
 
     // A mixin declares its receiver as TClass(own class); it is the receiver, not an argument.
     const bool pseudo_self = explicit_receiver && IsJuliaPseudoSelf(func);
 
+    // Only a method that takes nothing but its receiver is a real destructor; Delete(index) on
+    // wxItemContainer is an ordinary method and must keep its argument.
+    const bool is_true_destructor = func.is_destructor && IsJuliaTrueDestructor(func);
     bool is_void = IsVoidReturn(func.return_type, func.return_macro);
 
-    // Snake-case method name; add ! for void (mutating) methods.
+    // A TClassDef block declares both instance methods (TSelf receiver) and static functions
+    // (no receiver at all), e.g. wxNumberFormatter_GetThousandsSeparator.  A function without
+    // a receiver must be emitted as a module-level function; giving it one would pass an
+    // extra argument the ccall signature does not accept.
+    const bool has_self_param = std::ranges::any_of(func.params,
+                                                    [](const Param& param)
+                                                    {
+                                                        return param.macro_name == "TSelf";
+                                                    });
+    const bool has_receiver = has_self_param || pseudo_self || is_true_destructor;
+
+    // Snake-case method name; add ! for void (mutating) methods.  Destructors extend Base,
+    // otherwise they land in KwxFFI and a caller in Main gets Base.delete! instead.  A
+    // receiver-less function keeps its C symbol name: the snake-case name would collide across
+    // classes (get(), get_current(), find(), ...) and a module-wide duplicate method fails
+    // precompilation, while the C symbol is unique by construction (dedupe removed repeats).
     std::string method_name;
-    if (func.is_destructor)
+    if (is_true_destructor)
     {
-        method_name = "delete!";
+        method_name = "Base.delete!";
         is_void = true;
     }
-    if (!IsValidFunction(func) || (func.is_constructor && !func.has_self))
+    else if (!has_receiver)
+    {
+        method_name = CFuncName(func);
+    }
+    else
     {
         const std::string snake = JuliaEscapeName(ToSnakeCase(func.method_name));
         method_name = snake + (is_void ? "!" : "");
+        // Extend the existing Base function rather than shadowing it inside the module.
+        if (kBaseMethodNames.contains(method_name))
+        {
+            method_name = "Base." + method_name;
+        }
+    }
+    if (method_name.empty())
+    {
+        std::println(stderr, "Warning: {}_{} produced an empty Julia method name; skipped",
+                     func.class_name, func.method_name);
+        return false;
     }
 
     // Build idiomatic param list (skip the receiver parameter).
     std::vector<std::vector<JuliaIdiomParam>> param_groups;
     bool has_post_calls = false;
+    std::string preserve_names;
+    std::string signature = method_name + "(";
+    bool first_signature_param = true;
+    if (has_receiver)
+    {
+        signature += julia_cls;
+        first_signature_param = false;
+    }
     bool skipped_receiver = !pseudo_self;
     for (const auto& param: func.params)
     {
@@ -637,23 +767,78 @@ static void EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
         std::vector<JuliaIdiomParam> group = ConvertToIdiomParams(param, false);
         for (const auto& julia_param: group)
         {
+            if (!julia_param.decl.empty())
+            {
+                if (!first_signature_param)
+                {
+                    signature += ", ";
+                }
+                signature += JuliaParamType(julia_param.decl);
+                first_signature_param = false;
+            }
             if (!julia_param.post_call.empty())
             {
                 has_post_calls = true;
             }
+            if (!julia_param.preserve.empty())
+            {
+                preserve_names += " " + julia_param.preserve;
+            }
         }
         param_groups.push_back(std::move(group));
     }
+    signature += ")";
+
+    const auto [existing, was_inserted] =
+        emitted.try_emplace(signature, JuliaEmittedSignature { CFuncName(func), method_name });
+    if (!was_inserted)
+    {
+        // A consumer re-emits its mixins' methods on its own type, so the same Julia name and
+        // parameter types can be reached again.  Both wrappers call the same C symbol and
+        // dispatch virtually to the same wxWidgets method, so the repeat is inherent and
+        // dropping it loses nothing.
+        if (existing->second.julia_name == method_name)
+        {
+            ++s_duplicate_tally.inherent_mixin_duplicates;
+            return false;
+        }
+        // Distinct Julia names sharing one dispatch signature (two mixins exposing clear! for the
+        // same receiver type) would be a method overwrite, which fails precompilation.  Keep the
+        // binding by emitting it under its C symbol instead.
+        const std::string fallback_signature =
+            CFuncName(func) + signature.substr(method_name.size());
+        if (!emitted
+                 .try_emplace(fallback_signature,
+                              JuliaEmittedSignature { CFuncName(func), CFuncName(func) })
+                 .second)
+        {
+            ++s_duplicate_tally.inherent_mixin_duplicates;
+            return false;
+        }
+        method_name = CFuncName(func);
+        ++s_duplicate_tally.recovered_methods;
+    }
 
     // Signature line.
-    output << "function " << method_name << "(obj::" << julia_cls;
+    output << "function " << method_name << "(";
+    bool first_output_param = true;
+    if (has_receiver)
+    {
+        output << "obj::" << julia_cls;
+        first_output_param = false;
+    }
     for (const auto& group: param_groups)
     {
         for (const auto& julia_param: group)
         {
             if (!julia_param.decl.empty())
             {
-                output << ", " << julia_param.decl;
+                if (!first_output_param)
+                {
+                    output << ", ";
+                }
+                output << julia_param.decl;
+                first_output_param = false;
             }
         }
     }
@@ -671,58 +856,89 @@ static void EmitIdiomaticMethod(std::ostream& output, const FunctionDecl& func,
         }
     }
 
-    // Build the KwxFFI call expression.
-    std::string call = "KwxFFI." + CFuncName(func) + "(obj.ptr";
+    // Build the KwxFFI call expression.  GC.@preserve keeps every AbstractString and byte
+    // vector argument alive until the ccall has returned.
+    std::string call = "KwxFFI." + CFuncName(func) + "(";
+    bool first_call_arg = true;
+    if (has_receiver)
+    {
+        call += "obj.ptr";
+        first_call_arg = false;
+    }
     for (const auto& group: param_groups)
     {
         for (const auto& julia_param: group)
         {
             if (!julia_param.call_expr.empty())
             {
-                call += ", " + julia_param.call_expr;
+                if (!first_call_arg)
+                {
+                    call += ", ";
+                }
+                call += julia_param.call_expr;
+                first_call_arg = false;
             }
         }
     }
     call += ")";
+    if (!preserve_names.empty())
+    {
+        call = "GC.@preserve" + preserve_names + " " + call;
+    }
 
-    // Emit call + return value.
+    // Emit call + return value.  A wxString temporary must be released even when the call
+    // throws, so cleanup runs in a finally block instead of after the call.
     if (is_void)
     {
-        output << "    " << call << "\n";
-        for (const auto& group: param_groups)
+        if (has_post_calls)
         {
-            for (const auto& julia_param: group)
+            output << "    try\n        " << call << "\n    finally\n";
+            for (const auto& group: param_groups)
             {
-                if (!julia_param.post_call.empty())
+                for (const auto& julia_param: group)
                 {
-                    output << "    " << julia_param.post_call << "\n";
+                    if (!julia_param.post_call.empty())
+                    {
+                        output << "        " << julia_param.post_call << "\n";
+                    }
                 }
             }
+            output << "    end\n";
+        }
+        else
+        {
+            output << "    " << call << "\n";
+        }
+        if (is_true_destructor)
+        {
+            output << "    obj.ptr = C_NULL\n";
         }
         output << "    nothing\n";
     }
     else if (has_post_calls)
     {
-        // Capture result, cleanup, then return.
-        output << "    _result = " << JuliaReturnExpr(func, call) << "\n";
+        // Capture the result inside try so the finally block still runs on a throw.
+        output << "    _result = try\n        " << JuliaReturnExpr(func, call, wrapped_classes)
+               << "\n    finally\n";
         for (const auto& group: param_groups)
         {
             for (const auto& julia_param: group)
             {
                 if (!julia_param.post_call.empty())
                 {
-                    output << "    " << julia_param.post_call << "\n";
+                    output << "        " << julia_param.post_call << "\n";
                 }
             }
         }
-        output << "    return _result\n";
+        output << "    end\n    return _result\n";
     }
     else
     {
-        output << "    return " << JuliaReturnExpr(func, call) << "\n";
+        output << "    return " << JuliaReturnExpr(func, call, wrapped_classes) << "\n";
     }
 
     output << "end\n\n";
+    return true;
 }
 
 // end of static helpers
@@ -741,17 +957,363 @@ void JuliaEmitter::Generate(const ParsedFFI& parsed_ffi, const fs::path& outDir)
     GenerateClasses(parsed_ffi, outDir);  // raw ccall layer (KwxFFI module)
     GenerateFreeFunctions(parsed_ffi, outDir);
     GenerateModule(outDir, parsed_ffi.lib_name);
+    GenerateTypePreamble(parsed_ffi, outDir);      // abstract roots + _wx_wrap
+    GenerateStringRuntime(outDir);                 // wxString + C string helpers
     GenerateIdiomaticClasses(parsed_ffi, outDir);  // idiomatic Julia wrappers
 
     std::println(stderr, "Julia: generated files in {}", outDir.string());
 }
 
-VerifyResult JuliaEmitter::Verify(const ParsedFFI& /* parsed_ffi */,
-                                  const fs::path& /* directory */)
+// -------------------------------------------------------------------------
+// types_gen.jl — abstract roots, wxEvent, and the class-return wrapper
+// -------------------------------------------------------------------------
+
+// The same policy list JuliaAbstractParent() uses.  Emitting the roots here means the
+// idiomatic tree no longer depends on a hand-written core/types.jl.
+void JuliaEmitter::GenerateTypePreamble(const ParsedFFI& parsed_ffi, const fs::path& outDir)
 {
+    std::ignore = parsed_ffi;
+    const fs::path path = outDir / "types_gen.jl";
+    ConditionalFileWriter output(path);
+    if (!output.is_open())
+    {
+        std::println(stderr, "Error: cannot create {}", path.string());
+        return;
+    }
+
+    WriteGeneratedHeader(output, "#");
+
+    // Guarded so a consumer that already includes core/types.jl (or includes this file twice)
+    // does not hit "invalid redefinition of constant".
+    output << "if !@isdefined(wxObject)\n";
+    output << "    abstract type wxObject end\n";
+    output << "    abstract type wxEvtHandler <: wxObject end\n";
+    output << "    abstract type wxWindow <: wxEvtHandler end\n";
+    output << "    abstract type wxControl <: wxWindow end\n";
+    output << "    abstract type wxTopLevelWindow <: wxWindow end\n";
+    output << "    abstract type wxSizer <: wxObject end\n";
+    output << "\n";
+    output << "    struct wxEvent\n";
+    output << "        ptr::Ptr{Cvoid}\n";
+    output << "    end\n";
+    output << "end\n\n";
+
+    // A borrowed class pointer never gets a finalizer; only a caller-owned (TClassOwned)
+    // pointer may.  A type with no destructor binding simply stays unfinalized.
+    output << "if !@isdefined(_wx_wrap)\n";
+    output << "    function _wx_attach_finalizer(obj, owned::Bool)\n";
+    output << "        if owned && hasmethod(Base.delete!, Tuple{typeof(obj)})\n";
+    output << "            finalizer(o -> (o.ptr == C_NULL || Base.delete!(o); nothing), obj)\n";
+    output << "        end\n";
+    output << "        return obj\n";
+    output << "    end\n\n";
+    output << "    function _wx_wrap(::Type{T}, ptr::Ptr{Cvoid}; owned::Bool = false) where {T}\n";
+    output << "        return _wx_attach_finalizer(T(ptr), owned)\n";
+    output << "    end\n\n";
+    output << "    function _wx_wrap(::Type{T}, ptr::Ptr{Cvoid}; owned::Bool = false) where {T <: "
+              "wxWindow}\n";
+    output << "        return _wx_attach_finalizer(T(ptr, Any[], Any[]), owned)\n";
+    output << "    end\n";
+    output << "end\n";
+
+    std::println(stderr, "  types_gen.jl:        type preamble");
+}
+
+// -------------------------------------------------------------------------
+// wxstring_gen.jl — wxString lifecycle and free-standing C string helpers
+// -------------------------------------------------------------------------
+
+// Ported from the consumer's core/strings.jl, which was correct apart from relying on a
+// hand-written file.  TString parameters never need this type; only TClass(wxString)
+// parameters and TClass(wxString) returns do.
+void JuliaEmitter::GenerateStringRuntime(const fs::path& outDir)
+{
+    const fs::path path = outDir / "wxstring_gen.jl";
+    ConditionalFileWriter output(path);
+    if (!output.is_open())
+    {
+        std::println(stderr, "Error: cannot create {}", path.string());
+        return;
+    }
+
+    WriteGeneratedHeader(output, "#");
+
+    output << "if !@isdefined(wxString)\n";
+    output << "    mutable struct wxString\n";
+    output << "        ptr::Ptr{Cvoid}\n\n";
+    output << "        function wxString(s::AbstractString)\n";
+    output << "            ptr = GC.@preserve s "
+              "KwxFFI.wxString_CreateUTF8(Base.unsafe_convert(Cstring, s))\n";
+    output << "            obj = new(ptr)\n";
+    output << "            finalizer(Base.delete!, obj)\n";
+    output << "            return obj\n";
+    output << "        end\n\n";
+    output << "        function wxString(ptr::Ptr{Cvoid}, own::Bool = false)\n";
+    output << "            obj = new(ptr)\n";
+    output << "            own && finalizer(Base.delete!, obj)\n";
+    output << "            return obj\n";
+    output << "        end\n";
+    output << "    end\n\n";
+    output << "    function Base.delete!(ws::wxString)\n";
+    output << "        if ws.ptr != C_NULL\n";
+    output << "            KwxFFI.wxString_Delete(ws.ptr)\n";
+    output << "            ws.ptr = C_NULL\n";
+    output << "        end\n";
+    output << "        return nothing\n";
+    output << "    end\n\n";
+    output << "    function Base.String(ws::wxString)\n";
+    output << "        ws.ptr == C_NULL && return \"\"\n";
+    output << "        buf = KwxFFI.kwxUtf8Buffer_Create(ws.ptr)\n";
+    output << "        buf == C_NULL && return \"\"\n";
+    output << "        try\n";
+    output << "            return unsafe_string(KwxFFI.kwxUtf8Buffer_Data(buf))\n";
+    output << "        finally\n";
+    output << "            KwxFFI.kwxUtf8Buffer_Delete(buf)\n";
+    output << "        end\n";
+    output << "    end\n\n";
+    output << "    Base.convert(::Type{wxString}, s::AbstractString) = wxString(s)\n";
+    output << "    Base.convert(::Type{String}, ws::wxString) = String(ws)\n";
+    output << "end\n\n";
+
+    // TString returns are the strdup'ed byte buffer owned by the caller.  The buffer is freed
+    // by the library's own wxCFree, not Libc.free: on Windows the DLL and Julia use different
+    // C runtimes, and freeing across them corrupts the heap.
+    output << "if !@isdefined(_wx_take_cstring)\n";
+    output << "    function _wx_take_cstring(ptr::Ptr{Cchar})\n";
+    output << "        ptr == C_NULL && return \"\"\n";
+    output << "        try\n";
+    output << "            return unsafe_string(ptr)\n";
+    output << "        finally\n";
+    output << "            KwxFFI.wxCFree(Ptr{Cvoid}(ptr))\n";
+    output << "        end\n";
+    output << "    end\n";
+    output << "end\n\n";
+
+    // TClass(wxString) returns a refcounted object that the caller must delete.
+    output << "if !@isdefined(_wx_take_wxstring)\n";
+    output << "    function _wx_take_wxstring(ptr::Ptr{Cvoid})\n";
+    output << "        ptr == C_NULL && return \"\"\n";
+    output << "        ws = wxString(ptr, false)\n";
+    output << "        try\n";
+    output << "            return String(ws)\n";
+    output << "        finally\n";
+    output << "            Base.delete!(ws)\n";
+    output << "        end\n";
+    output << "    end\n";
+    output << "end\n";
+
+    std::println(stderr, "  wxstring_gen.jl:     wxString runtime");
+}
+
+// -------------------------------------------------------------------------
+// Verify
+// -------------------------------------------------------------------------
+
+namespace
+{
+    // True when a `julia` executable answers on PATH.  The parse check is optional: a consumer
+    // that builds bindings without a Julia toolchain still gets the static checks below.
+    [[nodiscard]] bool JuliaInterpreterAvailable()
+    {
+#ifdef _WIN32
+        return std::system("julia --version > NUL 2>&1") == 0;
+#else
+        return std::system("julia --version > /dev/null 2>&1") == 0;
+#endif
+    }
+
+    // Double-quote a path for std::system / a Julia string literal.  Paths may contain
+    // spaces; neither shell nor Julia treats the quotes as content.
+    [[nodiscard]] std::string QuoteForShell(const std::string& text)
+    {
+        return "\"" + text + "\"";
+    }
+
+    [[nodiscard]] std::string TrimEdges(const std::string& text)
+    {
+        const std::size_t first = text.find_first_not_of(" \t\r");
+        if (first == std::string::npos)
+        {
+            return {};
+        }
+        const std::size_t last = text.find_last_not_of(" \t\r");
+        return text.substr(first, last - first + 1);
+    }
+
+    // Julia dispatch signature of a "function ..." line: the name plus parameter types only,
+    // so two declarations that differ only in parameter names compare equal.
+    [[nodiscard]] std::string DeclarationSignature(const std::string& line)
+    {
+        const std::size_t open = line.find('(');
+        if (open == std::string::npos)
+        {
+            return TrimEdges(line);
+        }
+        std::string signature = TrimEdges(line.substr(0, open)) + "(";
+        std::string params = line.substr(open + 1);
+        const std::size_t close = params.rfind(')');
+        if (close != std::string::npos)
+        {
+            params = params.substr(0, close);
+        }
+
+        bool first = true;
+        std::size_t start = 0;
+        int depth = 0;
+        for (std::size_t index = 0; index <= params.size(); ++index)
+        {
+            if (index < params.size())
+            {
+                const char character = params[index];
+                if (character == '{' || character == '(' || character == '[')
+                {
+                    ++depth;
+                }
+                else if (character == '}' || character == ')' || character == ']')
+                {
+                    --depth;
+                }
+                if (character != ',' || depth != 0)
+                {
+                    continue;
+                }
+            }
+
+            std::string decl = TrimEdges(params.substr(start, index - start));
+            start = index + 1;
+            const std::size_t separator = decl.find("::");
+            if (separator != std::string::npos)
+            {
+                decl = TrimEdges(decl.substr(separator + 2));
+            }
+            if (!first)
+            {
+                signature += ", ";
+            }
+            signature += decl;
+            first = false;
+        }
+        return signature + ")";
+    }
+}  // namespace
+
+VerifyResult JuliaEmitter::Verify(const ParsedFFI& parsed_ffi, const fs::path& directory)
+{
+    std::ignore = parsed_ffi;
     VerifyResult result;
-    result.success = false;
-    result.messages.emplace_back("Julia verify: use 'kwxgen verify' command instead");
+
+    if (!fs::is_directory(directory))
+    {
+        result.success = false;
+        result.messages.push_back("Julia verify: '" + directory.string() + "' is not a directory");
+        return result;
+    }
+
+    std::vector<fs::path> generated_files;
+    for (const auto& entry: fs::directory_iterator(directory))
+    {
+        if (!entry.is_regular_file())
+        {
+            continue;
+        }
+        const std::string file_name = entry.path().filename().string();
+        if (file_name.ends_with("_gen.jl"))
+        {
+            generated_files.push_back(entry.path());
+        }
+    }
+    std::ranges::sort(generated_files);
+
+    for (const fs::path& file_path: generated_files)
+    {
+        std::ifstream input(file_path);
+        if (!input.is_open())
+        {
+            result.success = false;
+            result.messages.push_back("Julia verify: cannot read " + file_path.string());
+            continue;
+        }
+
+        // The same signature twice is a method overwrite, which fails precompilation.
+        std::unordered_map<std::string, std::size_t> signatures;
+        std::string line;
+        std::size_t line_number = 0;
+        while (std::getline(input, line))
+        {
+            ++line_number;
+            if (!line.starts_with("function"))
+            {
+                continue;
+            }
+            const std::string signature = DeclarationSignature(line);
+            if (signature.starts_with("("))
+            {
+                // "function (obj::T)" — a definition whose value is discarded and which
+                // defines no method (lang_julia.cpp's inverted guard produced 9,000 of these).
+                result.success = false;
+                result.messages.push_back(file_path.filename().string() + ":" +
+                                          std::to_string(line_number) +
+                                          ": anonymous method definition");
+                continue;
+            }
+            const auto [existing, was_inserted] = signatures.try_emplace(signature, line_number);
+            if (!was_inserted)
+            {
+                result.success = false;
+                result.messages.push_back(file_path.filename().string() + ":" +
+                                          std::to_string(line_number) + ": duplicate signature '" +
+                                          signature + "' (first at line " +
+                                          std::to_string(existing->second) + ")");
+            }
+        }
+    }
+
+    if (!JuliaInterpreterAvailable())
+    {
+        result.messages.emplace_back(
+            "Julia parse check skipped: 'julia' not found on PATH (static checks ran)");
+        return result;
+    }
+
+    // Meta.parseall over every file catches syntax errors the static checks cannot see.  The
+    // script lives outside the compared directory (or verify would report it as an extra file)
+    // and takes the directory as ARGV[1] (so no path escaping inside a Julia literal).
+    const fs::path script_path = fs::temp_directory_path() / "kwxgen_julia_verify.jl";
+    {
+        std::ofstream script(script_path, std::ios::binary | std::ios::trunc);
+        if (!script.is_open())
+        {
+            result.success = false;
+            result.messages.push_back("Julia verify: cannot create " + script_path.string());
+            return result;
+        }
+        script << "failed = Ref(false)\n";
+        script << "for f in readdir(ARGS[1]; join=true)\n";
+        script << "    endswith(f, \".jl\") || continue\n";
+        script << "    try\n";
+        script << "        Meta.parseall(read(f, String))\n";
+        script << "    catch err\n";
+        script << "        println(stderr, \"parse error: \", f, \": \", err)\n";
+        script << "        failed[] = true\n";
+        script << "    end\n";
+        script << "end\n";
+        script << "exit(failed[] ? 1 : 0)\n";
+    }
+
+    const std::string command = "julia --startup-file=no " + QuoteForShell(script_path.string()) +
+                                " " + QuoteForShell(directory.string());
+    if (std::system(command.c_str()) != 0)
+    {
+        result.success = false;
+        result.messages.push_back("Julia parse check failed (script: " + script_path.string() +
+                                  ")");
+    }
+    else
+    {
+        std::error_code error_code;
+        fs::remove(script_path, error_code);
+    }
+
     return result;
 }
 
@@ -894,6 +1456,13 @@ void JuliaEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& o
     {
         output << event.event_name << "() = ccall((:" << event.export_name
                << ", libkwxFFI), Cint, ())\n";
+        // Every docstring refers to the wxEVT_ spelling, but the export symbol only records
+        // the un-prefixed name.  Emit the prefixed form as a deprecated alias.
+        if (event.export_name.starts_with("exp_wx") && !event.event_name.starts_with("wx"))
+        {
+            output << "Base.@deprecate wx" << event.event_name << "() " << event.event_name
+                   << "()\n";
+        }
     }
 
     std::println(stderr, "  events_gen.jl:       {} events", parsed_ffi.events.size());
@@ -1080,9 +1649,16 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
 {
     WriteGeneratedHeader(output, "#");
 
+    // Types with a generated struct: only those can be constructed by _wx_wrap().
+    const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(parsed_ffi);
+    // Julia dispatch signatures already written in this file, mapped to the C symbol and Julia
+    // name that produced them.  A repeat must be skipped or renamed: method overwriting fails
+    // precompilation.
+    std::unordered_map<std::string, JuliaEmittedSignature> emitted_signatures;
+
     // kSkipStruct: skip concrete struct + constructor, but STILL emit methods.
-    // These are types declared abstractly in types.jl, or types with existing
-    // definitions (wxEvent in types.jl). Methods dispatch on them polymorphically.
+    // These are types declared abstractly in types_gen.jl, or types with existing
+    // definitions (wxEvent). Methods dispatch on them polymorphically.
     const bool skip_struct = kSkipStruct.contains(class_info.name);
 
     if (!skip_struct)
@@ -1101,6 +1677,22 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
         }
         output << "end\n\n";
 
+        // The struct's own default constructors already occupy these signatures.  A C
+        // Create* factory that maps to the same shape (wxMemoryDC_CreateCompatible,
+        // wxStyledTextCtrl_Create) would overwrite them, which fails precompilation, so the
+        // guard makes such a factory fall back to its C symbol name.
+        emitted_signatures.emplace(
+            class_info.name + "(Ptr{Cvoid})",
+            JuliaEmittedSignature { class_info.name + "(implicit struct constructor)",
+                                    class_info.name });
+        if (class_info.is_window_derived)
+        {
+            emitted_signatures.emplace(
+                class_info.name + "(Ptr{Cvoid}, Vector{Any}, Vector{Any})",
+                JuliaEmittedSignature { class_info.name + "(implicit struct constructor)",
+                                        class_info.name });
+        }
+
         // ---------- constructors ----------
         for (const auto& func: class_info.methods)
         {
@@ -1113,36 +1705,71 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
                 continue;  // skip factory methods (has_self) and non-constructors
             }
 
-            // Build idiomatic param list.
+            // Build the idiomatic parameter list.
+            std::string declaration;
+            std::string type_signature;
             std::vector<std::vector<JuliaIdiomParam>> param_groups;
+            std::string preserve_names;
+            bool has_post_calls = false;
             for (const auto& param: func.params)
             {
                 if (param.macro_name == "TSelf")
                 {
                     continue;
                 }
-                param_groups.push_back(ConvertToIdiomParams(param, true));
+                std::vector<JuliaIdiomParam> group = ConvertToIdiomParams(param, true);
+                for (const auto& julia_param: group)
+                {
+                    if (julia_param.decl.empty())
+                    {
+                        continue;
+                    }
+                    if (!declaration.empty())
+                    {
+                        declaration += ", ";
+                        type_signature += ", ";
+                    }
+                    declaration += julia_param.decl;
+                    type_signature += JuliaParamType(julia_param.decl);
+                    if (!julia_param.post_call.empty())
+                    {
+                        has_post_calls = true;
+                    }
+                    if (!julia_param.preserve.empty())
+                    {
+                        preserve_names += " " + julia_param.preserve;
+                    }
+                }
+                param_groups.push_back(std::move(group));
+            }
+
+            // Every factory is named ClassName(paramtypes...), so two genuinely different
+            // factories collapse onto one signature: wxColour_CreateFromStock(int) and
+            // wxColour_CreateFromUnsignedInt(unsigned) are both wxColour(::Integer).  A collision
+            // therefore does not mean a duplicate, so the second factory is emitted under its C
+            // symbol name and its binding is kept.
+            std::string julia_name = class_info.name;
+            const std::string signature = class_info.name + "(" + type_signature + ")";
+            if (!emitted_signatures
+                     .try_emplace(signature, JuliaEmittedSignature { CFuncName(func), julia_name })
+                     .second)
+            {
+                // Only the emitted function name changes; the constructed struct type, the error
+                // message and the wrapping still name the class.
+                julia_name = CFuncName(func);
+                const std::string fallback_signature = julia_name + "(" + type_signature + ")";
+                if (!emitted_signatures
+                         .try_emplace(fallback_signature,
+                                      JuliaEmittedSignature { CFuncName(func), julia_name })
+                         .second)
+                {
+                    continue;
+                }
+                ++s_duplicate_tally.recovered_factories;
             }
 
             // Constructor signature.
-            output << "function " << class_info.name << "(";
-            bool first_param = true;
-            for (const auto& group: param_groups)
-            {
-                for (const auto& julia_param: group)
-                {
-                    if (!julia_param.decl.empty())
-                    {
-                        if (!first_param)
-                        {
-                            output << ", ";
-                        }
-                        output << julia_param.decl;
-                        first_param = false;
-                    }
-                }
-            }
-            output << ")\n";
+            output << "function " << julia_name << "(" << declaration << ")\n";
 
             // Pre-call statements.
             for (const auto& group: param_groups)
@@ -1156,8 +1783,8 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
                 }
             }
 
-            // C call.
-            output << "    ptr = KwxFFI." << CFuncName(func) << "(";
+            // C call, with string/vector arguments preserved across it.
+            std::string call = "KwxFFI." + CFuncName(func) + "(";
             bool first_arg = true;
             for (const auto& group: param_groups)
             {
@@ -1167,25 +1794,38 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
                     {
                         if (!first_arg)
                         {
-                            output << ", ";
+                            call += ", ";
                         }
-                        output << julia_param.call_expr;
+                        call += julia_param.call_expr;
                         first_arg = false;
                     }
                 }
             }
-            output << ")\n";
-
-            // Post-call cleanup.
-            for (const auto& group: param_groups)
+            call += ")";
+            if (!preserve_names.empty())
             {
-                for (const auto& julia_param: group)
+                call = "GC.@preserve" + preserve_names + " " + call;
+            }
+
+            // A wxString temporary must be released even when the call throws.
+            if (has_post_calls)
+            {
+                output << "    ptr = try\n        " << call << "\n    finally\n";
+                for (const auto& group: param_groups)
                 {
-                    if (!julia_param.post_call.empty())
+                    for (const auto& julia_param: group)
                     {
-                        output << "    " << julia_param.post_call << "\n";
+                        if (!julia_param.post_call.empty())
+                        {
+                            output << "        " << julia_param.post_call << "\n";
+                        }
                     }
                 }
+                output << "    end\n";
+            }
+            else
+            {
+                output << "    ptr = " << call << "\n";
             }
 
             // Null check.
@@ -1225,8 +1865,12 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
     // ---------- mixin methods re-emitted through this class ----------
     // A consumer of a mixin (wxTextCtrl consumes wxTextEntry, wxListBox consumes
     // wxItemContainer) exposes the mixin's methods on itself, so the wrapper is emitted here
-    // against the consumer's own type.  Emitted before the class's own methods so that a
-    // consumer method with the same signature wins.
+    // against the consumer's own type.
+    //
+    // This block is written before the class's own methods, so when the class also declares a
+    // method with the same dispatch signature the mixin's wrapper claims it and the class's own
+    // wrapper is the one dropped.  That is harmless: both wrappers call the same C symbol and
+    // dispatch virtually to the same wxWidgets method, so the duplicate is inherent.
     const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
         parsed_ffi.mixin_map.find(class_info.name);
     if (mixin_iter != parsed_ffi.mixin_map.end())
@@ -1251,7 +1895,16 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
                     {
                         continue;
                     }
-                    EmitIdiomaticMethod(output, func, class_info.name, mixin_explicit_receiver);
+                    // A receiver-less function (static member of the mixin, e.g.
+                    // wxPropertyGridInterface_RegisterAdditionalEditors) belongs to the mixin
+                    // class, not to each consumer; re-emitting it here would define the same
+                    // module-level method once per consumer and fail precompilation.
+                    if (!func.has_self && !IsJuliaPseudoSelf(func))
+                    {
+                        continue;
+                    }
+                    EmitIdiomaticMethod(output, func, class_info.name, mixin_explicit_receiver,
+                                        wrapped_classes, emitted_signatures);
                 }
                 break;
             }
@@ -1271,14 +1924,16 @@ void JuliaEmitter::EmitIdiomaticClassFile(std::ostream& output, const ClassInfo&
             continue;  // true constructors already emitted (or skipped for abstract)
         }
 
-        EmitIdiomaticMethod(output, func, class_info.name, explicit_receiver);
+        EmitIdiomaticMethod(output, func, class_info.name, explicit_receiver, wrapped_classes,
+                            emitted_signatures);
     }
 }
 
 void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const fs::path& outDir)
 {
-    // Master include file that WxWidgets.jl (or similar) can include after
-    // core types (types.jl) and strings (strings.jl) are loaded.
+    // Master include file that a package includes after the raw KwxFFI module.  types_gen.jl
+    // is included here so the tree loads with no hand-written type preamble; its definitions
+    // are guarded and tolerate a second include.
     const fs::path masterPath = outDir / "wx_idiomatic_gen.jl";
     ConditionalFileWriter master(masterPath);
     if (!master.is_open())
@@ -1287,13 +1942,16 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
         return;
     }
     master << "# Code generated by kwxgen. DO NOT EDIT.\n";
-    master << "# Include this file from your module AFTER:\n";
-    master << "#   include(\"core/types.jl\")   -- abstract type hierarchy\n";
-    master << "#   include(\"core/strings.jl\") -- wxString helpers\n\n";
+    master << "# Include this file from your module AFTER KwxFFI_gen.jl and wxstring_gen.jl.\n";
+    master << "include(\"types_gen.jl\")\n\n";
 
     size_t classCount = 0;
     size_t skippedCount = 0;
     size_t methodCount = 0;
+
+    // The collision maps are per class file; these counters are reset per run so the aggregate
+    // line reports only this generation.
+    s_duplicate_tally = {};
 
     // kSkipClass: completely exclude from idiomatic generation.
     // Only utility types that have dedicated implementations (strings.jl) are excluded.
@@ -1341,9 +1999,43 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
     }
 
     std::print(stderr, "  wx_idiomatic_gen.jl: {} classes, {} methods", classCount, methodCount);
+    bool has_detail = false;
+    const auto start_detail = [&has_detail]()
+    {
+        if (has_detail)
+        {
+            std::print(stderr, "; ");
+            return;
+        }
+        std::print(stderr, " (");
+        has_detail = true;
+    };
     if (skippedCount > 0)
     {
-        std::print(stderr, " ({} skipped)", skippedCount);
+        start_detail();
+        std::print(stderr, "{} skipped", skippedCount);
+    }
+    if (s_duplicate_tally.inherent_mixin_duplicates > 0)
+    {
+        start_detail();
+        std::print(stderr, "{} inherent mixin duplicates suppressed",
+                   s_duplicate_tally.inherent_mixin_duplicates);
+    }
+    if (s_duplicate_tally.recovered_methods > 0)
+    {
+        start_detail();
+        std::print(stderr, "{} method bindings recovered under their C names",
+                   s_duplicate_tally.recovered_methods);
+    }
+    if (s_duplicate_tally.recovered_factories > 0)
+    {
+        start_detail();
+        std::print(stderr, "{} factories emitted under their C names",
+                   s_duplicate_tally.recovered_factories);
+    }
+    if (has_detail)
+    {
+        std::print(stderr, ")");
     }
     std::println(stderr, "");
 }

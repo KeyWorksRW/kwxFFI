@@ -215,3 +215,104 @@ inline std::string ToSnakeCase(const std::string& name)
     }
     return wrapped_classes;
 }
+
+// Receiver classification shared by every language backend.
+//
+// True if a non-constructor method's first parameter is TClass(ClassName) matching the
+// function's own class — acts as the implicit "self" receiver for mixin methods.
+// NOTE: this heuristic exists only for mixin methods, which are declared against the mixin
+// class with a TClass(mixin) receiver instead of TSelf.  The parser sets has_self for
+// genuine receivers, so a real method's first parameter is never mistaken for the receiver.
+// A TClass(OwnClass) parameter is also the shape of an own-class *argument* (e.g.
+// wxLog_SetActiveTarget), so callers must additionally consult UsesExplicitReceiver.
+// Do NOT widen this predicate without that guarantee.
+[[nodiscard]] inline bool IsPseudoSelf(const FunctionDecl& func)
+{
+    if (func.is_constructor || func.has_self || func.class_name.empty() || func.params.empty())
+    {
+        return false;
+    }
+    const Param& first = func.params[0];
+    return first.macro_name == "TClass" && first.macro_arg == func.class_name;
+}
+
+// True if a class passes its object through an explicit TClass(OwnClass) first parameter
+// instead of TSelf for most of its methods (mixin/value-object shape: wxTextEntry,
+// wxItemContainer, wxDataViewItemArray).  For those the parameter is a receiver, not an
+// argument.
+[[nodiscard]] inline bool UsesExplicitReceiver(const ClassInfo& cls)
+{
+    size_t receiver_count = 0;
+    size_t method_count = 0;
+    for (const auto& method: cls.methods)
+    {
+        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+        {
+            continue;
+        }
+        if (method.has_self)
+        {
+            return false;  // the class names its receiver with TSelf
+        }
+        ++method_count;
+        if (IsPseudoSelf(method))
+        {
+            ++receiver_count;
+        }
+    }
+    return receiver_count > 0 && (receiver_count * 2U) > method_count;
+}
+
+// True for a function declared inside a TClassDef block that has no receiver at all: no
+// TSelf, no TClass(own class) pseudo-self, and no receiver-named first parameter.  Such a
+// function is static in wxWidgets and must be emitted at module scope, not as an instance
+// method that forwards the object pointer.
+//
+// member_of_class: the caller already knows the declaration came from the owning class's
+// method list, even though the parser could not derive a class prefix for it (a block such as
+// `TClassDefExtend(wxArtProvider, wxObject) TBool PopProvider();` leaves class_name empty).
+// Without the flag such a function looks like a free function and was emitted as an instance
+// method, passing an object pointer the C wrapper never declared.  Callers that only see a
+// bare FunctionDecl keep the default and the original behaviour.  The flag also lets a caller
+// classify a Delete method with this same receiver rule, since destructors are emitted
+// separately rather than as regular methods.  Constructor factories are the exception the flag
+// does not override: a real constructor is skipped from the method loop, but the hand-written
+// `_Ctor` factories (wxGridCellAttr_Ctor()) are named "Ctor" yet still receiverless, so under
+// member_of_class they follow the same static rule instead of being forced into instance shape.
+[[nodiscard]] inline bool IsStaticClassFunction(const FunctionDecl& func,
+                                                const ClassInfo& owning_class,
+                                                bool member_of_class = false)
+{
+    if (func.class_name.empty() && !member_of_class)
+    {
+        return false;
+    }
+    if (func.is_constructor || (func.is_destructor && !member_of_class) ||
+        (func.method_name == "Ctor" && !member_of_class))
+    {
+        return false;
+    }
+    if (func.has_self)
+    {
+        return false;
+    }
+    // IsPseudoSelf also matches a TClass(own class) *argument* (wxLog_SetActiveTarget takes
+    // the new target, wxArtProvider_PushBack the provider), so it only denotes a receiver in
+    // a class that declares no TSelf receiver at all.
+    if (IsPseudoSelf(func) && UsesExplicitReceiver(owning_class))
+    {
+        return false;
+    }
+    // Hand-written wrappers (wxStyledTextCtrl and friends) pass the object pointer as an
+    // explicit first parameter; those blocks keep their instance-method shape.
+    if (!func.params.empty())
+    {
+        const Param& first = func.params[0];
+        if (first.macro_name.empty() && first.raw_type == "void*" &&
+            (first.param_name == "pObject" || first.param_name == "self"))
+        {
+            return false;
+        }
+    }
+    return true;
+}

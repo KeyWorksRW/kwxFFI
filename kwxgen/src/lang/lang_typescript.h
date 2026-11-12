@@ -40,6 +40,9 @@ private:
     // Emits kwx_free_functions_gen.ts — free-function TypeScript wrappers.
     static void GenerateFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
+    // Emits kwx_class_registry_gen.ts — runtime registry of generated wrapper classes.
+    static void GenerateClassRegistry(const std::filesystem::path& out_dir);
+
     // Emits wx{Class}_gen.ts for each class that has methods.
     static void GenerateClassFiles(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
