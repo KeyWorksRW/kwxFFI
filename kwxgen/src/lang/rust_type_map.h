@@ -132,6 +132,14 @@ inline std::string RustFFIReturnType(const std::string& return_type,
     {
         return "*mut c_uint";
     }
+    if (c_type == "size_t")
+    {
+        return "*mut usize";
+    }
+    if (c_type == "int64_t")
+    {
+        return "*mut i64";
+    }
     return "*mut c_int";
 }
 
@@ -153,6 +161,14 @@ inline std::string RustFFIReturnType(const std::string& return_type,
     if (c_type == "unsigned")
     {
         return "*mut u32";
+    }
+    if (c_type == "size_t")
+    {
+        return "*mut usize";
+    }
+    if (c_type == "int64_t")
+    {
+        return "*mut i64";
     }
     return "*mut i32";
 }

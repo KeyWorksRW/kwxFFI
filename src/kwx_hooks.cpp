@@ -555,7 +555,7 @@ wxWindow* kwxStockPreferencesPage::CreateWindow(wxWindow* parent)
         return nullptr;
     }
     m_result_window = nullptr;
-    m_create_window_func(nullptr, parent);
+    m_create_window_func(m_object, parent);
     return m_result_window;
 }
 
@@ -837,6 +837,45 @@ void kwxTextCompleterSimple::GetCompletions(const wxString& prefix, wxArrayStrin
     }
     m_get_completions_func(m_object, (void*) &prefix, &result);
 }
+
+// ---------------------------------------------------------------------------
+// kwxNativeWindow
+// ---------------------------------------------------------------------------
+
+// Create() is called here rather than in the constructor so a failure leaves no
+// half-built object behind; each binding's Create checks the window's validity.
+kwxNativeWindow::kwxNativeWindow(void* pObject, wxWindow* parent, wxWindowID id, void* handle) :
+    wxNativeWindow(), m_object(pObject)
+{
+    Create(parent, id, (wxNativeWindowHandle) handle);
+}
+
+#ifdef __WXMSW__
+namespace
+{
+    // MSWOnNotify() takes WXLPARAM, which exists only on MSW, so the override
+    // cannot be declared in the public header.  kwxNativeWindow_Create below
+    // instantiates this subclass; the bindings only ever see kwxNativeWindow*.
+    class kwxNativeWindowMSW : public kwxNativeWindow
+    {
+    public:
+        kwxNativeWindowMSW(void* pObject, wxWindow* parent, wxWindowID id, void* handle) :
+            kwxNativeWindow(pObject, parent, id, handle)
+        {
+        }
+
+    protected:
+        bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM* result) override
+        {
+            if (InvokeMSWNotify(idCtrl, (void*) lParam, result))
+            {
+                return true;
+            }
+            return wxNativeWindow::MSWOnNotify(idCtrl, lParam, result);
+        }
+    };
+}  // namespace
+#endif
 
 // ---------------------------------------------------------------------------
 // wxHtmlTagsModule
@@ -1858,6 +1897,16 @@ extern "C"
         return (void*) new kwxStockPreferencesPage(page_kind);
     }
 
+    EXPORT void* wxStockPreferencesPage_CreateWithState(int kind, void* pObject)
+    {
+        // Only the two stock kinds exist; anything else is the General page.
+        const wxStockPreferencesPage::Kind page_kind =
+            (kind == wxStockPreferencesPage::Kind_Advanced) ?
+                wxStockPreferencesPage::Kind_Advanced :
+                wxStockPreferencesPage::Kind_General;
+        return (void*) new kwxStockPreferencesPage(page_kind, pObject);
+    }
+
     EXPORT int wxStockPreferencesPage_GetKind(wxStockPreferencesPage* self)
     {
         return static_cast<int>(static_cast<kwxStockPreferencesPage*>(self)->GetKind());
@@ -1895,6 +1944,15 @@ extern "C"
     EXPORT void wxPreferencesEditor_AddPage(wxPreferencesEditor* self, wxPreferencesPage* page)
     {
         self->AddPage(page);
+    }
+
+    EXPORT void wxPreferencesEditor_AddStockPage(wxPreferencesEditor* self,
+                                                 wxStockPreferencesPage* page)
+    {
+        // Up-cast only: kwxStockPreferencesPage derives from wxStockPreferencesPage,
+        // which derives from wxPreferencesPage.  The editor takes ownership of the
+        // page, exactly as wxPreferencesEditor_AddPage does.
+        self->AddPage(static_cast<wxPreferencesPage*>(page));
     }
 
     EXPORT void wxPreferencesEditor_Show(wxPreferencesEditor* self, wxWindow* parent)
@@ -2226,6 +2284,27 @@ extern "C"
                                                           void* pFunction)
     {
         static_cast<kwxTextCompleterSimple*>(self)->SetOnGetCompletions(pFunction);
+    }
+
+    // kwxNativeWindow --------------------------------------------------------
+
+    EXPORT void* kwxNativeWindow_Create(void* pObject, wxWindow* parent, int id, void* handle)
+    {
+#ifdef __WXMSW__
+        return (void*) new kwxNativeWindowMSW(pObject, parent, id, handle);
+#else
+        return (void*) new kwxNativeWindow(pObject, parent, id, handle);
+#endif
+    }
+
+    EXPORT void kwxNativeWindow_Delete(kwxNativeWindow* self)
+    {
+        delete self;
+    }
+
+    EXPORT void kwxNativeWindow_SetOnMSWNotify(kwxNativeWindow* self, void* pFunction)
+    {
+        self->SetOnMSWNotify(pFunction);
     }
 
     // kwxHtmlTagsModule ------------------------------------------------------

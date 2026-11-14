@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>  // size_t
 #include <stdint.h>  // uint8_t, uint32_t, int64_t, intptr_t, uintptr_t
 #include <time.h>    // time_t
 
@@ -26,6 +27,8 @@
 #undef TDoubleOut
 #undef TBoolOut
 #undef TUIntOut
+#undef TSizeTOut
+#undef TInt64Out
 #undef TIntInOut
 #undef TDoubleInOut
 #undef TULongInOut
@@ -121,6 +124,8 @@
 #define TDoubleOut   double*
 #define TBoolOut     TBool*
 #define TUIntOut     unsigned*
+#define TSizeTOut    size_t* /* single out size_t; NOT the TSizeOut geometry expansion (int*) */
+#define TInt64Out    TInt64* /* single out 64-bit integer */
 #define TIntInOut    int*
 #define TDoubleInOut double*
 #define TULongInOut  unsigned long*

@@ -160,6 +160,12 @@ extern "C"
         return self->ApplyStyle(ctrl, wxRichTextRange(startPos, endPos), flags);
     }
 
+    EXPORT int wxRichTextFormattingDialog_ApplyStyleToCtrl(wxRichTextFormattingDialog* self,
+                                                           wxRichTextCtrl* ctrl, int flags)
+    {
+        return self->ApplyStyle(ctrl, flags);
+    }
+
     EXPORT void wxRichTextFormattingDialog_GetAttributes(wxRichTextFormattingDialog* self,
                                                          wxRichTextAttr* attr)
     {
@@ -302,5 +308,23 @@ extern "C"
                                                          wxRichTextCtrl* ctrl)
     {
         return self->ApplyStyle(ctrl);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextObjectPropertiesDialog
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextObjectPropertiesDialog*
+        wxRichTextObjectPropertiesDialog_Create(wxRichTextObject* obj, wxWindow* parent,
+                                                int windowId, wxString* caption, int x, int y,
+                                                int width, int height, long style)
+    {
+        return new wxRichTextObjectPropertiesDialog(obj, parent, windowId, *caption, wxPoint(x, y),
+                                                    wxSize(width, height), style);
+    }
+
+    EXPORT void wxRichTextObjectPropertiesDialog_Delete(wxRichTextObjectPropertiesDialog* self)
+    {
+        delete self;
     }
 }

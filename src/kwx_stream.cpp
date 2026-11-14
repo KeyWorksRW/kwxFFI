@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/sstream.h>
 #include <wx/stream.h>
 #include <wx/wfstream.h>
 
@@ -48,6 +49,22 @@ extern "C"
     EXPORT int wxFileOutputStream_IsOk(wxFileOutputStream* self)
     {
         return self->IsOk();
+    }
+
+    EXPORT wxStringOutputStream* wxStringOutputStream_Create()
+    {
+        // No external string: the stream owns its internal buffer, retrieved by GetString().
+        return new wxStringOutputStream();
+    }
+
+    EXPORT void wxStringOutputStream_Delete(wxStringOutputStream* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxString* wxStringOutputStream_GetString(wxStringOutputStream* self)
+    {
+        return new wxString(self->GetString());
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----

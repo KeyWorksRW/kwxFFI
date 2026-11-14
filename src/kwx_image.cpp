@@ -145,6 +145,153 @@ extern "C"
         return buf;
     }
 
+    // ── Opaque base64 payload: bitmap or SVG text ────────────────────
+
+    // Helper: ASCII lower-case a byte without touching locale tables.
+    static unsigned char asciiLowerByte(unsigned char byte)
+    {
+        if (byte >= 'A' && byte <= 'Z')
+        {
+            return static_cast<unsigned char>(byte - 'A' + 'a');
+        }
+        return byte;
+    }
+
+    // Helper: base64 padding text may carry ASCII whitespace from wrapped or
+    // indented payloads; it is not part of the encoded data.
+    static bool isBase64Whitespace(unsigned char byte)
+    {
+        return byte == ' ' || byte == '\t' || byte == '\r' || byte == '\n' || byte == '\f' ||
+               byte == '\v';
+    }
+
+    // Helper: normalize an opaque base64 payload into the bytes it actually carries.
+    // Accepts an optional data: URI header, ignores embedded ASCII whitespace, and
+    // gunzips the result when it starts with the gzip magic. Returns an empty buffer
+    // on any failure (including corrupt gzip data — never the compressed bytes).
+    static wxMemoryBuffer decodeBase64Payload(const unsigned char* base64, size_t len)
+    {
+        if (!base64 || len == 0)
+            return wxMemoryBuffer();
+
+        size_t start = 0;
+        if (len >= 5 && asciiLowerByte(base64[0]) == 'd' && asciiLowerByte(base64[1]) == 'a' &&
+            asciiLowerByte(base64[2]) == 't' && asciiLowerByte(base64[3]) == 'a' &&
+            base64[4] == ':')
+        {
+            const size_t header_limit = std::min<size_t>(len, 256);
+            for (size_t i = 0; i < header_limit; ++i)
+            {
+                if (base64[i] == ',')
+                {
+                    start = i + 1;
+                    break;
+                }
+            }
+        }
+
+        wxMemoryBuffer text(len - start + 1);
+        char* text_data = static_cast<char*>(text.GetData());
+        size_t text_len = 0;
+        for (size_t i = start; i < len; ++i)
+        {
+            if (isBase64Whitespace(base64[i]))
+            {
+                continue;
+            }
+            text_data[text_len] = static_cast<char>(base64[i]);
+            ++text_len;
+        }
+        if (text_len == 0)
+            return wxMemoryBuffer();
+        text.SetDataLen(text_len);
+
+        wxMemoryBuffer decoded = base64DecodeBuffer(
+            reinterpret_cast<const unsigned char*>(text.GetData()), text.GetDataLen());
+        if (decoded.GetDataLen() == 0)
+            return wxMemoryBuffer();
+
+        const auto* decoded_bytes = static_cast<const unsigned char*>(decoded.GetData());
+        if (decoded.GetDataLen() >= 2 && decoded_bytes[0] == 0x1F && decoded_bytes[1] == 0x8B)
+            return gzipDecompress(decoded_bytes, decoded.GetDataLen());
+        return decoded;
+    }
+
+    // Helper: decide whether a normalized payload is an SVG document. Skips an
+    // optional UTF-8 BOM and leading whitespace, then requires '<' followed by the
+    // `<svg` tag within the first 1024 bytes.
+    static bool payloadLooksLikeSvg(const wxMemoryBuffer& payload)
+    {
+        const size_t data_len = payload.GetDataLen();
+        if (data_len == 0)
+            return false;
+        const auto* bytes = static_cast<const unsigned char*>(payload.GetData());
+        size_t pos = 0;
+        if (data_len >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            pos = 3;
+        while (pos < data_len && isBase64Whitespace(bytes[pos]))
+        {
+            ++pos;
+        }
+        if (pos >= data_len || bytes[pos] != '<')
+            return false;
+
+        const size_t scan_end = std::min<size_t>(data_len, 1024);
+        for (size_t i = pos; i + 4 <= scan_end; ++i)
+        {
+            if (bytes[i] == '<' && asciiLowerByte(bytes[i + 1]) == 's' &&
+                asciiLowerByte(bytes[i + 2]) == 'v' && asciiLowerByte(bytes[i + 3]) == 'g')
+                return true;
+        }
+        return false;
+    }
+
+    EXPORT wxBitmap* kwxBitmapFromBase64(const unsigned char* base64, size_t len)
+    {
+        if (!base64 || len == 0)
+            return nullptr;
+        try
+        {
+            wxMemoryBuffer payload = decodeBase64Payload(base64, len);
+            if (payload.GetDataLen() == 0)
+                return nullptr;
+            // SVG payloads are not raster images: the caller must ask for the text.
+            if (payloadLooksLikeSvg(payload))
+                return nullptr;
+            wxMemoryInputStream strm(payload.GetData(), payload.GetDataLen());
+            wxImage img(strm, wxBitmapType::wxBITMAP_TYPE_ANY);
+            if (!img.IsOk())
+                return nullptr;
+            return new wxBitmap(img);
+        }
+        catch (...)
+        {
+            return nullptr;
+        }
+    }
+
+    EXPORT char* kwxSvgStringFromBase64(const unsigned char* base64, size_t len)
+    {
+        if (!base64 || len == 0)
+            return nullptr;
+        try
+        {
+            wxMemoryBuffer payload = decodeBase64Payload(base64, len);
+            if (payload.GetDataLen() == 0)
+                return nullptr;
+            if (!payloadLooksLikeSvg(payload))
+                return nullptr;
+            // wxMemoryBuffer is not NUL-terminated; go through std::string so the
+            // returned text is safe to read as a C string.
+            std::string svg_text(static_cast<const char*>(payload.GetData()), payload.GetDataLen());
+            return strdup(svg_text.c_str());
+        }
+        catch (...)
+        {
+            return nullptr;
+        }
+    }
+
     EXPORT wxBitmapBundle* wxBitmapBundle_CreateFromSVGBase64(const unsigned char* base64,
                                                               size_t len, int default_w,
                                                               int default_h)
@@ -471,6 +618,12 @@ extern "C"
     {
         wxBitmap value = ((wxBitmapBundle*) pObject)->GetBitmap(wxSize(width, height));
         return new wxBitmap(value);
+    }
+
+    EXPORT wxIcon* wxBitmapBundle_GetIcon(void* pObject, int width, int height)
+    {
+        wxIcon value = ((wxBitmapBundle*) pObject)->GetIcon(wxSize(width, height));
+        return new wxIcon(value);
     }
 
     EXPORT void* wxBitmapBundle_GetDefaultSize(void* pObject)

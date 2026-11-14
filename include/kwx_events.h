@@ -113,6 +113,7 @@ int exp_wxEVT_NC_PAINT();
 int exp_wxEVT_MENU_OPEN();
 int exp_wxEVT_MENU_CLOSE();
 int exp_wxEVT_MENU_HIGHLIGHT();
+int exp_wxEVT_MENU_HIGHLIGHT_ALL();
 int exp_wxEVT_CONTEXT_MENU();
 int exp_wxEVT_SYS_COLOUR_CHANGED();
 int exp_wxEVT_DISPLAY_CHANGED();

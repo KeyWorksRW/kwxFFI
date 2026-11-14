@@ -419,3 +419,9 @@ void wxVariant_ClearList(TSelf(wxVariant) pObject);
 TBool wxVariant_ConvertToLong(TSelf(wxVariant) pObject, TLongOut value);
 TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, TDoubleOut value);
 TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, TIntOut value);
+// wxVariant list element access: a new copy of element `index`, which the caller
+// owns.  Returns null when index is out of range.
+TClass(wxVariant) wxVariant_Item(TSelf(wxVariant) pObject, size_t index);
+// Extracts the wxFont held by a "wxFont" variant; null for any other type.  The
+// caller owns the returned wxFont.
+TClass(wxFont) wxVariant_GetFont(TSelf(wxVariant) pObject);

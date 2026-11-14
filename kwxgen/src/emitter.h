@@ -8,12 +8,14 @@
 #pragma once
 
 #include "model.h"
+#include "ui_descriptor.h"
 
 #include <cstddef>
 #include <filesystem>
 #include <map>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 struct VerifyResult
@@ -68,4 +70,31 @@ public:
     // Report which classes, methods and symbols this backend wraps.  The default report is
     // empty, which the coverage command shows as zero coverage.
     virtual CoverageInfo Coverage(const ParsedFFI& /* ffi */) const { return CoverageInfo {}; }
+
+    // Describe how this backend expresses the UI idioms (JSON schema 1).  The default is an
+    // empty descriptor, which the emit-ui command rejects as invalid; a backend that
+    // supports UI emission overrides this.
+    virtual UiDescriptor BuildUiDescriptor(const ParsedFFI& /* ffi */) const { return {}; }
+
+    // Generate the UI layer into generated_dir and report every descriptor entry whose
+    // emitted symbol disagrees with the descriptor.  Each line is
+    // "MISMATCH <class>.<role> <symbol>".  The default reports nothing.
+    virtual std::vector<std::string>
+        VerifyUiDescriptor(const UiDescriptor& /* descriptor */,
+                           const std::filesystem::path& /* generated_dir */) const
+    {
+        return {};
+    }
+
+    // Set by emit-ui before BuildUiDescriptor; the descriptor's class coverage follows it.
+    // VerifyUiDescriptor relies on the model the emitter stashed during BuildUiDescriptor,
+    // so the selection must be stored on the emitter, not passed through BuildUiDescriptor.
+    void SetUiClassSelection(UiClassSelection selection)
+    {
+        ui_class_selection_ = std::move(selection);
+    }
+    const UiClassSelection& GetUiClassSelection() const { return ui_class_selection_; }
+
+protected:
+    UiClassSelection ui_class_selection_;
 };

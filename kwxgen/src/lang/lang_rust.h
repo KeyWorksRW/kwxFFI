@@ -9,6 +9,8 @@
 
 #include "../emitter.h"
 
+#include <memory>
+
 class RustEmitter : public LanguageEmitter
 {
 public:
@@ -18,7 +20,16 @@ public:
     [[nodiscard]] std::string_view Name() const override { return "rust"; }
     [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi) const override;
 
+    UiDescriptor BuildUiDescriptor(const ParsedFFI& parsed_ffi) const override;
+    std::vector<std::string>
+        VerifyUiDescriptor(const UiDescriptor& descriptor,
+                           const std::filesystem::path& generated_dir) const override;
+
 private:
+    // Set by BuildUiDescriptor so VerifyUiDescriptor can regenerate the crate into the
+    // temporary directory emit-ui hands it; it receives no FFI of its own.
+    mutable std::shared_ptr<const ParsedFFI> ui_ffi;
+
     static void GenerateCargoToml(const std::filesystem::path& outDir);
     static void GenerateSys(const ParsedFFI& ffi, const std::filesystem::path& srcDir);
     static void GenerateObject(const ParsedFFI& ffi, const std::filesystem::path& srcDir);

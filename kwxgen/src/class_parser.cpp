@@ -760,9 +760,12 @@ static void BuildMixinMap(ClassParseResult& result)
         std::vector<const char*> consumers;
     };
     const std::array<MixinEntry, 4> mixin_table = { {
+        // wxRichTextCtrl reaches wxTextEntryBase through wxTextCtrlIface; it does
+        // not derive wxTextEntry. The C-side accessors therefore dynamic_cast to
+        // wxTextEntryBase, and the consumer's emitted methods reuse that surface.
         { .mixin = "wxTextEntry",
           .consumers = { "wxTextCtrl", "wxComboBox", "wxSearchCtrl", "wxBitmapComboBox",
-                         "wxComboCtrl" } },
+                         "wxComboCtrl", "wxRichTextCtrl" } },
         { .mixin = "wxItemContainer",
           .consumers = { "wxListBox", "wxChoice", "wxCheckListBox", "wxComboBox",
                          "wxBitmapComboBox" } },

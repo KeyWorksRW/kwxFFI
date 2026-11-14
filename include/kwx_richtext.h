@@ -17,11 +17,136 @@ TClassDefExtend(wxRichTextProperties, wxObject)
 TClassDefExtend(wxRichTextStyleDefinition, wxObject)
 TClassDefExtend(wxRichTextStyleSheet, wxObject)
 
+// wxRichTextAttr must be constructible: it is the real argument type of the rich-text
+// attribute methods (BeginStyle, WriteTextBox, GetBasicStyle, ...). Without a constructor
+// the bindings only exposed wxTextAttr, and passing one where a wxRichTextAttr is expected
+// is undefined behaviour (heap corruption) instead of a compile-time type error.
+TClass(wxRichTextAttr) wxRichTextAttr_Create();
+TClass(wxRichTextAttr) wxRichTextAttr_CreateFromTextAttr(TClass(wxTextAttr) attr);
+TClass(wxRichTextAttr) wxRichTextAttr_CreateCopy(TClass(wxRichTextAttr) attr);
+void wxRichTextAttr_Delete(TSelf(wxRichTextAttr) self);
+void wxRichTextAttr_Copy(TSelf(wxRichTextAttr) self, TClass(wxRichTextAttr) attr);
+TClass(wxTextBoxAttr) wxRichTextAttr_GetTextBoxAttr(TSelf(wxRichTextAttr) self);
+void wxRichTextAttr_SetTextBoxAttr(TSelf(wxRichTextAttr) self, TClass(wxTextBoxAttr) attr);
+TBool wxRichTextAttr_HasTextBoxAttr(TSelf(wxRichTextAttr) self);
+
+// ---- wxRichTextProperties ----
+TClass(wxRichTextProperties) wxRichTextProperties_Create();
+TClass(wxRichTextProperties) wxRichTextProperties_CreateCopy(TClass(wxRichTextProperties) props);
+void wxRichTextProperties_Delete(TSelf(wxRichTextProperties) self);
+void wxRichTextProperties_Copy(TSelf(wxRichTextProperties) self, TClass(wxRichTextProperties) props);
+void wxRichTextProperties_Clear(TSelf(wxRichTextProperties) self);
+size_t wxRichTextProperties_GetCount(TSelf(wxRichTextProperties) self);
+TBool wxRichTextProperties_HasProperty(TSelf(wxRichTextProperties) self, TClass(wxString) name);
+int wxRichTextProperties_Find(TSelf(wxRichTextProperties) self, TClass(wxString) name);
+TBool wxRichTextProperties_Remove(TSelf(wxRichTextProperties) self, TClass(wxString) name);
+TClass(wxString) wxRichTextProperties_GetPropertyString(TSelf(wxRichTextProperties) self,
+                                                      TClass(wxString) name);
+long wxRichTextProperties_GetPropertyLong(TSelf(wxRichTextProperties) self,
+                                          TClass(wxString) name);
+TBool wxRichTextProperties_GetPropertyBool(TSelf(wxRichTextProperties) self,
+                                           TClass(wxString) name);
+double wxRichTextProperties_GetPropertyDouble(TSelf(wxRichTextProperties) self,
+                                              TClass(wxString) name);
+void wxRichTextProperties_SetPropertyString(TSelf(wxRichTextProperties) self,
+                                            TClass(wxString) name, TClass(wxString) value);
+void wxRichTextProperties_SetPropertyLong(TSelf(wxRichTextProperties) self, TClass(wxString) name,
+                                          long value);
+void wxRichTextProperties_SetPropertyBool(TSelf(wxRichTextProperties) self, TClass(wxString) name,
+                                          TBool value);
+void wxRichTextProperties_SetPropertyDouble(TSelf(wxRichTextProperties) self,
+                                            TClass(wxString) name, double value);
+TClassOwned(wxArrayString) wxRichTextProperties_GetPropertyNames(TSelf(wxRichTextProperties) self);
+void wxRichTextProperties_RemoveProperties(TSelf(wxRichTextProperties) self,
+                                           TClass(wxRichTextProperties) props);
+void wxRichTextProperties_MergeProperties(TSelf(wxRichTextProperties) self,
+                                          TClass(wxRichTextProperties) props);
+
+// Text-box attribute classes. Every TClass return is a borrowed subobject of the
+// object it was obtained from -- callers must never delete it.
+TClassDef(wxTextAttrDimension)
+void wxTextAttrDimension_Reset(TSelf(wxTextAttrDimension) self);
+int wxTextAttrDimension_GetValue(TSelf(wxTextAttrDimension) self);
+void wxTextAttrDimension_SetValue(TSelf(wxTextAttrDimension) self, int value);
+void wxTextAttrDimension_SetValueWithUnits(TSelf(wxTextAttrDimension) self, int value, int units);
+int wxTextAttrDimension_GetUnits(TSelf(wxTextAttrDimension) self);
+void wxTextAttrDimension_SetUnits(TSelf(wxTextAttrDimension) self, int units);
+TBool wxTextAttrDimension_IsValid(TSelf(wxTextAttrDimension) self);
+
+TClassDef(wxTextAttrDimensions)
+void wxTextAttrDimensions_Reset(TSelf(wxTextAttrDimensions) self);
+TClass(wxTextAttrDimension) wxTextAttrDimensions_GetLeft(TSelf(wxTextAttrDimensions) self);
+TClass(wxTextAttrDimension) wxTextAttrDimensions_GetTop(TSelf(wxTextAttrDimensions) self);
+TClass(wxTextAttrDimension) wxTextAttrDimensions_GetRight(TSelf(wxTextAttrDimensions) self);
+TClass(wxTextAttrDimension) wxTextAttrDimensions_GetBottom(TSelf(wxTextAttrDimensions) self);
+TBool wxTextAttrDimensions_IsValid(TSelf(wxTextAttrDimensions) self);
+
+TClassDef(wxTextAttrBorder)
+void wxTextAttrBorder_Reset(TSelf(wxTextAttrBorder) self);
+void wxTextAttrBorder_SetStyle(TSelf(wxTextAttrBorder) self, int style);
+int wxTextAttrBorder_GetStyle(TSelf(wxTextAttrBorder) self);
+void wxTextAttrBorder_SetColour(TSelf(wxTextAttrBorder) self, TClass(wxColour) colour);
+void wxTextAttrBorder_GetColour(TSelf(wxTextAttrBorder) self, TClass(wxColour) colour);
+void wxTextAttrBorder_SetColourLong(TSelf(wxTextAttrBorder) self, unsigned long colour);
+unsigned long wxTextAttrBorder_GetColourLong(TSelf(wxTextAttrBorder) self);
+void wxTextAttrBorder_SetWidth(TSelf(wxTextAttrBorder) self, int value, int units);
+TClass(wxTextAttrDimension) wxTextAttrBorder_GetWidth(TSelf(wxTextAttrBorder) self);
+TBool wxTextAttrBorder_HasStyle(TSelf(wxTextAttrBorder) self);
+TBool wxTextAttrBorder_HasColour(TSelf(wxTextAttrBorder) self);
+TBool wxTextAttrBorder_HasWidth(TSelf(wxTextAttrBorder) self);
+TBool wxTextAttrBorder_IsDefault(TSelf(wxTextAttrBorder) self);
+
+TClassDef(wxTextAttrBorders)
+void wxTextAttrBorders_Reset(TSelf(wxTextAttrBorders) self);
+void wxTextAttrBorders_SetStyle(TSelf(wxTextAttrBorders) self, int style);
+void wxTextAttrBorders_SetColour(TSelf(wxTextAttrBorders) self, TClass(wxColour) colour);
+void wxTextAttrBorders_SetColourLong(TSelf(wxTextAttrBorders) self, unsigned long colour);
+void wxTextAttrBorders_SetWidth(TSelf(wxTextAttrBorders) self, int value, int units);
+TClass(wxTextAttrBorder) wxTextAttrBorders_GetLeft(TSelf(wxTextAttrBorders) self);
+TClass(wxTextAttrBorder) wxTextAttrBorders_GetTop(TSelf(wxTextAttrBorders) self);
+TClass(wxTextAttrBorder) wxTextAttrBorders_GetRight(TSelf(wxTextAttrBorders) self);
+TClass(wxTextAttrBorder) wxTextAttrBorders_GetBottom(TSelf(wxTextAttrBorders) self);
+TBool wxTextAttrBorders_IsValid(TSelf(wxTextAttrBorders) self);
+TBool wxTextAttrBorders_IsDefault(TSelf(wxTextAttrBorders) self);
+
+TClassDef(wxTextBoxAttr)
+void wxTextBoxAttr_Reset(TSelf(wxTextBoxAttr) self);
+TBool wxTextBoxAttr_IsDefault(TSelf(wxTextBoxAttr) self);
+void wxTextBoxAttr_SetFlags(TSelf(wxTextBoxAttr) self, int flags);
+int wxTextBoxAttr_GetFlags(TSelf(wxTextBoxAttr) self);
+TBool wxTextBoxAttr_HasFlag(TSelf(wxTextBoxAttr) self, int flag);
+void wxTextBoxAttr_AddFlag(TSelf(wxTextBoxAttr) self, int flag);
+void wxTextBoxAttr_RemoveFlag(TSelf(wxTextBoxAttr) self, int flag);
+void wxTextBoxAttr_SetFloatMode(TSelf(wxTextBoxAttr) self, int mode);
+int wxTextBoxAttr_GetFloatMode(TSelf(wxTextBoxAttr) self);
+TBool wxTextBoxAttr_IsFloating(TSelf(wxTextBoxAttr) self);
+void wxTextBoxAttr_SetClearMode(TSelf(wxTextBoxAttr) self, int mode);
+int wxTextBoxAttr_GetClearMode(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimensions) wxTextBoxAttr_GetMargins(TSelf(wxTextBoxAttr) self);
+void wxTextBoxAttr_SetMargins(TSelf(wxTextBoxAttr) self, TClass(wxTextAttrDimensions) margins);
+TClass(wxTextAttrDimensions) wxTextBoxAttr_GetPadding(TSelf(wxTextBoxAttr) self);
+void wxTextBoxAttr_SetPadding(TSelf(wxTextBoxAttr) self, TClass(wxTextAttrDimensions) padding);
+TClass(wxTextAttrBorders) wxTextBoxAttr_GetBorder(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrBorder) wxTextBoxAttr_GetLeftBorder(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrBorder) wxTextBoxAttr_GetTopBorder(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrBorder) wxTextBoxAttr_GetRightBorder(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrBorder) wxTextBoxAttr_GetBottomBorder(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetWidth(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetHeight(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetLeft(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetTop(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetRight(TSelf(wxTextBoxAttr) self);
+TClass(wxTextAttrDimension) wxTextBoxAttr_GetBottom(TSelf(wxTextBoxAttr) self);
+TClass(wxString) wxTextBoxAttr_GetBoxStyleName(TSelf(wxTextBoxAttr) self);
+void wxTextBoxAttr_SetBoxStyleName(TSelf(wxTextBoxAttr) self, TClass(wxString) name);
+
 TClassDefExtend(wxRichTextObject, wxObject)
 
     TClass(wxRichTextObject) wxRichTextObject_GetParent(TSelf(wxRichTextObject) self);
 // clang-format on
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
+// Borrowed subobject of the object -- never delete the returned pointer. Mutating it
+// mutates the object (e.g. SetPropertyLong("Lock", id) as in the richtext sample).
 TClass(wxRichTextProperties) wxRichTextObject_GetProperties(TSelf(wxRichTextObject) pObject);
 TClass(wxRichTextObject) wxRichTextObject_GetFirstChild(TSelf(wxRichTextObject) self);
 TClass(wxRichTextObject) wxRichTextObject_GetNextSibling(TSelf(wxRichTextObject) self);
@@ -122,12 +247,133 @@ void wxRichTextParagraphLayoutBox_SetPartialParagraph(TSelf(wxRichTextParagraphL
                                                       TBool partialParagraph);
 TBool wxRichTextParagraphLayoutBox_GetPartialParagraph(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_UpdateRanges(TSelf(wxRichTextParagraphLayoutBox) self);
+TClass(wxRichTextBuffer)
+    wxRichTextParagraphLayoutBox_GetBuffer(TSelf(wxRichTextParagraphLayoutBox) self);
 
 TClassDefExtend(wxRichTextBox, wxRichTextParagraphLayoutBox)
 
     TClass(wxRichTextBox) wxRichTextBox_Create(TClass(wxRichTextObject) parent);
 void wxRichTextBox_Delete(TSelf(wxRichTextBox) self);
 TClass(wxString) wxRichTextBox_GetXMLNodeName(TSelf(wxRichTextBox) self);
+
+// wxRichTextTable is the real return type of wxRichTextCtrl::WriteTable, so it needs a
+// wrapper block of its own for the typed return to resolve in every backend.
+TClassDefExtend(wxRichTextTable, wxRichTextBox)
+
+    TClass(wxRichTextTable) wxRichTextTable_Create(TClass(wxRichTextObject) parent);
+void wxRichTextTable_Delete(TSelf(wxRichTextTable) self);
+int wxRichTextTable_GetRowCount(TSelf(wxRichTextTable) self);
+void wxRichTextTable_SetRowCount(TSelf(wxRichTextTable) self, int count);
+int wxRichTextTable_GetColumnCount(TSelf(wxRichTextTable) self);
+void wxRichTextTable_SetColumnCount(TSelf(wxRichTextTable) self, int count);
+// GetCell(row, col) and GetCell(pos) are overloads of one C++ name; they get distinct C
+// names below (GetCell / GetCellAtPosition).
+TClass(wxRichTextCell) wxRichTextTable_GetCell(TSelf(wxRichTextTable) self, int row, int col);
+TClass(wxRichTextCell) wxRichTextTable_GetCellAtPosition(TSelf(wxRichTextTable) self, long pos);
+TBool wxRichTextTable_GetCellRowColumnPosition(TSelf(wxRichTextTable) self, long pos,
+                                               TPointOut(row, col));
+void wxRichTextTable_GetFocusedCell(TSelf(wxRichTextTable) self, TPointOut(row, col));
+void wxRichTextTable_ClearTable(TSelf(wxRichTextTable) self);
+TBool wxRichTextTable_CreateTable(TSelf(wxRichTextTable) self, int rows, int cols);
+TBool wxRichTextTable_DeleteRows(TSelf(wxRichTextTable) self, int startRow, int noRows);
+TBool wxRichTextTable_DeleteColumns(TSelf(wxRichTextTable) self, int startCol, int noCols);
+TBool wxRichTextTable_AddRows(TSelf(wxRichTextTable) self, int startRow, int noRows,
+                              TClass(wxRichTextAttr) attr);
+TBool wxRichTextTable_AddColumns(TSelf(wxRichTextTable) self, int startCol, int noCols,
+                                 TClass(wxRichTextAttr) attr);
+void wxRichTextTable_Copy(TSelf(wxRichTextTable) self, TClass(wxRichTextTable) obj);
+
+// wxRichTextCell is what wxRichTextTable::GetCell returns, so it needs its own block.
+// Clear() comes from wxRichTextParagraphLayoutBox and is already bound there.
+TClassDefExtend(wxRichTextCell, wxRichTextBox)
+
+    TClass(wxRichTextCell) wxRichTextCell_Create(TClass(wxRichTextObject) parent);
+void wxRichTextCell_Delete(TSelf(wxRichTextCell) self);
+int wxRichTextCell_GetColSpan(TSelf(wxRichTextCell) self);
+void wxRichTextCell_SetColSpan(TSelf(wxRichTextCell) self, int span);
+int wxRichTextCell_GetRowSpan(TSelf(wxRichTextCell) self);
+void wxRichTextCell_SetRowSpan(TSelf(wxRichTextCell) self, int span);
+void wxRichTextCell_Copy(TSelf(wxRichTextCell) self, TClass(wxRichTextCell) obj);
+
+// wxRichTextField is the return type of wxRichTextCtrl::WriteField; paragraph plumbing is
+// inherited from wxRichTextParagraphLayoutBox.
+TClassDefExtend(wxRichTextField, wxRichTextParagraphLayoutBox)
+
+    TClass(wxRichTextField)
+        wxRichTextField_Create(TClass(wxString) fieldType, TClass(wxRichTextObject) parent);
+void wxRichTextField_Delete(TSelf(wxRichTextField) self);
+void wxRichTextField_SetFieldType(TSelf(wxRichTextField) self, TClass(wxString) fieldType);
+TClass(wxString) wxRichTextField_GetFieldType(TSelf(wxRichTextField) self);
+TBool wxRichTextField_UpdateField(TSelf(wxRichTextField) self, TClass(wxRichTextBuffer) buffer);
+void wxRichTextField_Copy(TSelf(wxRichTextField) self, TClass(wxRichTextField) obj);
+
+// wxRichTextFieldType is abstract (Draw/Layout/GetRangeSize are pure virtual), so there is
+// deliberately no factory here: register a concrete subclass such as
+// wxRichTextFieldTypeStandard with wxRichTextBuffer_AddFieldType.
+TClassDefExtend(wxRichTextFieldType, wxObject)
+
+    void wxRichTextFieldType_SetName(TSelf(wxRichTextFieldType) self, TClass(wxString) name);
+TClass(wxString) wxRichTextFieldType_GetName(TSelf(wxRichTextFieldType) self);
+void wxRichTextFieldType_Copy(TSelf(wxRichTextFieldType) self,
+                              TClass(wxRichTextFieldType) fieldType);
+
+TClassDefExtend(wxRichTextFieldTypeStandard, wxRichTextFieldType)
+
+    TClass(wxRichTextFieldTypeStandard)
+        wxRichTextFieldTypeStandard_Create(TClass(wxString) name, TClass(wxString) label,
+                                           int displayStyle);
+TClass(wxRichTextFieldTypeStandard)
+    wxRichTextFieldTypeStandard_CreateWithBitmap(TClass(wxString) name, TClass(wxBitmap) bitmap,
+                                                 int displayStyle);
+TClass(wxRichTextFieldTypeStandard) wxRichTextFieldTypeStandard_CreateDefault();
+void wxRichTextFieldTypeStandard_Delete(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_Copy(TSelf(wxRichTextFieldTypeStandard) self,
+                                      TClass(wxRichTextFieldTypeStandard) field);
+void wxRichTextFieldTypeStandard_SetLabel(TSelf(wxRichTextFieldTypeStandard) self,
+                                          TClass(wxString) label);
+TClass(wxString) wxRichTextFieldTypeStandard_GetLabel(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetBitmap(TSelf(wxRichTextFieldTypeStandard) self,
+                                           TClass(wxBitmap) bitmap);
+// GetBitmap/GetFont return borrowed pointers into the field type, not owned copies.
+TClass(wxBitmap) wxRichTextFieldTypeStandard_GetBitmap(TSelf(wxRichTextFieldTypeStandard) self);
+int wxRichTextFieldTypeStandard_GetDisplayStyle(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetDisplayStyle(TSelf(wxRichTextFieldTypeStandard) self,
+                                                 int displayStyle);
+TClass(wxFont) wxRichTextFieldTypeStandard_GetFont(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetFont(TSelf(wxRichTextFieldTypeStandard) self,
+                                         TClass(wxFont) font);
+void wxRichTextFieldTypeStandard_GetTextColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                               TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_SetTextColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                               TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_GetBorderColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                                 TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_SetBorderColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                                 TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_GetBackgroundColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                                     TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_SetBackgroundColour(TSelf(wxRichTextFieldTypeStandard) self,
+                                                     TClass(wxColour) colour);
+void wxRichTextFieldTypeStandard_SetVerticalPadding(TSelf(wxRichTextFieldTypeStandard) self,
+                                                    int padding);
+int wxRichTextFieldTypeStandard_GetVerticalPadding(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetHorizontalPadding(TSelf(wxRichTextFieldTypeStandard) self,
+                                                      int padding);
+int wxRichTextFieldTypeStandard_GetHorizontalPadding(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetHorizontalMargin(TSelf(wxRichTextFieldTypeStandard) self,
+                                                     int margin);
+int wxRichTextFieldTypeStandard_GetHorizontalMargin(TSelf(wxRichTextFieldTypeStandard) self);
+void wxRichTextFieldTypeStandard_SetVerticalMargin(TSelf(wxRichTextFieldTypeStandard) self,
+                                                   int margin);
+int wxRichTextFieldTypeStandard_GetVerticalMargin(TSelf(wxRichTextFieldTypeStandard) self);
+
+// wxRichTextDrawingHandler is abstract too (all virtual hooks are pure); only the shared
+// name accessors are exposed. A callback-driven subclass is a separate follow-up.
+TClassDefExtend(wxRichTextDrawingHandler, wxObject)
+
+    void wxRichTextDrawingHandler_SetName(TSelf(wxRichTextDrawingHandler) self,
+                                          TClass(wxString) name);
+TClass(wxString) wxRichTextDrawingHandler_GetName(TSelf(wxRichTextDrawingHandler) self);
 
 TClassDefExtend(wxRichTextImage, wxRichTextObject)
 
@@ -161,6 +407,15 @@ TClassDefExtend(wxRichTextBuffer, wxRichTextParagraphLayoutBox)
     TClass(wxRichTextBuffer) wxRichTextBuffer_Create();
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxRichTextBuffer_AddHandler(void* handler);
+// Field-type / drawing-handler registries. The registry takes ownership of the object, so
+// do not Delete it after registering it here.
+void wxRichTextBuffer_AddFieldType(TClass(wxRichTextFieldType) fieldType);
+TBool wxRichTextBuffer_RemoveFieldType(TClass(wxString) name);
+TClass(wxRichTextFieldType) wxRichTextBuffer_FindFieldType(TClass(wxString) name);
+void wxRichTextBuffer_AddDrawingHandler(TClass(wxRichTextDrawingHandler) handler);
+void wxRichTextBuffer_InsertDrawingHandler(TClass(wxRichTextDrawingHandler) handler);
+TBool wxRichTextBuffer_RemoveDrawingHandler(TClass(wxString) name);
+TClass(wxRichTextDrawingHandler) wxRichTextBuffer_FindDrawingHandler(TClass(wxString) name);
 void wxRichTextBuffer_Delete(TSelf(wxRichTextBuffer) self);
 void wxRichTextBuffer_AddParagraph(TSelf(wxRichTextBuffer) self, TClass(wxString) text,
                                    TClass(wxRichTextAttr) paraStyle, TLongOut start, TLongOut end);
@@ -191,6 +446,8 @@ TBool wxRichTextBuffer_BatchingUndo(TSelf(wxRichTextBuffer) self);
 TBool wxRichTextBuffer_BeginSuppressUndo(TSelf(wxRichTextBuffer) self);
 TBool wxRichTextBuffer_EndSuppressUndo(TSelf(wxRichTextBuffer) self);
 TBool wxRichTextBuffer_SuppressingUndo(TSelf(wxRichTextBuffer) self);
+TClass(wxString)
+    wxRichTextBuffer_GetExtWildcard(TBool combine, TBool save, TClass(wxArrayInt) types);
 
 TClassDefExtend(wxRichTextFileHandler, wxObject)
 
@@ -231,6 +488,9 @@ void wxRichTextHTMLHandler_ClearTemporaryImageLocations(TSelf(wxRichTextHTMLHand
 TBool wxRichTextHTMLHandler_DeleteTemporaryImages(TSelf(wxRichTextHTMLHandler) self);
 void wxRichTextHTMLHandler_SetTempDir(TSelf(wxRichTextHTMLHandler) self, TClass(wxString) tempDir);
 TClass(wxString) wxRichTextHTMLHandler_GetTempDir(TSelf(wxRichTextHTMLHandler) self);
+void wxRichTextHTMLHandler_SetFontSizeMapping(TSelf(wxRichTextHTMLHandler) self,
+                                              TClass(wxArrayInt) mapping);
+TClassOwned(wxArrayInt) wxRichTextHTMLHandler_GetFontSizeMapping(TSelf(wxRichTextHTMLHandler) self);
 
 TClassDefExtend(wxRichTextEvent, wxNotifyEvent)
 
@@ -262,12 +522,15 @@ TClassDefExtend(wxRichTextCtrl, wxControl)
 TBool wxRichTextCtrl_BeginSuppressUndo(TSelf(wxRichTextCtrl) pObject);
 TBool wxRichTextCtrl_EndSuppressUndo(TSelf(wxRichTextCtrl) pObject);
 void* wxRichTextCtrl_GetCommandProcessor(TSelf(wxRichTextCtrl) pObject);
-void* wxRichTextCtrl_WriteField(TSelf(wxRichTextCtrl) pObject, TClass(wxString) fieldType,
-                                TClass(wxRichTextProperties) properties,
-                                TClass(wxRichTextAttr) textAttr);
-void* wxRichTextCtrl_WriteTable(TSelf(wxRichTextCtrl) pObject, int rows, int cols,
-                                TClass(wxRichTextAttr) tableAttr, TClass(wxRichTextAttr) cellAttr);
-void* wxRichTextCtrl_WriteTextBox(TSelf(wxRichTextCtrl) pObject, TClass(wxRichTextAttr) textAttr);
+TClass(wxRichTextField)
+    wxRichTextCtrl_WriteField(TSelf(wxRichTextCtrl) pObject, TClass(wxString) fieldType,
+                              TClass(wxRichTextProperties) properties,
+                              TClass(wxRichTextAttr) textAttr);
+TClass(wxRichTextTable)
+    wxRichTextCtrl_WriteTable(TSelf(wxRichTextCtrl) pObject, int rows, int cols,
+                              TClass(wxRichTextAttr) tableAttr, TClass(wxRichTextAttr) cellAttr);
+TClass(wxRichTextBox)
+    wxRichTextCtrl_WriteTextBox(TSelf(wxRichTextCtrl) pObject, TClass(wxRichTextAttr) textAttr);
 TClass(wxRichTextParagraphLayoutBox) wxRichTextCtrl_GetFocusObject(TSelf(wxRichTextCtrl) self);
 TBool wxRichTextCtrl_SetFocusObject(TSelf(wxRichTextCtrl) self,
                                     TClass(wxRichTextParagraphLayoutBox) obj,
@@ -526,6 +789,8 @@ TBool wxRichTextFormattingDialog_UpdateDisplay(TSelf(wxRichTextFormattingDialog)
 TBool wxRichTextFormattingDialog_ApplyStyle(TSelf(wxRichTextFormattingDialog) self,
                                             TClass(wxRichTextCtrl) ctrl, long start, long end,
                                             int flags);
+TBool wxRichTextFormattingDialog_ApplyStyleToCtrl(TSelf(wxRichTextFormattingDialog) self,
+                                                  TClass(wxRichTextCtrl) ctrl, int flags);
 void wxRichTextFormattingDialog_GetAttributes(TSelf(wxRichTextFormattingDialog) self,
                                               TClass(wxRichTextAttr) attr);
 void wxRichTextFormattingDialog_SetAttributes(TSelf(wxRichTextFormattingDialog) self,
@@ -611,3 +876,208 @@ TClass(wxRichTextBuffer)
 TClass(wxString)
     wxRichTextBufferDataObject_GetRichTextBufferFormatId(TSelf(wxRichTextBufferDataObject) self);
 size_t wxRichTextBufferDataObject_GetDataSize(TSelf(wxRichTextBufferDataObject) self);
+
+// ---- Style definitions, style sheet and the style list/combo controls ----
+// wxRichTextStyleDefinition is abstract: it has no factory, only the members shared by
+// every definition type. TClass returns on GetStyle/GetProperties/GetLevelAttributes are
+// borrowed subobjects of the definition -- callers must never delete them.
+void wxRichTextStyleDefinition_Copy(TSelf(wxRichTextStyleDefinition) self,
+                                    TClass(wxRichTextStyleDefinition) def);
+TBool wxRichTextStyleDefinition_Eq(TSelf(wxRichTextStyleDefinition) self,
+                                   TClass(wxRichTextStyleDefinition) def);
+void wxRichTextStyleDefinition_SetName(TSelf(wxRichTextStyleDefinition) self,
+                                       TClass(wxString) name);
+TClass(wxString) wxRichTextStyleDefinition_GetName(TSelf(wxRichTextStyleDefinition) self);
+void wxRichTextStyleDefinition_SetDescription(TSelf(wxRichTextStyleDefinition) self,
+                                              TClass(wxString) descr);
+TClass(wxString) wxRichTextStyleDefinition_GetDescription(TSelf(wxRichTextStyleDefinition) self);
+void wxRichTextStyleDefinition_SetBaseStyle(TSelf(wxRichTextStyleDefinition) self,
+                                            TClass(wxString) name);
+TClass(wxString) wxRichTextStyleDefinition_GetBaseStyle(TSelf(wxRichTextStyleDefinition) self);
+void wxRichTextStyleDefinition_SetStyle(TSelf(wxRichTextStyleDefinition) self,
+                                        TClass(wxRichTextAttr) style);
+TClass(wxRichTextAttr) wxRichTextStyleDefinition_GetStyle(TSelf(wxRichTextStyleDefinition) self);
+TClass(wxRichTextProperties)
+    wxRichTextStyleDefinition_GetProperties(TSelf(wxRichTextStyleDefinition) self);
+void wxRichTextStyleDefinition_SetProperties(TSelf(wxRichTextStyleDefinition) self,
+                                             TClass(wxRichTextProperties) props);
+
+TClassDefExtend(wxRichTextCharacterStyleDefinition, wxRichTextStyleDefinition)
+
+    TClass(wxRichTextCharacterStyleDefinition)
+        wxRichTextCharacterStyleDefinition_Create(TClass(wxString) name);
+void wxRichTextCharacterStyleDefinition_Delete(TSelf(wxRichTextCharacterStyleDefinition) self);
+
+TClassDefExtend(wxRichTextParagraphStyleDefinition, wxRichTextStyleDefinition)
+
+    TClass(wxRichTextParagraphStyleDefinition)
+        wxRichTextParagraphStyleDefinition_Create(TClass(wxString) name);
+void wxRichTextParagraphStyleDefinition_Delete(TSelf(wxRichTextParagraphStyleDefinition) self);
+void wxRichTextParagraphStyleDefinition_SetNextStyle(TSelf(wxRichTextParagraphStyleDefinition) self,
+                                                     TClass(wxString) name);
+TClass(wxString)
+    wxRichTextParagraphStyleDefinition_GetNextStyle(TSelf(wxRichTextParagraphStyleDefinition) self);
+void wxRichTextParagraphStyleDefinition_Copy(TSelf(wxRichTextParagraphStyleDefinition) self,
+                                             TClass(wxRichTextParagraphStyleDefinition) def);
+
+TClassDefExtend(wxRichTextListStyleDefinition, wxRichTextParagraphStyleDefinition)
+
+    TClass(wxRichTextListStyleDefinition)
+        wxRichTextListStyleDefinition_Create(TClass(wxString) name);
+void wxRichTextListStyleDefinition_Delete(TSelf(wxRichTextListStyleDefinition) self);
+void wxRichTextListStyleDefinition_Copy(TSelf(wxRichTextListStyleDefinition) self,
+                                        TClass(wxRichTextListStyleDefinition) def);
+void wxRichTextListStyleDefinition_SetLevelAttributes(TSelf(wxRichTextListStyleDefinition) self,
+                                                      int level, TClass(wxRichTextAttr) attr);
+TClass(wxRichTextAttr)
+    wxRichTextListStyleDefinition_GetLevelAttributes(TSelf(wxRichTextListStyleDefinition) self,
+                                                     int level);
+void wxRichTextListStyleDefinition_SetAttributes(TSelf(wxRichTextListStyleDefinition) self,
+                                                 int level, int leftIndent, int leftSubIndent,
+                                                 int bulletStyle, TClass(wxString) bulletSymbol);
+int wxRichTextListStyleDefinition_FindLevelForIndent(TSelf(wxRichTextListStyleDefinition) self,
+                                                     int indent);
+TClassOwned(wxRichTextAttr) wxRichTextListStyleDefinition_CombineWithParagraphStyle(
+    TSelf(wxRichTextListStyleDefinition) self, int indent, TClass(wxRichTextAttr) paraStyle,
+    TClass(wxRichTextStyleSheet) styleSheet);
+TClassOwned(wxRichTextAttr)
+    wxRichTextListStyleDefinition_GetCombinedStyle(TSelf(wxRichTextListStyleDefinition) self,
+                                                   int indent,
+                                                   TClass(wxRichTextStyleSheet) styleSheet);
+TClassOwned(wxRichTextAttr) wxRichTextListStyleDefinition_GetCombinedStyleForLevel(
+    TSelf(wxRichTextListStyleDefinition) self, int level, TClass(wxRichTextStyleSheet) styleSheet);
+int wxRichTextListStyleDefinition_GetLevelCount(TSelf(wxRichTextListStyleDefinition) self);
+TBool wxRichTextListStyleDefinition_IsNumbered(TSelf(wxRichTextListStyleDefinition) self,
+                                               int level);
+
+TClassDefExtend(wxRichTextBoxStyleDefinition, wxRichTextStyleDefinition)
+
+    TClass(wxRichTextBoxStyleDefinition) wxRichTextBoxStyleDefinition_Create(TClass(wxString) name);
+void wxRichTextBoxStyleDefinition_Delete(TSelf(wxRichTextBoxStyleDefinition) self);
+void wxRichTextBoxStyleDefinition_Copy(TSelf(wxRichTextBoxStyleDefinition) self,
+                                       TClass(wxRichTextBoxStyleDefinition) def);
+
+// The Add*Style/Remove*Style members take ownership semantics from the style sheet: see
+// the implementation notes in src/wx_richtextstyles.cpp.
+TClass(wxRichTextStyleSheet) wxRichTextStyleSheet_Create();
+TClass(wxRichTextStyleSheet) wxRichTextStyleSheet_CreateCopy(TClass(wxRichTextStyleSheet) sheet);
+void wxRichTextStyleSheet_Delete(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_Init(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_Copy(TSelf(wxRichTextStyleSheet) self,
+                               TClass(wxRichTextStyleSheet) sheet);
+// the style sheet takes ownership of def; do not Delete() it afterwards.
+TBool wxRichTextStyleSheet_AddCharacterStyle(TSelf(wxRichTextStyleSheet) self,
+                                             TClass(wxRichTextCharacterStyleDefinition) def);
+TBool wxRichTextStyleSheet_AddParagraphStyle(TSelf(wxRichTextStyleSheet) self,
+                                             TClass(wxRichTextParagraphStyleDefinition) def);
+TBool wxRichTextStyleSheet_AddListStyle(TSelf(wxRichTextStyleSheet) self,
+                                        TClass(wxRichTextListStyleDefinition) def);
+TBool wxRichTextStyleSheet_AddBoxStyle(TSelf(wxRichTextStyleSheet) self,
+                                       TClass(wxRichTextBoxStyleDefinition) def);
+TBool wxRichTextStyleSheet_AddStyle(TSelf(wxRichTextStyleSheet) self,
+                                    TClass(wxRichTextStyleDefinition) def);
+TBool wxRichTextStyleSheet_RemoveCharacterStyle(TSelf(wxRichTextStyleSheet) self,
+                                                TClass(wxRichTextStyleDefinition) def,
+                                                TBool deleteStyle);
+TBool wxRichTextStyleSheet_RemoveParagraphStyle(TSelf(wxRichTextStyleSheet) self,
+                                                TClass(wxRichTextStyleDefinition) def,
+                                                TBool deleteStyle);
+TBool wxRichTextStyleSheet_RemoveListStyle(TSelf(wxRichTextStyleSheet) self,
+                                           TClass(wxRichTextStyleDefinition) def,
+                                           TBool deleteStyle);
+TBool wxRichTextStyleSheet_RemoveBoxStyle(TSelf(wxRichTextStyleSheet) self,
+                                          TClass(wxRichTextStyleDefinition) def, TBool deleteStyle);
+TBool wxRichTextStyleSheet_RemoveStyle(TSelf(wxRichTextStyleSheet) self,
+                                       TClass(wxRichTextStyleDefinition) def, TBool deleteStyle);
+TClass(wxRichTextCharacterStyleDefinition)
+    wxRichTextStyleSheet_FindCharacterStyle(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name,
+                                            TBool recurse);
+TClass(wxRichTextParagraphStyleDefinition)
+    wxRichTextStyleSheet_FindParagraphStyle(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name,
+                                            TBool recurse);
+TClass(wxRichTextListStyleDefinition)
+    wxRichTextStyleSheet_FindListStyle(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name,
+                                       TBool recurse);
+TClass(wxRichTextBoxStyleDefinition)
+    wxRichTextStyleSheet_FindBoxStyle(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name,
+                                      TBool recurse);
+TClass(wxRichTextStyleDefinition)
+    wxRichTextStyleSheet_FindStyle(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name,
+                                   TBool recurse);
+size_t wxRichTextStyleSheet_GetCharacterStyleCount(TSelf(wxRichTextStyleSheet) self);
+size_t wxRichTextStyleSheet_GetParagraphStyleCount(TSelf(wxRichTextStyleSheet) self);
+size_t wxRichTextStyleSheet_GetListStyleCount(TSelf(wxRichTextStyleSheet) self);
+size_t wxRichTextStyleSheet_GetBoxStyleCount(TSelf(wxRichTextStyleSheet) self);
+TClass(wxRichTextCharacterStyleDefinition)
+    wxRichTextStyleSheet_GetCharacterStyle(TSelf(wxRichTextStyleSheet) self, size_t index);
+TClass(wxRichTextParagraphStyleDefinition)
+    wxRichTextStyleSheet_GetParagraphStyle(TSelf(wxRichTextStyleSheet) self, size_t index);
+TClass(wxRichTextListStyleDefinition)
+    wxRichTextStyleSheet_GetListStyle(TSelf(wxRichTextStyleSheet) self, size_t index);
+TClass(wxRichTextBoxStyleDefinition)
+    wxRichTextStyleSheet_GetBoxStyle(TSelf(wxRichTextStyleSheet) self, size_t index);
+void wxRichTextStyleSheet_DeleteStyles(TSelf(wxRichTextStyleSheet) self);
+TBool wxRichTextStyleSheet_InsertSheet(TSelf(wxRichTextStyleSheet) self,
+                                       TClass(wxRichTextStyleSheet) before);
+TBool wxRichTextStyleSheet_AppendSheet(TSelf(wxRichTextStyleSheet) self,
+                                       TClass(wxRichTextStyleSheet) after);
+void wxRichTextStyleSheet_Unlink(TSelf(wxRichTextStyleSheet) self);
+TClass(wxRichTextStyleSheet) wxRichTextStyleSheet_GetNextSheet(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_SetNextSheet(TSelf(wxRichTextStyleSheet) self,
+                                       TClass(wxRichTextStyleSheet) sheet);
+TClass(wxRichTextStyleSheet)
+    wxRichTextStyleSheet_GetPreviousSheet(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_SetPreviousSheet(TSelf(wxRichTextStyleSheet) self,
+                                           TClass(wxRichTextStyleSheet) sheet);
+void wxRichTextStyleSheet_SetName(TSelf(wxRichTextStyleSheet) self, TClass(wxString) name);
+TClass(wxString) wxRichTextStyleSheet_GetName(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_SetDescription(TSelf(wxRichTextStyleSheet) self, TClass(wxString) descr);
+TClass(wxString) wxRichTextStyleSheet_GetDescription(TSelf(wxRichTextStyleSheet) self);
+TClass(wxRichTextProperties) wxRichTextStyleSheet_GetProperties(TSelf(wxRichTextStyleSheet) self);
+void wxRichTextStyleSheet_SetProperties(TSelf(wxRichTextStyleSheet) self,
+                                        TClass(wxRichTextProperties) props);
+
+TClassDefExtend(wxRichTextStyleListCtrl, wxControl)
+
+    TClass(wxRichTextStyleListCtrl)
+        wxRichTextStyleListCtrl_Create(TClass(wxWindow) parent, int id, TPoint(x, y), TSize(w, h),
+                                       long style);
+void wxRichTextStyleListCtrl_Delete(TSelf(wxRichTextStyleListCtrl) self);
+void wxRichTextStyleListCtrl_UpdateStyles(TSelf(wxRichTextStyleListCtrl) self);
+void wxRichTextStyleListCtrl_SetStyleSheet(TSelf(wxRichTextStyleListCtrl) self,
+                                           TClass(wxRichTextStyleSheet) styleSheet);
+TClass(wxRichTextStyleSheet)
+    wxRichTextStyleListCtrl_GetStyleSheet(TSelf(wxRichTextStyleListCtrl) self);
+void wxRichTextStyleListCtrl_SetRichTextCtrl(TSelf(wxRichTextStyleListCtrl) self,
+                                             TClass(wxRichTextCtrl) ctrl);
+TClass(wxRichTextCtrl) wxRichTextStyleListCtrl_GetRichTextCtrl(TSelf(wxRichTextStyleListCtrl) self);
+void wxRichTextStyleListCtrl_SetStyleType(TSelf(wxRichTextStyleListCtrl) self, int styleType);
+int wxRichTextStyleListCtrl_GetStyleType(TSelf(wxRichTextStyleListCtrl) self);
+TClass(wxRichTextStyleListBox)
+    wxRichTextStyleListCtrl_GetStyleListBox(TSelf(wxRichTextStyleListCtrl) self);
+TClass(wxChoice) wxRichTextStyleListCtrl_GetStyleChoice(TSelf(wxRichTextStyleListCtrl) self);
+
+TClassDefExtend(wxRichTextStyleComboCtrl, wxComboCtrl)
+
+    TClass(wxRichTextStyleComboCtrl)
+        wxRichTextStyleComboCtrl_Create(TClass(wxWindow) parent, int id, TPoint(x, y), TSize(w, h),
+                                        long style);
+void wxRichTextStyleComboCtrl_Delete(TSelf(wxRichTextStyleComboCtrl) self);
+void wxRichTextStyleComboCtrl_UpdateStyles(TSelf(wxRichTextStyleComboCtrl) self);
+void wxRichTextStyleComboCtrl_SetStyleSheet(TSelf(wxRichTextStyleComboCtrl) self,
+                                            TClass(wxRichTextStyleSheet) styleSheet);
+TClass(wxRichTextStyleSheet)
+    wxRichTextStyleComboCtrl_GetStyleSheet(TSelf(wxRichTextStyleComboCtrl) self);
+void wxRichTextStyleComboCtrl_SetRichTextCtrl(TSelf(wxRichTextStyleComboCtrl) self,
+                                              TClass(wxRichTextCtrl) ctrl);
+TClass(wxRichTextCtrl)
+    wxRichTextStyleComboCtrl_GetRichTextCtrl(TSelf(wxRichTextStyleComboCtrl) self);
+
+TClassDefExtend(wxRichTextObjectPropertiesDialog, wxRichTextFormattingDialog)
+
+    TClass(wxRichTextObjectPropertiesDialog)
+        wxRichTextObjectPropertiesDialog_Create(TClass(wxRichTextObject) obj,
+                                                TClass(wxWindow) parent, int id,
+                                                TClass(wxString) caption, TRect(x, y, w, h),
+                                                long style);
+void wxRichTextObjectPropertiesDialog_Delete(TSelf(wxRichTextObjectPropertiesDialog) self);

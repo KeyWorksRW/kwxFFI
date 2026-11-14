@@ -106,6 +106,8 @@ int wxPropertyGridPageState_GetColumnCount(TSelf(wxPropertyGridPageState) pObjec
 int wxPropertyGridPageState_GetColumnMinWidth(TSelf(wxPropertyGridPageState) pObject, int column);
 int wxPropertyGridPageState_GetColumnWidth(TSelf(wxPropertyGridPageState) pObject,
                                            unsigned int column);
+int wxPropertyGridPageState_GetColumnFullWidth(TSelf(wxPropertyGridPageState) pObject,
+                                               TClass(wxPGProperty) property, unsigned int column);
 int wxPropertyGridPageState_GetVirtualWidth(TSelf(wxPropertyGridPageState) pObject);
 int wxPropertyGridPageState_GetVirtualHeight(TSelf(wxPropertyGridPageState) pObject);
 int wxPropertyGridPageState_GetActualVirtualHeight(TSelf(wxPropertyGridPageState) pObject);
@@ -578,3 +580,99 @@ TClass(wxColourPropertyValue) wxVariant_GetColourPropertyValue(TClass(wxVariant)
 TClassDefExtend(wxPropertyGridXmlHandler, wxXmlResourceHandler) TClass(wxPropertyGridXmlHandler)
     wxPropertyGridXmlHandler_Create();
 void wxPropertyGridXmlHandler_Delete(TSelf(wxPropertyGridXmlHandler) pObject);
+
+// ---------------------------------------------------------------------------
+// wxPGChoices / wxPGChoiceEntry (wx/propgrid/property.h)
+// ---------------------------------------------------------------------------
+
+// wxPGChoices is a reference-counted value type with no wxObject base, so the
+// FFI handle owns a heap copy that Delete() releases.  Item()/Add()/AddAsSorted()
+// return a reference to an entry owned by the choices object: the returned
+// handle is borrowed and stays valid only while the choices object lives.
+TClassDef(wxPGChoices) TClass(wxPGChoices) wxPGChoices_Create();
+void wxPGChoices_Delete(TSelf(wxPGChoices) pObject);
+unsigned int wxPGChoices_GetCount(TSelf(wxPGChoices) pObject);
+TClass(wxString) wxPGChoices_GetLabel(TSelf(wxPGChoices) pObject, unsigned int index);
+int wxPGChoices_GetValue(TSelf(wxPGChoices) pObject, unsigned int index);
+TClass(wxPGChoiceEntry) wxPGChoices_Item(TSelf(wxPGChoices) pObject, unsigned int index);
+TClass(wxPGChoiceEntry)
+    wxPGChoices_Add(TSelf(wxPGChoices) pObject, TClass(wxString) label, int value);
+TClass(wxPGChoiceEntry)
+    wxPGChoices_AddAsSorted(TSelf(wxPGChoices) pObject, TClass(wxString) label, int value);
+void wxPGChoices_AddStrings(TSelf(wxPGChoices) pObject, TClass(wxArrayString) labels,
+                            TClass(wxArrayInt) values);
+void wxPGChoices_Set(TSelf(wxPGChoices) pObject, TClass(wxArrayString) labels,
+                     TClass(wxArrayInt) values);
+void wxPGChoices_RemoveAt(TSelf(wxPGChoices) pObject, unsigned int index, unsigned int count);
+int wxPGChoices_Index(TSelf(wxPGChoices) pObject, TClass(wxString) label);
+int wxPGChoices_IndexValue(TSelf(wxPGChoices) pObject, int value);
+void wxPGChoices_Clear(TSelf(wxPGChoices) pObject);
+TBool wxPGChoices_IsOk(TSelf(wxPGChoices) pObject);
+TClass(wxPGChoices) wxPGChoices_Copy(TSelf(wxPGChoices) pObject);
+
+// A choice entry is a wxPGCell carrying an int value; the wxPGCell_* wrappers
+// (SetText, SetFgCol, SetBgCol, SetBitmap, SetFont) apply to it as well because
+// the generated bindings derive the entry type from wxPGCell.
+TClassDefExtend(wxPGChoiceEntry,
+                wxPGCell) void wxPGChoiceEntry_SetValue(TSelf(wxPGChoiceEntry) pObject, int value);
+int wxPGChoiceEntry_GetValue(TSelf(wxPGChoiceEntry) pObject);
+
+// ---------------------------------------------------------------------------
+// Choices on a property, and the choices-taking property constructors
+// ---------------------------------------------------------------------------
+
+// GetChoices() returns a new copy the caller must delete.  SetChoices() returns
+// 0 when choices is null.
+TBool wxPGProperty_SetChoices(TSelf(wxPGProperty) pObject, TClass(wxPGChoices) choices);
+TClass(wxPGChoices) wxPGProperty_GetChoices(TSelf(wxPGProperty) pObject);
+
+TClass(wxEnumProperty)
+    wxEnumProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                     TClass(wxPGChoices) choices, int value);
+TClass(wxEditEnumProperty)
+    wxEditEnumProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                         TClass(wxPGChoices) choices, TClass(wxString) value);
+TClass(wxFlagsProperty)
+    wxFlagsProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                      TClass(wxPGChoices) choices, long value);
+TClass(wxArrayStringProperty)
+    wxArrayStringProperty_CreateFromArray(TClass(wxString) label, TClass(wxString) name,
+                                          TClass(wxArrayString) value);
+TClass(wxMultiChoiceProperty)
+    wxMultiChoiceProperty_CreateFromArray(TClass(wxString) label, TClass(wxString) name,
+                                          TClass(wxArrayString) value);
+TClass(wxMultiChoiceProperty)
+    wxMultiChoiceProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                            TClass(wxPGChoices) choices,
+                                            TClass(wxArrayString) value);
+
+// ---------------------------------------------------------------------------
+// wxSystemColourProperty / wxCursorProperty (wx/propgrid/advprops.h)
+// ---------------------------------------------------------------------------
+
+TClassDefExtend(wxSystemColourProperty, wxEnumProperty) TClass(wxSystemColourProperty)
+    wxSystemColourProperty_Create(TClass(wxString) label, TClass(wxString) name,
+                                  TClass(wxColourPropertyValue) value);
+void wxSystemColourProperty_Delete(TSelf(wxSystemColourProperty) pObject);
+TClass(wxColourPropertyValue) wxSystemColourProperty_GetVal(TSelf(wxSystemColourProperty) pObject);
+TClass(wxColour) wxSystemColourProperty_GetColour(TSelf(wxSystemColourProperty) pObject, int index);
+int wxSystemColourProperty_ColToInd(TSelf(wxSystemColourProperty) pObject, TClass(wxColour) colour);
+
+TClassDefExtend(wxCursorProperty, wxEnumProperty) TClass(wxCursorProperty)
+    wxCursorProperty_Create(TClass(wxString) label, TClass(wxString) name, int value);
+void wxCursorProperty_Delete(TSelf(wxCursorProperty) pObject);
+
+// ---------------------------------------------------------------------------
+// wxPropertyGridEvent validation feedback (extends the block in kwx_classes.h)
+// ---------------------------------------------------------------------------
+
+// Only meaningful for wxEVT_PG_CHANGING.  The flag values are the wxPG_VFB_*
+// constants exported from src/kwx_defs.cpp.
+TClassDefExtend(
+    wxPropertyGridEvent,
+    wxNotifyEvent) void wxPropertyGridEvent_SetValidationFailureBehavior(TSelf(wxPropertyGridEvent)
+                                                                             pObject,
+                                                                         int flags);
+void wxPropertyGridEvent_SetValidationFailureMessage(TSelf(wxPropertyGridEvent) pObject,
+                                                     TClass(wxString) message);
+int wxPropertyGridEvent_GetValidationFailureBehavior(TSelf(wxPropertyGridEvent) pObject);

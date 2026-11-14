@@ -80,6 +80,13 @@ void wxHyperlinkEvent_Delete(TSelf(wxHyperlinkEvent) pObject);
 TClass(wxString) wxHyperlinkEvent_GetURL(TSelf(wxHyperlinkEvent) pObject);
 void wxHyperlinkEvent_SetURL(TSelf(wxHyperlinkEvent) pObject, TClass(wxString) url);
 
+TClassDefExtend(wxTextUrlEvent, wxCommandEvent) TClass(wxTextUrlEvent)
+    wxTextUrlEvent_Create(int winid, TClass(wxMouseEvent) evtMouse, long start, long end);
+void wxTextUrlEvent_Delete(TSelf(wxTextUrlEvent) pObject);
+TClass(wxMouseEvent) wxTextUrlEvent_GetMouseEvent(TSelf(wxTextUrlEvent) pObject);
+long wxTextUrlEvent_GetURLStart(TSelf(wxTextUrlEvent) pObject);
+long wxTextUrlEvent_GetURLEnd(TSelf(wxTextUrlEvent) pObject);
+
 TClassDefExtend(wxThreadEvent, wxEvent) TClass(wxThreadEvent)
     wxThreadEvent_Create(int event_type, int id);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----

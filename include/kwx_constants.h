@@ -61,7 +61,7 @@ WXFFI_EXPORT(int, expGridActivationShowEditor)();
 // ---------------------------------------------------------------------------
 
 TClass(wxString) wxGetOsDescription();
-int wxGetOsVersion(int* major, int* minor, int* micro);
+int wxGetOsVersion(TIntOut major, TIntOut minor, TIntOut micro);
 TBool wxCheckOsVersion(int major, int minor, int micro);
 TBool wxIsPlatformLittleEndian();
 TBool wxIsPlatform64Bit();
@@ -108,7 +108,7 @@ TClass(wxString) wxGetUserId();
 TClass(wxString) wxGetUserName();
 TClass(wxString) wxGetHomeDir();
 TClass(wxString) wxGetUserHome(TClass(wxString) user);
-TBool wxGetDiskSpace(TClass(wxString) path, TInt64* total_bytes, TInt64* free_bytes);
+TBool wxGetDiskSpace(TClass(wxString) path, TInt64Out total_bytes, TInt64Out free_bytes);
 
 // ---------------------------------------------------------------------------
 // Process management
@@ -125,7 +125,7 @@ long wxExecuteArgv(TArrayString(n, argv), int flags, TClass(wxProcess) process,
                    TClass(wxExecuteEnv) execute_env);
 TBool wxExecuteDDE(TClass(wxString) server, TClass(wxString) topic, TClass(wxString) command);
 TBool wxShutdown(int flags);
-int wxKill(long pid, int sig, int* rc, int flags);
+int wxKill(long pid, int sig, TIntOut rc, int flags);
 TBool wxShell(TClass(wxString) command);
 TBool wxShellWithOutput(TClass(wxString) command, TClass(wxArrayString) output);
 void wxSleep(int seconds);
@@ -164,7 +164,7 @@ TClass(wxString)
                    TClass(wxString) wildcard, int flags, TClass(wxWindow) parent, int x, int y);
 TClass(wxString)
     wxFileSelectorEx(TClass(wxString) message, TClass(wxString) default_path,
-                     TClass(wxString) default_filename, int* index_default_extension,
+                     TClass(wxString) default_filename, TIntInOut index_default_extension,
                      TClass(wxString) wildcard, int flags, TClass(wxWindow) parent, int x, int y);
 TClass(wxString) wxLoadFileSelector(TClass(wxString) what, TClass(wxString) extension,
                                     TClass(wxString) default_name, TClass(wxWindow) parent);
@@ -326,7 +326,7 @@ void* wxGet_wxConvUTF8();
 TBool wxIsalnum(int character);
 TBool wxIsdigit(int character);
 TBool wxIslower(int character);
-void* wxMakeFloatingPointValidator(double* value, int style);
+void* wxMakeFloatingPointValidator(TDoubleInOut value, int style);
 void wxMutexGuiEnter();
 void wxMutexGuiLeave();
 TBool wxPlatformIs(int platform);
@@ -334,6 +334,7 @@ void* wxPointRefFromVariant(TClass(wxVariant) variant);
 void wxPostEvent(TClass(wxEvtHandler) dest, TClass(wxEvent) event);
 size_t wxPtrToUInt(void* pointer);
 int wxPuts(TClass(wxString) str);
+TBool wxRemoveFile(TClass(wxString) file);
 TBool wxRenameFile(TClass(wxString) old_path, TClass(wxString) new_path, TBool overwrite);
 TBool wxShowTip(TClass(wxWindow) parent, void* tip_provider);
 void* wxSizeRefFromVariant(TClass(wxVariant) variant);

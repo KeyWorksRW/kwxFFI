@@ -30,6 +30,13 @@ extern "C"
         self->Append(id, *text, help ? *help : wxString(), isCheckable);
     }
 
+    // wxMenu::Append(int id) — appends an item using the stock label of a
+    // standard id (wxID_ABOUT -> "&About").
+    EXPORT void wxMenu_AppendById(wxMenu* self, int id)
+    {
+        self->Append(id);
+    }
+
     EXPORT void wxMenu_AppendSub(wxMenu* self, int id, wxString* text, wxMenu* submenu,
                                  wxString* help)
     {
@@ -426,7 +433,7 @@ extern "C"
         self->Toggle();
     }
 
-    EXPORT void wxMenuItem_SetBitmap(wxMenuItem* self, wxBitmap* bmp)
+    EXPORT void wxMenuItem_SetBitmap(wxMenuItem* self, wxBitmapBundle* bmp)
     {
         self->SetBitmap(*bmp);
     }
@@ -436,6 +443,15 @@ extern "C"
         wxBitmap* result = new wxBitmap();
         *result = self->GetBitmap();
         return result;
+    }
+
+    // GetAccel() returns a caller-owned wxAcceleratorEntry*, but every generated
+    // binding treats a TClass return as a borrowed view and never deletes it, so the
+    // pointer is handed back verbatim: no copy is allocated and nothing can be
+    // double-freed.  The pointer lives as long as the item.
+    EXPORT wxAcceleratorEntry* wxMenuItem_GetAccel(wxMenuItem* self)
+    {
+        return self->GetAccel();
     }
 
     EXPORT wxMenuItem* wxMenu_AppendSubMenu(wxMenu* self, wxMenu* submenu, wxString* text,

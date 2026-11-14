@@ -90,6 +90,7 @@ struct ScalarPointerInfo
         { "TDoubleOut", "double", false },  { "TBoolOut", "TBool", false },
         { "TUIntOut", "unsigned", false },  { "TIntInOut", "int", true },
         { "TDoubleInOut", "double", true }, { "TULongInOut", "unsigned long", true },
+        { "TSizeTOut", "size_t", false },   { "TInt64Out", "int64_t", false },
     };
     for (const Entry& entry: ENTRIES)
     {

@@ -138,6 +138,7 @@ set( FFI_SRC_FILES
     src/wx_messagedialog.cpp
     src/wx_mime.cpp
     src/wx_miniframe.cpp
+    src/wx_nativewindow.cpp
     src/wx_net_extra.cpp
     src/wx_notebook.cpp
     src/wx_notifmsg.cpp
@@ -176,6 +177,7 @@ set( FFI_SRC_FILES
     src/wx_richtextdlg.cpp
     src/wx_richtextprint.cpp
     src/wx_richtextstyles.cpp
+    src/kwx_richtext_hooks.cpp
     src/wx_richtooltip.cpp
     src/wx_sash.cpp
     src/wx_scrollbar.cpp
@@ -245,6 +247,7 @@ set( FFI_HDR_FILES
     include/kwx_file_stream_extra.h
     include/kwx_html.h
     include/kwx_richtext.h
+    include/kwx_richtext_hooks.h
     include/kwx_grid_extra.h
     include/kwx_propgrid_extra.h
     include/kwx_propgrid_hooks.h

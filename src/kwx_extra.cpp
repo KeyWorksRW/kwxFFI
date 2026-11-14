@@ -287,6 +287,16 @@ extern "C"
     {
         ((wxTextAttr*) pObject)->SetRightIndent(indent);
     }
+
+    EXPORT void wxTextAttr_SetTabs(void* pObject, void* tabs)
+    {
+        ((wxTextAttr*) pObject)->SetTabs(*(wxArrayInt*) tabs);
+    }
+
+    EXPORT void* wxTextAttr_GetTabs(void* pObject)
+    {
+        return new wxArrayInt(((wxTextAttr*) pObject)->GetTabs());
+    }
 }
 
 class wxTimerEx : public wxTimer
@@ -1873,6 +1883,14 @@ extern "C"
         return new wxMenuItem(nullptr, id, *text, *helpstr, (wxItemKind) itemkind, submenu);
     }
 
+    EXPORT wxMenuItem* wxMenuItem_CreateExWithParent(wxMenu* parentMenu, int id, wxString* text,
+                                                     wxString* helpstr, int itemkind,
+                                                     wxMenu* subMenu)
+    {
+        return new wxMenuItem(parentMenu, id, *text, *helpstr, static_cast<wxItemKind>(itemkind),
+                              subMenu);
+    }
+
     EXPORT void wxStreamBase_Delete(wxStreamBase* stream)
     {
         if (stream)
@@ -2086,20 +2104,35 @@ extern "C"
         delete self;
     }
 
+    // A language binding may pass NULL for the initial value (default-constructed handle) or for
+    // the out-parameter; substituting the wxWidgets null objects is the documented default.
     EXPORT void wxGetColourFromUser(wxWindow* parent, wxColour* colInit, wxColour* colour)
     {
-        *colour = wxGetColourFromUser(parent, *colInit);
+        if (!colour)
+        {
+            return;
+        }
+        *colour = wxGetColourFromUser(parent, colInit ? *colInit : wxNullColour);
     }
 
     EXPORT void wxGetColourFromUserEx(wxWindow* parent, wxColour* colInit, wxString* caption,
                                       wxColour* colour)
     {
-        *colour = wxGetColourFromUser(parent, *colInit, *caption);
+        if (!colour)
+        {
+            return;
+        }
+        *colour = wxGetColourFromUser(parent, colInit ? *colInit : wxNullColour,
+                                      caption ? *caption : wxString());
     }
 
     EXPORT void wxGetFontFromUser(wxWindow* parent, wxFont* fontInit, wxFont* font)
     {
-        *font = wxGetFontFromUser(parent, *fontInit);
+        if (!font)
+        {
+            return;
+        }
+        *font = wxGetFontFromUser(parent, fontInit ? *fontInit : wxNullFont);
     }
 
     EXPORT int wxGetPasswordFromUser(char* message, char* caption, char* defaultText,
@@ -2278,7 +2311,7 @@ extern "C"
 
     EXPORT void* wxHtmlWindow_GetInternalRepresentation(wxHtmlWindow* self)
     {
-        return (void*) self->GetInternalRepresentation();
+        return (wxHtmlContainerCell*) self->GetInternalRepresentation();
     }
 
     EXPORT wxString* wxHtmlWindow_GetOpenedAnchor(wxHtmlWindow* self)
@@ -2304,7 +2337,7 @@ extern "C"
 
     EXPORT void* wxHtmlWindow_GetRelatedFrame(wxHtmlWindow* self)
     {
-        return (void*) self->GetRelatedFrame();
+        return (wxFrame*) self->GetRelatedFrame();
     }
 
     EXPORT int wxHtmlWindow_HistoryBack(wxHtmlWindow* self)
@@ -2408,6 +2441,11 @@ extern "C"
     EXPORT void wxHtmlWindow_SetBackgroundImage(wxHtmlWindow* self, wxBitmapBundle* bmpBg)
     {
         self->SetBackgroundImage(*bmpBg);
+    }
+
+    EXPORT void wxHtmlWindow_SetHTMLBackgroundImage(wxHtmlWindow* self, wxBitmapBundle* bmpBg)
+    {
+        self->SetHTMLBackgroundImage(*bmpBg);
     }
 
     EXPORT void wxHtmlWindow_SetStandardFonts(wxHtmlWindow* self, int size, wxString* normal_face,

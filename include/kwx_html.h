@@ -13,6 +13,7 @@ void wxHtmlWindow_SelectLine(TSelf(wxHtmlWindow) pObject, TPoint(x, y));
 void wxHtmlWindow_SelectWord(TSelf(wxHtmlWindow) pObject, TPoint(x, y));
 TClass(wxString) wxHtmlWindow_SelectionToText(TSelf(wxHtmlWindow) pObject);
 void wxHtmlWindow_SetBackgroundImage(TSelf(wxHtmlWindow) pObject, TClass(wxBitmapBundle) bmpBg);
+void wxHtmlWindow_SetHTMLBackgroundImage(TSelf(wxHtmlWindow) pObject, TClass(wxBitmapBundle) bmpBg);
 void wxHtmlWindow_SetStandardFonts(TSelf(wxHtmlWindow) pObject, int size,
                                    TClass(wxString) normal_face, TClass(wxString) fixed_face);
 TClass(wxString) wxHtmlWindow_ToText(TSelf(wxHtmlWindow) pObject);

@@ -68,14 +68,40 @@ constexpr std::size_t FORTRAN_TYPE_IDENTIFIER_BASE_MAX = 52;
     return suffix;
 }
 
+// Stable identifier for a raw C export as it is referenced inside the generated kwxffi
+// interface module. The C export name is fixed by the FFI header and is passed verbatim to
+// bind(C, name=...), but Fortran caps identifiers at 63 characters, so a longer name is
+// truncated and given the same stable hash suffix used elsewhere. Wrapper modules must call
+// the interface through this same identifier.
+[[nodiscard]] inline std::string FortranCInterfaceIdentifier(const std::string& c_name)
+{
+    if (c_name.size() <= FORTRAN_IDENTIFIER_LIMIT)
+    {
+        return c_name;
+    }
+    const std::string hash_suffix = FortranHashSuffix(c_name);
+    std::string identifier = c_name;
+    identifier.resize(FORTRAN_IDENTIFIER_LIMIT - hash_suffix.size() - 1);
+    identifier += "_";
+    identifier += hash_suffix;
+    return identifier;
+}
+
 // Module that holds the wrapper procedures for a class: wxFooBar → wx_foo_bar.
 // wxString maps to wx_string_methods because wx_string is the existing helper module that
-// owns to_wxstring/from_wxstring.
+// owns to_wxstring/from_wxstring.  wxApp maps to wx_app_methods for the same reason: wx_app
+// is the conventional name a consumer gives its own application-lifecycle module, so the
+// generated class module must not take it — otherwise every consumer has to exclude the
+// generated file and loses the whole wxApp wrapper surface.
 [[nodiscard]] inline std::string FortranClassModuleName(const std::string& class_name)
 {
     if (class_name == "wxString")
     {
         return "wx_string_methods";
+    }
+    if (class_name == "wxApp")
+    {
+        return "wx_app_methods";
     }
     return FortranSanitizeIdentifier(ToSnakeCase(class_name), FORTRAN_IDENTIFIER_LIMIT);
 }

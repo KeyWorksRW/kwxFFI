@@ -176,6 +176,7 @@ TClass(wxString) wxFileSystem_FindNext(TSelf(wxFileSystem) pObject);
 TClass(wxString)
     wxFileSystem_FileNameToURL(TSelf(wxFileSystem) pObject, TClass(wxString) file_name);
 TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(wxString) url);
+void wxFileSystem_AddHandler(void* handler);
 
 // ---------------------------------------------------------------------------
 // wxFileName

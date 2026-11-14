@@ -13,9 +13,13 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <print>
 #include <sstream>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 // NOLINTBEGIN(readability-magic-string)
@@ -227,6 +231,15 @@ static std::vector<std::string> SplitMacroArg(const std::string& macro_arg)
     return parts;
 }
 
+// Which layer of the generated Go API a parameter list is for. The public layer
+// exposes idiomatic Go types ([]string for a C string table); the glue layer keeps
+// the raw C ABI that the C wrapper actually reads.
+enum class GoParamLayer
+{
+    Public,
+    Glue,
+};
+
 struct GoParam
 {
     std::string name;           // Go parameter name
@@ -240,6 +253,9 @@ struct GoParam
     std::string glue_pass_expr;  // Expression in class body for glue call (empty → name)
     std::string glue_pre;        // Pre-call statement in glue body
     std::string glue_defer;      // Defer statement in glue body
+    // Parameter that only exists in the glue call (e.g. the count of a TArrayString):
+    // BuildGlueCall passes it in declaration order, public signatures skip it.
+    bool signature_hidden = false;
 };
 
 // Capitalize first letter of a string
@@ -254,13 +270,17 @@ static std::string Capitalize(const std::string& text)
     return result;
 }
 
-// Rename a parameter that would shadow the emitted function's receiver argument.
-// `reserved_name` is "o" in class files and "self" in the cgo glue functions.
+// Rename a parameter that would shadow the emitted function's receiver argument
+// or one of the locals the generated wrapper body declares.  `reserved_name` is
+// "o" in class files and "self" in the cgo glue functions.
 [[nodiscard]] static std::string ParamName(const std::string& name,
                                            const std::string& reserved_name)
 {
     std::string result = RenameGoKeyword(name);
-    if (!reserved_name.empty() && result == reserved_name)
+    // Wrapper bodies declare these locals, so a parameter with the same name
+    // would redeclare it (`obj := ...`) and fail to compile in Go.
+    const bool shadows_body_local = result == "obj" || result == "ptr" || result == "retPtr";
+    if ((!reserved_name.empty() && result == reserved_name) || shadows_body_local)
     {
         result += "Value";
     }
@@ -460,11 +480,20 @@ static std::string Capitalize(const std::string& text)
     {
         return "C.ulong";
     }
+    if (c_type == "size_t")
+    {
+        return "C.size_t";
+    }
+    if (c_type == "int64_t")
+    {
+        return "C.longlong";
+    }
     return "C.int";
 }
 
-// Convert one Param to one or more GoParams.
-static std::vector<GoParam> ConvertParam(const Param& param, const std::string& reserved_name = {})
+// Convert one Param to one or more GoParams for the requested API layer.
+static std::vector<GoParam> ConvertParam(const Param& param, const std::string& reserved_name = {},
+                                         GoParamLayer layer = GoParamLayer::Public)
 {
     std::vector<GoParam> result;
 
@@ -558,21 +587,51 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
     // Array types: expand to count + pointer
     if (param.macro_name == "TArrayString")
     {
-        // int n, char** p  (TString* = char**)
+        // The C ABI is `int n, char** p` (TString* = char**). The public layer hides the
+        // count behind a Go []string marshalled by wxStringTable: exposing the raw
+        // pointer would let a caller pass a pointer to a single string, which the C
+        // wrapper reads as a pointer table (silent memory corruption).
         const std::vector<std::string> names = SplitMacroArg(param.macro_arg);
-        if (names.size() >= 2)
-        {
-            const std::string first_name = ParamName(names[0], reserved_name);
-            const std::string second_name = ParamName(names[1], reserved_name);
-            result.push_back({ first_name, "int", "C.int(" + first_name + ")", "", "", false });
-            result.push_back(
-                { second_name, "unsafe.Pointer", "(**C.char)(" + second_name + ")", "", "", true });
-        }
-        else
+        if (names.size() < 2)
         {
             std::println(stderr, "Warning: TArrayString macro_arg '{}' has fewer than 2 components",
                          param.macro_arg);
+            return result;
         }
+        const std::string count_name = ParamName(names[0], reserved_name);
+        const std::string data_name = ParamName(names[1], reserved_name);
+
+        if (layer == GoParamLayer::Glue)
+        {
+            result.push_back({ count_name, "int", "C.int(" + count_name + ")", "", "", false });
+            result.push_back(
+                { data_name, "unsafe.Pointer", "(**C.char)(" + data_name + ")", "", "", true });
+            return result;
+        }
+
+        // Public layer. The hidden count comes first so the glue call keeps the C
+        // argument order (count, data).
+        GoParam count_param;
+        count_param.name = count_name;
+        count_param.go_type = "int";
+        count_param.glue_pass_expr = "len(" + data_name + ")";
+        count_param.signature_hidden = true;
+        result.push_back(std::move(count_param));
+
+        // Locals derived from the data name. ParamName has already renamed anything
+        // that would shadow a wrapper body local (ptr/obj/retPtr/self/o), so these
+        // cannot collide with the generated body.
+        const std::string table_var = data_name + "Ptr";
+        const std::string release_var = "release" + Capitalize(data_name);
+        GoParam data_param;
+        data_param.name = data_name;
+        data_param.go_type = "[]string";
+        data_param.pre_call =
+            table_var + ", " + release_var + " := wxStringTable(" + data_name + ")";
+        data_param.defer_call = "defer " + release_var + "()";
+        data_param.glue_pass_expr = table_var;
+        data_param.needs_unsafe = false;  // the public signature is a plain []string
+        result.push_back(std::move(data_param));
         return result;
     }
 
@@ -1347,7 +1406,7 @@ static void EmitGlueFunction(std::ostream& output, const FunctionDecl& func_decl
             first_param = false;
             continue;
         }
-        for (const auto& go_param: ConvertParam(param, "self"))
+        for (const auto& go_param: ConvertParam(param, "self", GoParamLayer::Glue))
         {
             if (!first_param)
             {
@@ -1449,6 +1508,10 @@ static void EmitConstructor(std::ostream& output, const ClassInfo& /*class_info*
     {
         for (const auto& go_param: group)
         {
+            if (go_param.signature_hidden)
+            {
+                continue;  // glue-only parameter (e.g. TArrayString count)
+            }
             if (!first)
             {
                 output << ", ";
@@ -1542,6 +1605,10 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
     {
         for (const auto& go_param: group)
         {
+            if (go_param.signature_hidden)
+            {
+                continue;  // glue-only parameter (e.g. TArrayString count)
+            }
             if (!first)
             {
                 output << ", ";
@@ -1640,6 +1707,10 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
     {
         for (const auto& go_param: group)
         {
+            if (go_param.signature_hidden)
+            {
+                continue;  // glue-only parameter (e.g. TArrayString count)
+            }
             if (!first)
             {
                 output << ", ";
@@ -1990,6 +2061,890 @@ CoverageInfo GoEmitter::Coverage(const ParsedFFI& parsed_ffi) const
 }
 
 // -------------------------------------------------------------------------
+// UI descriptor support (emit-ui / check-ui)
+// -------------------------------------------------------------------------
+
+// BaseObject.Ptr is emitted by GenerateHelpers into helpers_gen.go instead of by a class
+// block, so the pointer accessor has no model declaration to derive its name from.
+constexpr std::string_view kGoPointerAccessor = "Ptr";
+
+// The idiomatic Go event handler type.  GenerateEvents emits the EVT_* constants; the handler
+// type itself is hand-maintained in wx/event.go.
+constexpr std::string_view kGoEventHandlerType = "EventHandler";
+
+// The event surface is hand-maintained in wx/event.go:
+//
+//     func (o *EvtHandler) Bind(evtType int, fn EventHandler)
+//     func (o *EvtHandler) BindId(evtType int, id int, fn EventHandler)
+//
+// No model declaration describes either call, so the descriptor spells them out here and marks
+// them `hand_maintained` -- VerifyUiDescriptor does not look for them in the generated tree.
+[[nodiscard]] static UiCallable GoUiBindCallable(bool by_id)
+{
+    UiCallable callable;
+    callable.symbol = by_id ? "BindId" : "Bind";
+    callable.idiom = "method-on-self";
+    callable.reason = "hand_maintained";
+    callable.params.push_back(UiParam { .name = "evtType", .type = "int" });
+    if (by_id)
+    {
+        callable.params.push_back(UiParam { .name = "id", .type = "int" });
+    }
+    callable.params.push_back(UiParam { .name = "fn", .type = std::string(kGoEventHandlerType) });
+    return callable;
+}
+
+// Go method names a UI role may map to, in priority order.  Every entry is resolved through
+// UiFindMethod, so the symbol still comes from the model rather than from this table.
+[[nodiscard]] static std::vector<std::string_view> GoUiRoleMethods(std::string_view role)
+{
+    if (role == "show")
+    {
+        return { "Show" };
+    }
+    if (role == "hide")
+    {
+        return { "Hide" };
+    }
+    if (role == "set_title")
+    {
+        return { "SetTitle" };
+    }
+    if (role == "set_label")
+    {
+        return { "SetLabel" };
+    }
+    if (role == "set_value")
+    {
+        return { "SetValue" };
+    }
+    if (role == "set_size")
+    {
+        return { "SetSize" };
+    }
+    if (role == "set_min_size")
+    {
+        return { "SetMinSize" };
+    }
+    if (role == "center")
+    {
+        return { "Center", "Centre" };
+    }
+    if (role == "set_sizer")
+    {
+        return { "SetSizer" };
+    }
+    if (role == "set_size_hints")
+    {
+        return { "SetSizeHints" };
+    }
+    if (role == "set_font")
+    {
+        return { "SetFont" };
+    }
+    if (role == "set_icon")
+    {
+        return { "SetIcon" };
+    }
+    if (role == "set_bitmap")
+    {
+        return { "SetBitmap" };
+    }
+    if (role == "create_statusbar")
+    {
+        return { "CreateStatusBar" };
+    }
+    if (role == "set_menubar")
+    {
+        return { "SetMenuBar" };
+    }
+    if (role == "show_modal")
+    {
+        return { "ShowModal" };
+    }
+    if (role == "end_modal")
+    {
+        return { "EndModal" };
+    }
+    if (role == "set_escape_id")
+    {
+        return { "SetEscapeId" };
+    }
+    if (role == "set_affirmative_id")
+    {
+        return { "SetAffirmativeId" };
+    }
+    if (role == "destroy")
+    {
+        return { "Destroy" };
+    }
+    if (role == "delete")
+    {
+        return { "Delete" };
+    }
+    // The wxSizerFlags overloads are what the ports call: they take the built flags object,
+    // which is the only way the C1 `flags` block can be used from a sizer item.
+    if (role == "add_window")
+    {
+        return { "AddWindowFlags", "AddWindow" };
+    }
+    if (role == "add_sizer")
+    {
+        return { "AddSizerFlags", "AddSizer" };
+    }
+    if (role == "add_spacer")
+    {
+        return { "AddSpacer" };
+    }
+    if (role == "realize")
+    {
+        return { "Realize" };
+    }
+    if (role == "add_button")
+    {
+        return { "AddButton" };
+    }
+    if (role == "proportion")
+    {
+        return { "Proportion" };
+    }
+    if (role == "expand")
+    {
+        return { "Expand" };
+    }
+    if (role == "border")
+    {
+        return { "Border" };
+    }
+    if (role == "left")
+    {
+        return { "Left" };
+    }
+    if (role == "right")
+    {
+        return { "Right" };
+    }
+    if (role == "top")
+    {
+        return { "Top" };
+    }
+    if (role == "bottom")
+    {
+        return { "Bottom" };
+    }
+    if (role == "align_h")
+    {
+        return { "Align", "CenterHorizontal" };
+    }
+    if (role == "align_v")
+    {
+        return { "Align", "CenterVertical" };
+    }
+    if (role == "create")
+    {
+        return { "Create" };
+    }
+    if (role == "get_bitmap")
+    {
+        return { "GetBitmap" };
+    }
+    if (role == "from_base64")
+    {
+        return { "CreateFromBase64" };
+    }
+    // bind/bind_id are hand-maintained in wx/event.go (GoBindCallable); they have no model
+    // declaration to resolve.
+    return {};
+}
+
+// The Go identifier EmitClassFile gives a declaration inside `block_class`.  Mirrors the
+// classifier in EmitClassFile so the descriptor never invents a name the emitter omits.
+[[nodiscard]] static std::string GoUiMemberName(const FunctionDecl& func,
+                                                const std::string& block_class)
+{
+    const std::string owner = func.class_name.empty() ? block_class : func.class_name;
+    const bool is_free_function = func.class_name.empty() && !func.has_self;
+    const bool is_true_constructor =
+        func.is_constructor && !func.has_self && func.return_type != "TBool";
+    const bool is_class_static = !is_free_function && !is_true_constructor && !func.is_destructor &&
+                                 !func.has_self && !IsPseudoSelf(func);
+
+    if (is_free_function)
+    {
+        return GoFreeFunctionName(func);
+    }
+    if (is_class_static)
+    {
+        return StripPrefix(owner) + "_" + SafeGoIdentifier(func.method_name);
+    }
+    if (is_true_constructor)
+    {
+        return GoConstructorName(StripPrefix(owner), func.method_name);
+    }
+    if (func.is_destructor)
+    {
+        return "Delete";
+    }
+    return SafeGoIdentifier(func.method_name);
+}
+
+[[nodiscard]] static std::string GoUiIdiom(const FunctionDecl& func)
+{
+    const bool is_free_function = func.class_name.empty() && !func.has_self;
+    const bool is_true_constructor =
+        func.is_constructor && !func.has_self && func.return_type != "TBool";
+    if (is_free_function)
+    {
+        return "procedure";
+    }
+    if (is_true_constructor)
+    {
+        return "constructor";
+    }
+    const bool is_class_static = !func.is_destructor && !func.has_self && !IsPseudoSelf(func);
+    return is_class_static ? "procedure" : "method-on-self";
+}
+
+// Call-site parameters for a method wrapper: the same receiver-skip rules EmitMethod applies,
+// run through the same ConvertParam helper, so the arity matches the emitted signature.
+[[nodiscard]] static std::vector<UiParam> GoUiMethodParams(const FunctionDecl& func)
+{
+    std::vector<UiParam> result;
+    const bool pseudo_self = IsPseudoSelf(func);
+    bool seen_self = false;
+    for (std::size_t param_index = 0; param_index < func.params.size(); ++param_index)
+    {
+        const Param& param = func.params[param_index];
+        if (param_index == 0 && pseudo_self)
+        {
+            seen_self = true;
+            continue;
+        }
+        if (param.macro_name == "TSelf")
+        {
+            if (!seen_self)
+            {
+                seen_self = true;
+                continue;
+            }
+            const std::string name =
+                ParamName(param.param_name.empty() ? "other" : param.param_name, kReceiverVar);
+            result.push_back(UiParam { .name = name, .type = "unsafe.Pointer" });
+            continue;
+        }
+        for (const GoParam& go_param: ConvertParam(param, kReceiverVar))
+        {
+            if (go_param.signature_hidden)
+            {
+                continue;  // glue-only parameter (e.g. TArrayString count)
+            }
+            result.push_back(UiParam { .name = go_param.name, .type = go_param.go_type });
+        }
+    }
+    return result;
+}
+
+// Constructor call-site parameters: EmitConstructor skips TSelf without the receiver rules.
+[[nodiscard]] static std::vector<UiParam> GoUiConstructorParams(const FunctionDecl& func)
+{
+    std::vector<UiParam> result;
+    for (const Param& param: func.params)
+    {
+        if (param.macro_name == "TSelf")
+        {
+            continue;
+        }
+        for (const GoParam& go_param: ConvertParam(param))
+        {
+            if (go_param.signature_hidden)
+            {
+                continue;  // glue-only parameter (e.g. TArrayString count)
+            }
+            result.push_back(UiParam { .name = go_param.name, .type = go_param.go_type });
+        }
+    }
+    return result;
+}
+
+[[nodiscard]] static UiCallable GoUiCallable(const FunctionDecl& func,
+                                             const std::string& block_class)
+{
+    UiCallable callable;
+    callable.symbol = GoUiMemberName(func, block_class);
+    callable.idiom = GoUiIdiom(func);
+    const bool constructor_shape =
+        func.is_constructor && !func.has_self && func.return_type != "TBool";
+    callable.params = constructor_shape ? GoUiConstructorParams(func) : GoUiMethodParams(func);
+    return callable;
+}
+
+// Resolve one role against the model.  An empty result means the backend emits no wrapper.
+[[nodiscard]] static UiCallable GoUiRoleCallable(const ParsedFFI& parsed_ffi,
+                                                 const std::string& class_name,
+                                                 std::string_view role)
+{
+    for (const std::string_view method_name: GoUiRoleMethods(role))
+    {
+        if (const FunctionDecl* const func = UiFindMethod(parsed_ffi, class_name, method_name);
+            func != nullptr)
+        {
+            return GoUiCallable(*func, class_name);
+        }
+    }
+    return {};
+}
+
+static void MarkUiUnavailable(UiCallable& callable, std::string_view reason)
+{
+    if (!callable.symbol.empty())
+    {
+        return;
+    }
+    callable.idiom = "unsupported";
+    callable.reason = std::string(reason);
+}
+
+[[nodiscard]] static UiCallable GoUiClassCtor(const UiDescriptor& descriptor,
+                                              const std::string& class_name)
+{
+    const std::map<std::string, UiClass>::const_iterator iter = descriptor.classes.find(class_name);
+    return iter == descriptor.classes.end() ? UiCallable {} : iter->second.ctor;
+}
+
+[[nodiscard]] static UiCallable GoUiClassRole(const UiDescriptor& descriptor,
+                                              const std::string& class_name,
+                                              const std::string& role)
+{
+    const std::map<std::string, UiClass>::const_iterator iter = descriptor.classes.find(class_name);
+    if (iter == descriptor.classes.end())
+    {
+        return {};
+    }
+    const std::map<std::string, UiCallable>::const_iterator role_iter =
+        iter->second.roles.find(role);
+    return role_iter == iter->second.roles.end() ? UiCallable {} : role_iter->second;
+}
+
+UiDescriptor GoEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) const
+{
+    UiDescriptor descriptor;
+    descriptor.schema = UI_SCHEMA_VERSION;
+    descriptor.lang = std::string(Name());
+
+    // emit-ui has already rejected unknown names in a --classes file, so the unresolved
+    // remainder is deliberately ignored here.
+    std::vector<std::string> missing;
+    const std::vector<std::string> selected_classes =
+        UiResolveClassSelection(parsed_ffi, ui_class_selection_, missing);
+
+    // Factual naming rules, each naming the helper or file the Go backend actually uses.
+    descriptor.naming["class_type"] =
+        "exported struct StripPrefix(wxClass) embedding its wrapped parent, e.g. type Frame "
+        "struct{ TopLevelWindow }";
+    descriptor.naming["constructor"] =
+        "package function New<Type><Suffix>(...) *Type (GoConstructorName) in <type>_gen.go";
+    descriptor.naming["method"] =
+        "method func (o *Type) Method(...) on the wrapper struct (SafeGoIdentifier)";
+    descriptor.naming["constant"] =
+        "package-level var in constants_gen.go, e.g. ID_ANY = cgo_expwxID_ANY()";
+    descriptor.naming["module"] = "Go package wx (package wx)";
+    descriptor.naming["event_bind"] = "Bind (hand-maintained wx/event.go)";
+    // Generated parameter types name wrapper objects; a wrapper becomes the handle the wrapper
+    // function expects through its pointer accessor (BaseObject.Ptr, helpers_gen.go).
+    descriptor.naming["pointer_accessor"] = "." + std::string(kGoPointerAccessor) + "()";
+
+    // Constants the emitter really declares, through the same canonical list it uses.
+    std::unordered_set<std::string> emitted_constants;
+    for (const ConstantDecl* constant: CollectConstants(parsed_ffi))
+    {
+        emitted_constants.insert(constant->constant_name);
+    }
+
+    static const std::map<std::string, std::vector<std::string>> CLASS_CONSTANTS = {
+        { "wxFrame", { "ID_ANY", "DEFAULT_FRAME_STYLE" } },
+        { "wxDialog", { "ID_ANY" } },
+        { "wxTextCtrl", { "ID_ANY" } },
+        { "wxBoxSizer", { "VERTICAL", "HORIZONTAL" } },
+        { "wxStaticBitmap", { "ID_ANY" } },
+        { "wxStdDialogButtonSizer", { "ID_ANY" } },
+        { "wxSizerFlags",
+          { "EXPAND", "ALL", "ALIGN_CENTER", "ALIGN_LEFT", "ALIGN_RIGHT", "ALIGN_TOP",
+            "ALIGN_BOTTOM" } },
+    };
+
+    // A generic ctor may only name a wrapper the backend actually generates, which is exactly
+    // the set Coverage reports as wrapped: hand-maintained, skipped and consumer-provided
+    // classes are reported there instead.
+    const CoverageInfo coverage = Coverage(parsed_ffi);
+    const std::unordered_set<std::string> wrapped(coverage.wrapped_classes.begin(),
+                                                  coverage.wrapped_classes.end());
+
+    for (const std::string& class_name: selected_classes)
+    {
+        if (!UiIsRequiredClass(class_name))
+        {
+            if (UiFindClass(parsed_ffi, class_name) == nullptr)
+            {
+                continue;
+            }
+
+            if (!wrapped.contains(class_name))
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "", .reason = "not_supported" });
+                continue;
+            }
+
+            const FunctionDecl* const ctor_func =
+                UiFindCanonicalConstructor(parsed_ffi, class_name);
+            if (ctor_func == nullptr)
+            {
+                descriptor.unsupported.push_back(
+                    UiUnsupported { .class_name = class_name, .role = "", .reason = "no_method" });
+                continue;
+            }
+
+            // EmitClassFile only emits a New<Type> function for a constructor of the class
+            // block it writes (is_true_constructor in its classifier); an inherited Create is
+            // emitted on the ancestor's wrapper, which cannot construct this class.
+            const ClassInfo* const generic_class = UiFindClass(parsed_ffi, class_name);
+            const FunctionDecl* emitted_ctor = nullptr;
+            if (generic_class != nullptr)
+            {
+                for (const FunctionDecl& method: generic_class->methods)
+                {
+                    if (IsValidFunction(method) && method.is_constructor && !method.has_self &&
+                        method.return_type != "TBool")
+                    {
+                        emitted_ctor = &method;
+                        break;
+                    }
+                }
+            }
+            if (emitted_ctor == nullptr)
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "ctor", .reason = "no_naming" });
+                continue;
+            }
+
+            UiClass generic_class_info;
+            generic_class_info.type = StripPrefix(class_name);
+            generic_class_info.idiom = "constructor";
+            generic_class_info.ctor = GoUiCallable(*emitted_ctor, class_name);
+            // EmitClassFile spells the constructor after the class block it emits
+            // (GoConstructorName(go_class_name, ...)), not after the declaring class, so
+            // wxMBConv_CreateUTF8 is emitted as NewMBConv even though its declaration belongs
+            // to wxMBConvUTF8.
+            generic_class_info.ctor.symbol =
+                GoConstructorName(StripPrefix(class_name), emitted_ctor->method_name);
+            generic_class_info.ctor.idiom = "constructor";
+            generic_class_info.ctor.returns = class_name;
+
+            if (generic_class_info.type.empty() || generic_class_info.ctor.symbol.empty())
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "ctor", .reason = "no_naming" });
+                continue;
+            }
+
+            descriptor.classes.emplace(class_name, std::move(generic_class_info));
+            continue;
+        }
+
+        UiClass class_info;
+        class_info.type = StripPrefix(class_name);
+        class_info.idiom = "constructor";
+
+        if (class_name == "wxStdDialogButtonSizer")
+        {
+            // The class's own constructor is the wrapper this backend emits. wxDialog's
+            // factory is the idiom a port calls; it is recorded in the std_buttons block as a
+            // method-on-parent callable.
+            if (const FunctionDecl* const func = UiFindConstructor(parsed_ffi, class_name);
+                func != nullptr)
+            {
+                class_info.ctor = GoUiCallable(*func, class_name);
+                class_info.ctor.idiom = "constructor";
+                class_info.ctor.returns = class_name;
+            }
+        }
+        else if (const FunctionDecl* const func = UiFindConstructor(parsed_ffi, class_name);
+                 func != nullptr)
+        {
+            class_info.ctor = GoUiCallable(*func, class_name);
+            class_info.ctor.idiom = "constructor";
+            class_info.ctor.returns = class_name;
+        }
+
+        if (class_info.ctor.symbol.empty())
+        {
+            // No usable constructor wrapper: the whole class is unsupported.
+            descriptor.unsupported.push_back(
+                UiUnsupported { .class_name = class_name, .role = "", .reason = "no_method" });
+            continue;
+        }
+
+        for (const std::string_view required_role_view: UiRequiredRolesForClass(class_name))
+        {
+            const std::string role(required_role_view);
+            if (role == "ctor")
+            {
+                continue;
+            }
+
+            UiCallable callable;
+            if (role == "bind" || role == "bind_id")
+            {
+                callable = GoUiBindCallable(role == "bind_id");
+            }
+            else if (role == "ptr")
+            {
+                callable.symbol = std::string(kGoPointerAccessor);
+                callable.idiom = "method-on-self";
+            }
+            else
+            {
+                callable = GoUiRoleCallable(parsed_ffi, class_name, role);
+            }
+
+            if (callable.symbol.empty())
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = role, .reason = "no_method" });
+                continue;
+            }
+            class_info.roles[role] = callable;
+        }
+
+        const std::map<std::string, std::vector<std::string>>::const_iterator constants_iter =
+            CLASS_CONSTANTS.find(class_name);
+        if (constants_iter != CLASS_CONSTANTS.end())
+        {
+            for (const std::string& constant_name: constants_iter->second)
+            {
+                if (emitted_constants.contains(constant_name))
+                {
+                    class_info.constants[constant_name] = constant_name;
+                }
+            }
+        }
+
+        descriptor.classes[class_name] = std::move(class_info);
+    }
+
+    // ---- sizers ----
+    // Both blocks reuse the callables already resolved for the two sizer classes.
+    descriptor.sizers.wx_box_sizer.ctor = GoUiClassCtor(descriptor, "wxBoxSizer");
+    descriptor.sizers.wx_box_sizer.add_window =
+        GoUiClassRole(descriptor, "wxBoxSizer", "add_window");
+    descriptor.sizers.wx_box_sizer.add_sizer = GoUiClassRole(descriptor, "wxBoxSizer", "add_sizer");
+    descriptor.sizers.wx_box_sizer.add_spacer =
+        GoUiClassRole(descriptor, "wxBoxSizer", "add_spacer");
+    MarkUiUnavailable(descriptor.sizers.wx_box_sizer.ctor, "no_method");
+    MarkUiUnavailable(descriptor.sizers.wx_box_sizer.add_window, "no_method");
+    MarkUiUnavailable(descriptor.sizers.wx_box_sizer.add_sizer, "no_method");
+    MarkUiUnavailable(descriptor.sizers.wx_box_sizer.add_spacer, "no_method");
+
+    descriptor.sizers.flags.ctor = GoUiClassCtor(descriptor, "wxSizerFlags");
+    descriptor.sizers.flags.proportion = GoUiClassRole(descriptor, "wxSizerFlags", "proportion");
+    descriptor.sizers.flags.expand = GoUiClassRole(descriptor, "wxSizerFlags", "expand");
+    descriptor.sizers.flags.border = GoUiClassRole(descriptor, "wxSizerFlags", "border");
+    descriptor.sizers.flags.left = GoUiClassRole(descriptor, "wxSizerFlags", "left");
+    descriptor.sizers.flags.right = GoUiClassRole(descriptor, "wxSizerFlags", "right");
+    descriptor.sizers.flags.top = GoUiClassRole(descriptor, "wxSizerFlags", "top");
+    descriptor.sizers.flags.bottom = GoUiClassRole(descriptor, "wxSizerFlags", "bottom");
+    descriptor.sizers.flags.align_h = GoUiClassRole(descriptor, "wxSizerFlags", "align_h");
+    descriptor.sizers.flags.align_v = GoUiClassRole(descriptor, "wxSizerFlags", "align_v");
+    MarkUiUnavailable(descriptor.sizers.flags.ctor, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.proportion, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.expand, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.border, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.left, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.right, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.top, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.bottom, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.align_h, "no_method");
+    MarkUiUnavailable(descriptor.sizers.flags.align_v, "no_method");
+
+    // ---- events ----
+    descriptor.events.bind = GoUiBindCallable(false);
+    descriptor.events.bind_id = GoUiBindCallable(true);
+    descriptor.events.handler_type = std::string(kGoEventHandlerType);
+
+    // ---- bitmap ----
+    descriptor.bitmap.from_base64 = GoUiRoleCallable(parsed_ffi, "wxBitmap", "from_base64");
+    descriptor.bitmap.get_bitmap = GoUiRoleCallable(parsed_ffi, "wxStaticBitmap", "get_bitmap");
+    descriptor.bitmap.delete_fn = GoUiRoleCallable(parsed_ffi, "wxBitmap", "delete");
+    MarkUiUnavailable(descriptor.bitmap.from_base64, "no_method");
+    MarkUiUnavailable(descriptor.bitmap.get_bitmap, "no_method");
+    MarkUiUnavailable(descriptor.bitmap.delete_fn, "no_method");
+
+    // ---- font ----
+    descriptor.font.create = GoUiRoleCallable(parsed_ffi, "wxFont", "create");
+    descriptor.font.delete_fn = GoUiRoleCallable(parsed_ffi, "wxFont", "delete");
+    MarkUiUnavailable(descriptor.font.create, "no_method");
+    MarkUiUnavailable(descriptor.font.delete_fn, "no_method");
+
+    // ---- std_buttons ----
+    // wxDialog::CreateStdDialogButtonSizer(flags) is the shape the Go port calls: a
+    // method-on-parent that returns the sizer handle, not a constructor (kwxGO/wx/dialog_gen.go).
+    descriptor.std_buttons.create = UiCallable {};
+    if (const FunctionDecl* const func =
+            UiFindMethod(parsed_ffi, "wxDialog", "CreateStdDialogButtonSizer");
+        func != nullptr)
+    {
+        descriptor.std_buttons.create = GoUiCallable(*func, "wxDialog");
+        descriptor.std_buttons.create.idiom = "method-on-parent";
+        descriptor.std_buttons.create.owner = "wxDialog";
+        descriptor.std_buttons.create.returns = "sizer_handle";
+    }
+    descriptor.std_buttons.add_button =
+        GoUiRoleCallable(parsed_ffi, "wxStdDialogButtonSizer", "add_button");
+    descriptor.std_buttons.realize =
+        GoUiRoleCallable(parsed_ffi, "wxStdDialogButtonSizer", "realize");
+    MarkUiUnavailable(descriptor.std_buttons.create, "no_method");
+    MarkUiUnavailable(descriptor.std_buttons.add_button, "no_method");
+    MarkUiUnavailable(descriptor.std_buttons.realize, "no_method");
+
+    // ---- app ----
+    // The application entry point and SetTopWindow are hand-maintained in wx/app.go; the
+    // emitter produces neither, so the descriptor records that instead of naming a symbol
+    // the generated output does not contain.
+    descriptor.app.entry = "Run";
+    descriptor.app.entry_signature = "func Run(onInit func() bool)";
+    descriptor.app.set_top_window = UiCallable {};
+    MarkUiUnavailable(descriptor.app.set_top_window, "hand_maintained");
+    descriptor.app.emit_entry = false;
+
+    return descriptor;
+}
+
+// Declared arities of every Go func/method indexed from the generated output.
+using GoDeclarationArities = std::unordered_map<std::string, std::unordered_set<std::size_t>>;
+
+// Index just past the ')' that closes the '(' at open_index, or npos when unbalanced.
+[[nodiscard]] static std::size_t GoSkipParentheses(const std::string& source,
+                                                   std::size_t open_index)
+{
+    int depth = 0;
+    for (std::size_t index = open_index; index < source.size(); ++index)
+    {
+        const char character = source[index];
+        if (character == '(')
+        {
+            ++depth;
+        }
+        else if (character == ')')
+        {
+            --depth;
+            if (depth == 0)
+            {
+                return index + 1;
+            }
+        }
+    }
+    return std::string::npos;
+}
+
+// Count the top-level comma-separated parameters between open_index and close_index.
+[[nodiscard]] static std::size_t GoCountParameters(const std::string& source,
+                                                   std::size_t open_index, std::size_t close_index)
+{
+    std::size_t count = 0;
+    bool has_content = false;
+    int depth = 0;
+    for (std::size_t index = open_index + 1; index < close_index; ++index)
+    {
+        const char character = source[index];
+        if (character == '(' || character == '[' || character == '{')
+        {
+            ++depth;
+            has_content = true;
+            continue;
+        }
+        if (character == ')' || character == ']' || character == '}')
+        {
+            --depth;
+            continue;
+        }
+        if (depth == 0 && character == ',')
+        {
+            ++count;
+            continue;
+        }
+        if (std::isspace(static_cast<unsigned char>(character)) == 0)
+        {
+            has_content = true;
+        }
+    }
+    return has_content ? count + 1 : 0;
+}
+
+// Index every func/method declaration in one Go source file by its declared name.
+static void CollectGoDeclarations(const std::string& source, GoDeclarationArities& arities)
+{
+    constexpr std::string_view FUNC_KEYWORD = "func ";
+    std::size_t position = source.find(FUNC_KEYWORD);
+    while (position != std::string::npos)
+    {
+        std::size_t cursor = position + FUNC_KEYWORD.size();
+        if (cursor < source.size() && source[cursor] == '(')
+        {
+            // Receiver of a method: func (o *Type) Name(...)
+            const std::size_t after_receiver = GoSkipParentheses(source, cursor);
+            if (after_receiver == std::string::npos)
+            {
+                return;
+            }
+            cursor = after_receiver;
+        }
+        while (cursor < source.size() &&
+               std::isspace(static_cast<unsigned char>(source[cursor])) != 0)
+        {
+            ++cursor;
+        }
+
+        const std::size_t name_start = cursor;
+        while (cursor < source.size() &&
+               (std::isalnum(static_cast<unsigned char>(source[cursor])) != 0 ||
+                source[cursor] == '_'))
+        {
+            ++cursor;
+        }
+        if (cursor == name_start)
+        {
+            position = source.find(FUNC_KEYWORD, position + 1);
+            continue;
+        }
+        const std::string name = source.substr(name_start, cursor - name_start);
+
+        while (cursor < source.size() &&
+               std::isspace(static_cast<unsigned char>(source[cursor])) != 0)
+        {
+            ++cursor;
+        }
+        if (cursor >= source.size() || source[cursor] != '(')
+        {
+            position = source.find(FUNC_KEYWORD, position + 1);
+            continue;
+        }
+        const std::size_t after_params = GoSkipParentheses(source, cursor);
+        if (after_params == std::string::npos)
+        {
+            return;
+        }
+        arities[name].insert(GoCountParameters(source, cursor, after_params));
+        position = source.find(FUNC_KEYWORD, after_params);
+    }
+}
+
+// Every labelled callable a descriptor carries, using the same labels the check-ui command
+// reports so a MISMATCH line is directly comparable.
+static void CollectUiDescriptorCallables(
+    const UiDescriptor& descriptor,
+    std::vector<std::pair<std::string, const UiCallable*>>& callables_out)
+{
+    const auto add_callable = [&callables_out](const std::string& label, const UiCallable& callable)
+    {
+        callables_out.emplace_back(label, &callable);
+    };
+
+    for (const auto& [class_name, class_info]: descriptor.classes)
+    {
+        add_callable(class_name + ".ctor", class_info.ctor);
+        for (const auto& [role, callable]: class_info.roles)
+        {
+            add_callable(class_name + "." + role, callable);
+        }
+    }
+
+    const UiSizerOps& sizer_ops = descriptor.sizers.wx_box_sizer;
+    add_callable("sizers.wxBoxSizer.ctor", sizer_ops.ctor);
+    add_callable("sizers.wxBoxSizer.add_window", sizer_ops.add_window);
+    add_callable("sizers.wxBoxSizer.add_sizer", sizer_ops.add_sizer);
+    add_callable("sizers.wxBoxSizer.add_spacer", sizer_ops.add_spacer);
+
+    const UiFlags& flags = descriptor.sizers.flags;
+    add_callable("sizers.flags.ctor", flags.ctor);
+    add_callable("sizers.flags.proportion", flags.proportion);
+    add_callable("sizers.flags.expand", flags.expand);
+    add_callable("sizers.flags.border", flags.border);
+    add_callable("sizers.flags.left", flags.left);
+    add_callable("sizers.flags.right", flags.right);
+    add_callable("sizers.flags.top", flags.top);
+    add_callable("sizers.flags.bottom", flags.bottom);
+    add_callable("sizers.flags.align_h", flags.align_h);
+    add_callable("sizers.flags.align_v", flags.align_v);
+
+    add_callable("events.bind", descriptor.events.bind);
+    add_callable("events.bind_id", descriptor.events.bind_id);
+    add_callable("bitmap.from_base64", descriptor.bitmap.from_base64);
+    add_callable("bitmap.get_bitmap", descriptor.bitmap.get_bitmap);
+    add_callable("bitmap.delete", descriptor.bitmap.delete_fn);
+    add_callable("font.create", descriptor.font.create);
+    add_callable("font.delete", descriptor.font.delete_fn);
+    add_callable("std_buttons.create", descriptor.std_buttons.create);
+    add_callable("std_buttons.add_button", descriptor.std_buttons.add_button);
+    add_callable("std_buttons.realize", descriptor.std_buttons.realize);
+    add_callable("app.set_top_window", descriptor.app.set_top_window);
+}
+
+std::vector<std::string> GoEmitter::VerifyUiDescriptor(const UiDescriptor& descriptor,
+                                                       const fs::path& generated_dir) const
+{
+    GoDeclarationArities arities;
+    std::error_code exists_error;
+    if (fs::exists(generated_dir, exists_error) && !exists_error)
+    {
+        for (const auto& entry: fs::recursive_directory_iterator(
+                 generated_dir, fs::directory_options::skip_permission_denied))
+        {
+            std::error_code status_error;
+            if (!entry.is_regular_file(status_error) || status_error)
+            {
+                continue;
+            }
+            std::ifstream input(entry.path(), std::ios::binary);
+            if (!input.is_open())
+            {
+                continue;
+            }
+            std::ostringstream buffer;
+            buffer << input.rdbuf();
+            CollectGoDeclarations(buffer.str(), arities);
+        }
+    }
+
+    std::vector<std::pair<std::string, const UiCallable*>> callables;
+    CollectUiDescriptorCallables(descriptor, callables);
+
+    std::vector<std::string> mismatches;
+    for (const auto& [label, callable]: callables)
+    {
+        if (callable->symbol.empty())
+        {
+            continue;
+        }
+        // A hand-maintained callable (wx/event.go's Bind/BindId) has no generated
+        // declaration to match against; the reason code records why.
+        if (callable->reason.has_value() && callable->reason.value() == "hand_maintained")
+        {
+            continue;
+        }
+        // Any generated declaration of the symbol with the recorded arity satisfies the
+        // entry: the wrapper may live on a base type the class embeds.
+        const GoDeclarationArities::const_iterator arity_iter = arities.find(callable->symbol);
+        if (arity_iter != arities.end() && arity_iter->second.contains(callable->params.size()))
+        {
+            continue;
+        }
+        mismatches.push_back("MISMATCH " + label + " " + callable->symbol);
+    }
+    return mismatches;
+}
+
+// -------------------------------------------------------------------------
 // GoEmitter public interface
 // -------------------------------------------------------------------------
 
@@ -2035,7 +2990,10 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     WriteGeneratedHeader(writer);
     writer << "package wx\n";
     writer << "\n";
-    writer << "import \"unsafe\"\n";
+    writer << "import (\n";
+    writer << "\t\"runtime\"\n";
+    writer << "\t\"unsafe\"\n";
+    writer << ")\n";
     writer << "\n";
     writer << "// BaseObject is the root type for all non-window wxWidgets objects.\n";
     writer << "// All generated non-window class structs embed this type directly or "
@@ -2097,9 +3055,48 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "func WxStringToGoAndFree(ptr unsafe.Pointer) string {\n";
     writer << "\treturn cgo_WxStringToGoAndFree(ptr)\n";
     writer << "}\n";
+    writer << "\n";
+    writer << "// wxStringTable packs items into one NUL-terminated UTF-8 block and returns\n";
+    writer << "// a pointer to a table of char* entries into that block, plus a release\n";
+    writer << "// function. wxRadioBox and similar constructors take `int count, char**\n";
+    writer << "// strings` rather than a wxArrayString, so the count must be len(items) and\n";
+    writer << "// the entries must be real char pointers. wxWidgets copies the strings\n";
+    writer << "// during the call, so the caller only has to keep the block alive until\n";
+    writer << "// the call returns: `defer release()`.\n";
+    writer << "func wxStringTable(items []string) (unsafe.Pointer, func()) {\n";
+    writer << "\tif len(items) == 0 {\n";
+    writer << "\t\treturn nil, func() {}\n";
+    writer << "\t}\n";
+    writer << "\n";
+    writer << "\ttotal := 0\n";
+    writer << "\tfor _, item := range items {\n";
+    writer << "\t\ttotal += len(item) + 1\n";
+    writer << "\t}\n";
+    writer << "\n";
+    writer << "\tblob := make([]byte, 0, total)\n";
+    writer << "\toffsets := make([]int, len(items))\n";
+    writer << "\tfor i, item := range items {\n";
+    writer << "\t\toffsets[i] = len(blob)\n";
+    writer << "\t\tblob = append(blob, item...)\n";
+    writer << "\t\tblob = append(blob, 0)\n";
+    writer << "\t}\n";
+    writer << "\n";
+    writer << "\t// The table stores char pointers into blob, not Go pointers, so the\n";
+    writer << "\t// memory handed to C passes the cgo pointer checks.\n";
+    writer << "\ttable := make([]uintptr, len(items))\n";
+    writer << "\tfor i, offset := range offsets {\n";
+    writer << "\t\ttable[i] = uintptr(unsafe.Pointer(&blob[offset]))\n";
+    writer << "\t}\n";
+    writer << "\n";
+    writer << "\treturn unsafe.Pointer(&table[0]), func() {\n";
+    writer << "\t\truntime.KeepAlive(blob)\n";
+    writer << "\t\truntime.KeepAlive(table)\n";
+    writer << "\t}\n";
+    writer << "}\n";
 
     std::ignore = writer.Flush();
-    std::print(stderr, "  helpers_gen.go:   BaseObject + BaseWindow + WxString types");
+    std::print(stderr,
+               "  helpers_gen.go:   BaseObject + BaseWindow + WxString + wxStringTable helpers");
     if (!writer.WasWritten())
     {
         std::print(stderr, " (unchanged)");

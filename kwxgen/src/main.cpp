@@ -51,6 +51,7 @@
 #include "md_files_gen.h"
 #include "model.h"
 #include "profile.h"
+#include "ui_descriptor.h"
 #include "verify.h"
 
 #include <algorithm>
@@ -84,6 +85,8 @@ static constexpr std::string_view CMD_LANGS = "langs";
 static constexpr std::string_view CMD_PROFILES = "profiles";
 static constexpr std::string_view CMD_ALL_MD_FILES = "all_md_files";
 static constexpr std::string_view CMD_COVERAGE = "coverage";
+static constexpr std::string_view CMD_EMIT_UI = "emit-ui";
+static constexpr std::string_view CMD_CHECK_UI = "check-ui";
 
 // Argument flags
 static constexpr std::string_view ARG_HEADERS = "--headers";
@@ -105,6 +108,10 @@ static constexpr std::string_view ARG_CONSTANTS_VALUES = "--constants-values";
 static constexpr std::string_view ARG_JSON = "--json";
 static constexpr std::string_view ARG_INVENTORY = "--inventory";
 static constexpr std::string_view ARG_REQUIRE_PARITY = "--require-parity";
+static constexpr std::string_view ARG_IR = "--ir";
+static constexpr std::string_view ARG_DESCRIPTOR = "--descriptor";
+static constexpr std::string_view ARG_VERIFY_FLAG = "--verify";
+static constexpr std::string_view ARG_CLASSES = "--classes";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
@@ -128,6 +135,11 @@ static void PrintUsage(const char* prog_name)
                  "  {} coverage --headers <dir> --defs <file> [--lang <lang>] [--profile <name>] "
                  "[--json <file>] [--inventory <file>] [--require-parity]",
                  prog_name);
+    std::println(stderr,
+                 "  {} emit-ui  --headers <dir> --defs <file> --lang <lang> [--profile <name>] "
+                 "[--classes auto|<file>|form] [--out <file>|-] [--verify]",
+                 prog_name);
+    std::println(stderr, "  {} check-ui --lang <lang> --ir <file> --descriptor <file>", prog_name);
     std::println(stderr, "");
     std::println(stderr, "Global options (for generate/verify):");
     std::println(
@@ -175,6 +187,10 @@ struct Args
     std::string json_path;            // --json (coverage report)
     std::string inventory_path;       // --inventory (coverage Markdown table)
     bool require_parity = false;      // --require-parity (coverage gate)
+    std::string ir_path;              // --ir (check-ui project IR)
+    std::string descriptor_path;      // --descriptor (check-ui UI descriptor)
+    bool verify_ui = false;           // --verify flag for emit-ui
+    std::string classes = "auto";     // --classes (emit-ui: auto|<file>|form)
 };
 
 static constexpr std::string_view CONFIG_FILE_NAME = "kwxgen.config.json";
@@ -200,6 +216,41 @@ static bool LoadConfigFile(Args& args)
     }
 
     std::println(stderr, "Loaded config from {}", config_path.string());
+    return true;
+}
+
+// Read one --classes file: one class name per line.  Blank lines and lines whose first
+// non-space character is '#' are skipped; a trailing '\r' and surrounding whitespace are
+// stripped so a CRLF file from Windows parses the same as an LF file.
+[[nodiscard]] static bool ReadClassNamesFile(const std::string& path,
+                                             std::vector<std::string>& class_names)
+{
+    std::ifstream input(path);
+    if (!input.is_open())
+    {
+        std::println(stderr, "Error: cannot read classes file '{}'", path);
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(input, line))
+    {
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.pop_back();
+        }
+        const size_t first_char = line.find_first_not_of(" \t\v\f");
+        if (first_char == std::string::npos)
+        {
+            continue;
+        }
+        if (line[first_char] == '#')
+        {
+            continue;
+        }
+        const size_t last_char = line.find_last_not_of(" \t\v\f");
+        class_names.push_back(line.substr(first_char, (last_char - first_char) + 1));
+    }
     return true;
 }
 
@@ -291,6 +342,22 @@ static bool LoadConfigFile(Args& args)
         else if (argument == ARG_REQUIRE_PARITY)
         {
             args.require_parity = true;
+        }
+        else if (argument == ARG_IR && i + 1 < argc)
+        {
+            args.ir_path = argv[++i];
+        }
+        else if (argument == ARG_DESCRIPTOR && i + 1 < argc)
+        {
+            args.descriptor_path = argv[++i];
+        }
+        else if (argument == ARG_CLASSES && i + 1 < argc)
+        {
+            args.classes = argv[++i];
+        }
+        else if (argument == ARG_VERIFY_FLAG)
+        {
+            args.verify_ui = true;
         }
         else if (argument == ARG_ALL_MD_FILES)
         {
@@ -1412,6 +1479,215 @@ int main(int argc, char* argv[])
             std::println("  {:<11} {}", lang, DefaultProfileForLanguage(lang));
         }
         return 0;
+    }
+
+    if (args.command == CMD_EMIT_UI)
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::println(stderr, "Error: 'emit-ui' requires --headers and --defs");
+            return 1;
+        }
+        if (args.lang.empty())
+        {
+            std::println(stderr, "Error: 'emit-ui' requires --lang");
+            return 1;
+        }
+
+        const std::vector<std::unique_ptr<LanguageEmitter>> emitters = CreateEmitters();
+        LanguageEmitter* const emitter = FindEmitter(emitters, args.lang);
+        if (!emitter)
+        {
+            std::println(stderr, "Error: unknown language '{}'", args.lang);
+            std::print(stderr, "Available:");
+            for (const auto& entry: emitters)
+            {
+                std::print(stderr, " {}", entry->Name());
+            }
+            std::println(stderr, "");
+            return 1;
+        }
+
+        std::println(stderr, "Parsing...");
+        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+        parsed_ffi.lib_name = args.lib_name;
+        if (!ApplyConstantsValues(args, parsed_ffi))
+        {
+            return 1;
+        }
+
+        // emit-ui defaults to the gui profile: a descriptor exists to describe the classes a
+        // UI layer needs.  The other commands keep their own defaults.
+        Args emit_args = args;
+        if (emit_args.profile.empty())
+        {
+            emit_args.profile = "gui";
+        }
+        const std::string profile = ResolveProfile(emit_args);
+        if (profile.empty())
+        {
+            return 1;
+        }
+
+        UiClassSelection selection;
+        if (args.classes == "auto")
+        {
+            selection.mode = UiClassMode::Auto;
+        }
+        else if (args.classes == "form")
+        {
+            selection.mode = UiClassMode::Form;
+        }
+        else
+        {
+            selection.mode = UiClassMode::File;
+            if (!ReadClassNamesFile(args.classes, selection.class_names))
+            {
+                return 1;
+            }
+        }
+
+        const ParsedFFI profiled_ffi = ApplyProfile(parsed_ffi, profile);
+
+        std::vector<std::string> missing;
+        const std::vector<std::string> selected =
+            UiResolveClassSelection(profiled_ffi, selection, missing);
+        if (!missing.empty())
+        {
+            std::string missing_list;
+            for (const std::string& class_name: missing)
+            {
+                if (!missing_list.empty())
+                {
+                    missing_list += ", ";
+                }
+                missing_list += class_name;
+            }
+            std::println(stderr, "Error: --classes file names unknown classes: {}", missing_list);
+            return 1;
+        }
+
+        emitter->SetUiClassSelection(selection);
+        UiDescriptor descriptor = emitter->BuildUiDescriptor(profiled_ffi);
+        descriptor.schema = UI_SCHEMA_VERSION;
+        descriptor.lang = std::string(emitter->Name());
+        descriptor.generated_by =
+            UiGeneratedBy { .tool = std::string(UI_TOOL_NAME),
+                            .version = std::string(UI_TOOL_VERSION),
+                            .headers_hash = UiHeadersHash(args.headers_dir, args.defs_file),
+                            .profile = profile };
+
+        UiAccountForRequiredClasses(descriptor, selected);
+
+        std::string validate_error;
+        if (!UiValidateDescriptor(descriptor, validate_error))
+        {
+            std::println(stderr, "Error: invalid descriptor: {}", validate_error);
+            return 1;
+        }
+
+        const std::string json = UiDescriptorToJson(descriptor);
+        if (json.empty())
+        {
+            std::println(stderr, "Error: descriptor JSON serialization failed");
+            return 1;
+        }
+        const std::string document = json + "\n";
+
+        if (args.out_path.empty() || args.out_path == STDOUT_MARKER)
+        {
+            std::cout << document;
+            std::cout.flush();
+        }
+        else
+        {
+            std::ofstream output(args.out_path, std::ios::binary | std::ios::trunc);
+            if (!output.is_open())
+            {
+                std::println(stderr, "Error: cannot open output file '{}'", args.out_path);
+                return 1;
+            }
+            output << document;
+        }
+
+        std::println(stderr, "Emitted {} classes for {} ({} unsupported)",
+                     descriptor.classes.size(), descriptor.lang, descriptor.unsupported.size());
+
+        if (!args.verify_ui)
+        {
+            return 0;
+        }
+
+        const fs::path temp_dir = fs::temp_directory_path() / ("kwxgen_emit_ui_" + args.lang);
+        std::ignore = fs::remove_all(temp_dir);
+        std::ignore = fs::create_directories(temp_dir);
+
+        // The contract for --verify is that the emitter is run into the temp dir first; the
+        // backend's VerifyUiDescriptor only inspects that output.
+        emitter->Generate(profiled_ffi, temp_dir);
+
+        const std::vector<std::string> mismatches =
+            emitter->VerifyUiDescriptor(descriptor, temp_dir);
+
+        std::ignore = fs::remove_all(temp_dir);
+
+        for (const std::string& mismatch: mismatches)
+        {
+            std::println(stderr, "{}", mismatch);
+        }
+        return mismatches.empty() ? 0 : 1;
+    }
+
+    if (args.command == CMD_CHECK_UI)
+    {
+        if (args.lang.empty())
+        {
+            std::println(stderr, "Error: 'check-ui' requires --lang");
+            return 1;
+        }
+        if (args.ir_path.empty() || args.descriptor_path.empty())
+        {
+            std::println(stderr, "Error: 'check-ui' requires --ir and --descriptor");
+            return 1;
+        }
+
+        std::ifstream ir_input(args.ir_path, std::ios::binary);
+        if (!ir_input.is_open())
+        {
+            std::println(stderr, "Error: cannot read IR file '{}'", args.ir_path);
+            return 1;
+        }
+        std::ostringstream ir_buffer;
+        ir_buffer << ir_input.rdbuf();
+
+        std::ifstream descriptor_input(args.descriptor_path, std::ios::binary);
+        if (!descriptor_input.is_open())
+        {
+            std::println(stderr, "Error: cannot read descriptor file '{}'", args.descriptor_path);
+            return 1;
+        }
+        std::ostringstream descriptor_buffer;
+        descriptor_buffer << descriptor_input.rdbuf();
+
+        const std::string descriptor_json = descriptor_buffer.str();
+
+        // The language selector must agree with the descriptor, otherwise the MISSING lines
+        // would be attributed to the wrong backend.
+        UiDescriptor descriptor;
+        std::string parse_error;
+        if (!UiDescriptorFromJson(descriptor_json, descriptor, parse_error))
+        {
+            std::println(stderr, "Error: {}", parse_error);
+            return 1;
+        }
+        if (descriptor.lang != args.lang)
+        {
+            std::println(stderr, "Error: descriptor language '{}' does not match --lang '{}'",
+                         descriptor.lang, args.lang);
+            return 1;
+        }
+
+        return UiCheckIr(descriptor_json, ir_buffer.str(), std::cout, std::cerr);
     }
 
     std::println(stderr, "Unknown command: {}", args.command);

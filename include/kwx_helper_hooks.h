@@ -46,6 +46,7 @@
 #include <wx/htmllbox.h>
 #include <wx/log.h>
 #include <wx/modalhook.h>
+#include <wx/nativewin.h>
 #include <wx/object.h>
 #include <wx/panel.h>
 #include <wx/preferences.h>
@@ -487,15 +488,24 @@ public:
 // down-cast their receiver and would be undefined behaviour on this object.
 // ---------------------------------------------------------------------------
 
+// m_object is the per-page callback context: it is handed to every CreateWindow
+// callback, so a port reaches its own state directly instead of publishing it
+// through a global or static.
 class kwxStockPreferencesPage : public wxStockPreferencesPage
 {
 private:
+    void* m_object;
     kwxPreferencesPageWindowFunc m_create_window_func;
     wxWindow* m_result_window;
 
 public:
-    explicit kwxStockPreferencesPage(Kind kind) : wxStockPreferencesPage(kind)
+    // pObject is the callback state pointer handed to every CreateWindow
+    // callback.  The kind-only form keeps the previous behaviour with a null
+    // state pointer.
+    explicit kwxStockPreferencesPage(Kind kind, void* pObject = nullptr) :
+        wxStockPreferencesPage(kind)
     {
+        m_object = pObject;
         m_create_window_func = nullptr;
         m_result_window = nullptr;
     }
@@ -671,6 +681,41 @@ public:
 protected:
     int Enter(wxDialog* dialog) override;
     void Exit(wxDialog* dialog) override;
+};
+
+// ---------------------------------------------------------------------------
+// wxNativeWindow callbacks
+// ---------------------------------------------------------------------------
+
+// MSWOnNotify is MSW-only.  The callback returns non-zero when it handled the
+// native notification; otherwise the base class runs.  lParam and result are
+// the WXLPARAM values passed straight through to the native handler.
+typedef int (*kwxNativeWindowNotifyFunc)(void* pObject, int idCtrl, void* lParam, void* result);
+
+// handle is the platform-native child window (HWND / GtkWidget* / NSView*);
+// wxNativeWindow neither creates nor destroys it.  On non-MSW platforms
+// SetOnMSWNotify() still stores the pointer but never fires.  The MSW override
+// of MSWOnNotify() lives in the platform-split subclass in src/kwx_hooks.cpp.
+class kwxNativeWindow : public wxNativeWindow
+{
+private:
+    void* m_object;
+    kwxNativeWindowNotifyFunc m_notify_func = nullptr;
+
+protected:
+    // Delivers a native notification to the language callback.  The MSW
+    // override of MSWOnNotify() lives in the platform-split subclass in
+    // src/kwx_hooks.cpp: its WXLPARAM signature exists only on MSW, and a
+    // public header must not carry a platform guard.
+    bool InvokeMSWNotify(int idCtrl, void* lParam, void* result)
+    {
+        return m_notify_func != nullptr && m_notify_func(m_object, idCtrl, lParam, result) != 0;
+    }
+
+public:
+    kwxNativeWindow(void* pObject, wxWindow* parent, wxWindowID id, void* handle);
+
+    void SetOnMSWNotify(void* pFunction) { m_notify_func = (kwxNativeWindowNotifyFunc) pFunction; }
 };
 
 // ---------------------------------------------------------------------------

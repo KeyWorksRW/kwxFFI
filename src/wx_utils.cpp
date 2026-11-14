@@ -643,6 +643,10 @@ namespace kwx
 
         EXPORT void wxSetCursor(const wxCursor* cursors)
         {
+            if (!cursors)
+            {
+                return;
+            }
             // wxSetCursor() takes a wxCursorBundle, which has no single-cursor constructor,
             // so the phone call is made through the owner that stores the bundle.
             ::wxSetCursor(wxCursorBundle(*cursors));
@@ -852,6 +856,11 @@ namespace kwx
         EXPORT int wxPuts(const wxString* str)
         {
             return ::wxPuts(*str);
+        }
+
+        EXPORT int wxRemoveFile(const wxString* file)
+        {
+            return ::wxRemoveFile(*file);
         }
 
         EXPORT int wxRenameFile(const wxString* old_path, const wxString* new_path, int overwrite)

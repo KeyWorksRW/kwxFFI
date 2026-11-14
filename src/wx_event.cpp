@@ -441,6 +441,10 @@ extern "C"
 
     EXPORT void wxSetCursorEvent_SetCursor(wxSetCursorEvent* self, wxCursor* cursor)
     {
+        if (!cursor)
+        {
+            return;
+        }
         self->SetCursor(*cursor);
     }
 
@@ -1272,6 +1276,14 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_MENU_OPEN)
     MAKE_EVENT_WRAPPER(EVT_MENU_CLOSE)
     MAKE_EVENT_WRAPPER(EVT_MENU_HIGHLIGHT)
+
+    // EVT_MENU_HIGHLIGHT_ALL is wx's alias for binding EVT_MENU_HIGHLIGHT with wxID_ANY
+    // (wx/event.h: `#define EVT_MENU_HIGHLIGHT_ALL(func) wx__DECLARE_EVT0(wxEVT_MENU_HIGHLIGHT,
+    // ...)`), so the value it binds is the wxEVT_MENU_HIGHLIGHT event type.
+    WXFFI_EXPORT(int, exp_wxEVT_MENU_HIGHLIGHT_ALL)()
+    {
+        return static_cast<int>(wxEVT_MENU_HIGHLIGHT);
+    }
     MAKE_EVENT_WRAPPER(EVT_CONTEXT_MENU)
     MAKE_EVENT_WRAPPER(EVT_SYS_COLOUR_CHANGED)
     MAKE_EVENT_WRAPPER(EVT_DISPLAY_CHANGED)

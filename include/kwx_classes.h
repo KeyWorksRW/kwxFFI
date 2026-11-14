@@ -31,6 +31,7 @@
 #include "kwx_regex_xml_extra.h"
 #include "kwx_ribbon_extra.h"
 #include "kwx_richtext.h"
+#include "kwx_richtext_hooks.h"
 #include "kwx_spec_residual.h"
 #include "kwx_thread_extra.h"
 
@@ -1150,7 +1151,7 @@ void wxBitmap_CleanUpHandlers();
 TClass(wxBitmap) wxBitmap_Create(void* data, int type, TSize(width, height), int depth);
 TClass(wxBitmap) wxBitmap_CreateDefault();
 TClass(wxBitmap) wxBitmap_CreateEmpty(TSize(width, height), int depth);
-TClass(wxBitmap) wxBitmap_CreateFromXPM(TSelf(wxBitmap) data);
+TClassOwned(wxBitmap) wxBitmap_CreateFromXPM(void* data);
 TClass(wxBitmap) wxBitmap_CreateLoad(TClass(wxString) name, int type);
 TClass(wxBitmap) wxBitmap_CreateFromData(TBytesIn data, size_t size, int bitmap_type);
 TClass(wxBitmap) wxBitmap_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
@@ -1225,24 +1226,25 @@ TClassDefExtend(wxBitmapHandler, wxObject)
 
     TClassDef(wxBitmapBundle) void wxBitmapBundle_Delete(TSelf(wxBitmapBundle) self);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxBitmapBundle) wxBitmapBundle_FromResources(TClass(wxString) name);
-TClass(wxBitmapBundle) wxBitmapBundle_FromBitmaps(TClass(wxBitmapVector) bitmaps);
+TClassOwned(wxBitmapBundle) wxBitmapBundle_FromResources(TClass(wxString) name);
+TClassOwned(wxBitmapBundle) wxBitmapBundle_FromBitmaps(TClass(wxBitmapVector) bitmaps);
 TClassOwned(wxBitmap) wxBitmapBundle_GetBitmap(TSelf(wxBitmapBundle) pObject, TSize(width, height));
-TClass(wxSize) wxBitmapBundle_GetDefaultSize(TSelf(wxBitmapBundle) pObject);
+TClassOwned(wxIcon) wxBitmapBundle_GetIcon(TSelf(wxBitmapBundle) pObject, TSize(width, height));
+TClassOwned(wxSize) wxBitmapBundle_GetDefaultSize(TSelf(wxBitmapBundle) pObject);
 TBool wxBitmapBundle_IsOk(TSelf(wxBitmapBundle) pObject);
 TClass(wxBitmapBundle) wxBitmapBundle_CreateFromData(TBytesIn data, size_t size, int bitmap_type);
 TClass(wxBitmapBundle)
     wxBitmapBundle_CreateFromBase64(TBytesIn base64, size_t len, int bitmap_type);
 TClass(wxBitmapBundle)
     wxBitmapBundle_CreateFromSVGBase64(TBytesIn base64, size_t len, int default_w, int default_h);
-TClass(wxBitmapBundle) wxBitmapBundle_FromSVGFile(TClass(wxString) file, TSize(width, height));
+TClassOwned(wxBitmapBundle) wxBitmapBundle_FromSVGFile(TClass(wxString) file, TSize(width, height));
 
 TClassDef(wxBitmapBundleBuilder) TClass(wxBitmapBundleBuilder) wxBitmapBundleBuilder_Create();
 void wxBitmapBundleBuilder_AddData(TSelf(wxBitmapBundleBuilder) builder, TBytesIn data, size_t size,
                                    int bitmap_type);
 void wxBitmapBundleBuilder_AddBase64(TSelf(wxBitmapBundleBuilder) builder, TBytesIn base64,
                                      size_t len, int bitmap_type);
-TClass(wxBitmapBundle) wxBitmapBundleBuilder_Build(TSelf(wxBitmapBundleBuilder) builder);
+TClassOwned(wxBitmapBundle) wxBitmapBundleBuilder_Build(TSelf(wxBitmapBundleBuilder) builder);
 
 TClassDefExtend(wxBoxSizer, wxSizer) TClass(wxSize) wxBoxSizer_CalcMin(TSelf(wxBoxSizer) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
@@ -2387,15 +2389,20 @@ TClassDefExtend(wxFileDropTarget, wxDropTarget)
                                                                   TClass(wxString) file);
 void wxFileHistory_AddFilesToMenu(TSelf(wxFileHistory) pObject, TClass(wxMenu) menu);
 TClass(wxFileHistory) wxFileHistory_Create(int maxFiles);
+TClass(wxFileHistory) wxFileHistory_CreateEx(int maxFiles, int idBase);
 void wxFileHistory_Delete(TSelf(wxFileHistory) pObject);
+int wxFileHistory_GetBaseId(TSelf(wxFileHistory) pObject);
 int wxFileHistory_GetCount(TSelf(wxFileHistory) pObject);
 TClass(wxString) wxFileHistory_GetHistoryFile(TSelf(wxFileHistory) pObject, int index);
 int wxFileHistory_GetMaxFiles(TSelf(wxFileHistory) pObject);
+int wxFileHistory_GetMenuPathStyle(TSelf(wxFileHistory) pObject);
 TArrayLen wxFileHistory_GetMenus(TSelf(wxFileHistory) pObject, TArrayObjectOutVoid(wxMenu) ref);
 void wxFileHistory_Load(TSelf(wxFileHistory) pObject, TClass(wxConfigBase) config);
 void wxFileHistory_RemoveFileFromHistory(TSelf(wxFileHistory) pObject, int index);
 void wxFileHistory_RemoveMenu(TSelf(wxFileHistory) pObject, TClass(wxMenu) menu);
 void wxFileHistory_Save(TSelf(wxFileHistory) pObject, TClass(wxConfigBase) config);
+void wxFileHistory_SetBaseId(TSelf(wxFileHistory) pObject, int baseId);
+void wxFileHistory_SetMenuPathStyle(TSelf(wxFileHistory) pObject, int style);
 void wxFileHistory_UseMenu(TSelf(wxFileHistory) pObject, TClass(wxMenu) menu);
 
 TClassDefExtend(wxFileInputStream, wxInputStream)
@@ -3825,6 +3832,7 @@ void wxMemoryDC_SelectObject(TSelf(wxMemoryDC) pObject, TClass(wxBitmap) bitmap)
 TClassDefExtend(wxMemoryFSHandler,
                 wxFileSystemHandler) void wxMemoryFSHandler_AddFile(TClass(wxString) filename,
                                                                     TClass(wxString) textdata);
+TClass(wxMemoryFSHandler) wxMemoryFSHandler_Create();
 void wxMemoryFSHandler_AddFileBinary(TClass(wxString) filename, void* binarydata, size_t size);
 void wxMemoryFSHandler_AddFileWithMimeType(TClass(wxString) filename, TClass(wxString) textdata,
                                            TClass(wxString) mimetype);
@@ -3842,6 +3850,7 @@ TClassDefExtend(wxMemoryInputStream, wxInputStream)
                                                                  TClass(wxString) text,
                                                                  TClass(wxString) help,
                                                                  TBool isCheckable);
+void wxMenu_AppendById(TSelf(wxMenu) pObject, int id);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxMenu_Destroy(TSelf(wxMenu) pObject, int itemid);
 void wxMenu_AppendItem(TSelf(wxMenu) pObject, TClass(wxMenuItem) item);
@@ -3984,8 +3993,9 @@ int wxMenuItem_GetKind(TSelf(wxMenuItem) pObject);
 TBool wxMenuItem_IsCheck(TSelf(wxMenuItem) pObject);
 TBool wxMenuItem_IsRadio(TSelf(wxMenuItem) pObject);
 void wxMenuItem_Toggle(TSelf(wxMenuItem) pObject);
-void wxMenuItem_SetBitmap(TSelf(wxMenuItem) pObject, TClass(wxBitmap) bmp);
+void wxMenuItem_SetBitmap(TSelf(wxMenuItem) pObject, TClass(wxBitmapBundle) bmp);
 TClass(wxBitmap) wxMenuItem_GetBitmap(TSelf(wxMenuItem) pObject);
+TClass(wxAcceleratorEntry) wxMenuItem_GetAccel(TSelf(wxMenuItem) pObject);
 
 TClassDefExtend(wxMessageDialog, wxDialog) TClass(wxMessageDialog)
     wxMessageDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
@@ -4114,7 +4124,11 @@ int wxNavigationKeyEvent_ShouldPropagate(TSelf(wxNavigationKeyEvent) pObject);
 
 TClassDef(wxNodeBase)
 
-    TClassDefExtend(wxNotebook, wxBookCtrlBase) TBool
+    TClassDefExtend(wxNativeWindow, wxWindow) TClass(wxNativeWindow)
+        wxNativeWindow_Create(TClass(wxWindow) parent, int id, void* handle);
+void wxNativeWindow_Disown(TSelf(wxNativeWindow) pObject);
+
+TClassDefExtend(wxNotebook, wxBookCtrlBase) TBool
     wxNotebook_AddPage(TSelf(wxNotebook) pObject, TClass(wxWindow) pPage, TClass(wxString) strText,
                        TBool bSelect, int imageId);
 void wxNotebook_AdvanceSelection(TSelf(wxNotebook) pObject, TBool bForward);
@@ -6156,6 +6170,9 @@ void wxTextEntry_GetMargins(TClass(wxTextEntry) self, TPointOut(left, top));
 TBool wxTextEntry_AutoComplete(TClass(wxTextEntry) self, int count, void* items);
 TBool wxTextEntry_AutoCompleteFileNames(TClass(wxTextEntry) self);
 TBool wxTextEntry_AutoCompleteDirectories(TClass(wxTextEntry) self);
+// Installs a user-defined completer; the control takes ownership of it and deletes it.
+// Pass a null completer to disable auto-completion.
+TBool wxTextEntry_AutoCompleteCompleter(TClass(wxTextEntry) self, void* completer);
 
 TClassDefExtend(wxTextEntryDialog, wxDialog) TClass(wxTextEntryDialog)
     wxTextEntryDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
@@ -6354,7 +6371,7 @@ void wxTopLevelWindow_RequestUserAttention(TSelf(wxTopLevelWindow) pObject, int 
 void wxTopLevelWindow_SetDefaultButton(TSelf(wxTopLevelWindow) pObject, TClass(wxButton) pBut);
 void wxTopLevelWindow_SetDefaultItem(TSelf(wxTopLevelWindow) pObject, TClass(wxWindow) pBut);
 void wxTopLevelWindow_SetIcon(TSelf(wxTopLevelWindow) pObject, TClass(wxIcon) pIcon);
-void wxTopLevelWindow_SetIcons(TSelf(wxTopLevelWindow) pObject, void* icons);
+void wxTopLevelWindow_SetIcons(TSelf(wxTopLevelWindow) pObject, TClass(wxIconBundle) icons);
 void wxTopLevelWindow_SetMaxSize(TSelf(wxTopLevelWindow) pObject, TSize(width, height));
 void wxTopLevelWindow_SetMinSize(TSelf(wxTopLevelWindow) pObject, TSize(width, height));
 void wxTopLevelWindow_CenterOnScreen(TSelf(wxTopLevelWindow) pObject, int direction);

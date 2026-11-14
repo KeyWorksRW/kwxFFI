@@ -17,6 +17,16 @@ static inline wxPropertyGridInterface* AsPropertyGridInterface(void* self)
     return dynamic_cast<wxPropertyGridInterface*>(static_cast<wxObject*>(self));
 }
 
+// wxSystemColourProperty::ColToInd() is protected, so a local subclass makes the
+// member public for the FFI wrapper (the same pattern as kwxGenericAboutDialog in
+// wx_aboutdlg.cpp).  The objects themselves are plain wxSystemColourProperty
+// instances, hence static_cast rather than dynamic_cast.
+class kwxSystemColourPropertyAccess : public wxSystemColourProperty
+{
+public:
+    using wxSystemColourProperty::ColToInd;
+};
+
 // ===========================================================================
 // wxPGEditor
 // ===========================================================================
@@ -203,6 +213,272 @@ extern "C"
         }
 
         return new wxFont(self->GetFont());
+    }
+
+    // =======================================================================
+    // wxPGChoices / wxPGChoiceEntry
+    // =======================================================================
+
+    EXPORT wxPGChoices* wxPGChoices_Create()
+    {
+        return new wxPGChoices();
+    }
+
+    EXPORT void wxPGChoices_Delete(wxPGChoices* self)
+    {
+        delete self;
+    }
+
+    EXPORT unsigned int wxPGChoices_GetCount(wxPGChoices* self)
+    {
+        return self->GetCount();
+    }
+
+    EXPORT wxString* wxPGChoices_GetLabel(wxPGChoices* self, unsigned int index)
+    {
+        return new wxString(self->GetLabel(index));
+    }
+
+    EXPORT int wxPGChoices_GetValue(wxPGChoices* self, unsigned int index)
+    {
+        return self->GetValue(index);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_Item(wxPGChoices* self, unsigned int index)
+    {
+        if (!self->IsOk() || index >= self->GetCount())
+        {
+            return nullptr;
+        }
+
+        return &self->Item(index);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_Add(wxPGChoices* self, wxString* label, int value)
+    {
+        if (!label)
+        {
+            return nullptr;
+        }
+
+        return &self->Add(*label, value);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_AddAsSorted(wxPGChoices* self, wxString* label, int value)
+    {
+        if (!label)
+        {
+            return nullptr;
+        }
+
+        return &self->AddAsSorted(*label, value);
+    }
+
+    EXPORT void wxPGChoices_AddStrings(wxPGChoices* self, wxArrayString* labels, wxArrayInt* values)
+    {
+        if (!labels || !values)
+        {
+            return;
+        }
+
+        self->Add(*labels, *values);
+    }
+
+    EXPORT void wxPGChoices_Set(wxPGChoices* self, wxArrayString* labels, wxArrayInt* values)
+    {
+        self->Set(labels ? *labels : wxArrayString(), values ? *values : wxArrayInt());
+    }
+
+    EXPORT void wxPGChoices_RemoveAt(wxPGChoices* self, unsigned int index, unsigned int count)
+    {
+        self->RemoveAt(index, count);
+    }
+
+    EXPORT int wxPGChoices_Index(wxPGChoices* self, wxString* label)
+    {
+        if (!label)
+        {
+            return wxNOT_FOUND;
+        }
+
+        return self->Index(*label);
+    }
+
+    EXPORT int wxPGChoices_IndexValue(wxPGChoices* self, int value)
+    {
+        return self->Index(value);
+    }
+
+    EXPORT void wxPGChoices_Clear(wxPGChoices* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT int wxPGChoices_IsOk(wxPGChoices* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT wxPGChoices* wxPGChoices_Copy(wxPGChoices* self)
+    {
+        return new wxPGChoices(self->Copy());
+    }
+
+    EXPORT void wxPGChoiceEntry_SetValue(wxPGChoiceEntry* self, int value)
+    {
+        self->SetValue(value);
+    }
+
+    EXPORT int wxPGChoiceEntry_GetValue(wxPGChoiceEntry* self)
+    {
+        return self->GetValue();
+    }
+
+    // =======================================================================
+    // Choices on a property, and the choices-taking property constructors
+    // =======================================================================
+
+    EXPORT int wxPGProperty_SetChoices(wxPGProperty* self, wxPGChoices* choices)
+    {
+        if (!choices)
+        {
+            return 0;
+        }
+
+        return self->SetChoices(*choices);
+    }
+
+    EXPORT wxPGChoices* wxPGProperty_GetChoices(wxPGProperty* self)
+    {
+        return new wxPGChoices(self->GetChoices());
+    }
+
+    // The wxEnumProperty/wxEditEnumProperty/wxFlagsProperty choices overloads take a
+    // non-const wxPGChoices& (they may cache the choices), so the handle is passed
+    // through rather than copied.
+    EXPORT wxEnumProperty* wxEnumProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                            wxPGChoices* choices, int value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxEnumProperty(*label, *name, *choices, value);
+    }
+
+    EXPORT wxEditEnumProperty* wxEditEnumProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                                    wxPGChoices* choices,
+                                                                    wxString* value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxEditEnumProperty(*label, *name, *choices, value ? *value : wxString());
+    }
+
+    EXPORT wxFlagsProperty* wxFlagsProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                              wxPGChoices* choices, long value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxFlagsProperty(*label, *name, *choices, value);
+    }
+
+    EXPORT wxArrayStringProperty*
+        wxArrayStringProperty_CreateFromArray(wxString* label, wxString* name, wxArrayString* value)
+    {
+        return new wxArrayStringProperty(*label, *name, value ? *value : wxArrayString());
+    }
+
+#if wxUSE_CHOICEDLG
+
+    EXPORT wxMultiChoiceProperty*
+        wxMultiChoiceProperty_CreateFromArray(wxString* label, wxString* name, wxArrayString* value)
+    {
+        return new wxMultiChoiceProperty(*label, *name, value ? *value : wxArrayString());
+    }
+
+    EXPORT wxMultiChoiceProperty* wxMultiChoiceProperty_CreateWithChoices(wxString* label,
+                                                                          wxString* name,
+                                                                          wxPGChoices* choices,
+                                                                          wxArrayString* value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxMultiChoiceProperty(*label, *name, *choices, value ? *value : wxArrayString());
+    }
+
+#else
+
+    EXPORT void* wxMultiChoiceProperty_CreateFromArray([[maybe_unused]] wxString* label,
+                                                       [[maybe_unused]] wxString* name,
+                                                       [[maybe_unused]] wxArrayString* value)
+    {
+        return nullptr;
+    }
+
+    EXPORT void* wxMultiChoiceProperty_CreateWithChoices([[maybe_unused]] wxString* label,
+                                                         [[maybe_unused]] wxString* name,
+                                                         [[maybe_unused]] wxPGChoices* choices,
+                                                         [[maybe_unused]] wxArrayString* value)
+    {
+        return nullptr;
+    }
+
+#endif  // wxUSE_CHOICEDLG
+
+    // =======================================================================
+    // wxSystemColourProperty / wxCursorProperty
+    // =======================================================================
+
+    EXPORT wxSystemColourProperty* wxSystemColourProperty_Create(wxString* label, wxString* name,
+                                                                 wxColourPropertyValue* value)
+    {
+        return new wxSystemColourProperty(*label, *name, value ? *value : wxColourPropertyValue());
+    }
+
+    EXPORT void wxSystemColourProperty_Delete(wxSystemColourProperty* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxColourPropertyValue* wxSystemColourProperty_GetVal(wxSystemColourProperty* self)
+    {
+        return new wxColourPropertyValue(self->GetVal());
+    }
+
+    EXPORT wxColour* wxSystemColourProperty_GetColour(wxSystemColourProperty* self, int index)
+    {
+        return new wxColour(self->GetColour(index));
+    }
+
+    EXPORT int wxSystemColourProperty_ColToInd(wxSystemColourProperty* self, wxColour* colour)
+    {
+        if (!colour)
+        {
+            return wxNOT_FOUND;
+        }
+
+        return static_cast<kwxSystemColourPropertyAccess*>(self)->ColToInd(*colour);
+    }
+
+    EXPORT wxCursorProperty* wxCursorProperty_Create(wxString* label, wxString* name, int value)
+    {
+        return new wxCursorProperty(*label, *name, value);
+    }
+
+    EXPORT void wxCursorProperty_Delete(wxCursorProperty* self)
+    {
+        delete self;
     }
 
     // =======================================================================
@@ -426,6 +702,13 @@ extern "C"
                                                       unsigned int column)
     {
         return self->GetColumnWidth(column);
+    }
+
+    EXPORT int wxPropertyGridPageState_GetColumnFullWidth(wxPropertyGridPageState* self,
+                                                          wxPGProperty* property,
+                                                          unsigned int column)
+    {
+        return self->GetColumnFullWidth(property, column);
     }
 
     EXPORT int wxPropertyGridPageState_GetVirtualWidth(wxPropertyGridPageState* self)
@@ -1897,4 +2180,30 @@ extern "C"
     EXPORT void wxImageFileProperty_Delete([[maybe_unused]] void* self) {}
 
 #endif  // wxUSE_IMAGE
+
+    // =======================================================================
+    // wxPropertyGridEvent validation feedback
+    // =======================================================================
+
+    // These assert GetEventType() == wxEVT_PG_CHANGING inside wxWidgets, so the
+    // object is passed through unchanged -- no guard that would hide the assert.
+    EXPORT void wxPropertyGridEvent_SetValidationFailureBehavior(wxPropertyGridEvent* self,
+                                                                 int flags)
+    {
+        self->SetValidationFailureBehavior(static_cast<wxPGVFBFlags>(flags));
+    }
+
+    EXPORT void wxPropertyGridEvent_SetValidationFailureMessage(wxPropertyGridEvent* self,
+                                                                wxString* message)
+    {
+        if (message)
+        {
+            self->SetValidationFailureMessage(*message);
+        }
+    }
+
+    EXPORT int wxPropertyGridEvent_GetValidationFailureBehavior(wxPropertyGridEvent* self)
+    {
+        return static_cast<int>(self->GetValidationFailureBehavior());
+    }
 }

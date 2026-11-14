@@ -191,6 +191,7 @@ static const std::unordered_set<std::string>& GuiExcludedClasses()
         "wxStreamBase",
         "wxStreamBuffer",
         "wxStreamToTextRedirector",
+        "wxStringOutputStream",
         "wxStringTokenizer",
         "wxTarEntry",
         "wxTarInputStream",

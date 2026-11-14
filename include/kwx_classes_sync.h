@@ -257,6 +257,11 @@ TClassDef(wxFileOutputStream) TClass(wxFileOutputStream)
 void wxFileOutputStream_Delete(TSelf(wxFileOutputStream) pObject);
 TBool wxFileOutputStream_IsOk(TSelf(wxFileOutputStream) pObject);
 
+TClassDefExtend(wxStringOutputStream, wxOutputStream) TClass(wxStringOutputStream)
+    wxStringOutputStream_Create();
+void wxStringOutputStream_Delete(TSelf(wxStringOutputStream) self);
+TClass(wxString) wxStringOutputStream_GetString(TSelf(wxStringOutputStream) self);
+
 TClassDef(wxFrame) void wxFrame_Centre(TSelf(wxFrame) pObject, int orientation);
 TClass(wxIcon) wxFrame_GetIcon(TSelf(wxFrame) pObject);
 TClass(wxString) wxFrame_GetTitle(TSelf(wxFrame) pObject);
@@ -584,11 +589,11 @@ TClassDef(wxHtmlWindow) TBool
     wxHtmlWindow_AppendToPage(TSelf(wxHtmlWindow) pObject, TClass(wxString) source);
 TClass(wxHtmlWindow) wxHtmlWindow_Create(TClass(wxWindow) parent, int id, int x, int y, int width,
                                          int height, long style, TClass(wxString) name);
-void* wxHtmlWindow_GetInternalRepresentation(TSelf(wxHtmlWindow) pObject);
+TClass(wxHtmlContainerCell) wxHtmlWindow_GetInternalRepresentation(TSelf(wxHtmlWindow) pObject);
 TClass(wxString) wxHtmlWindow_GetOpenedAnchor(TSelf(wxHtmlWindow) pObject);
 TClass(wxString) wxHtmlWindow_GetOpenedPage(TSelf(wxHtmlWindow) pObject);
 TClass(wxString) wxHtmlWindow_GetOpenedPageTitle(TSelf(wxHtmlWindow) pObject);
-void* wxHtmlWindow_GetRelatedFrame(TSelf(wxHtmlWindow) pObject);
+TClass(wxFrame) wxHtmlWindow_GetRelatedFrame(TSelf(wxHtmlWindow) pObject);
 TBool wxHtmlWindow_HistoryBack(TSelf(wxHtmlWindow) pObject);
 TBool wxHtmlWindow_HistoryCanBack(TSelf(wxHtmlWindow) pObject);
 TBool wxHtmlWindow_HistoryCanForward(TSelf(wxHtmlWindow) pObject);
@@ -707,6 +712,9 @@ TClassDef(wxMenuBar) TClass(wxFrame) wxMenuBar_GetFrame(TSelf(wxMenuBar) pObject
 TClassDef(wxMenuItem) TClass(wxMenuItem)
     wxMenuItem_CreateEx(int id, TClass(wxString) text, TClass(wxString) helpstr, int itemkind,
                         TClass(wxMenu) submenu);
+TClass(wxMenuItem)
+    wxMenuItem_CreateExWithParent(TClass(wxMenu) parentMenu, int id, TClass(wxString) text,
+                                  TClass(wxString) helpstr, int itemkind, TClass(wxMenu) subMenu);
 TClass(wxMenuItem) wxMenuItem_CreateSeparator();
 
 TClassDef(wxMouseEvent) int wxMouseEvent_GetButton(TSelf(wxMouseEvent) pObject);
@@ -1418,6 +1426,8 @@ TBool wxTextAttr_IsDefault(TSelf(wxTextAttr) pObject);
 void wxTextAttr_SetBackgroundColour(TSelf(wxTextAttr) pObject, TClass(wxColour) colour);
 void wxTextAttr_SetFont(TSelf(wxTextAttr) pObject, TClass(wxFont) font);
 void wxTextAttr_SetTextColour(TSelf(wxTextAttr) pObject, TClass(wxColour) colour);
+void wxTextAttr_SetTabs(TSelf(wxTextAttr) pObject, TClass(wxArrayInt) tabs);
+TClassOwned(wxArrayInt) wxTextAttr_GetTabs(TSelf(wxTextAttr) pObject);
 
 TClassDef(wxTextCtrl) int wxTextCtrl_EmulateKeyPress(TSelf(wxTextCtrl) pObject,
                                                      TClass(wxKeyEvent) keyevent);
@@ -1564,6 +1574,11 @@ TClassDef(wxXmlResource) void* wxXmlResource_GetStyledTextCtrl(TClass(wxWindow) 
 // class parser records them as free functions.
 void kwxBeginBusyCursor();
 void kwxBell();
+// Decodes a base64 payload (data: URI header, embedded whitespace and gzip are all
+// accepted) and returns a new wxBitmap owned by the caller.
+// Returns nullptr on decode failure, or when the payload is an SVG document — in that
+// case the caller must use kwxSvgStringFromBase64 instead.
+TClassOwned(wxBitmap) kwxBitmapFromBase64(TBytesIn base64, size_t len);
 void kwxEndBusyCursor();
 void kwxFree(void* pObject);
 TClass(wxPoint) kwxGetMousePosition();
@@ -1578,6 +1593,11 @@ void kwxSetPixelRGBA(void* buffer, int width, int x, int y, unsigned int rgba);
 void kwxSetPixelRowRGB(void* buffer, int width, int x, int y, int rgb0, int rgb1, int count);
 void kwxSetPixelRowRGBA(void* buffer, int width, int x, int y, unsigned int rgba0,
                         unsigned int rgba1, unsigned int count);
+// Decodes a base64 payload (data: URI header, embedded whitespace and gzip are all
+// accepted) and returns the SVG document text as a NUL-terminated UTF-8 string owned
+// by the caller (release it with kwxFree).
+// Returns nullptr on decode failure, or when the payload is not an SVG document.
+TString kwxSvgStringFromBase64(TBytesIn base64, size_t len);
 TClass(wxColour) kwxSystemSettingsGetColour(int systemColour);
 void kwxWakeUpIdle();
 void wxAboutBox(TClass(wxAboutDialogInfo) info, TClass(wxWindow) parent);

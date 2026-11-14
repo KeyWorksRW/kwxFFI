@@ -1,4 +1,4 @@
 # kwxFFI FFI export surface digest.
 # Regenerate with tests/checks/export_snapshot.py --update.
-count 12263
-sha256 95250a047481e64faf4d1a79411c8a2a18cc4a6506a5fb95638a43036e58e307
+count 12805
+sha256 a0a68ddf1526db1ba2084e70dd1fa732b6611cc5f92ba60f4a9670fc4d0d877c

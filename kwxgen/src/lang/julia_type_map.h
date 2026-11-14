@@ -104,6 +104,14 @@ inline std::string JuliaReturnType(const std::string& return_type, const std::st
     {
         return "Ptr{Cuint}";
     }
+    if (c_type == "size_t")
+    {
+        return "Ptr{Csize_t}";
+    }
+    if (c_type == "int64_t")
+    {
+        return "Ptr{Clonglong}";
+    }
     return "Ptr{Cint}";
 }
 
@@ -125,6 +133,14 @@ inline std::string JuliaReturnType(const std::string& return_type, const std::st
     if (c_type == "unsigned")
     {
         return "Ref{Cuint}";
+    }
+    if (c_type == "size_t")
+    {
+        return "Ref{Csize_t}";
+    }
+    if (c_type == "int64_t")
+    {
+        return "Ref{Clonglong}";
     }
     return "Ref{Int32}";
 }

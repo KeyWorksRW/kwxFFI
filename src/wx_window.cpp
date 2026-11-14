@@ -429,9 +429,14 @@ extern "C"
         *colour = self->GetForegroundColour();
     }
 
-    EXPORT void wxWindow_SetCursor(wxWindow* self, wxCursor* cursor)
+    EXPORT int wxWindow_SetCursor(wxWindow* self, wxCursor* cursor)
     {
+        if (!cursor)
+        {
+            return 0;  // NULL cursor: nothing to apply
+        }
         self->SetCursor(*cursor);
+        return 1;
     }
 
     EXPORT wxCursor* wxWindow_GetCursor(wxWindow* self)

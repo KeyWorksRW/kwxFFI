@@ -99,6 +99,14 @@ inline std::string LuaJITReturnType(const std::string& return_type, const std::s
     {
         return "unsigned int*";
     }
+    if (c_type == "size_t")
+    {
+        return "size_t*";
+    }
+    if (c_type == "int64_t")
+    {
+        return "int64_t*";
+    }
     return "int*";
 }
 

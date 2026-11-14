@@ -94,6 +94,14 @@ EXPORT void kwxPanel_SetOnTransferDataToWindow(TSelf(kwxPanel) pObject, void* pF
 EXPORT void kwxPanel_SetOnDoGetBestClientSize(TSelf(kwxPanel) pObject, void* pFunction);
 EXPORT void kwxPanel_SetOnScrollWindow(TSelf(kwxPanel) pObject, void* pFunction);
 
+// handle is the platform-native child window (HWND / GtkWidget* / NSView*);
+// kwxNativeWindow neither creates nor destroys it.  The notify callback is
+// MSW-only but is accepted and stored on every platform.
+TClassDefExtend(kwxNativeWindow, wxNativeWindow) EXPORT TClass(kwxNativeWindow)
+    kwxNativeWindow_Create(void* pObject, TClass(wxWindow) parent, int id, void* handle);
+EXPORT void kwxNativeWindow_Delete(TSelf(kwxNativeWindow) pObject);
+EXPORT void kwxNativeWindow_SetOnMSWNotify(TSelf(kwxNativeWindow) pObject, void* pFunction);
+
 TClassDefExtend(kwxEvtHandler, wxEvtHandler) EXPORT void* kwxEvtHandler_Create(void* pObject);
 EXPORT void kwxEvtHandler_Delete(TSelf(kwxEvtHandler) pObject);
 EXPORT void kwxEvtHandler_SetOnProcessEvent(TSelf(kwxEvtHandler) pObject, void* pFunction);
@@ -159,6 +167,13 @@ void wxPreferencesEditor_Delete(TSelf(wxPreferencesEditor) pObject);
 // The editor takes ownership of the page and deletes it when it is destroyed.
 void wxPreferencesEditor_AddPage(TSelf(wxPreferencesEditor) pObject,
                                  TClass(wxPreferencesPage) page);
+// wxStockPreferencesPage is modelled parentless on purpose (see its own block
+// below), so it is not a TClass(wxPreferencesPage) in the generated bindings even
+// though the C++ type really does derive from wxPreferencesPage.  This entry point
+// accepts the stock page directly and up-casts it in C++, which is safe, and it
+// avoids exposing the kwxPreferencesPage down-casting setters on the stock page.
+void wxPreferencesEditor_AddStockPage(TSelf(wxPreferencesEditor) pObject,
+                                      TClass(wxStockPreferencesPage) page);
 void wxPreferencesEditor_Show(TSelf(wxPreferencesEditor) pObject, TClass(wxWindow) parent);
 void wxPreferencesEditor_Dismiss(TSelf(wxPreferencesEditor) pObject);
 // Non-zero when the platform applies a page's changes immediately (OS X, GTK+)
@@ -173,6 +188,9 @@ TBool wxPreferencesEditor_ShownModally();
 // setters (they down-cast their receiver).
 TClassDef(wxStockPreferencesPage) TClass(wxStockPreferencesPage)
     wxStockPreferencesPage_Create(int kind);
+// Like wxStockPreferencesPage_Create, but hands pObject to every CreateWindow
+// callback, so a port's window factory has its own context instead of a static.
+EXPORT void* wxStockPreferencesPage_CreateWithState(int kind, void* pObject);
 void wxStockPreferencesPage_Delete(TSelf(wxStockPreferencesPage) pObject);
 int wxStockPreferencesPage_GetKind(TSelf(wxStockPreferencesPage) pObject);
 // CreateWindow() is still pure on the stock page, so this helper supplies the

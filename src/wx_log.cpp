@@ -30,30 +30,40 @@ private:
     TLogTextAtLevelFunc m_do_log_text_at_level_func;
 
 protected:
-    virtual void DoLog(wxLogLevel level, const char* szString, time_t t)
-    {
-        wxString s(szString);
-        func(kwxObject, (int) level, (void*) &s, (int) t);
-    }
-
     void DoLogRecord(wxLogLevel level, const wxString& msg, const wxLogRecordInfo& info) override
     {
-        if (!m_do_log_record_func)
+        if (m_do_log_record_func)
         {
-            wxLog::DoLogRecord(level, msg, info);
+            m_do_log_record_func(kwxObject, (int) level, (void*) &msg, (void*) &info);
             return;
         }
-        m_do_log_record_func(kwxObject, (int) level, (void*) &msg, (void*) &info);
+        if (func)
+        {
+            // Legacy kwxLog_Create(pObject, pFunction) callback.  wxLog has no
+            // DoLog() virtual in 3.3, so the record path is where a timestamp is
+            // still available to it.  The timestamp is derived from
+            // info.timestampMS (milliseconds since Epoch) converted to seconds,
+            // because wxLogRecordInfo::timestamp only exists under
+            // WXWIN_COMPATIBILITY_3_0.
+            func(kwxObject, (int) level, (void*) &msg, (int) (info.timestampMS / 1000));
+            return;
+        }
+        wxLog::DoLogRecord(level, msg, info);
     }
 
     void DoLogTextAtLevel(wxLogLevel level, const wxString& msg) override
     {
-        if (!m_do_log_text_at_level_func)
+        if (m_do_log_text_at_level_func)
         {
-            wxLog::DoLogTextAtLevel(level, msg);
+            m_do_log_text_at_level_func(kwxObject, (int) level, (void*) &msg);
             return;
         }
-        m_do_log_text_at_level_func(kwxObject, (int) level, (void*) &msg);
+        if (func)
+        {
+            func(kwxObject, (int) level, (void*) &msg, 0);
+            return;
+        }
+        wxLog::DoLogTextAtLevel(level, msg);
     }
 
 public:
@@ -353,9 +363,11 @@ extern "C"
         ::wxSetDefaultAssertHandler();
     }
 
+    // Must return a kwxLog, not a plain wxLog: wxLog_SetOnDoLogRecord and
+    // wxLog_SetOnDoLogTextAtLevel static_cast their receiver to kwxLog.
     EXPORT wxLog* wxLog_Create()
     {
-        return new wxLog();
+        return new kwxLog(nullptr, nullptr);
     }
 
     EXPORT int wxLog_EnableLogging(int enable)
