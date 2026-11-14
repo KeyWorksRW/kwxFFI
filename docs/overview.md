@@ -155,6 +155,12 @@ Several classes derive from wxWidgets classes to support callbacks:
 | `kwxListViewComboPopup` | Concrete wxComboPopup backed by a wxListView |
 | `kwxTreeCtrlComboPopup` | Concrete wxComboPopup backed by a wxTreeCtrl |
 
+## Console Applications
+
+The FFI supports `wxAppConsole` for programs that are not GUI applications. The lifecycle is exposed through `kwxConsoleInitialize()`, `kwxConsoleRun()`, `kwxConsoleExitMainLoop()` and `kwxConsoleShutdown()`, declared in `include/kwx_console.h`. A console application does not initialize the GUI toolkit — it starts wxWidgets with a `wxAppConsole` even when the GUI libraries are linked, so no display connection is made.
+
+Console application traits install `wxLogStderr` and a console `wxMessageOutput`, so `LogError()` / `LogWarning()` and command-line help or syntax errors reach stderr through wx log formatting rather than hand-written writes. Subsystem choice belongs to the consumer's executable rule, not to the library: the kwxFFI archive is subsystem-neutral, and a console program must be linked with the console subsystem (MSVC `/SUBSYSTEM:CONSOLE`, CMake `add_executable()` without `WIN32`, no `-mwindows` for MinGW/clang, `go build` without `-ldflags "-H windowsgui"`).
+
 ## Adding New Wrappers
 
 1. **Add wxWidgets header** to `kwx_wrapper.h` if not already included

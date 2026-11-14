@@ -387,6 +387,15 @@ extern "C"
         self->UpdateRanges();
     }
 
+    EXPORT void* wxRichTextParagraphLayoutBox_GetBuffer(wxRichTextParagraphLayoutBox* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return self->GetBuffer();
+    }
+
     // ------------------------------------------------------------------
     // wxRichTextBox
     // ------------------------------------------------------------------
@@ -405,6 +414,378 @@ extern "C"
     {
         wxString* result = new wxString();
         *result = self->GetXMLNodeName();
+        return result;
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextTable
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextTable* wxRichTextTable_Create(wxRichTextObject* parent)
+    {
+        return new wxRichTextTable(parent);
+    }
+
+    EXPORT void wxRichTextTable_Delete(wxRichTextTable* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxRichTextTable_GetRowCount(wxRichTextTable* self)
+    {
+        return self->GetRowCount();
+    }
+
+    EXPORT void wxRichTextTable_SetRowCount(wxRichTextTable* self, int count)
+    {
+        self->SetRowCount(count);
+    }
+
+    EXPORT int wxRichTextTable_GetColumnCount(wxRichTextTable* self)
+    {
+        return self->GetColumnCount();
+    }
+
+    EXPORT void wxRichTextTable_SetColumnCount(wxRichTextTable* self, int count)
+    {
+        self->SetColumnCount(count);
+    }
+
+    EXPORT wxRichTextCell* wxRichTextTable_GetCell(wxRichTextTable* self, int row, int col)
+    {
+        return self->GetCell(row, col);
+    }
+
+    EXPORT wxRichTextCell* wxRichTextTable_GetCellAtPosition(wxRichTextTable* self, long pos)
+    {
+        return self->GetCell(pos);
+    }
+
+    EXPORT int wxRichTextTable_GetCellRowColumnPosition(wxRichTextTable* self, long pos, int* row,
+                                                        int* col)
+    {
+        return self->GetCellRowColumnPosition(pos, *row, *col);
+    }
+
+    EXPORT void wxRichTextTable_GetFocusedCell(wxRichTextTable* self, int* row, int* col)
+    {
+        wxPosition position = self->GetFocusedCell();
+        *row = position.GetRow();
+        *col = position.GetColumn();
+    }
+
+    EXPORT void wxRichTextTable_ClearTable(wxRichTextTable* self)
+    {
+        self->ClearTable();
+    }
+
+    EXPORT int wxRichTextTable_CreateTable(wxRichTextTable* self, int rows, int cols)
+    {
+        return self->CreateTable(rows, cols);
+    }
+
+    EXPORT int wxRichTextTable_DeleteRows(wxRichTextTable* self, int startRow, int noRows)
+    {
+        return self->DeleteRows(startRow, noRows);
+    }
+
+    EXPORT int wxRichTextTable_DeleteColumns(wxRichTextTable* self, int startCol, int noCols)
+    {
+        return self->DeleteColumns(startCol, noCols);
+    }
+
+    EXPORT int wxRichTextTable_AddRows(wxRichTextTable* self, int startRow, int noRows,
+                                       wxRichTextAttr* attr)
+    {
+        if (attr)
+        {
+            return self->AddRows(startRow, noRows, *attr);
+        }
+        return self->AddRows(startRow, noRows);
+    }
+
+    EXPORT int wxRichTextTable_AddColumns(wxRichTextTable* self, int startCol, int noCols,
+                                          wxRichTextAttr* attr)
+    {
+        if (attr)
+        {
+            return self->AddColumns(startCol, noCols, *attr);
+        }
+        return self->AddColumns(startCol, noCols);
+    }
+
+    EXPORT void wxRichTextTable_Copy(wxRichTextTable* self, wxRichTextTable* obj)
+    {
+        self->Copy(*obj);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextCell
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextCell* wxRichTextCell_Create(wxRichTextObject* parent)
+    {
+        return new wxRichTextCell(parent);
+    }
+
+    EXPORT void wxRichTextCell_Delete(wxRichTextCell* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxRichTextCell_GetColSpan(wxRichTextCell* self)
+    {
+        return self->GetColSpan();
+    }
+
+    EXPORT void wxRichTextCell_SetColSpan(wxRichTextCell* self, int span)
+    {
+        self->SetColSpan(span);
+    }
+
+    EXPORT int wxRichTextCell_GetRowSpan(wxRichTextCell* self)
+    {
+        return self->GetRowSpan();
+    }
+
+    EXPORT void wxRichTextCell_SetRowSpan(wxRichTextCell* self, int span)
+    {
+        self->SetRowSpan(span);
+    }
+
+    EXPORT void wxRichTextCell_Copy(wxRichTextCell* self, wxRichTextCell* obj)
+    {
+        self->Copy(*obj);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextField
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextField* wxRichTextField_Create(wxString* fieldType, wxRichTextObject* parent)
+    {
+        return new wxRichTextField(*fieldType, parent);
+    }
+
+    EXPORT void wxRichTextField_Delete(wxRichTextField* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxRichTextField_SetFieldType(wxRichTextField* self, wxString* fieldType)
+    {
+        self->SetFieldType(*fieldType);
+    }
+
+    EXPORT wxString* wxRichTextField_GetFieldType(wxRichTextField* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetFieldType();
+        return result;
+    }
+
+    EXPORT int wxRichTextField_UpdateField(wxRichTextField* self, wxRichTextBuffer* buffer)
+    {
+        return self->UpdateField(buffer);
+    }
+
+    EXPORT void wxRichTextField_Copy(wxRichTextField* self, wxRichTextField* obj)
+    {
+        self->Copy(*obj);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextFieldType
+    // ------------------------------------------------------------------
+
+    EXPORT void wxRichTextFieldType_SetName(wxRichTextFieldType* self, wxString* name)
+    {
+        self->SetName(*name);
+    }
+
+    EXPORT wxString* wxRichTextFieldType_GetName(wxRichTextFieldType* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetName();
+        return result;
+    }
+
+    EXPORT void wxRichTextFieldType_Copy(wxRichTextFieldType* self, wxRichTextFieldType* fieldType)
+    {
+        self->Copy(*fieldType);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextFieldTypeStandard
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextFieldTypeStandard*
+        wxRichTextFieldTypeStandard_Create(wxString* name, wxString* label, int displayStyle)
+    {
+        return new wxRichTextFieldTypeStandard(*name, *label, displayStyle);
+    }
+
+    EXPORT wxRichTextFieldTypeStandard*
+        wxRichTextFieldTypeStandard_CreateWithBitmap(wxString* name, wxBitmap* bitmap,
+                                                     int displayStyle)
+    {
+        return new wxRichTextFieldTypeStandard(*name, *bitmap, displayStyle);
+    }
+
+    EXPORT wxRichTextFieldTypeStandard* wxRichTextFieldTypeStandard_CreateDefault()
+    {
+        return new wxRichTextFieldTypeStandard();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_Delete(wxRichTextFieldTypeStandard* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_Copy(wxRichTextFieldTypeStandard* self,
+                                                 wxRichTextFieldTypeStandard* field)
+    {
+        self->Copy(*field);
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetLabel(wxRichTextFieldTypeStandard* self,
+                                                     wxString* label)
+    {
+        self->SetLabel(*label);
+    }
+
+    EXPORT wxString* wxRichTextFieldTypeStandard_GetLabel(wxRichTextFieldTypeStandard* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetLabel();
+        return result;
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetBitmap(wxRichTextFieldTypeStandard* self,
+                                                      wxBitmap* bitmap)
+    {
+        self->SetBitmap(*bitmap);
+    }
+
+    EXPORT wxBitmap* wxRichTextFieldTypeStandard_GetBitmap(wxRichTextFieldTypeStandard* self)
+    {
+        return const_cast<wxBitmap*>(&self->GetBitmap());
+    }
+
+    EXPORT int wxRichTextFieldTypeStandard_GetDisplayStyle(wxRichTextFieldTypeStandard* self)
+    {
+        return self->GetDisplayStyle();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetDisplayStyle(wxRichTextFieldTypeStandard* self,
+                                                            int displayStyle)
+    {
+        self->SetDisplayStyle(displayStyle);
+    }
+
+    EXPORT wxFont* wxRichTextFieldTypeStandard_GetFont(wxRichTextFieldTypeStandard* self)
+    {
+        return const_cast<wxFont*>(&self->GetFont());
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetFont(wxRichTextFieldTypeStandard* self, wxFont* font)
+    {
+        self->SetFont(*font);
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_GetTextColour(wxRichTextFieldTypeStandard* self,
+                                                          wxColour* colour)
+    {
+        *colour = self->GetTextColour();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetTextColour(wxRichTextFieldTypeStandard* self,
+                                                          wxColour* colour)
+    {
+        self->SetTextColour(*colour);
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_GetBorderColour(wxRichTextFieldTypeStandard* self,
+                                                            wxColour* colour)
+    {
+        *colour = self->GetBorderColour();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetBorderColour(wxRichTextFieldTypeStandard* self,
+                                                            wxColour* colour)
+    {
+        self->SetBorderColour(*colour);
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_GetBackgroundColour(wxRichTextFieldTypeStandard* self,
+                                                                wxColour* colour)
+    {
+        *colour = self->GetBackgroundColour();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetBackgroundColour(wxRichTextFieldTypeStandard* self,
+                                                                wxColour* colour)
+    {
+        self->SetBackgroundColour(*colour);
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetVerticalPadding(wxRichTextFieldTypeStandard* self,
+                                                               int padding)
+    {
+        self->SetVerticalPadding(padding);
+    }
+
+    EXPORT int wxRichTextFieldTypeStandard_GetVerticalPadding(wxRichTextFieldTypeStandard* self)
+    {
+        return self->GetVerticalPadding();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetHorizontalPadding(wxRichTextFieldTypeStandard* self,
+                                                                 int padding)
+    {
+        self->SetHorizontalPadding(padding);
+    }
+
+    EXPORT int wxRichTextFieldTypeStandard_GetHorizontalPadding(wxRichTextFieldTypeStandard* self)
+    {
+        return self->GetHorizontalPadding();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetHorizontalMargin(wxRichTextFieldTypeStandard* self,
+                                                                int margin)
+    {
+        self->SetHorizontalMargin(margin);
+    }
+
+    EXPORT int wxRichTextFieldTypeStandard_GetHorizontalMargin(wxRichTextFieldTypeStandard* self)
+    {
+        return self->GetHorizontalMargin();
+    }
+
+    EXPORT void wxRichTextFieldTypeStandard_SetVerticalMargin(wxRichTextFieldTypeStandard* self,
+                                                              int margin)
+    {
+        self->SetVerticalMargin(margin);
+    }
+
+    EXPORT int wxRichTextFieldTypeStandard_GetVerticalMargin(wxRichTextFieldTypeStandard* self)
+    {
+        return self->GetVerticalMargin();
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextDrawingHandler
+    // ------------------------------------------------------------------
+
+    EXPORT void wxRichTextDrawingHandler_SetName(wxRichTextDrawingHandler* self, wxString* name)
+    {
+        self->SetName(*name);
+    }
+
+    EXPORT wxString* wxRichTextDrawingHandler_GetName(wxRichTextDrawingHandler* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetName();
         return result;
     }
 
@@ -652,6 +1033,397 @@ extern "C"
         return self->SuppressingUndo();
     }
 
+    EXPORT wxString* wxRichTextBuffer_GetExtWildcard(int combine, int save, wxArrayInt* types)
+    {
+        wxArrayInt collected_types;
+        const wxString result = wxRichTextBuffer::GetExtWildcard(
+            combine != 0, save != 0, types ? &collected_types : nullptr);
+        if (types)
+        {
+            *types = collected_types;
+        }
+        return new wxString(result);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextAttr and the text-box attribute classes
+    // ------------------------------------------------------------------
+    // These factories exist so a caller can obtain a genuine wxRichTextAttr. Before them
+    // the generated binding only had wxTextAttr for these parameters, so passing a
+    // wxTextAttr where wxRichTextAttr is expected corrupted the heap instead of failing to
+    // compile.
+
+    EXPORT wxRichTextAttr* wxRichTextAttr_Create()
+    {
+        return new wxRichTextAttr();
+    }
+
+    EXPORT wxRichTextAttr* wxRichTextAttr_CreateFromTextAttr(wxTextAttr* attr)
+    {
+        return new wxRichTextAttr(*attr);
+    }
+
+    EXPORT wxRichTextAttr* wxRichTextAttr_CreateCopy(wxRichTextAttr* attr)
+    {
+        return new wxRichTextAttr(*attr);
+    }
+
+    EXPORT void wxRichTextAttr_Delete(wxRichTextAttr* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxRichTextAttr_Copy(wxRichTextAttr* self, wxRichTextAttr* attr)
+    {
+        self->Copy(*attr);
+    }
+
+    EXPORT wxTextBoxAttr* wxRichTextAttr_GetTextBoxAttr(wxRichTextAttr* self)
+    {
+        return &self->GetTextBoxAttr();
+    }
+
+    EXPORT void wxRichTextAttr_SetTextBoxAttr(wxRichTextAttr* self, wxTextBoxAttr* attr)
+    {
+        self->SetTextBoxAttr(*attr);
+    }
+
+    EXPORT int wxRichTextAttr_HasTextBoxAttr(wxRichTextAttr* self)
+    {
+        return !self->GetTextBoxAttr().IsDefault();
+    }
+
+    EXPORT void wxTextAttrDimension_Reset(wxTextAttrDimension* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT int wxTextAttrDimension_GetValue(wxTextAttrDimension* self)
+    {
+        return self->GetValue();
+    }
+
+    EXPORT void wxTextAttrDimension_SetValue(wxTextAttrDimension* self, int value)
+    {
+        self->SetValue(value);
+    }
+
+    EXPORT void wxTextAttrDimension_SetValueWithUnits(wxTextAttrDimension* self, int value,
+                                                      int units)
+    {
+        self->SetValue(value, static_cast<wxTextAttrUnits>(units));
+    }
+
+    EXPORT int wxTextAttrDimension_GetUnits(wxTextAttrDimension* self)
+    {
+        return self->GetUnits();
+    }
+
+    EXPORT void wxTextAttrDimension_SetUnits(wxTextAttrDimension* self, int units)
+    {
+        self->SetUnits(static_cast<wxTextAttrUnits>(units));
+    }
+
+    EXPORT int wxTextAttrDimension_IsValid(wxTextAttrDimension* self)
+    {
+        return self->IsValid();
+    }
+
+    EXPORT void wxTextAttrDimensions_Reset(wxTextAttrDimensions* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextAttrDimensions_GetLeft(wxTextAttrDimensions* self)
+    {
+        return &self->GetLeft();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextAttrDimensions_GetTop(wxTextAttrDimensions* self)
+    {
+        return &self->GetTop();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextAttrDimensions_GetRight(wxTextAttrDimensions* self)
+    {
+        return &self->GetRight();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextAttrDimensions_GetBottom(wxTextAttrDimensions* self)
+    {
+        return &self->GetBottom();
+    }
+
+    EXPORT int wxTextAttrDimensions_IsValid(wxTextAttrDimensions* self)
+    {
+        return self->IsValid();
+    }
+
+    EXPORT void wxTextAttrBorder_Reset(wxTextAttrBorder* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT void wxTextAttrBorder_SetStyle(wxTextAttrBorder* self, int style)
+    {
+        self->SetStyle(style);
+    }
+
+    EXPORT int wxTextAttrBorder_GetStyle(wxTextAttrBorder* self)
+    {
+        return self->GetStyle();
+    }
+
+    EXPORT void wxTextAttrBorder_SetColour(wxTextAttrBorder* self, wxColour* colour)
+    {
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxTextAttrBorder_GetColour(wxTextAttrBorder* self, wxColour* colour)
+    {
+        *colour = self->GetColour();
+    }
+
+    EXPORT void wxTextAttrBorder_SetColourLong(wxTextAttrBorder* self, unsigned long colour)
+    {
+        self->SetColour(colour);
+    }
+
+    EXPORT unsigned long wxTextAttrBorder_GetColourLong(wxTextAttrBorder* self)
+    {
+        return self->GetColourLong();
+    }
+
+    EXPORT void wxTextAttrBorder_SetWidth(wxTextAttrBorder* self, int value, int units)
+    {
+        self->SetWidth(value, static_cast<wxTextAttrUnits>(units));
+    }
+
+    EXPORT wxTextAttrDimension* wxTextAttrBorder_GetWidth(wxTextAttrBorder* self)
+    {
+        return &self->GetWidth();
+    }
+
+    EXPORT int wxTextAttrBorder_HasStyle(wxTextAttrBorder* self)
+    {
+        return self->HasStyle();
+    }
+
+    EXPORT int wxTextAttrBorder_HasColour(wxTextAttrBorder* self)
+    {
+        return self->HasColour();
+    }
+
+    EXPORT int wxTextAttrBorder_HasWidth(wxTextAttrBorder* self)
+    {
+        return self->HasWidth();
+    }
+
+    EXPORT int wxTextAttrBorder_IsDefault(wxTextAttrBorder* self)
+    {
+        return self->IsDefault();
+    }
+
+    EXPORT void wxTextAttrBorders_Reset(wxTextAttrBorders* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT void wxTextAttrBorders_SetStyle(wxTextAttrBorders* self, int style)
+    {
+        self->SetStyle(style);
+    }
+
+    EXPORT void wxTextAttrBorders_SetColour(wxTextAttrBorders* self, wxColour* colour)
+    {
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxTextAttrBorders_SetColourLong(wxTextAttrBorders* self, unsigned long colour)
+    {
+        self->SetColour(colour);
+    }
+
+    EXPORT void wxTextAttrBorders_SetWidth(wxTextAttrBorders* self, int value, int units)
+    {
+        self->SetWidth(value, static_cast<wxTextAttrUnits>(units));
+    }
+
+    EXPORT wxTextAttrBorder* wxTextAttrBorders_GetLeft(wxTextAttrBorders* self)
+    {
+        return &self->GetLeft();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextAttrBorders_GetTop(wxTextAttrBorders* self)
+    {
+        return &self->GetTop();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextAttrBorders_GetRight(wxTextAttrBorders* self)
+    {
+        return &self->GetRight();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextAttrBorders_GetBottom(wxTextAttrBorders* self)
+    {
+        return &self->GetBottom();
+    }
+
+    EXPORT int wxTextAttrBorders_IsValid(wxTextAttrBorders* self)
+    {
+        return self->IsValid();
+    }
+
+    EXPORT int wxTextAttrBorders_IsDefault(wxTextAttrBorders* self)
+    {
+        return self->IsDefault();
+    }
+
+    EXPORT void wxTextBoxAttr_Reset(wxTextBoxAttr* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT int wxTextBoxAttr_IsDefault(wxTextBoxAttr* self)
+    {
+        return self->IsDefault();
+    }
+
+    EXPORT void wxTextBoxAttr_SetFlags(wxTextBoxAttr* self, int flags)
+    {
+        self->SetFlags(flags);
+    }
+
+    EXPORT int wxTextBoxAttr_GetFlags(wxTextBoxAttr* self)
+    {
+        return self->GetFlags();
+    }
+
+    EXPORT int wxTextBoxAttr_HasFlag(wxTextBoxAttr* self, int flag)
+    {
+        return self->HasFlag(static_cast<wxTextBoxAttrFlags>(flag));
+    }
+
+    EXPORT void wxTextBoxAttr_AddFlag(wxTextBoxAttr* self, int flag)
+    {
+        self->AddFlag(static_cast<wxTextBoxAttrFlags>(flag));
+    }
+
+    EXPORT void wxTextBoxAttr_RemoveFlag(wxTextBoxAttr* self, int flag)
+    {
+        self->RemoveFlag(static_cast<wxTextBoxAttrFlags>(flag));
+    }
+
+    EXPORT void wxTextBoxAttr_SetFloatMode(wxTextBoxAttr* self, int mode)
+    {
+        self->SetFloatMode(static_cast<wxTextBoxAttrFloatStyle>(mode));
+    }
+
+    EXPORT int wxTextBoxAttr_GetFloatMode(wxTextBoxAttr* self)
+    {
+        return self->GetFloatMode();
+    }
+
+    EXPORT int wxTextBoxAttr_IsFloating(wxTextBoxAttr* self)
+    {
+        return self->IsFloating();
+    }
+
+    EXPORT void wxTextBoxAttr_SetClearMode(wxTextBoxAttr* self, int mode)
+    {
+        self->SetClearMode(static_cast<wxTextBoxAttrClearStyle>(mode));
+    }
+
+    EXPORT int wxTextBoxAttr_GetClearMode(wxTextBoxAttr* self)
+    {
+        return self->GetClearMode();
+    }
+
+    EXPORT wxTextAttrDimensions* wxTextBoxAttr_GetMargins(wxTextBoxAttr* self)
+    {
+        return &self->GetMargins();
+    }
+
+    EXPORT void wxTextBoxAttr_SetMargins(wxTextBoxAttr* self, wxTextAttrDimensions* margins)
+    {
+        self->GetMargins() = *margins;
+    }
+
+    EXPORT wxTextAttrDimensions* wxTextBoxAttr_GetPadding(wxTextBoxAttr* self)
+    {
+        return &self->GetPadding();
+    }
+
+    EXPORT void wxTextBoxAttr_SetPadding(wxTextBoxAttr* self, wxTextAttrDimensions* padding)
+    {
+        self->GetPadding() = *padding;
+    }
+
+    EXPORT wxTextAttrBorders* wxTextBoxAttr_GetBorder(wxTextBoxAttr* self)
+    {
+        return &self->GetBorder();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextBoxAttr_GetLeftBorder(wxTextBoxAttr* self)
+    {
+        return &self->GetLeftBorder();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextBoxAttr_GetTopBorder(wxTextBoxAttr* self)
+    {
+        return &self->GetTopBorder();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextBoxAttr_GetRightBorder(wxTextBoxAttr* self)
+    {
+        return &self->GetRightBorder();
+    }
+
+    EXPORT wxTextAttrBorder* wxTextBoxAttr_GetBottomBorder(wxTextBoxAttr* self)
+    {
+        return &self->GetBottomBorder();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetWidth(wxTextBoxAttr* self)
+    {
+        return &self->GetWidth();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetHeight(wxTextBoxAttr* self)
+    {
+        return &self->GetHeight();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetLeft(wxTextBoxAttr* self)
+    {
+        return &self->GetLeft();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetTop(wxTextBoxAttr* self)
+    {
+        return &self->GetTop();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetRight(wxTextBoxAttr* self)
+    {
+        return &self->GetRight();
+    }
+
+    EXPORT wxTextAttrDimension* wxTextBoxAttr_GetBottom(wxTextBoxAttr* self)
+    {
+        return &self->GetBottom();
+    }
+
+    EXPORT wxString* wxTextBoxAttr_GetBoxStyleName(wxTextBoxAttr* self)
+    {
+        return new wxString(self->GetBoxStyleName());
+    }
+
+    EXPORT void wxTextBoxAttr_SetBoxStyleName(wxTextBoxAttr* self, wxString* name)
+    {
+        self->SetBoxStyleName(*name);
+    }
+
     // ------------------------------------------------------------------
     // wxRichTextFileHandler
     // ------------------------------------------------------------------
@@ -799,10 +1571,58 @@ extern "C"
         return result;
     }
 
+    EXPORT void wxRichTextHTMLHandler_SetFontSizeMapping(wxRichTextHTMLHandler* self,
+                                                         wxArrayInt* mapping)
+    {
+        self->SetFontSizeMapping(*mapping);
+    }
+
+    EXPORT wxArrayInt* wxRichTextHTMLHandler_GetFontSizeMapping(wxRichTextHTMLHandler* self)
+    {
+        return new wxArrayInt(self->GetFontSizeMapping());
+    }
+
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void wxRichTextBuffer_AddHandler(void* handler)
     {
         wxRichTextBuffer::AddHandler((wxRichTextFileHandler*) handler);
+    }
+
+    // The field-type and drawing-handler registries own the registered objects; the
+    // wrappers below must therefore never be paired with a Delete call by the caller.
+    EXPORT void wxRichTextBuffer_AddFieldType(wxRichTextFieldType* fieldType)
+    {
+        wxRichTextBuffer::AddFieldType(fieldType);
+    }
+
+    EXPORT int wxRichTextBuffer_RemoveFieldType(wxString* name)
+    {
+        return wxRichTextBuffer::RemoveFieldType(*name);
+    }
+
+    EXPORT wxRichTextFieldType* wxRichTextBuffer_FindFieldType(wxString* name)
+    {
+        return wxRichTextBuffer::FindFieldType(*name);
+    }
+
+    EXPORT void wxRichTextBuffer_AddDrawingHandler(wxRichTextDrawingHandler* handler)
+    {
+        wxRichTextBuffer::AddDrawingHandler(handler);
+    }
+
+    EXPORT void wxRichTextBuffer_InsertDrawingHandler(wxRichTextDrawingHandler* handler)
+    {
+        wxRichTextBuffer::InsertDrawingHandler(handler);
+    }
+
+    EXPORT int wxRichTextBuffer_RemoveDrawingHandler(wxString* name)
+    {
+        return wxRichTextBuffer::RemoveDrawingHandler(*name);
+    }
+
+    EXPORT wxRichTextDrawingHandler* wxRichTextBuffer_FindDrawingHandler(wxString* name)
+    {
+        return wxRichTextBuffer::FindDrawingHandler(*name);
     }
 
     EXPORT int wxRichTextFileHandler_SaveFile(void* pObject, void* buffer, void* stream)
@@ -811,13 +1631,130 @@ extern "C"
             ->SaveFile((wxRichTextBuffer*) buffer, *(wxOutputStream*) stream);
     }
 
+    // Borrowed subobject of the object -- never delete the returned pointer. Returning the
+    // reference (rather than a copy) lets the caller mutate the object's own property set,
+    // which is how wxRichTextCtrl::PrepareContent tags content for CanDeleteRange /
+    // CanInsertContent / the drawing handler.
     EXPORT void* wxRichTextObject_GetProperties(void* pObject)
     {
-        return new wxRichTextProperties(((wxRichTextObject*) pObject)->GetProperties());
+        return &((wxRichTextObject*) pObject)->GetProperties();
     }
 
     EXPORT void* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(void* pObject, long position)
     {
         return (void*) ((wxRichTextParagraphLayoutBox*) pObject)->GetLeafObjectAtPosition(position);
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextProperties
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextProperties* wxRichTextProperties_Create()
+    {
+        return new wxRichTextProperties();
+    }
+
+    EXPORT wxRichTextProperties* wxRichTextProperties_CreateCopy(wxRichTextProperties* props)
+    {
+        return new wxRichTextProperties(*props);
+    }
+
+    EXPORT void wxRichTextProperties_Delete(wxRichTextProperties* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxRichTextProperties_Copy(wxRichTextProperties* self, wxRichTextProperties* props)
+    {
+        self->Copy(*props);
+    }
+
+    EXPORT void wxRichTextProperties_Clear(wxRichTextProperties* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT size_t wxRichTextProperties_GetCount(wxRichTextProperties* self)
+    {
+        return self->GetCount();
+    }
+
+    EXPORT int wxRichTextProperties_HasProperty(wxRichTextProperties* self, wxString* name)
+    {
+        return self->HasProperty(*name);
+    }
+
+    EXPORT int wxRichTextProperties_Find(wxRichTextProperties* self, wxString* name)
+    {
+        return self->Find(*name);
+    }
+
+    EXPORT int wxRichTextProperties_Remove(wxRichTextProperties* self, wxString* name)
+    {
+        return self->Remove(*name);
+    }
+
+    EXPORT wxString* wxRichTextProperties_GetPropertyString(wxRichTextProperties* self,
+                                                            wxString* name)
+    {
+        wxString* result = new wxString();
+        *result = self->GetPropertyString(*name);
+        return result;
+    }
+
+    EXPORT long wxRichTextProperties_GetPropertyLong(wxRichTextProperties* self, wxString* name)
+    {
+        return self->GetPropertyLong(*name);
+    }
+
+    EXPORT int wxRichTextProperties_GetPropertyBool(wxRichTextProperties* self, wxString* name)
+    {
+        return self->GetPropertyBool(*name);
+    }
+
+    EXPORT double wxRichTextProperties_GetPropertyDouble(wxRichTextProperties* self, wxString* name)
+    {
+        return self->GetPropertyDouble(*name);
+    }
+
+    EXPORT void wxRichTextProperties_SetPropertyString(wxRichTextProperties* self, wxString* name,
+                                                       wxString* value)
+    {
+        self->SetProperty(*name, *value);
+    }
+
+    EXPORT void wxRichTextProperties_SetPropertyLong(wxRichTextProperties* self, wxString* name,
+                                                     long value)
+    {
+        self->SetProperty(*name, value);
+    }
+
+    EXPORT void wxRichTextProperties_SetPropertyBool(wxRichTextProperties* self, wxString* name,
+                                                     bool value)
+    {
+        self->SetProperty(*name, value);
+    }
+
+    EXPORT void wxRichTextProperties_SetPropertyDouble(wxRichTextProperties* self, wxString* name,
+                                                       double value)
+    {
+        self->SetProperty(*name, value);
+    }
+
+    EXPORT wxArrayString* wxRichTextProperties_GetPropertyNames(wxRichTextProperties* self)
+    {
+        return new wxArrayString(self->GetPropertyNames());
+    }
+
+    EXPORT void wxRichTextProperties_RemoveProperties(wxRichTextProperties* self,
+                                                      wxRichTextProperties* props)
+    {
+        self->RemoveProperties(*props);
+    }
+
+    EXPORT void wxRichTextProperties_MergeProperties(wxRichTextProperties* self,
+                                                     wxRichTextProperties* props)
+    {
+        self->MergeProperties(*props);
     }
 }

@@ -60,6 +60,20 @@ extern "C"
         return new wxCommandEvent((wxEventType) type, id);
     }
 
+    EXPORT void wxContextMenuEvent_GetPosition(wxContextMenuEvent* self, int* x, int* y)
+    {
+        const wxPoint position = self->GetPosition();
+        if (x)
+            *x = position.x;
+        if (y)
+            *y = position.y;
+    }
+
+    EXPORT void wxContextMenuEvent_SetPosition(wxContextMenuEvent* self, int x, int y)
+    {
+        self->SetPosition(wxPoint(x, y));
+    }
+
     EXPORT void wxCommandEvent_Delete(wxCommandEvent* self)
     {
         delete self;
@@ -427,6 +441,10 @@ extern "C"
 
     EXPORT void wxSetCursorEvent_SetCursor(wxSetCursorEvent* self, wxCursor* cursor)
     {
+        if (!cursor)
+        {
+            return;
+        }
         self->SetCursor(*cursor);
     }
 
@@ -1258,6 +1276,14 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_MENU_OPEN)
     MAKE_EVENT_WRAPPER(EVT_MENU_CLOSE)
     MAKE_EVENT_WRAPPER(EVT_MENU_HIGHLIGHT)
+
+    // EVT_MENU_HIGHLIGHT_ALL is wx's alias for binding EVT_MENU_HIGHLIGHT with wxID_ANY
+    // (wx/event.h: `#define EVT_MENU_HIGHLIGHT_ALL(func) wx__DECLARE_EVT0(wxEVT_MENU_HIGHLIGHT,
+    // ...)`), so the value it binds is the wxEVT_MENU_HIGHLIGHT event type.
+    WXFFI_EXPORT(int, exp_wxEVT_MENU_HIGHLIGHT_ALL)()
+    {
+        return static_cast<int>(wxEVT_MENU_HIGHLIGHT);
+    }
     MAKE_EVENT_WRAPPER(EVT_CONTEXT_MENU)
     MAKE_EVENT_WRAPPER(EVT_SYS_COLOUR_CHANGED)
     MAKE_EVENT_WRAPPER(EVT_DISPLAY_CHANGED)
@@ -1566,6 +1592,7 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_WIZARD_HELP)
     MAKE_EVENT_WRAPPER(EVT_WIZARD_FINISHED)
     MAKE_EVENT_WRAPPER(EVT_WIZARD_PAGE_SHOWN)
+    MAKE_EVENT_WRAPPER(EVT_WIZARD_BEFORE_PAGE_CHANGED)
 #endif
 
     MAKE_EVENT_WRAPPER(EVT_USER_FIRST)

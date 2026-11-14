@@ -83,6 +83,7 @@
 #include <wx/persist/window.h>
 #include <wx/platinfo.h>
 #include <wx/popupwin.h>
+#include <wx/preferences.h>
 #include <wx/print.h>
 #include <wx/propdlg.h>
 #include <wx/propgrid/advprops.h>
@@ -104,6 +105,7 @@
 #include <wx/richtext/richtextctrl.h>
 #include <wx/richtext/richtextformatdlg.h>
 #include <wx/richtext/richtexthtml.h>
+#include <wx/richtext/richtextimagedlg.h>
 #include <wx/richtext/richtextprint.h>
 #include <wx/richtext/richtextstyledlg.h>
 #include <wx/richtext/richtextstyles.h>

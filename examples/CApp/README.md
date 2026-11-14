@@ -41,6 +41,48 @@ int main(int argc, char** argv)
 }
 ```
 
+## Console Applications
+
+The FFI also exposes a `wxAppConsole` lifecycle for programs that are not GUI applications. Use it when the process must run without a display connection: command-line tools, batch utilities, and headless workers.
+
+```c
+#include "kwx_classes.h"
+
+int main(int argc, char** argv)
+{
+    // Optional: create the console app when command-line callbacks are needed.
+    void* app = kwxAppConsole_Create(NULL);
+    kwxAppConsole_SetOnOnInitCmdLine(app, on_init_cmd_line);
+    kwxAppConsole_SetOnOnCmdLineParsed(app, on_cmd_line_parsed);
+
+    kwxMessageOutputUseStderr();          // usage/errors -> stderr
+    if (!kwxConsoleInitialize(argc, argv))
+        return 1;
+
+    // Do the work here, or call kwxConsoleRun() for an event loop.
+    int result = 0;
+    kwxConsoleShutdown();
+    return result;
+}
+```
+
+`kwxConsoleInitialize()` starts wxWidgets with a `wxAppConsole` even in a build whose GUI libraries are linked, so no display or toolkit connection is made. The default `OnInit` runs `wxCmdLineParser`, and help output or syntax errors are emitted through `wxMessageOutput` — call `kwxMessageOutputUseStderr()` so they reach stderr.
+
+**Ownership:** once `kwxConsoleInitialize()` has been called, wxWidgets owns the application object. Do not call `kwxAppConsole_Delete()` on it; `kwxConsoleShutdown()` destroys it through `wxEntryCleanup()`.
+
+**Logging:** a console application's traits install `wxLogStderr`, so the already-exported `LogError()` / `LogWarning()` use wx log formatting. Do not hand-write to stderr yourself.
+
+### Build Subsystem Rules
+
+A console program must be linked with the console subsystem. This is the consumer's job — the sample's executable rule must get it right:
+
+- **MSVC:** link with `/SUBSYSTEM:CONSOLE`.
+- **CMake:** use `add_executable()` without the `WIN32` keyword.
+- **MinGW / clang:** do not pass `-mwindows`.
+- **Go:** `go build` without `-ldflags "-H windowsgui"` (the default is the console subsystem).
+
+The kwxFFI library itself is subsystem-neutral; only the final executable's link chooses the subsystem. If a GUI-subsystem executable is used anyway, stdout/stderr are inherited only when the process was launched from an existing console.
+
 ## For Fortran
 
 Fortran code would use ISO_C_BINDING to call these functions:

@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/generic/stattextg.h>
 
 // wxStaticText inherits from wxControl.
 // Additional methods available via:
@@ -25,5 +26,20 @@ extern "C"
     EXPORT int wxStaticText_IsEllipsized(wxStaticText* self)
     {
         return self->IsEllipsized();
+    }
+
+    // wxGenericStaticText is a sibling of wxStaticText (both derive from
+    // wxStaticTextBase), so it needs its own exported class block.
+
+    EXPORT void* wxGenericStaticText_Create(wxWindow* parent, int id, wxString* text, int x, int y,
+                                            int width, int height, int style)
+    {
+        return (void*) new wxGenericStaticText(parent, id, *text, wxPoint(x, y),
+                                               wxSize(width, height), style);
+    }
+
+    EXPORT void wxGenericStaticText_Wrap(wxGenericStaticText* self, int width)
+    {
+        self->Wrap(width);
     }
 }

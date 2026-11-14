@@ -176,6 +176,7 @@ TClass(wxString) wxFileSystem_FindNext(TSelf(wxFileSystem) pObject);
 TClass(wxString)
     wxFileSystem_FileNameToURL(TSelf(wxFileSystem) pObject, TClass(wxString) file_name);
 TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(wxString) url);
+void wxFileSystem_AddHandler(void* handler);
 
 // ---------------------------------------------------------------------------
 // wxFileName
@@ -196,7 +197,7 @@ TClass(wxString) wxFileSystem_URLToFileName(TSelf(wxFileSystem) pObject, TClass(
 TClassDef(wxFileName) TClass(wxFileName) wxFileName_Create();
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxFileName_SplitPath(TClass(wxString) fullpath, void* volume, void* path, void* name,
-                          void* ext, int* hasExt, int format);
+                          void* ext, TIntOut hasExt, int format);
 TClass(wxFileName) wxFileName_CreateFromPath(TClass(wxString) full_path, int format);
 TClass(wxFileName)
     wxFileName_CreateWithName(TClass(wxString) path, TClass(wxString) name, int format);

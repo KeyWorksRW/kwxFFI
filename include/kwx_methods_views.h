@@ -53,11 +53,21 @@ void wxTreeCtrl_ToggleItemSelection(TSelf(wxTreeCtrl) pObject, TClass(wxTreeItem
 void wxTreeCtrl_EnableBellOnNoMatch(TSelf(wxTreeCtrl) pObject, TBool on);
 
 /* ------------------------------------------------------------------------- */
+/* wxDataView model and column handles                                       */
+/* ------------------------------------------------------------------------- */
+
+// clang-format off
+TClassDef(wxDataViewColumn)
+TClassDefExtend(wxDataViewModel, wxObject)
+TClassDefExtend(wxDataViewListStore, wxDataViewModel)
+
+/* ------------------------------------------------------------------------- */
 /* wxDataViewCtrl                                                            */
 /* ------------------------------------------------------------------------- */
 
 TClassDef(wxDataViewCtrl) TBool
     wxDataViewCtrl_SetHeaderAttr(TSelf(wxDataViewCtrl) pObject, TClass(wxItemAttr) attr);
+// clang-format on
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxDataViewCtrl_Enable(TSelf(wxDataViewCtrl) pObject, TBool enable);
 TBool wxDataViewCtrl_EnableDragSource(TSelf(wxDataViewCtrl) pObject, TClass(wxDataFormat) format);

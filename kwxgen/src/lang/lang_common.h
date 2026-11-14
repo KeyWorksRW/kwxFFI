@@ -65,6 +65,64 @@ inline std::string CFuncName(const FunctionDecl& func)
     return func.class_name + "_" + func.method_name;
 }
 
+// A single scalar passed through a pointer, declared in kwx_types.h with one of the
+// scalar-pointer macros (TIntOut, TLongOut, TDoubleOut, ...).  `c_type` is the pointee type;
+// each backend maps it to its own scalar type.  `is_in_out` is true when the callee reads the
+// incoming value before overwriting it — that distinction must survive into the binding,
+// because Fortran declares OUT and INOUT differently.
+struct ScalarPointerInfo
+{
+    std::string c_type;      // "int", "long", "double", "TBool", "unsigned", "unsigned long"
+    bool is_in_out = false;  // true for T*InOut macros
+};
+
+// Recognise the scalar-pointer macros. Returns false for every other parameter shape.
+[[nodiscard]] inline bool LookupScalarPointer(const Param& param, ScalarPointerInfo& info)
+{
+    struct Entry
+    {
+        std::string_view name;
+        std::string_view c_type;
+        bool is_in_out;
+    };
+    static constexpr Entry ENTRIES[] = {
+        { "TIntOut", "int", false },        { "TLongOut", "long", false },
+        { "TDoubleOut", "double", false },  { "TBoolOut", "TBool", false },
+        { "TUIntOut", "unsigned", false },  { "TIntInOut", "int", true },
+        { "TDoubleInOut", "double", true }, { "TULongInOut", "unsigned long", true },
+        { "TSizeTOut", "size_t", false },   { "TInt64Out", "int64_t", false },
+    };
+    for (const Entry& entry: ENTRIES)
+    {
+        if (param.raw_type == entry.name || param.macro_name == entry.name)
+        {
+            info.c_type = entry.c_type;
+            info.is_in_out = entry.is_in_out;
+            return true;
+        }
+    }
+    return false;
+}
+
+// Recognise the descriptive pointer macros (TBytesIn, TIntArrayOut, TCookie, ...). They are
+// object-like macros, so the parser records the spelling in Param::raw_type and leaves
+// Param::macro_name empty. Every backend maps them to a pointer of some kind.
+[[nodiscard]] inline bool IsTypedPointerMacro(const std::string& raw_type)
+{
+    static constexpr std::string_view TYPED_POINTER_MACROS[] = {
+        "TBytesIn",     "TBytesOut",       "TByteOut", "TCharOut", "TIntArrayIn",
+        "TIntArrayOut", "TDoubleArrayOut", "TIntIn",   "TBoolIn",  "TCookie"
+    };
+    for (const std::string_view name: TYPED_POINTER_MACROS)
+    {
+        if (raw_type == name)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Write the standard "do not edit" header comment to a generated file.
 //   commentPrefix  — the single-line comment leader for the target language ("//", "#", "--")
 //   extraNewline   — emit a second blank line after the header (Go/Rust/Julia style)
@@ -157,4 +215,105 @@ inline std::string ToSnakeCase(const std::string& name)
         }
     }
     return wrapped_classes;
+}
+
+// Receiver classification shared by every language backend.
+//
+// True if a non-constructor method's first parameter is TClass(ClassName) matching the
+// function's own class — acts as the implicit "self" receiver for mixin methods.
+// NOTE: this heuristic exists only for mixin methods, which are declared against the mixin
+// class with a TClass(mixin) receiver instead of TSelf.  The parser sets has_self for
+// genuine receivers, so a real method's first parameter is never mistaken for the receiver.
+// A TClass(OwnClass) parameter is also the shape of an own-class *argument* (e.g.
+// wxLog_SetActiveTarget), so callers must additionally consult UsesExplicitReceiver.
+// Do NOT widen this predicate without that guarantee.
+[[nodiscard]] inline bool IsPseudoSelf(const FunctionDecl& func)
+{
+    if (func.is_constructor || func.has_self || func.class_name.empty() || func.params.empty())
+    {
+        return false;
+    }
+    const Param& first = func.params[0];
+    return first.macro_name == "TClass" && first.macro_arg == func.class_name;
+}
+
+// True if a class passes its object through an explicit TClass(OwnClass) first parameter
+// instead of TSelf for most of its methods (mixin/value-object shape: wxTextEntry,
+// wxItemContainer, wxDataViewItemArray).  For those the parameter is a receiver, not an
+// argument.
+[[nodiscard]] inline bool UsesExplicitReceiver(const ClassInfo& cls)
+{
+    size_t receiver_count = 0;
+    size_t method_count = 0;
+    for (const auto& method: cls.methods)
+    {
+        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+        {
+            continue;
+        }
+        if (method.has_self)
+        {
+            return false;  // the class names its receiver with TSelf
+        }
+        ++method_count;
+        if (IsPseudoSelf(method))
+        {
+            ++receiver_count;
+        }
+    }
+    return receiver_count > 0 && (receiver_count * 2U) > method_count;
+}
+
+// True for a function declared inside a TClassDef block that has no receiver at all: no
+// TSelf, no TClass(own class) pseudo-self, and no receiver-named first parameter.  Such a
+// function is static in wxWidgets and must be emitted at module scope, not as an instance
+// method that forwards the object pointer.
+//
+// member_of_class: the caller already knows the declaration came from the owning class's
+// method list, even though the parser could not derive a class prefix for it (a block such as
+// `TClassDefExtend(wxArtProvider, wxObject) TBool PopProvider();` leaves class_name empty).
+// Without the flag such a function looks like a free function and was emitted as an instance
+// method, passing an object pointer the C wrapper never declared.  Callers that only see a
+// bare FunctionDecl keep the default and the original behaviour.  The flag also lets a caller
+// classify a Delete method with this same receiver rule, since destructors are emitted
+// separately rather than as regular methods.  Constructor factories are the exception the flag
+// does not override: a real constructor is skipped from the method loop, but the hand-written
+// `_Ctor` factories (wxGridCellAttr_Ctor()) are named "Ctor" yet still receiverless, so under
+// member_of_class they follow the same static rule instead of being forced into instance shape.
+[[nodiscard]] inline bool IsStaticClassFunction(const FunctionDecl& func,
+                                                const ClassInfo& owning_class,
+                                                bool member_of_class = false)
+{
+    if (func.class_name.empty() && !member_of_class)
+    {
+        return false;
+    }
+    if (func.is_constructor || (func.is_destructor && !member_of_class) ||
+        (func.method_name == "Ctor" && !member_of_class))
+    {
+        return false;
+    }
+    if (func.has_self)
+    {
+        return false;
+    }
+    // IsPseudoSelf also matches a TClass(own class) *argument* (wxLog_SetActiveTarget takes
+    // the new target, wxArtProvider_PushBack the provider), so it only denotes a receiver in
+    // a class that declares no TSelf receiver at all.
+    if (IsPseudoSelf(func) && UsesExplicitReceiver(owning_class))
+    {
+        return false;
+    }
+    // Hand-written wrappers (wxStyledTextCtrl and friends) pass the object pointer as an
+    // explicit first parameter; those blocks keep their instance-method shape.
+    if (!func.params.empty())
+    {
+        const Param& first = func.params[0];
+        if (first.macro_name.empty() && first.raw_type == "void*" &&
+            (first.param_name == "pObject" || first.param_name == "self"))
+        {
+            return false;
+        }
+    }
+    return true;
 }

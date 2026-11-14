@@ -483,8 +483,11 @@ bool kwxValidator::TransferToWindow()
 // wxPreferencesPage
 //
 // GetName() and CreateWindow() are pure virtual, so both need a callback for
-// the class to be instantiable at all; an unset callback yields an empty name
-// and no window rather than an assertion.
+// the class to be instantiable at all.  The callbacks are void-returning (the
+// FFI ABI has no other shape), so each override clears its scratch result,
+// invokes the callback, and then returns whatever the callback published.  An
+// unset callback — or one that publishes nothing — yields an empty name, no
+// window or no icon rather than an assertion.
 // ---------------------------------------------------------------------------
 
 kwxPreferencesPage::kwxPreferencesPage(void* pObject) : wxPreferencesPage()
@@ -493,6 +496,8 @@ kwxPreferencesPage::kwxPreferencesPage(void* pObject) : wxPreferencesPage()
     m_get_name_func = nullptr;
     m_create_window_func = nullptr;
     m_get_icon_func = nullptr;
+    m_result_window = nullptr;
+    m_result_icon = nullptr;
 }
 
 wxString kwxPreferencesPage::GetName() const
@@ -501,13 +506,9 @@ wxString kwxPreferencesPage::GetName() const
     {
         return wxString();
     }
-    void* raw_name = m_get_name_func(m_object);
-    if (!raw_name)
-    {
-        return wxString();
-    }
-    const wxString page_name(static_cast<const char*>(raw_name));
-    return page_name;
+    m_result_name.clear();
+    m_get_name_func(m_object);
+    return m_result_name;
 }
 
 wxWindow* kwxPreferencesPage::CreateWindow(wxWindow* parent)
@@ -516,7 +517,9 @@ wxWindow* kwxPreferencesPage::CreateWindow(wxWindow* parent)
     {
         return nullptr;
     }
-    return static_cast<wxWindow*>(m_create_window_func(m_object, parent));
+    m_result_window = nullptr;
+    m_create_window_func(m_object, parent);
+    return m_result_window;
 }
 
 // GetIcon() is not pure virtual, so an unset callback keeps the wxWidgets
@@ -528,15 +531,32 @@ wxBitmapBundle kwxPreferencesPage::GetIcon() const
         return wxPreferencesPage::GetIcon();
     }
 
-    wxBitmapBundle* raw_icon = static_cast<wxBitmapBundle*>(m_get_icon_func(m_object));
-    if (!raw_icon)
+    m_result_icon = nullptr;
+    m_get_icon_func(m_object);
+    if (!m_result_icon)
     {
         return wxBitmapBundle();
     }
 
-    const wxBitmapBundle page_icon = *raw_icon;
-    delete raw_icon;
+    const wxBitmapBundle page_icon = *m_result_icon;
+    delete m_result_icon;
+    m_result_icon = nullptr;
     return page_icon;
+}
+
+// ---------------------------------------------------------------------------
+// wxStockPreferencesPage
+// ---------------------------------------------------------------------------
+
+wxWindow* kwxStockPreferencesPage::CreateWindow(wxWindow* parent)
+{
+    if (!m_create_window_func)
+    {
+        return nullptr;
+    }
+    m_result_window = nullptr;
+    m_create_window_func(m_object, parent);
+    return m_result_window;
 }
 
 // ---------------------------------------------------------------------------
@@ -819,6 +839,45 @@ void kwxTextCompleterSimple::GetCompletions(const wxString& prefix, wxArrayStrin
 }
 
 // ---------------------------------------------------------------------------
+// kwxNativeWindow
+// ---------------------------------------------------------------------------
+
+// Create() is called here rather than in the constructor so a failure leaves no
+// half-built object behind; each binding's Create checks the window's validity.
+kwxNativeWindow::kwxNativeWindow(void* pObject, wxWindow* parent, wxWindowID id, void* handle) :
+    wxNativeWindow(), m_object(pObject)
+{
+    Create(parent, id, (wxNativeWindowHandle) handle);
+}
+
+#ifdef __WXMSW__
+namespace
+{
+    // MSWOnNotify() takes WXLPARAM, which exists only on MSW, so the override
+    // cannot be declared in the public header.  kwxNativeWindow_Create below
+    // instantiates this subclass; the bindings only ever see kwxNativeWindow*.
+    class kwxNativeWindowMSW : public kwxNativeWindow
+    {
+    public:
+        kwxNativeWindowMSW(void* pObject, wxWindow* parent, wxWindowID id, void* handle) :
+            kwxNativeWindow(pObject, parent, id, handle)
+        {
+        }
+
+    protected:
+        bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM* result) override
+        {
+            if (InvokeMSWNotify(idCtrl, (void*) lParam, result))
+            {
+                return true;
+            }
+            return wxNativeWindow::MSWOnNotify(idCtrl, lParam, result);
+        }
+    };
+}  // namespace
+#endif
+
+// ---------------------------------------------------------------------------
 // wxHtmlTagsModule
 // ---------------------------------------------------------------------------
 
@@ -962,10 +1021,23 @@ kwxWizardPage::kwxWizardPage(void* pObject) : wxWizardPage()
     m_object = pObject;
     m_get_next_func = nullptr;
     m_get_prev_func = nullptr;
+    m_transfer_data_from_window_func = nullptr;
+    m_transfer_data_to_window_func = nullptr;
+    m_get_next_out_func = nullptr;
+    m_get_prev_out_func = nullptr;
+    m_transfer_data_from_window_out_func = nullptr;
+    m_transfer_data_to_window_out_func = nullptr;
 }
 
 wxWizardPage* kwxWizardPage::GetNext() const
 {
+    if (m_get_next_out_func)
+    {
+        void* page = nullptr;
+        m_get_next_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
     // A null return means "last page", which is what wxWizardPage has no base
     // value for (GetNext() is pure virtual, wx/wizard.h:73).
     if (!m_get_next_func)
@@ -977,11 +1049,50 @@ wxWizardPage* kwxWizardPage::GetNext() const
 
 wxWizardPage* kwxWizardPage::GetPrev() const
 {
+    if (m_get_prev_out_func)
+    {
+        void* page = nullptr;
+        m_get_prev_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
     if (!m_get_prev_func)
     {
         return nullptr;
     }
     return (wxWizardPage*) m_get_prev_func(m_object);
+}
+
+bool kwxWizardPage::TransferDataFromWindow()
+{
+    if (m_transfer_data_from_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_from_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_from_window_func)
+    {
+        return wxWizardPage::TransferDataFromWindow();
+    }
+    return m_transfer_data_from_window_func(m_object) != 0;
+}
+
+bool kwxWizardPage::TransferDataToWindow()
+{
+    if (m_transfer_data_to_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_to_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_to_window_func)
+    {
+        return wxWizardPage::TransferDataToWindow();
+    }
+    return m_transfer_data_to_window_func(m_object) != 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -1377,6 +1488,51 @@ extern "C"
         static_cast<kwxAppConsole*>(self)->SetOnCreateTraits(pFunction);
     }
 
+    EXPORT wxString* wxAppConsole_GetAppName(wxAppConsole* self)
+    {
+        return new wxString(self->GetAppName());
+    }
+
+    EXPORT void wxAppConsole_SetAppName(wxAppConsole* self, wxString* name)
+    {
+        self->SetAppName(*name);
+    }
+
+    EXPORT wxString* wxAppConsole_GetAppDisplayName(wxAppConsole* self)
+    {
+        return new wxString(self->GetAppDisplayName());
+    }
+
+    EXPORT void wxAppConsole_SetAppDisplayName(wxAppConsole* self, wxString* name)
+    {
+        self->SetAppDisplayName(*name);
+    }
+
+    EXPORT wxString* wxAppConsole_GetVendorName(wxAppConsole* self)
+    {
+        return new wxString(self->GetVendorName());
+    }
+
+    EXPORT void wxAppConsole_SetVendorName(wxAppConsole* self, wxString* name)
+    {
+        self->SetVendorName(*name);
+    }
+
+    EXPORT void wxAppConsole_ExitMainLoop(wxAppConsole* self)
+    {
+        self->ExitMainLoop();
+    }
+
+    EXPORT void wxAppConsole_ProcessPendingEvents(wxAppConsole* self)
+    {
+        self->ProcessPendingEvents();
+    }
+
+    EXPORT int wxAppConsole_Yield(wxAppConsole* self)
+    {
+        return self->Yield();
+    }
+
     // kwxApp ------------------------------------------------------------------
 
 #if KWX_HAVE_APP_HOOK
@@ -1708,6 +1864,117 @@ extern "C"
         self->SetOnGetIcon(pFunction);
     }
 
+    EXPORT void kwxPreferencesPage_SetOnGetNameResult(kwxPreferencesPage* self, const char* name)
+    {
+        self->SetNameResult(name);
+    }
+
+    EXPORT void kwxPreferencesPage_SetOnCreateWindowResult(kwxPreferencesPage* self,
+                                                           wxWindow* window)
+    {
+        self->SetCreateWindowResult(window);
+    }
+
+    EXPORT void kwxPreferencesPage_SetOnGetIconResult(kwxPreferencesPage* self,
+                                                      wxBitmapBundle* bundle)
+    {
+        self->SetGetIconResult(bundle);
+    }
+
+    // wxStockPreferencesPage ------------------------------------------------
+
+    // The receiver of every function below is a kwxStockPreferencesPage, because
+    // the wxStockPreferencesPage base is abstract (CreateWindow is pure).  The
+    // symbols use the wx<Class>_ name so they match the declaration block.
+
+    EXPORT void* wxStockPreferencesPage_Create(int kind)
+    {
+        // Only the two stock kinds exist; anything else is the General page.
+        const wxStockPreferencesPage::Kind page_kind =
+            (kind == wxStockPreferencesPage::Kind_Advanced) ?
+                wxStockPreferencesPage::Kind_Advanced :
+                wxStockPreferencesPage::Kind_General;
+        return (void*) new kwxStockPreferencesPage(page_kind);
+    }
+
+    EXPORT void* wxStockPreferencesPage_CreateWithState(int kind, void* pObject)
+    {
+        // Only the two stock kinds exist; anything else is the General page.
+        const wxStockPreferencesPage::Kind page_kind =
+            (kind == wxStockPreferencesPage::Kind_Advanced) ?
+                wxStockPreferencesPage::Kind_Advanced :
+                wxStockPreferencesPage::Kind_General;
+        return (void*) new kwxStockPreferencesPage(page_kind, pObject);
+    }
+
+    EXPORT int wxStockPreferencesPage_GetKind(wxStockPreferencesPage* self)
+    {
+        return static_cast<int>(static_cast<kwxStockPreferencesPage*>(self)->GetKind());
+    }
+
+    EXPORT void wxStockPreferencesPage_Delete(wxStockPreferencesPage* self)
+    {
+        delete static_cast<kwxStockPreferencesPage*>(self);
+    }
+
+    EXPORT void wxStockPreferencesPage_SetOnCreateWindow(wxStockPreferencesPage* self,
+                                                         void* pFunction)
+    {
+        static_cast<kwxStockPreferencesPage*>(self)->SetOnCreateWindow(pFunction);
+    }
+
+    EXPORT void wxStockPreferencesPage_SetOnCreateWindowResult(wxStockPreferencesPage* self,
+                                                               wxWindow* window)
+    {
+        static_cast<kwxStockPreferencesPage*>(self)->SetCreateWindowResult(window);
+    }
+
+    // wxPreferencesEditor ----------------------------------------------------
+
+    EXPORT void* wxPreferencesEditor_Create(wxString* title)
+    {
+        return (void*) new wxPreferencesEditor(title ? *title : wxString());
+    }
+
+    EXPORT void wxPreferencesEditor_Delete(wxPreferencesEditor* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxPreferencesEditor_AddPage(wxPreferencesEditor* self, wxPreferencesPage* page)
+    {
+        self->AddPage(page);
+    }
+
+    EXPORT void wxPreferencesEditor_AddStockPage(wxPreferencesEditor* self,
+                                                 wxStockPreferencesPage* page)
+    {
+        // Up-cast only: kwxStockPreferencesPage derives from wxStockPreferencesPage,
+        // which derives from wxPreferencesPage.  The editor takes ownership of the
+        // page, exactly as wxPreferencesEditor_AddPage does.
+        self->AddPage(static_cast<wxPreferencesPage*>(page));
+    }
+
+    EXPORT void wxPreferencesEditor_Show(wxPreferencesEditor* self, wxWindow* parent)
+    {
+        self->Show(parent);
+    }
+
+    EXPORT void wxPreferencesEditor_Dismiss(wxPreferencesEditor* self)
+    {
+        self->Dismiss();
+    }
+
+    EXPORT int wxPreferencesEditor_ShouldApplyChangesImmediately()
+    {
+        return wxPreferencesEditor::ShouldApplyChangesImmediately() ? 1 : 0;
+    }
+
+    EXPORT int wxPreferencesEditor_ShownModally()
+    {
+        return wxPreferencesEditor::ShownModally() ? 1 : 0;
+    }
+
     // wxEvtHandler alias: the portability matrix also resolves an ovh row to
     // the <Base>_ spelling, which is declared in the existing wxEvtHandler block
     // of include/kwx_classes_sync.h.
@@ -1740,6 +2007,11 @@ extern "C"
         static_cast<kwxValidator*>(self)->SetOnTransferToWindow(pFunction);
     }
 
+    EXPORT void wxPreferencesPage_Delete(wxPreferencesPage* self)
+    {
+        delete static_cast<kwxPreferencesPage*>(self);
+    }
+
     EXPORT void wxPreferencesPage_SetOnGetName(wxPreferencesPage* self, void* pFunction)
     {
         static_cast<kwxPreferencesPage*>(self)->SetOnGetName(pFunction);
@@ -1753,6 +2025,22 @@ extern "C"
     EXPORT void wxPreferencesPage_SetOnGetIcon(wxPreferencesPage* self, void* pFunction)
     {
         static_cast<kwxPreferencesPage*>(self)->SetOnGetIcon(pFunction);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnGetNameResult(wxPreferencesPage* self, const char* name)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetNameResult(name);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnCreateWindowResult(wxPreferencesPage* self, wxWindow* window)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetCreateWindowResult(window);
+    }
+
+    EXPORT void wxPreferencesPage_SetOnGetIconResult(wxPreferencesPage* self,
+                                                     wxBitmapBundle* bundle)
+    {
+        static_cast<kwxPreferencesPage*>(self)->SetGetIconResult(bundle);
     }
 
     // kwxHtmlListBox --------------------------------------------------------
@@ -1996,6 +2284,27 @@ extern "C"
                                                           void* pFunction)
     {
         static_cast<kwxTextCompleterSimple*>(self)->SetOnGetCompletions(pFunction);
+    }
+
+    // kwxNativeWindow --------------------------------------------------------
+
+    EXPORT void* kwxNativeWindow_Create(void* pObject, wxWindow* parent, int id, void* handle)
+    {
+#ifdef __WXMSW__
+        return (void*) new kwxNativeWindowMSW(pObject, parent, id, handle);
+#else
+        return (void*) new kwxNativeWindow(pObject, parent, id, handle);
+#endif
+    }
+
+    EXPORT void kwxNativeWindow_Delete(kwxNativeWindow* self)
+    {
+        delete self;
+    }
+
+    EXPORT void kwxNativeWindow_SetOnMSWNotify(kwxNativeWindow* self, void* pFunction)
+    {
+        self->SetOnMSWNotify(pFunction);
     }
 
     // kwxHtmlTagsModule ------------------------------------------------------
@@ -2352,6 +2661,14 @@ extern "C"
         delete self;
     }
 
+    EXPORT int kwxWizardPage_Create2(kwxWizardPage* self, wxWizard* parent, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return self->Create(parent, bmp) ? 1 : 0;
+    }
+
     EXPORT void kwxWizardPage_SetOnGetNext(kwxWizardPage* self, void* pFunction)
     {
         self->SetOnGetNext(pFunction);
@@ -2362,6 +2679,16 @@ extern "C"
         self->SetOnGetPrev(pFunction);
     }
 
+    EXPORT void kwxWizardPage_SetOnTransferDataFromWindow(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataToWindow(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataToWindow(pFunction);
+    }
+
     EXPORT void wxWizardPage_SetOnGetNext(wxWizardPage* self, void* pFunction)
     {
         static_cast<kwxWizardPage*>(self)->SetOnGetNext(pFunction);
@@ -2370,6 +2697,64 @@ extern "C"
     EXPORT void wxWizardPage_SetOnGetPrev(wxWizardPage* self, void* pFunction)
     {
         static_cast<kwxWizardPage*>(self)->SetOnGetPrev(pFunction);
+    }
+
+    EXPORT int wxWizardPage_Create2(wxWizardPage* self, wxWizard* parent, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return static_cast<kwxWizardPage*>(self)->Create(parent, bmp) ? 1 : 0;
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataFromWindow(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataToWindow(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataToWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnGetNextOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnGetNextOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnGetPrevOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnGetPrevOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataFromWindowOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataFromWindowOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPage_SetOnTransferDataToWindowOut(kwxWizardPage* self, void* pFunction)
+    {
+        self->SetOnTransferDataToWindowOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnGetNextOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnGetNextOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnGetPrevOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnGetPrevOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataFromWindowOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataFromWindowOut(pFunction);
+    }
+
+    EXPORT void wxWizardPage_SetOnTransferDataToWindowOut(wxWizardPage* self, void* pFunction)
+    {
+        static_cast<kwxWizardPage*>(self)->SetOnTransferDataToWindowOut(pFunction);
     }
 
     // kwxPopupTransientWindow ------------------------------------------------
@@ -2404,6 +2789,31 @@ extern "C"
                                                        void* pFunction)
     {
         self->SetOnOnDismiss(pFunction);
+    }
+
+    // Base implementations reachable from inside a callback.  CallBase* uses a
+    // qualified call, which bypasses virtual dispatch, so a callback can log
+    // and then delegate without re-entering itself.
+    EXPORT void kwxPopupTransientWindow_CallBasePopup(kwxPopupTransientWindow* self,
+                                                      wxWindow* focus)
+    {
+        self->CallBasePopup(focus);
+    }
+
+    EXPORT int kwxPopupTransientWindow_CallBaseShow(kwxPopupTransientWindow* self, int show)
+    {
+        return self->CallBaseShow(show != 0);
+    }
+
+    EXPORT int kwxPopupTransientWindow_CallBaseProcessLeftDown(kwxPopupTransientWindow* self,
+                                                               wxMouseEvent* event)
+    {
+        return self->CallBaseProcessLeftDown(*event);
+    }
+
+    EXPORT void kwxPopupTransientWindow_CallBaseOnDismiss(kwxPopupTransientWindow* self)
+    {
+        self->CallBaseOnDismiss();
     }
 
     // The <Base>_SetOn spellings the portability matrix also resolves.  The

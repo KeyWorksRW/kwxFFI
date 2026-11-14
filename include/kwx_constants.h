@@ -1,6 +1,8 @@
 #pragma once
 
 #include "kwx_types.h"
+// WXFFI_EXPORT is used by the constant declarations further down.
+#include "kwx_def.h"
 
 TClass(wxAcceleratorTable) Null_AcceleratorTable();
 TClass(wxBitmap) Null_Bitmap();
@@ -36,12 +38,30 @@ void* kwxUtf8Buffer_Create(TClass(wxString) str);
 TString kwxUtf8Buffer_Data(void* buf);
 void kwxUtf8Buffer_Delete(void* buf);
 
+// wxGrid::TabBehaviour values, passed to wxGrid_SetTabBehaviour().  They are
+// exported from src/kwx_defs.cpp; the declarations live here because this is
+// the header the constant table scans for WXFFI_EXPORT entries.
+WXFFI_EXPORT(int, expTab_Stop)();
+WXFFI_EXPORT(int, expTab_Wrap)();
+WXFFI_EXPORT(int, expTab_Leave)();
+
+// wxGridActivationSource::Origin and wxGridActivationResult::Action values.
+// The TryActivate callback installed by
+// kwxGridCellActivatableEditorHook_SetOnTryActivate receives the origin and
+// reports the action with these values.
+WXFFI_EXPORT(int, expGridActivationProgram)();
+WXFFI_EXPORT(int, expGridActivationKey)();
+WXFFI_EXPORT(int, expGridActivationMouse)();
+WXFFI_EXPORT(int, expGridActivationIgnore)();
+WXFFI_EXPORT(int, expGridActivationChange)();
+WXFFI_EXPORT(int, expGridActivationShowEditor)();
+
 // ---------------------------------------------------------------------------
 // System information
 // ---------------------------------------------------------------------------
 
 TClass(wxString) wxGetOsDescription();
-int wxGetOsVersion(int* major, int* minor, int* micro);
+int wxGetOsVersion(TIntOut major, TIntOut minor, TIntOut micro);
 TBool wxCheckOsVersion(int major, int minor, int micro);
 TBool wxIsPlatformLittleEndian();
 TBool wxIsPlatform64Bit();
@@ -59,7 +79,7 @@ TBool wxHandleFatalExceptions(TBool doit);
 
 TBool wxGetKeyState(int key);
 TBool wxSetDetectableAutoRepeat(TBool flag);
-void wxGetMousePosition(int* x, int* y);
+void wxGetMousePosition(TPointOut(x, y));
 void wxInfoMessageBox(TClass(wxWindow) parent);
 void wxRegisterId(int id);
 int wxGetCurrentId();
@@ -88,7 +108,7 @@ TClass(wxString) wxGetUserId();
 TClass(wxString) wxGetUserName();
 TClass(wxString) wxGetHomeDir();
 TClass(wxString) wxGetUserHome(TClass(wxString) user);
-TBool wxGetDiskSpace(TClass(wxString) path, TInt64* total_bytes, TInt64* free_bytes);
+TBool wxGetDiskSpace(TClass(wxString) path, TInt64Out total_bytes, TInt64Out free_bytes);
 
 // ---------------------------------------------------------------------------
 // Process management
@@ -105,7 +125,7 @@ long wxExecuteArgv(TArrayString(n, argv), int flags, TClass(wxProcess) process,
                    TClass(wxExecuteEnv) execute_env);
 TBool wxExecuteDDE(TClass(wxString) server, TClass(wxString) topic, TClass(wxString) command);
 TBool wxShutdown(int flags);
-int wxKill(long pid, int sig, int* rc, int flags);
+int wxKill(long pid, int sig, TIntOut rc, int flags);
 TBool wxShell(TClass(wxString) command);
 TBool wxShellWithOutput(TClass(wxString) command, TClass(wxArrayString) output);
 void wxSleep(int seconds);
@@ -144,7 +164,7 @@ TClass(wxString)
                    TClass(wxString) wildcard, int flags, TClass(wxWindow) parent, int x, int y);
 TClass(wxString)
     wxFileSelectorEx(TClass(wxString) message, TClass(wxString) default_path,
-                     TClass(wxString) default_filename, int* index_default_extension,
+                     TClass(wxString) default_filename, TIntInOut index_default_extension,
                      TClass(wxString) wildcard, int flags, TClass(wxWindow) parent, int x, int y);
 TClass(wxString) wxLoadFileSelector(TClass(wxString) what, TClass(wxString) extension,
                                     TClass(wxString) default_name, TClass(wxWindow) parent);
@@ -155,6 +175,17 @@ TBool wxIsStockLabel(int id, TClass(wxString) label);
 TClass(wxString) wxGetStockLabel(int id, long flags);
 TClass(wxAcceleratorEntry) wxGetStockAccelerator(int id);
 TClass(wxString) wxGetStockHelpString(int id, int client);
+
+// ---------------------------------------------------------------------------
+// Persistence (wx/persist.h). RegisterAndRestore is a template, so each
+// concrete control type gets its own C entry point; `NoName` omits the name
+// argument. Implementations live in src/kwx_extra.cpp.
+// ---------------------------------------------------------------------------
+
+TBool wxPersistentRegisterAndRestore(TClass(wxFrame) frame, TClass(wxString) name);
+TBool wxPersistentRegisterAndRestoreNoName(TClass(wxFrame) frame);
+TBool wxPersistentRegisterAndRestoreTreebook(TClass(wxTreebook) book, TClass(wxString) name);
+TBool wxPersistentRegisterAndRestoreTreebookNoName(TClass(wxTreebook) book);
 
 WXFFI_EXPORT(int, expRIBBON_BAR_DEFAULT_STYLE)();
 WXFFI_EXPORT(int, expRIBBON_BAR_FOLDBAR_STYLE)();
@@ -184,6 +215,29 @@ WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_NORMAL)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_HOVERED)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_ACTIVE)();
 WXFFI_EXPORT(int, expwxRIBBON_GALLERY_BUTTON_DISABLED)();
+
+// wxAnimationType values (wx/animate.h)
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_INVALID)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_GIF)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_ANI)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_WEBP)();
+WXFFI_EXPORT(int, expwxANIMATION_TYPE_ANY)();
+
+// Control style / enumeration constants whose exported accessors use the legacy `exp`
+// spelling (wx/collpane.h, wx/propgrid/manager.h, wx/treelist.h, wx/webview.h).
+WXFFI_EXPORT(int, expCP_DEFAULT_STYLE)();
+WXFFI_EXPORT(int, expCP_NO_TLW_RESIZE)();
+WXFFI_EXPORT(int, expPGMAN_DEFAULT_STYLE)();
+WXFFI_EXPORT(int, expTL_SINGLE)();
+WXFFI_EXPORT(int, expTL_NO_HEADER)();
+WXFFI_EXPORT(int, expWEBVIEW_NAV_ACTION_NONE)();
+WXFFI_EXPORT(int, expWEBVIEW_NAV_ACTION_OTHER)();
+WXFFI_EXPORT(int, expWEBVIEW_RELOAD_DEFAULT)();
+WXFFI_EXPORT(int, expWEBVIEW_RELOAD_NO_CACHE)();
+
+// wxPopupWindow style flag (wx/popupwin.h:23).  Popup samples OR it with
+// wxBORDER_NONE so the controls inside the popup receive mouse input.
+WXFFI_EXPORT(int, expPU_CONTAINS_CONTROLS)();
 
 // Legacy wxLog free functions (Phase 13); implementations live in src/kwx_extra.cpp.
 void LogError(TClass(wxString) message);
@@ -272,7 +326,7 @@ void* wxGet_wxConvUTF8();
 TBool wxIsalnum(int character);
 TBool wxIsdigit(int character);
 TBool wxIslower(int character);
-void* wxMakeFloatingPointValidator(double* value, int style);
+void* wxMakeFloatingPointValidator(TDoubleInOut value, int style);
 void wxMutexGuiEnter();
 void wxMutexGuiLeave();
 TBool wxPlatformIs(int platform);
@@ -280,6 +334,7 @@ void* wxPointRefFromVariant(TClass(wxVariant) variant);
 void wxPostEvent(TClass(wxEvtHandler) dest, TClass(wxEvent) event);
 size_t wxPtrToUInt(void* pointer);
 int wxPuts(TClass(wxString) str);
+TBool wxRemoveFile(TClass(wxString) file);
 TBool wxRenameFile(TClass(wxString) old_path, TClass(wxString) new_path, TBool overwrite);
 TBool wxShowTip(TClass(wxWindow) parent, void* tip_provider);
 void* wxSizeRefFromVariant(TClass(wxVariant) variant);

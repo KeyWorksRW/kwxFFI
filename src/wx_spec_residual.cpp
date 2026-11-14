@@ -270,6 +270,34 @@ extern "C"
     }
 #endif  // wxUSE_HYPERLINKCTRL
 
+    EXPORT wxTextUrlEvent* wxTextUrlEvent_Create(int winid, wxMouseEvent* evtMouse, long start,
+                                                 long end)
+    {
+        return new wxTextUrlEvent(winid, *evtMouse, start, end);
+    }
+
+    EXPORT void wxTextUrlEvent_Delete(wxTextUrlEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxMouseEvent* wxTextUrlEvent_GetMouseEvent(wxTextUrlEvent* self)
+    {
+        // GetMouseEvent() returns a const reference; the wrapper passes the address on as a
+        // borrowed, read-only subobject.
+        return const_cast<wxMouseEvent*>(&self->GetMouseEvent());
+    }
+
+    EXPORT long wxTextUrlEvent_GetURLStart(wxTextUrlEvent* self)
+    {
+        return self->GetURLStart();
+    }
+
+    EXPORT long wxTextUrlEvent_GetURLEnd(wxTextUrlEvent* self)
+    {
+        return self->GetURLEnd();
+    }
+
     EXPORT wxThreadEvent* wxThreadEvent_Create(int event_type, int id)
     {
         return new wxThreadEvent((wxEventType) event_type, id);
@@ -1184,7 +1212,11 @@ extern "C"
                                               int width, int height, int row, int col,
                                               bool is_selected)
     {
-        self->Draw(*grid, *attr, *dc, wxRect(x, y, width, height), row, col, is_selected);
+        // Qualify the base implementation: this wrapper is the documented "call the ordinary text
+        // renderer" helper. A virtual call would dispatch back into a derived hook's Draw override
+        // (e.g. kwxGridCellRendererHook in src/wx_grid.cpp) and recurse until the stack overflows.
+        self->wxGridCellStringRenderer::Draw(*grid, *attr, *dc, wxRect(x, y, width, height), row,
+                                             col, is_selected);
     }
 
     EXPORT wxSize* wxGridCellStringRenderer_GetPreferredSize(wxGridCellStringRenderer* self,

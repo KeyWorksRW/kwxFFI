@@ -6,10 +6,18 @@
 // kwxgen merges repeated TClassDef/TClassDefExtend blocks by class name, so the blocks here
 // extend the wxRibbonBar/wxAui*/wxWebView blocks in kwx_classes.h rather than replacing them.
 
+// Tool and item handles that appear in the ribbon signatures below but have no wrapper
+// block of their own.
+// clang-format off
+TClassDef(wxRibbonButtonBarButtonBase)
+TClassDef(wxRibbonGalleryItem)
+TClassDef(wxRibbonToolBarToolBase)
+
 // wxRibbonBarEvent
 
 TClassDefExtend(wxRibbonBarEvent, wxNotifyEvent) TClass(wxRibbonPage)
     wxRibbonBarEvent_GetPage(TSelf(wxRibbonBarEvent) pObject);
+// clang-format on
 void wxRibbonBarEvent_SetPage(TSelf(wxRibbonBarEvent) pObject, TClass(wxRibbonPage) page);
 
 // wxRibbonButtonBarEvent

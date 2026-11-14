@@ -4,16 +4,19 @@
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 ////////////////////////////////////////////////////
-// CR: [10-19-2026]
+// CR: [11-12-2026]
 
 #pragma once
 
 #include "../emitter.h"
 
+#include <filesystem>
 #include <iosfwd>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 class TypeScriptEmitter : public LanguageEmitter
 {
@@ -26,6 +29,11 @@ public:
                                       const std::filesystem::path& out_dir) override;
     [[nodiscard]] std::string_view Name() const override { return "typescript"; }
     [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& ffi) const override;
+
+    UiDescriptor BuildUiDescriptor(const ParsedFFI& parsed_ffi) const override;
+    std::vector<std::string>
+        VerifyUiDescriptor(const UiDescriptor& descriptor,
+                           const std::filesystem::path& generated_dir) const override;
 
 private:
     // Emits kwx_ffi_gen.ts — the dlopen call with all C symbol definitions.
@@ -40,6 +48,9 @@ private:
     // Emits kwx_free_functions_gen.ts — free-function TypeScript wrappers.
     static void GenerateFreeFunctions(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
+    // Emits kwx_class_registry_gen.ts — runtime registry of generated wrapper classes.
+    static void GenerateClassRegistry(const std::filesystem::path& out_dir);
+
     // Emits wx{Class}_gen.ts for each class that has methods.
     static void GenerateClassFiles(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
 
@@ -53,6 +64,15 @@ private:
 
     // Emits kwx_helpers_gen.ts — wxString conversion utilities for generated code.
     static void GenerateHelpers(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
+
+    // The generation sequence without the progress summary, so VerifyUiDescriptor can rebuild
+    // the tree from the model the descriptor was built from.
+    static void GenerateInto(const ParsedFFI& ffi, const std::filesystem::path& out_dir);
+
+    // The model BuildUiDescriptor was last called with.  VerifyUiDescriptor has no model
+    // parameter and emit-ui calls the two methods back to back, so the model is kept here for
+    // the verification pass to regenerate from.
+    mutable std::optional<ParsedFFI> m_ui_model;
 };
 
 // Set the destination for the machine-readable rename report written by the TypeScript

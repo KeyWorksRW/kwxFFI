@@ -68,14 +68,40 @@ constexpr std::size_t FORTRAN_TYPE_IDENTIFIER_BASE_MAX = 52;
     return suffix;
 }
 
+// Stable identifier for a raw C export as it is referenced inside the generated kwxffi
+// interface module. The C export name is fixed by the FFI header and is passed verbatim to
+// bind(C, name=...), but Fortran caps identifiers at 63 characters, so a longer name is
+// truncated and given the same stable hash suffix used elsewhere. Wrapper modules must call
+// the interface through this same identifier.
+[[nodiscard]] inline std::string FortranCInterfaceIdentifier(const std::string& c_name)
+{
+    if (c_name.size() <= FORTRAN_IDENTIFIER_LIMIT)
+    {
+        return c_name;
+    }
+    const std::string hash_suffix = FortranHashSuffix(c_name);
+    std::string identifier = c_name;
+    identifier.resize(FORTRAN_IDENTIFIER_LIMIT - hash_suffix.size() - 1);
+    identifier += "_";
+    identifier += hash_suffix;
+    return identifier;
+}
+
 // Module that holds the wrapper procedures for a class: wxFooBar → wx_foo_bar.
 // wxString maps to wx_string_methods because wx_string is the existing helper module that
-// owns to_wxstring/from_wxstring.
+// owns to_wxstring/from_wxstring.  wxApp maps to wx_app_methods for the same reason: wx_app
+// is the conventional name a consumer gives its own application-lifecycle module, so the
+// generated class module must not take it — otherwise every consumer has to exclude the
+// generated file and loses the whole wxApp wrapper surface.
 [[nodiscard]] inline std::string FortranClassModuleName(const std::string& class_name)
 {
     if (class_name == "wxString")
     {
         return "wx_string_methods";
+    }
+    if (class_name == "wxApp")
+    {
+        return "wx_app_methods";
     }
     return FortranSanitizeIdentifier(ToSnakeCase(class_name), FORTRAN_IDENTIFIER_LIMIT);
 }
@@ -130,6 +156,21 @@ enum class FortranParamKind
     class_pointer,
     callback,
     scalar,
+    scalar_output,
+    scalar_input_output,
+    byte_array_input,
+    byte_array_output,
+    byte_scalar_output,
+    char_scalar_output,
+    int_array_input,
+    int_array_output,
+    intptr_array_output,
+    double_array_output,
+    int_scalar_input,
+    bool_scalar_input,
+    cookie,
+    string_array_output,
+    object_array_output,
     opaque_pointer,
     raw_pointer
 };
@@ -197,14 +238,78 @@ enum class FortranParamKind
         return FortranParamKind::opaque_pointer;
     }
 
+    if (param.raw_type == "TBytesIn")
+    {
+        return FortranParamKind::byte_array_input;
+    }
+    if (param.raw_type == "TBytesOut")
+    {
+        return FortranParamKind::byte_array_output;
+    }
+    if (param.raw_type == "TByteOut")
+    {
+        return FortranParamKind::byte_scalar_output;
+    }
+    if (param.raw_type == "TCharOut")
+    {
+        return FortranParamKind::char_scalar_output;
+    }
+    if (param.raw_type == "TIntArrayIn")
+    {
+        return FortranParamKind::int_array_input;
+    }
+    if (param.raw_type == "TIntArrayOut")
+    {
+        return FortranParamKind::int_array_output;
+    }
+    if (param.raw_type == "TDoubleArrayOut")
+    {
+        return FortranParamKind::double_array_output;
+    }
+    if (param.raw_type == "TIntIn")
+    {
+        return FortranParamKind::int_scalar_input;
+    }
+    if (param.raw_type == "TBoolIn")
+    {
+        return FortranParamKind::bool_scalar_input;
+    }
+    if (param.raw_type == "TCookie")
+    {
+        return FortranParamKind::cookie;
+    }
+    if (param.raw_type == "TArrayStringOut" || param.raw_type == "TArrayStringOutVoid")
+    {
+        return FortranParamKind::string_array_output;
+    }
+    if (param.raw_type == "TArrayIntOutVoid")
+    {
+        return FortranParamKind::int_array_output;
+    }
+    if (param.raw_type == "TArrayIntPtrOut" || param.raw_type == "TArrayIntPtrOutVoid" ||
+        param.raw_type == "TArrayIntOut")
+    {
+        return FortranParamKind::intptr_array_output;
+    }
+    if (param.macro_name == "TArrayObjectOut" || param.macro_name == "TArrayObjectOutVoid")
+    {
+        return FortranParamKind::object_array_output;
+    }
+
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        return scalar_pointer.is_in_out ? FortranParamKind::scalar_input_output :
+                                          FortranParamKind::scalar_output;
+    }
+
     const std::string& raw = param.raw_type;
     if (raw.empty() || raw == "int" || raw == "long" || raw == "double" || raw == "float" ||
         raw == "unsigned" || raw == "unsigned int" || raw == "unsigned long" || raw == "size_t" ||
         raw == "time_t" || raw == "wxUIntPtr" || raw == "uintptr_t" || raw == "TInt64" ||
         raw == "int64_t" || raw == "TBool" || raw == "TBoolInt" || raw == "TChar" ||
-        raw == "TUInt8" || raw == "TUInt16" || raw == "TUInt32" || raw == "TUInt" ||
-        raw == "unsigned short" || raw == "intptr_t" || raw == "TIntPtr" || raw == "TArrayLen" ||
-        raw == "TByteStringLen")
+        raw == "unsigned char" || raw == "TUInt8" || raw == "TUInt16" || raw == "TUInt32" ||
+        raw == "TUInt" || raw == "unsigned short" || raw == "intptr_t" || raw == "TIntPtr" ||
+        raw == "TArrayLen" || raw == "TByteStringLen")
     {
         return FortranParamKind::scalar;
     }

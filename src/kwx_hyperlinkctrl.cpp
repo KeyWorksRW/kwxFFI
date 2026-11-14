@@ -3,6 +3,9 @@
 
 #include "kwx_wrapper.h"
 #include <wx/hyperlink.h>
+// Must follow wx/hyperlink.h: the generic implementation derives from
+// wxHyperlinkCtrlBase, which only that header declares.
+#include <wx/generic/hyperlink.h>
 
 // wxHyperlinkCtrl inherits from wxControl.
 // Additional methods available via:
@@ -73,6 +76,79 @@ extern "C"
     }
 
     EXPORT void wxHyperlinkCtrl_SetVisitedColour(wxHyperlinkCtrl* self, const wxColour& colour)
+    {
+        self->SetVisitedColour(colour);
+    }
+
+    // wxGenericHyperlinkCtrl is a sibling of wxHyperlinkCtrl (both derive from
+    // wxHyperlinkCtrlBase), so it needs its own exported class block.
+
+    EXPORT wxGenericHyperlinkCtrl* wxGenericHyperlinkCtrl_Create(wxWindow* parent, int id,
+                                                                 const wxString& label,
+                                                                 const wxString& url, int x, int y,
+                                                                 int width, int height, int style)
+    {
+        return new wxGenericHyperlinkCtrl(parent, id, label, url, wxPoint(x, y),
+                                          wxSize(width, height), style);
+    }
+
+    EXPORT wxColour* wxGenericHyperlinkCtrl_GetHoverColour(wxGenericHyperlinkCtrl* self)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetHoverColour();
+        return result;
+    }
+
+    EXPORT wxColour* wxGenericHyperlinkCtrl_GetNormalColour(wxGenericHyperlinkCtrl* self)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetNormalColour();
+        return result;
+    }
+
+    EXPORT wxString* wxGenericHyperlinkCtrl_GetURL(wxGenericHyperlinkCtrl* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetURL();
+        return result;
+    }
+
+    EXPORT int wxGenericHyperlinkCtrl_GetVisited(wxGenericHyperlinkCtrl* self)
+    {
+        return self->GetVisited();
+    }
+
+    EXPORT wxColour* wxGenericHyperlinkCtrl_GetVisitedColour(wxGenericHyperlinkCtrl* self)
+    {
+        wxColour* result = new wxColour();
+        *result = self->GetVisitedColour();
+        return result;
+    }
+
+    EXPORT void wxGenericHyperlinkCtrl_SetHoverColour(wxGenericHyperlinkCtrl* self,
+                                                      const wxColour& colour)
+    {
+        self->SetHoverColour(colour);
+    }
+
+    EXPORT void wxGenericHyperlinkCtrl_SetNormalColour(wxGenericHyperlinkCtrl* self,
+                                                       const wxColour& colour)
+    {
+        self->SetNormalColour(colour);
+    }
+
+    EXPORT void wxGenericHyperlinkCtrl_SetURL(wxGenericHyperlinkCtrl* self, const wxString& url)
+    {
+        self->SetURL(url);
+    }
+
+    EXPORT void wxGenericHyperlinkCtrl_SetVisited(wxGenericHyperlinkCtrl* self, bool visited)
+    {
+        self->SetVisited(visited);
+    }
+
+    EXPORT void wxGenericHyperlinkCtrl_SetVisitedColour(wxGenericHyperlinkCtrl* self,
+                                                        const wxColour& colour)
     {
         self->SetVisitedColour(colour);
     }

@@ -4,6 +4,7 @@ set( FFI_SRC_FILES
 
     src/kwx_apppath.cpp
     src/kwx_aui_serializer.cpp
+    src/kwx_console.cpp
     src/kwx_defs.cpp
     src/kwx_constants_table_gen.cpp
     src/kwx_dragimage.cpp
@@ -137,6 +138,7 @@ set( FFI_SRC_FILES
     src/wx_messagedialog.cpp
     src/wx_mime.cpp
     src/wx_miniframe.cpp
+    src/wx_nativewindow.cpp
     src/wx_net_extra.cpp
     src/wx_notebook.cpp
     src/wx_notifmsg.cpp
@@ -156,6 +158,7 @@ set( FFI_SRC_FILES
     src/wx_propertygridmanager.cpp
     src/wx_propertysheetdialog.cpp
     src/wx_propgrid.cpp
+    src/kwx_propgrid_hooks.cpp
     src/wx_radiobox.cpp
     src/wx_radiobutton.cpp
     src/wx_rc.cpp
@@ -174,6 +177,7 @@ set( FFI_SRC_FILES
     src/wx_richtextdlg.cpp
     src/wx_richtextprint.cpp
     src/wx_richtextstyles.cpp
+    src/kwx_richtext_hooks.cpp
     src/wx_richtooltip.cpp
     src/wx_sash.cpp
     src/wx_scrollbar.cpp
@@ -243,8 +247,10 @@ set( FFI_HDR_FILES
     include/kwx_file_stream_extra.h
     include/kwx_html.h
     include/kwx_richtext.h
+    include/kwx_richtext_hooks.h
     include/kwx_grid_extra.h
     include/kwx_propgrid_extra.h
+    include/kwx_propgrid_hooks.h
     include/kwx_regex_xml_extra.h
     include/kwx_ribbon_extra.h
     include/kwx_methods_window.h
@@ -257,6 +263,7 @@ set( FFI_HDR_FILES
     include/kwx_log.h
     include/kwx_accessible.h
     include/kwx_combo_extra.h
+    include/kwx_console.h
     include/kwx_helper_cmdline.h
     include/kwx_helper_thread.h
     include/kwx_hook_exports.h

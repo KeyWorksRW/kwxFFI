@@ -83,6 +83,16 @@ extern "C"
         return result;
     }
 
+    EXPORT wxString* wxControl_Ellipsize(wxString* label, wxDC* dc, int mode, int max_width,
+                                         int flags)
+    {
+        wxString* result = new wxString();
+        if (label && dc)
+            *result = wxControl::Ellipsize(*label, *dc, static_cast<wxEllipsizeMode>(mode),
+                                           max_width, flags);
+        return result;
+    }
+
     // ---------------------------------------------------------------------
     // Phase 9A: remaining wxControl public methods
     // ---------------------------------------------------------------------

@@ -13,6 +13,7 @@
 #include <wx/fileconf.h>
 #include <wx/intl.h>
 #include <wx/numformatter.h>
+#include <wx/propgrid/propgriddefs.h>
 #include <wx/translation.h>
 #include <wx/uilocale.h>
 #include <wx/variant.h>
@@ -1005,6 +1006,21 @@ extern "C"
         return self->Parse(false);
     }
 
+    EXPORT int wxCmdLineParser_ParseArgs(wxCmdLineParser* self, int argc, void* argv)
+    {
+        if (argc > 0 && argv != nullptr)
+        {
+            self->SetCmdLine(argc, static_cast<char**>(argv));
+        }
+        return self->Parse(true);
+    }
+
+    EXPORT int wxCmdLineParser_ParseStringArgs(wxCmdLineParser* self, wxString* command_line)
+    {
+        self->SetCmdLine(*command_line);
+        return self->Parse(true);
+    }
+
     EXPORT int wxCmdLineParser_Found(wxCmdLineParser* self, wxString* name)
     {
         return self->Found(*name);
@@ -1324,6 +1340,32 @@ extern "C"
     EXPORT double wxVariant_GetReal(void* pObject)
     {
         return ((wxVariant*) pObject)->GetReal();
+    }
+
+    EXPORT wxVariant* wxVariant_Item(wxVariant* self, size_t index)
+    {
+        if (!self || index >= static_cast<size_t>(self->GetCount()))
+        {
+            return nullptr;
+        }
+
+        const wxVariant& source = *self;
+        return new wxVariant(source[index]);
+    }
+
+    // The varianted wxFont is extracted with wxWidgets' own `object << variant`
+    // idiom (see src/propgrid/advprops.cpp), declared as
+    // operator<<(wxFont&, const wxVariant&) in wx/propgrid/propgriddefs.h.
+    EXPORT wxFont* wxVariant_GetFont(wxVariant* self)
+    {
+        if (!self || !self->IsType(wxS("wxFont")))
+        {
+            return nullptr;
+        }
+
+        wxFont font;
+        font << *self;
+        return new wxFont(font);
     }
 }
 

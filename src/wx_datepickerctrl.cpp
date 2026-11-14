@@ -40,4 +40,10 @@ extern "C"
     {
         return self->GetRange(dt1, dt2);
     }
+
+    EXPORT void wxDatePickerCtrl_SetNullText(wxDatePickerCtrl* self, wxString* text)
+    {
+        if (text)
+            self->SetNullText(*text);
+    }
 }

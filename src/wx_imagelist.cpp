@@ -32,31 +32,31 @@ extern "C"
 
     EXPORT int wxImageList_AddBitmap(wxImageList* self, wxBitmap* bitmap, wxBitmap* mask)
     {
-        return self->Add(*bitmap, *mask);
+        return self->Add(bitmap ? *bitmap : wxNullBitmap, mask ? *mask : wxNullBitmap);
     }
 
     EXPORT int wxImageList_AddMasked(wxImageList* self, wxBitmap* bitmap, wxColour* maskColour)
     {
-        return self->Add(*bitmap, *maskColour);
+        return self->Add(bitmap ? *bitmap : wxNullBitmap, maskColour ? *maskColour : wxNullColour);
     }
 
     EXPORT int wxImageList_AddIcon(wxImageList* self, wxIcon* icon)
     {
-        return self->Add(*icon);
+        return self->Add(icon ? *icon : wxNullIcon);
     }
 
     EXPORT int wxImageList_Replace(wxImageList* self, int index, wxBitmap* bitmap, wxBitmap* mask)
     {
 #ifdef __WIN32__
-        return self->Replace(index, *bitmap, *mask);
+        return self->Replace(index, bitmap ? *bitmap : wxNullBitmap, mask ? *mask : wxNullBitmap);
 #else
-        return self->Replace(index, *bitmap);
+        return self->Replace(index, bitmap ? *bitmap : wxNullBitmap);
 #endif
     }
 
     EXPORT int wxImageList_ReplaceIcon(wxImageList* self, int index, wxIcon* icon)
     {
-        return self->Replace(index, *icon);
+        return self->Replace(index, icon ? *icon : wxNullIcon);
     }
 
     EXPORT int wxImageList_Remove(wxImageList* self, int index)
@@ -78,6 +78,8 @@ extern "C"
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT int wxImageList_Add(void* pObject, void* bitmap, void* mask)
     {
-        return ((wxImageList*) pObject)->Add(*(wxBitmap*) bitmap, *(wxBitmap*) mask);
+        return ((wxImageList*) pObject)
+            ->Add(bitmap ? *(wxBitmap*) bitmap : wxNullBitmap,
+                  mask ? *(wxBitmap*) mask : wxNullBitmap);
     }
 }

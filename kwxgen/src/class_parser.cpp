@@ -8,7 +8,9 @@
 #include "class_parser.h"
 #include "parser_utils.h"
 
+#include <algorithm>
 #include <array>
+#include <cctype>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -46,6 +48,54 @@ constexpr int MAX_INHERITANCE_DEPTH = 50;
         }
     }
     return depth == 0;
+}
+
+// Returns true for a C++ alias declaration of the form `using <identifier> = <type>;`.
+// The FFI headers contain C++-only type aliases (e.g. `using wxAccessible = wxAccessibleBase;`)
+// that are not FFI declarations, so they must be skipped instead of being reported as unparsed
+// functions. `using namespace ...;` has no '=' and is therefore rejected.
+[[nodiscard]] static bool IsTypeAliasDeclaration(std::string_view statement)
+{
+    constexpr std::string_view USING_KEYWORD { "using" };
+    if (!statement.starts_with(USING_KEYWORD) || statement.size() <= USING_KEYWORD.size() ||
+        (statement[USING_KEYWORD.size()] != ' ' && statement[USING_KEYWORD.size()] != '\t'))
+    {
+        return false;
+    }
+
+    const size_t name_start = statement.find_first_not_of(" \t\r\n", USING_KEYWORD.size());
+    if (name_start == std::string_view::npos)
+    {
+        return false;
+    }
+
+    const size_t equals_pos = statement.find('=', name_start);
+    if (equals_pos == std::string_view::npos)
+    {
+        return false;
+    }
+
+    std::string_view alias_name = statement.substr(name_start, equals_pos - name_start);
+    while (!alias_name.empty() && (alias_name.back() == ' ' || alias_name.back() == '\t' ||
+                                   alias_name.back() == '\r' || alias_name.back() == '\n'))
+    {
+        alias_name.remove_suffix(1);
+    }
+    if (alias_name.empty())
+    {
+        return false;
+    }
+
+    const char first_char = alias_name.front();
+    const bool valid_start =
+        first_char == '_' || std::isalpha(static_cast<unsigned char>(first_char)) != 0;
+    const bool valid_body = std::ranges::all_of(
+        alias_name,
+        [](char char_val)
+        {
+            return char_val == '_' || std::isalnum(static_cast<unsigned char>(char_val)) != 0;
+        });
+    return valid_start && valid_body;
 }
 
 // Find the function parameter list opening paren, scanning backwards from the
@@ -574,7 +624,7 @@ static size_t ProcessLogicalLines(const std::vector<std::string>& logical_lines,
 
                         const std::string func_str =
                             Trim(remainder.substr(scan_pos, semi - scan_pos + 1));
-                        if (!func_str.empty())
+                        if (!func_str.empty() && !IsTypeAliasDeclaration(func_str))
                         {
                             FunctionDecl decl;
                             if (ParseFunctionDecl(func_str, class_name, decl))
@@ -613,7 +663,7 @@ static size_t ProcessLogicalLines(const std::vector<std::string>& logical_lines,
 
                 const std::string func_str =
                     Trim(logical_line.substr(scan_pos, semi - scan_pos + 1));
-                if (!func_str.empty())
+                if (!func_str.empty() && !IsTypeAliasDeclaration(func_str))
                 {
                     FunctionDecl decl;
                     if (ParseFunctionDecl(func_str, result.classes[current_class_idx].name, decl))
@@ -646,9 +696,13 @@ static size_t ProcessLogicalLines(const std::vector<std::string>& logical_lines,
         }
         else
         {
-            // Function before any class def — shouldn't happen in kwx_classes.h
-            std::cerr << "  Warning: function before any class definition: " << logical_line
-                      << "\n";
+            // C++-only type aliases in the FFI headers are not FFI declarations.
+            if (!IsTypeAliasDeclaration(logical_line))
+            {
+                // Function before any class def — shouldn't happen in kwx_classes.h
+                std::cerr << "  Warning: function before any class definition: " << logical_line
+                          << "\n";
+            }
         }
     }
 
@@ -705,16 +759,23 @@ static void BuildMixinMap(ClassParseResult& result)
         const char* mixin;
         std::vector<const char*> consumers;
     };
-    const std::array<MixinEntry, 3> mixin_table = { {
+    const std::array<MixinEntry, 4> mixin_table = { {
+        // wxRichTextCtrl reaches wxTextEntryBase through wxTextCtrlIface; it does
+        // not derive wxTextEntry. The C-side accessors therefore dynamic_cast to
+        // wxTextEntryBase, and the consumer's emitted methods reuse that surface.
         { .mixin = "wxTextEntry",
           .consumers = { "wxTextCtrl", "wxComboBox", "wxSearchCtrl", "wxBitmapComboBox",
-                         "wxComboCtrl" } },
+                         "wxComboCtrl", "wxRichTextCtrl" } },
         { .mixin = "wxItemContainer",
           .consumers = { "wxListBox", "wxChoice", "wxCheckListBox", "wxComboBox",
                          "wxBitmapComboBox" } },
         { .mixin = "wxComboPopup",
           .consumers = { "wxListView", "wxTreeCtrl", "kwxListViewComboPopup",
                          "kwxTreeCtrlComboPopup" } },
+        // The wxPropertyGrid* classes inherit wxPropertyGridInterface as a
+        // non-primary base, so it is not captured by the single-parent header.
+        { .mixin = "wxPropertyGridInterface",
+          .consumers = { "wxPropertyGrid", "wxPropertyGridManager", "wxPropertyGridPage" } },
     } };
 
     // Build a name set for fast lookup of parsed classes.

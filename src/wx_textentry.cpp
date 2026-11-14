@@ -2,23 +2,28 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/textcompleter.h>
 
-// wxTextEntry is a mixin interface, not a concrete class.
-// Because wxTextEntry is a non-primary base in a multiple-inheritance hierarchy,
-// void* cannot be static_cast to wxTextEntry* directly — the pointer offset
-// varies per concrete type. We cast through wxWindow* and use dynamic_cast to
-// safely cross-cast to wxTextEntry*.
+// The public text-entry methods (SetMargins, GetMargins, SetHint, AutoComplete*,
+// SetValue, ...) are declared on wxTextEntryBase; wxTextEntry only adds the
+// platform-specific implementation.
 //
-// Controls that inherit from wxTextEntry:
-//   wxTextCtrl, wxComboBox, wxSearchCtrl, wxSpinCtrl, wxSpinCtrlDouble,
-//   wxComboCtrl, wxRichTextCtrl
+// Concrete controls reach wxTextEntryBase either through wxTextEntry
+// (wxTextCtrl, wxComboBox, wxSearchCtrl, wxComboCtrl) or directly
+// (wxRichTextCtrl, via wxTextCtrlIface : public wxTextAreaBase,
+// public wxTextEntryBase). The cast must therefore target the base type: a
+// dynamic_cast to wxTextEntry returns null for wxRichTextCtrl.
+//
+// wxTextEntryBase is a non-primary base in a multiple-inheritance hierarchy, so
+// void* cannot be static_cast to it directly — the pointer offset varies per
+// concrete type. We cast through wxWindow* and use dynamic_cast.
 
-// Helper: cross-cast wxWindow* -> wxTextEntry* via dynamic_cast.
+// Helper: cross-cast wxWindow* -> wxTextEntryBase* via dynamic_cast.
 // The caller must pass a pointer to a wxWindow-derived class that also
-// derives from wxTextEntry.
-static inline wxTextEntry* AsTextEntry(void* self)
+// derives from wxTextEntryBase.
+static inline wxTextEntryBase* AsTextEntry(void* self)
 {
-    return dynamic_cast<wxTextEntry*>(static_cast<wxWindow*>(self));
+    return dynamic_cast<wxTextEntryBase*>(static_cast<wxWindow*>(self));
 }
 
 extern "C"
@@ -244,6 +249,11 @@ extern "C"
     EXPORT int wxTextEntry_AutoCompleteDirectories(void* self)
     {
         return AsTextEntry(self)->AutoCompleteDirectories();
+    }
+
+    EXPORT int wxTextEntry_AutoCompleteCompleter(void* self, void* completer)
+    {
+        return AsTextEntry(self)->AutoComplete(static_cast<wxTextCompleter*>(completer));
     }
 
     // ---------------------------------------------------------------------

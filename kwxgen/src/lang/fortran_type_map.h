@@ -6,6 +6,7 @@
 //   2. Import statements: which ISO_C_BINDING symbols are needed per function
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <set>
 #include <sstream>
@@ -215,9 +216,11 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         return result;
     }
 
-    // Output geometry parameters → c_ptr (int* pointers)
+    // Output geometry parameters → c_ptr (int*/long* pointers)
     if (p.macro_name == "TPointOut" || p.macro_name == "TSizeOut" || p.macro_name == "TRectOut" ||
-        p.macro_name == "TVectorOut")
+        p.macro_name == "TVectorOut" || p.macro_name == "TPointOutLong" ||
+        p.macro_name == "TSizeOutLong" || p.macro_name == "TRectOutLong" ||
+        p.macro_name == "TVectorOutLong")
     {
         for (auto& n: FortranSplitMacroArg(p.macro_arg))
             result.push_back({ "type(c_ptr)", "c_ptr", FortranEscapeName(n) });
@@ -233,7 +236,8 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         return result;
     }
 
-    if (p.macro_name == "TSizeOutDouble")
+    if (p.macro_name == "TSizeOutDouble" || p.macro_name == "TPointOutDouble" ||
+        p.macro_name == "TRectOutDouble" || p.macro_name == "TVectorOutDouble")
     {
         for (auto& n: FortranSplitMacroArg(p.macro_arg))
             result.push_back({ "type(c_ptr)", "c_ptr", FortranEscapeName(n) });
@@ -276,6 +280,23 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
     {
         std::string name = p.param_name.empty() ? "arr" : p.param_name;
         result.push_back({ "type(c_ptr)", "c_ptr", FortranEscapeName(name) });
+        return result;
+    }
+
+    // Descriptive pointer macros: the raw C interface always sees a generic pointer.
+    if (IsTypedPointerMacro(p.raw_type) || p.raw_type == "TArrayStringOut" ||
+        p.raw_type == "TArrayIntOut" || p.raw_type == "TArrayIntPtrOut")
+    {
+        result.push_back({ "type(c_ptr)", "c_ptr",
+                           FortranEscapeName(p.param_name.empty() ? "arg" : p.param_name) });
+        return result;
+    }
+
+    // Scalar value passed through a pointer: the raw interface still declares a c_ptr.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(p, scalar_pointer))
+    {
+        result.push_back({ "type(c_ptr)", "c_ptr",
+                           FortranEscapeName(p.param_name.empty() ? "arg" : p.param_name) });
         return result;
     }
 
@@ -375,6 +396,8 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
         result.push_back({ "integer(c_size_t)", "c_size_t", name });
     else if (raw == "TInt64" || raw == "int64_t")
         result.push_back({ "integer(c_int64_t)", "c_int64_t", name });
+    else if (raw == "TUInt8" || raw == "unsigned char")
+        result.push_back({ "integer(c_int8_t)", "c_int8_t", name });
     else if (raw.find('*') != std::string::npos)
         result.push_back({ "type(c_ptr)", "c_ptr", name });
     else

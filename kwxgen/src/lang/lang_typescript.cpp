@@ -4,7 +4,7 @@
 // Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
 // License:   Apache License -- see ../LICENSE
 /////////////////////////////////////////////////////////////////////////////
-// CR: [11-06-2026]
+// CR: [11-12-2026]
 
 // Generated file structure:
 //   kwx_ffi_gen.ts          — dlopen with every C symbol (classes + free functions +
@@ -14,6 +14,9 @@
 //                             integer values come from one lazily-filled C table.
 //   kwx_constants_table_gen.cpp — Generated C side of that table.
 //   kwx_free_functions_gen.ts — TypeScript wrappers for non-class C functions.
+//   kwx_class_registry_gen.ts — Runtime registry of the generated wrapper classes; every
+//                             class module registers itself so a cyclic return site can
+//                             construct the wrapper without a value import.
 //   wx{Class}_gen.ts        — One file per class with a TypeScript class that wraps the FFI.
 //   kwx_gen.ts              — Master barrel re-export of every generated module.
 
@@ -28,6 +31,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <print>
 #include <set>
 #include <sstream>
@@ -87,22 +91,6 @@ namespace fs = std::filesystem;
     return out;
 }
 
-// True if a non-constructor method's first parameter is TClass(ClassName) matching
-// the function's own class — acts as the implicit "self" receiver for mixin methods.
-// NOTE: this heuristic exists only for mixin methods, which are declared against the
-// mixin class with a TClass(mixin) receiver instead of TSelf.  The parser sets has_self
-// for genuine receivers, so a real method's first parameter is never mistaken for the
-// receiver.  Do NOT widen this predicate without that guarantee.
-[[nodiscard]] static bool IsPseudoSelf(const FunctionDecl& func)
-{
-    if (func.has_self || func.class_name.empty() || func.params.empty())
-    {
-        return false;
-    }
-    const Param& first = func.params[0];
-    return first.macro_name == "TClass" && first.macro_arg == func.class_name;
-}
-
 // True if a destructor names the receiver (TSelf, or TClass of its own class) and has no
 // item-index/other params.
 [[nodiscard]] static bool IsTrueDestructor(const FunctionDecl& func)
@@ -124,73 +112,6 @@ namespace fs = std::filesystem;
             continue;
         }
         return false;
-    }
-    return true;
-}
-
-// True if a class passes its object through an explicit TClass(OwnClass) first parameter
-// instead of TSelf for most of its methods (mixin/value-object shape: wxTextEntry,
-// wxItemContainer, wxDataViewItemArray).  For those the parameter is a receiver, not an
-// argument.
-[[nodiscard]] static bool UsesExplicitReceiver(const ClassInfo& cls)
-{
-    size_t receiver_count = 0;
-    size_t method_count = 0;
-    for (const auto& method: cls.methods)
-    {
-        if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
-        {
-            continue;
-        }
-        if (method.has_self)
-        {
-            return false;  // the class names its receiver with TSelf
-        }
-        ++method_count;
-        if (IsPseudoSelf(method))
-        {
-            ++receiver_count;
-        }
-    }
-    return receiver_count > 0 && (receiver_count * 2U) > method_count;
-}
-
-// True for a function declared inside a TClassDef block that has no receiver at all: no
-// TSelf, no TClass(own class) pseudo-self, and no receiver-named first parameter.  Such a
-// function is static in wxWidgets and must be emitted at module scope, not as an instance
-// method that forwards this._ptr.
-[[nodiscard]] static bool IsStaticClassFunction(const FunctionDecl& func,
-                                                const ClassInfo* owning_class)
-{
-    if (func.class_name.empty())
-    {
-        return false;
-    }
-    if (func.is_constructor || func.is_destructor || func.method_name == "Ctor")
-    {
-        return false;
-    }
-    if (func.has_self)
-    {
-        return false;
-    }
-    // IsPseudoSelf also matches a TClass(own class) *argument* (wxLog_SetActiveTarget takes
-    // the new target, wxArtProvider_PushBack the provider), so it only denotes a receiver in
-    // a class that declares no TSelf receiver at all.
-    if (IsPseudoSelf(func) && UsesExplicitReceiver(*owning_class))
-    {
-        return false;
-    }
-    // Hand-written wrappers (wxStyledTextCtrl and friends) pass the object pointer as an
-    // explicit first parameter; those blocks keep their instance-method shape.
-    if (!func.params.empty())
-    {
-        const Param& first = func.params[0];
-        if (first.macro_name.empty() && first.raw_type == "void*" &&
-            (first.param_name == "pObject" || first.param_name == "self"))
-        {
-            return false;
-        }
     }
     return true;
 }
@@ -482,6 +403,16 @@ struct WrapParam
 // ReferenceError.
 static std::unordered_map<std::string, std::unordered_set<std::string>> s_denied_wrapped_returns;
 
+// Wrapped-class returns routed through the runtime class registry at runtime, keyed by
+// (declaring class, returned class).  Reported afterwards as a single summary line.
+static std::set<std::pair<std::string, std::string>> s_registry_return_sites;
+
+// Per-file: wrapped classes whose return must be built through kwx_class_registry_gen.ts,
+// and whether this file therefore needs to import getClass().  Reset at the top of
+// EmitClassFile() and consumed when that file's import block is written.
+static std::set<std::string> s_registry_return_types;
+static bool s_uses_class_registry = false;
+
 [[nodiscard]] static bool IsDeniedWrappedReturn(const std::string& owner,
                                                 const std::string& returned)
 {
@@ -515,12 +446,18 @@ static std::unordered_map<std::string, std::unordered_set<std::string>> s_denied
         // A free or static function has no enclosing class, so an unowned TClass
         // return stays a raw Pointer.  Marking the declaration TClassOwned opts it
         // into a wrapper that owns (and can release) the allocation.
-        // A wrapper whose value import would close a module cycle keeps the raw Pointer
-        // contract so the generated module graph evaluates without a TDZ ReferenceError.
+        // A wrapper whose value import would close a module cycle stays typed, but it is
+        // constructed through the runtime class registry instead of by value import, so
+        // the generated module graph never gains that edge and cannot throw a TDZ
+        // ReferenceError.
         if (IsWrappedClassReturn(func, wrapped_classes) &&
-            (!class_name.empty() || func.returns_owned) &&
-            !IsDeniedWrappedReturn(class_name, func.return_arg))
+            (!class_name.empty() || func.returns_owned))
         {
+            if (IsDeniedWrappedReturn(class_name, func.return_arg))
+            {
+                s_registry_return_types.insert(func.return_arg);
+                s_uses_class_registry = true;
+            }
             return func.return_arg + " | null";
         }
         return "Pointer";
@@ -590,21 +527,26 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     // with TClassOwned, so only genuinely borrowed pointers get the non-owning
     // wrapper.  A free or static function (class_name empty) wraps only when the
     // declaration is TClassOwned; otherwise its raw Pointer contract is unchanged.
-    // A denied return keeps the raw Pointer contract; WrapReturnType applied the same
-    // decision, so the emitted annotation and this body cannot disagree.
-    if (IsWrappedClassReturn(func, wrapped_classes) &&
-        (!class_name.empty() || func.returns_owned) &&
-        !IsDeniedWrappedReturn(class_name, func.return_arg))
+    // WrapReturnType applied the same decision, so the emitted annotation and this body
+    // cannot disagree.  A denied return is constructed through the runtime class registry:
+    // the class is looked up by name so the file needs only a type-only import.
+    if (IsWrappedClassReturn(func, wrapped_classes) && (!class_name.empty() || func.returns_owned))
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
-        if (func.returns_owned)
+        const std::string_view borrowed_suffix = func.returns_owned ? "" : ", true";
+        if (IsDeniedWrappedReturn(class_name, func.return_arg))
         {
-            output << indent << "return new " << func.return_arg << "(rawPtr);\n";
+            s_registry_return_types.insert(func.return_arg);
+            s_uses_class_registry = true;
+            output << indent << "const WrapperClass = getClass<" << func.return_arg << ">(\""
+                   << func.return_arg << "\");\n";
+            output << indent << "return new WrapperClass(rawPtr" << borrowed_suffix << ");\n";
         }
         else
         {
-            output << indent << "return new " << func.return_arg << "(rawPtr, true);\n";
+            output << indent << "return new " << func.return_arg << "(rawPtr" << borrowed_suffix
+                   << ");\n";
         }
         return;
     }
@@ -729,8 +671,7 @@ static void ReserveWrappedReturnEdge(TsModuleEdges& edges, const TsModuleEdges& 
     if (TsEdgesReachThroughExtends(edges, extends_edges, returned, importer))
     {
         s_denied_wrapped_returns[owner].insert(returned);
-        std::println(stderr, "  TypeScript: {}: {} return stays raw Pointer (import cycle)", owner,
-                     returned);
+        s_registry_return_sites.emplace(owner, returned);
         return;
     }
     edges[importer].insert(returned);
@@ -745,6 +686,7 @@ static void ReserveWrappedReturnEdge(TsModuleEdges& edges, const TsModuleEdges& 
 static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
 {
     s_denied_wrapped_returns.clear();
+    s_registry_return_sites.clear();
 
     const std::unordered_set<std::string> wrapped_classes = CollectWrappedClasses(ffi);
 
@@ -806,7 +748,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
         for (const auto& func: cls.methods)
         {
             if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                IsStaticClassFunction(func, &cls))
+                IsStaticClassFunction(func, cls))
             {
                 continue;
             }
@@ -835,7 +777,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
             for (const auto& func: mixin_found->second->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_found->second))
+                    IsStaticClassFunction(func, *mixin_found->second))
                 {
                     continue;
                 }
@@ -844,6 +786,9 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
             }
         }
     }
+
+    std::println(stderr, "  class registry:          {} cyclic return sites",
+                 s_registry_return_sites.size());
 
     // A derived class can re-declare an inherited member, and its annotation has to match
     // the ancestor's override contract.  Deny the same returns down the inheritance chain,
@@ -930,7 +875,7 @@ static void ComputeDeniedWrappedReturns(const ParsedFFI& ffi)
     {
         for (const auto& func: cls.methods)
         {
-            if (IsValidFunction(func) && IsStaticClassFunction(func, &cls))
+            if (IsValidFunction(func) && IsStaticClassFunction(func, cls))
             {
                 return true;
             }
@@ -1081,7 +1026,10 @@ struct EmittedOverload
         bool present = false;
         for (const auto& existing: combined)
         {
-            if (IsSameSignature(existing, overload))
+            // C++ cannot overload on return type: a derived declaration repeating an
+            // inherited parameter list hides the base one, so the nearest entry wins even
+            // when the return types differ (a covariant override).
+            if (HasSameParameters(existing, overload))
             {
                 present = true;
                 break;
@@ -1156,7 +1104,9 @@ struct MemberNameResolution
             bool already_own = false;
             for (const auto& own_entry: own_overloads)
             {
-                if (IsSameSignature(own_entry, overload))
+                // The own declaration overrides any inherited member with the same
+                // parameter list; re-emitting the base signature would repeat it.
+                if (HasSameParameters(own_entry, overload))
                 {
                     already_own = true;
                     break;
@@ -1208,7 +1158,7 @@ struct MemberNameResolution
                 bool already_own = false;
                 for (const auto& own_entry: own_overloads)
                 {
-                    if (IsSameSignature(own_entry, overload))
+                    if (HasSameParameters(own_entry, overload))
                     {
                         already_own = true;
                         break;
@@ -1316,7 +1266,7 @@ struct MemberNameResolution
             {
                 continue;  // factories are module-level, not inherited statics
             }
-            if (IsStaticClassFunction(func, &parent_class))
+            if (IsStaticClassFunction(func, parent_class))
             {
                 continue;  // a static is not an inherited instance member
             }
@@ -1350,7 +1300,7 @@ struct MemberNameResolution
                 for (const auto& func: mixin_class->methods)
                 {
                     if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                        IsStaticClassFunction(func, mixin_class))
+                        IsStaticClassFunction(func, *mixin_class))
                     {
                         continue;
                     }
@@ -2023,6 +1973,32 @@ static void EmitSymbolDef(std::ostream& output, const FunctionDecl& func)
 // TypeScriptEmitter public interface
 // -------------------------------------------------------------------------
 
+// The generation sequence without the progress summary and without the rename report, so
+// VerifyUiDescriptor can rebuild the tree from the model the descriptor was built from.  It
+// emits exactly what Generate() emits; generate it into a scratch directory only.
+void TypeScriptEmitter::GenerateInto(const ParsedFFI& ffi, const fs::path& out_dir)
+{
+    // Must run before any class file is emitted: the return-type and return-body emitters both
+    // consult the deny set, and they have to agree.
+    ComputeDeniedWrappedReturns(ffi);
+
+    std::error_code dir_error;
+    fs::create_directories(out_dir, dir_error);
+    if (dir_error)
+    {
+        return;
+    }
+
+    GenerateFfi(ffi, out_dir);
+    GenerateConstants(ffi, out_dir);
+    GenerateConstantsTableC(ffi, out_dir);
+    GenerateHelpers(ffi, out_dir);
+    GenerateFreeFunctions(ffi, out_dir);
+    GenerateClassRegistry(out_dir);
+    GenerateClassFiles(ffi, out_dir);
+    GenerateIndex(ffi, out_dir);
+}
+
 void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 {
     s_rename_records.clear();
@@ -2044,6 +2020,7 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
     GenerateConstantsTableC(ffi, out_dir);
     GenerateHelpers(ffi, out_dir);
     GenerateFreeFunctions(ffi, out_dir);
+    GenerateClassRegistry(out_dir);
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
 
@@ -2115,7 +2092,7 @@ static void
         {
             member_key = TsFactoryName(cls.name, func);
         }
-        else if (IsStaticClassFunction(func, &cls))
+        else if (IsStaticClassFunction(func, cls))
         {
             member_key = TsEscapeName(func.method_name);
         }
@@ -2150,7 +2127,7 @@ static void
             for (const auto& func: mixin_found->second->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_found->second))
+                    IsStaticClassFunction(func, *mixin_found->second))
                 {
                     continue;
                 }
@@ -2203,6 +2180,1001 @@ CoverageInfo TypeScriptEmitter::Coverage(const ParsedFFI& ffi) const
     std::ranges::sort(report.wrapped_classes);
     std::ranges::sort(report.skipped_classes);
     return report;
+}
+
+// -------------------------------------------------------------------------
+// UI descriptor support (emit-ui / check-ui)
+// -------------------------------------------------------------------------
+
+// The wrapper classes expose their native pointer through a property getter that EmitClassFile
+// writes from template text, so the accessor has no model declaration to derive its name from.
+constexpr std::string_view kTsPointerAccessor = "ptr";
+
+// The handler value Bind() takes: a native function pointer wrapped in a wxClosure
+// (createWxClosure(fun, data) in wxClosure_gen.ts), which the generated wrapper accepts as a
+// Pointer.
+constexpr std::string_view kTsEventHandlerType =
+    "(closure: Pointer) => void  // native callback, wrapped with createWxClosure";
+
+// wx method names a UI role may map to, in priority order.  Every entry is resolved through
+// UiFindMethod, so the recorded symbol still comes from the model rather than from this table.
+[[nodiscard]] static std::vector<std::string_view> TsUiRoleMethods(std::string_view role)
+{
+    if (role == "show")
+    {
+        return { "Show" };
+    }
+    if (role == "hide")
+    {
+        return { "Hide" };
+    }
+    if (role == "set_title")
+    {
+        return { "SetTitle" };
+    }
+    if (role == "set_label")
+    {
+        return { "SetLabel" };
+    }
+    if (role == "set_value")
+    {
+        return { "SetValue" };
+    }
+    if (role == "set_size")
+    {
+        return { "SetSize" };
+    }
+    if (role == "set_min_size")
+    {
+        return { "SetMinSize" };
+    }
+    if (role == "center")
+    {
+        return { "Center", "Centre" };
+    }
+    if (role == "set_sizer")
+    {
+        return { "SetSizer" };
+    }
+    if (role == "set_size_hints")
+    {
+        return { "SetSizeHints" };
+    }
+    if (role == "set_font")
+    {
+        return { "SetFont" };
+    }
+    if (role == "set_icon")
+    {
+        return { "SetIcon" };
+    }
+    if (role == "set_bitmap")
+    {
+        return { "SetBitmap" };
+    }
+    if (role == "create_statusbar")
+    {
+        return { "CreateStatusBar" };
+    }
+    if (role == "set_menubar")
+    {
+        return { "SetMenuBar" };
+    }
+    if (role == "show_modal")
+    {
+        return { "ShowModal" };
+    }
+    if (role == "end_modal")
+    {
+        return { "EndModal" };
+    }
+    if (role == "set_escape_id")
+    {
+        return { "SetEscapeId" };
+    }
+    if (role == "set_affirmative_id")
+    {
+        return { "SetAffirmativeId" };
+    }
+    if (role == "destroy")
+    {
+        return { "Destroy" };
+    }
+    if (role == "add_window")
+    {
+        return { "AddWindow" };
+    }
+    if (role == "add_sizer")
+    {
+        return { "AddSizer" };
+    }
+    if (role == "add_spacer")
+    {
+        return { "AddSpacer" };
+    }
+    if (role == "realize")
+    {
+        return { "Realize" };
+    }
+    if (role == "add_button")
+    {
+        return { "AddButton" };
+    }
+    if (role == "proportion")
+    {
+        return { "Proportion" };
+    }
+    if (role == "expand")
+    {
+        return { "Expand" };
+    }
+    if (role == "border")
+    {
+        return { "Border" };
+    }
+    if (role == "left")
+    {
+        return { "Left" };
+    }
+    if (role == "right")
+    {
+        return { "Right" };
+    }
+    if (role == "top")
+    {
+        return { "Top" };
+    }
+    if (role == "bottom")
+    {
+        return { "Bottom" };
+    }
+    if (role == "align_h")
+    {
+        return { "CenterHorizontal", "Align" };
+    }
+    if (role == "align_v")
+    {
+        return { "CenterVertical", "Align" };
+    }
+    if (role == "create")
+    {
+        return { "Create" };
+    }
+    if (role == "get_bitmap")
+    {
+        return { "GetBitmap" };
+    }
+    if (role == "from_base64")
+    {
+        return { "CreateFromBase64" };
+    }
+    // Bind(first, last, type, closure) serves both event roles: a port that binds one id
+    // passes it as both first and last.
+    if (role == "bind" || role == "bind_id")
+    {
+        return { "Bind" };
+    }
+    return {};
+}
+
+// Emitted instance-member names per class, keyed by the declaration the name came from.  The
+// sequence mirrors EmitClassFile exactly -- own methods first, then the mixin methods it
+// re-emits, with the same duplicate-skip and ancestor-shadow rules -- so a role can never name
+// a member the emitted file omits.
+struct TsUiNameContext
+{
+    const ParsedFFI* ffi = nullptr;
+    std::unordered_map<std::string, const ClassInfo*> class_index;
+    std::unordered_set<std::string> wrapped_classes;
+    std::map<std::string, std::map<const FunctionDecl*, std::string>> class_members;
+};
+
+// Member names of one class, computed on first use and cached.  Purely model-derived: it reads
+// none of the cross-file state (registry return types, denied returns) that Generate() sets up,
+// so building a descriptor cannot disturb the emitted text.
+[[nodiscard]] static const std::map<const FunctionDecl*, std::string>&
+    TsUiClassMembers(TsUiNameContext& context, const std::string& class_name)
+{
+    const std::map<std::string, std::map<const FunctionDecl*, std::string>>::const_iterator cached =
+        context.class_members.find(class_name);
+    if (cached != context.class_members.end())
+    {
+        return cached->second;
+    }
+
+    std::map<const FunctionDecl*, std::string>& members = context.class_members[class_name];
+    const std::unordered_map<std::string, const ClassInfo*>::const_iterator class_iter =
+        context.class_index.find(class_name);
+    if (class_iter == context.class_index.end())
+    {
+        return members;
+    }
+    const ClassInfo& cls = *class_iter->second;
+    const AncestorMembers ancestors = CollectAncestorMembers(
+        class_name, *context.ffi, context.wrapped_classes, context.class_index);
+    std::set<std::string> taken;
+
+    const auto record = [&](const FunctionDecl& func, const std::string& owner)
+    {
+        const std::string declared_name = TsMethodName(owner, func);
+        if (taken.contains(declared_name))
+        {
+            return;  // EmitClassFile drops the duplicate wrapper
+        }
+        AncestorMemberInfo own_info = BuildAncestorMemberInfo(func, owner, context.wrapped_classes);
+        own_info.origin_name = declared_name;
+        const std::vector<AncestorMemberInfo> own_overloads { own_info };
+        const MemberNameResolution resolution =
+            ResolveMemberName(declared_name, owner, own_overloads, ancestors, taken);
+        members[&func] = resolution.name;
+        taken.insert(resolution.name);
+    };
+
+    for (const auto& func: cls.methods)
+    {
+        if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+            IsStaticClassFunction(func, cls))
+        {
+            continue;
+        }
+        record(func, class_name);
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        context.ffi->mixin_map.find(class_name);
+    if (mixin_iter == context.ffi->mixin_map.end())
+    {
+        return members;
+    }
+    for (const std::string& mixin_name: mixin_iter->second)
+    {
+        const std::unordered_map<std::string, const ClassInfo*>::const_iterator mixin_found =
+            context.class_index.find(mixin_name);
+        if (mixin_found == context.class_index.end())
+        {
+            continue;
+        }
+        for (const auto& func: mixin_found->second->methods)
+        {
+            if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
+                IsStaticClassFunction(func, *mixin_found->second))
+            {
+                continue;
+            }
+            const std::string mixin_member_name = TsMethodName(mixin_name, func);
+            if (ancestors.instance_names.contains(mixin_member_name))
+            {
+                continue;  // a wrapped ancestor already exposes this member
+            }
+            if (taken.contains(mixin_member_name))
+            {
+                continue;  // the consumer already exposes this name
+            }
+            record(func, mixin_name);
+        }
+    }
+    return members;
+}
+
+// The identifier the generated tree exposes for one declaration, searched from `searched_class`
+// outward.  Empty when the emitter writes no wrapper for it.
+[[nodiscard]] static std::string TsUiMemberName(TsUiNameContext& context,
+                                                const std::string& searched_class,
+                                                const FunctionDecl& func)
+{
+    const std::map<const FunctionDecl*, std::string>& searched =
+        TsUiClassMembers(context, searched_class);
+    const std::map<const FunctionDecl*, std::string>::const_iterator found = searched.find(&func);
+    if (found != searched.end())
+    {
+        return found->second;
+    }
+
+    if (!func.class_name.empty())
+    {
+        const std::map<const FunctionDecl*, std::string>& declaring =
+            TsUiClassMembers(context, func.class_name);
+        const std::map<const FunctionDecl*, std::string>::const_iterator decl_found =
+            declaring.find(&func);
+        if (decl_found != declaring.end())
+        {
+            return decl_found->second;
+        }
+    }
+
+    // The wrapper may live on a wrapped ancestor, which is where EmitClassFile writes it.
+    std::set<std::string> visited;
+    visited.insert(searched_class);
+    std::unordered_map<std::string, std::string>::const_iterator iter =
+        context.ffi->parent_map.find(searched_class);
+    while (iter != context.ffi->parent_map.end())
+    {
+        const std::string& parent = iter->second;
+        if (!visited.insert(parent).second)
+        {
+            break;  // cycle guard
+        }
+        const std::map<const FunctionDecl*, std::string>& parent_members =
+            TsUiClassMembers(context, parent);
+        const std::map<const FunctionDecl*, std::string>::const_iterator parent_found =
+            parent_members.find(&func);
+        if (parent_found != parent_members.end())
+        {
+            return parent_found->second;
+        }
+        iter = context.ffi->parent_map.find(parent);
+    }
+    return {};
+}
+
+// Call-site parameters of an instance wrapper: the same receiver-skip rules EmitInstanceMethod
+// applies, run through the same BuildWrapParams helper, so the arity matches the declaration.
+[[nodiscard]] static std::vector<UiParam> TsUiMethodParams(const FunctionDecl& func)
+{
+    std::vector<UiParam> result;
+    const bool pseudo_self = IsPseudoSelf(func);
+    for (std::size_t param_index = 0; param_index < func.params.size(); ++param_index)
+    {
+        if (pseudo_self && param_index == 0)
+        {
+            continue;
+        }
+        for (const WrapParam& wrap_param: BuildWrapParams(func.params[param_index]))
+        {
+            if (wrap_param.is_self)
+            {
+                continue;
+            }
+            result.push_back(UiParam { .name = wrap_param.name, .type = wrap_param.ts_type });
+        }
+    }
+    return result;
+}
+
+// Call-site parameters of a module-level factory: EmitClassFile lists every visible parameter.
+[[nodiscard]] static std::vector<UiParam> TsUiFactoryParams(const FunctionDecl& func)
+{
+    std::vector<UiParam> result;
+    for (const Param& param: func.params)
+    {
+        for (const WrapParam& wrap_param: BuildWrapParams(param))
+        {
+            if (wrap_param.is_self)
+            {
+                continue;
+            }
+            result.push_back(UiParam { .name = wrap_param.name, .type = wrap_param.ts_type });
+        }
+    }
+    return result;
+}
+
+// Resolve one role against the model.  An empty symbol means the backend emits no wrapper for
+// it; `reason_out` then distinguishes a missing method from an unnamed one.
+[[nodiscard]] static UiCallable TsUiRoleCallable(TsUiNameContext& context,
+                                                 const std::string& class_name,
+                                                 std::string_view role, std::string& reason_out)
+{
+    reason_out = "no_method";
+    if (role == "ptr")
+    {
+        UiCallable callable;
+        callable.symbol = std::string(kTsPointerAccessor);
+        callable.idiom = "method-on-self";
+        return callable;
+    }
+    if (role == "delete")
+    {
+        // Every owned class gets Delete() from its true destructor wrapper; a class without one
+        // inherits the ancestor's Delete().
+        const FunctionDecl* const func = UiFindMethod(*context.ffi, class_name, "Delete");
+        if (func == nullptr || !IsTrueDestructor(*func))
+        {
+            return {};
+        }
+        UiCallable callable;
+        callable.symbol = "Delete";
+        callable.idiom = "method-on-self";
+        return callable;
+    }
+
+    bool saw_method = false;
+    for (const std::string_view method_name: TsUiRoleMethods(role))
+    {
+        const FunctionDecl* const func = UiFindMethod(*context.ffi, class_name, method_name);
+        if (func == nullptr)
+        {
+            continue;
+        }
+        saw_method = true;
+        const std::string owner = func->class_name.empty() ? class_name : func->class_name;
+        if (IsFactoryMethod(*func))
+        {
+            // A static factory reached through the role table (CreateFromBase64) is a
+            // module-level function in the generated output, not a member.
+            UiCallable callable;
+            callable.symbol = TsFactoryName(owner, *func);
+            callable.idiom = "constructor";
+            callable.returns = owner;
+            callable.params = TsUiFactoryParams(*func);
+            return callable;
+        }
+        const std::string member_name = TsUiMemberName(context, class_name, *func);
+        if (member_name.empty())
+        {
+            continue;  // the method exists but this backend writes no wrapper for it
+        }
+        UiCallable callable;
+        callable.symbol = member_name;
+        callable.idiom = "method-on-self";
+        callable.params = TsUiMethodParams(*func);
+        return callable;
+    }
+    if (saw_method)
+    {
+        reason_out = "no_naming";
+    }
+    return {};
+}
+
+static void MarkTsUiUnavailable(UiCallable& callable, std::string_view reason)
+{
+    if (!callable.symbol.empty())
+    {
+        return;
+    }
+    callable.idiom = "unsupported";
+    callable.reason = std::string(reason);
+}
+
+UiDescriptor TypeScriptEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) const
+{
+    // Every name below comes from the helpers Generate() itself uses -- TsClassFileName,
+    // TsMethodName, ResolveMemberName, TsFactoryName, BuildWrapParams -- so the descriptor
+    // cannot drift from the emitted text.  Those helpers consume no cross-file state (the
+    // registry and deny sets only shape import edges and return bodies), so building a
+    // descriptor needs no Generate() side effect and changes no emitted byte.
+    std::vector<std::string> missing;
+    const std::vector<std::string> selected_classes =
+        UiResolveClassSelection(parsed_ffi, ui_class_selection_, missing);
+    // `missing` is main's business: unknown --classes names were rejected before we got here.
+
+    m_ui_model = parsed_ffi;
+
+    TsUiNameContext context;
+    context.ffi = &parsed_ffi;
+    context.wrapped_classes = CollectWrappedClasses(parsed_ffi);
+    context.class_index.reserve(parsed_ffi.classes.size());
+    for (const ClassInfo& cls: parsed_ffi.classes)
+    {
+        context.class_index.emplace(cls.name, &cls);
+    }
+
+    UiDescriptor descriptor;
+    descriptor.schema = UI_SCHEMA_VERSION;
+    descriptor.lang = std::string(Name());
+
+    descriptor.naming["class_type"] = "export class named exactly like the wx class in "
+                                      "TsClassFileName(), e.g. wxFrame in wxFrame_gen.ts";
+    descriptor.naming["constructor"] =
+        "module-level factory TsFactoryName(), e.g. createWxFrame(...) in wxFrame_gen.ts";
+    descriptor.naming["method"] =
+        "PascalCase instance method on the wrapper class, e.g. frame.SetTitle(text)";
+    descriptor.naming["constant"] = "export const NAME: number in kwx_constants_gen.ts";
+    descriptor.naming["module"] =
+        "one ES module per class (wx<Class>_gen.ts) re-exported by kwx_gen.ts";
+    descriptor.naming["event_bind"] = "Bind(first, last, type, closure) on the wrapper class";
+
+    // The constants GenerateConstants really declares, through the same filters it applies.
+    std::unordered_set<std::string> emitted_constants;
+    for (const EventDecl& event: parsed_ffi.events)
+    {
+        emitted_constants.insert(TsEscapeName(event.event_name));
+    }
+    for (const KeyDecl& key: parsed_ffi.keys)
+    {
+        emitted_constants.insert(TsEscapeName(key.key_name));
+    }
+    for (const ConstantDecl& cnst: parsed_ffi.constants)
+    {
+        if (cnst.return_type.contains('*') || IsIntegerConstType(cnst.return_type))
+        {
+            emitted_constants.insert(TsEscapeName(cnst.constant_name));
+        }
+    }
+
+    static const std::map<std::string, std::vector<std::string>> CLASS_CONSTANTS = {
+        { "wxFrame", { "ID_ANY", "DEFAULT_FRAME_STYLE" } },
+        { "wxDialog", { "ID_ANY" } },
+        { "wxTextCtrl", { "ID_ANY" } },
+        { "wxBoxSizer", { "VERTICAL", "HORIZONTAL" } },
+        { "wxStaticBitmap", { "ID_ANY" } },
+        { "wxStdDialogButtonSizer", { "ID_ANY" } },
+        { "wxSizerFlags",
+          { "EXPAND", "ALL", "ALIGN_CENTER", "ALIGN_LEFT", "ALIGN_RIGHT", "ALIGN_TOP",
+            "ALIGN_BOTTOM" } },
+    };
+
+    // A generic class gets a descriptor entry only when Generate() really declares it, so a
+    // consumer is never pointed at text that was not emitted.
+    const CoverageInfo coverage = Coverage(parsed_ffi);
+    const std::unordered_set<std::string> wrapped(coverage.wrapped_classes.begin(),
+                                                  coverage.wrapped_classes.end());
+
+    for (const std::string& class_name: selected_classes)
+    {
+        if (!UiIsRequiredClass(class_name))
+        {
+            if (UiFindClass(parsed_ffi, class_name) == nullptr)
+            {
+                continue;
+            }
+            if (!wrapped.contains(class_name))
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "", .reason = "not_supported" });
+                continue;
+            }
+            const FunctionDecl* const generic_ctor =
+                UiFindCanonicalConstructor(parsed_ffi, class_name);
+            if (generic_ctor == nullptr)
+            {
+                descriptor.unsupported.push_back(
+                    UiUnsupported { .class_name = class_name, .role = "", .reason = "no_method" });
+                continue;
+            }
+
+            UiClass generic_info;
+            generic_info.type = class_name;
+            generic_info.idiom = "constructor";
+            // EmitClassFile writes a factory only from the class's own factory methods and
+            // always names it after the class block it writes (TsFactoryName(cls.name, func));
+            // an inherited Create is never emitted on a derived class. The grid-cell classes
+            // declare _Ctor instead of Create, which IsFactoryMethod() accepts.
+            const ClassInfo* const generic_class = UiFindClass(parsed_ffi, class_name);
+            const FunctionDecl* emitted_factory = nullptr;
+            if (generic_class != nullptr)
+            {
+                for (const FunctionDecl& func: generic_class->methods)
+                {
+                    if (IsValidFunction(func) && IsFactoryMethod(func))
+                    {
+                        emitted_factory = &func;
+                        break;
+                    }
+                }
+            }
+            if (emitted_factory == nullptr)
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "ctor", .reason = "no_naming" });
+                continue;
+            }
+            generic_info.ctor.symbol = TsFactoryName(class_name, *emitted_factory);
+            generic_info.ctor.params = TsUiFactoryParams(*emitted_factory);
+            generic_info.ctor.idiom = "constructor";
+            generic_info.ctor.returns = class_name;
+
+            if (generic_info.type.empty() || generic_info.ctor.symbol.empty())
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = "ctor", .reason = "no_naming" });
+                continue;
+            }
+
+            descriptor.classes.emplace(class_name, std::move(generic_info));
+            continue;
+        }
+
+        UiClass class_info;
+        class_info.type = class_name;
+        class_info.idiom = "constructor";
+
+        if (class_name == "wxStdDialogButtonSizer")
+        {
+            // The class's own factory is not the idiom a port calls: wxDialog's
+            // CreateStdDialogButtonSizer is, so that is the constructor recorded here.
+            const FunctionDecl* const func =
+                UiFindMethod(parsed_ffi, "wxDialog", "CreateStdDialogButtonSizer");
+            class_info.idiom = "method-on-parent";
+            if (func != nullptr)
+            {
+                class_info.ctor.symbol = TsUiMemberName(context, "wxDialog", *func);
+                class_info.ctor.params = TsUiMethodParams(*func);
+                class_info.ctor.idiom = "method-on-parent";
+                class_info.ctor.owner = std::string("wxDialog");
+                class_info.ctor.returns = class_name;
+            }
+        }
+        else
+        {
+            const FunctionDecl* const func = UiFindConstructor(parsed_ffi, class_name);
+            if (func != nullptr)
+            {
+                const std::string owner = func->class_name.empty() ? class_name : func->class_name;
+                class_info.ctor.symbol = TsFactoryName(owner, *func);
+                class_info.ctor.params = TsUiFactoryParams(*func);
+                class_info.ctor.idiom = "constructor";
+                class_info.ctor.returns = class_name;
+            }
+        }
+
+        if (class_info.ctor.symbol.empty())
+        {
+            // No usable constructor wrapper: the whole class is unsupported.
+            descriptor.unsupported.push_back(
+                UiUnsupported { .class_name = class_name, .role = "", .reason = "no_method" });
+            continue;
+        }
+
+        for (const std::string_view required_role_view: UiRequiredRolesForClass(class_name))
+        {
+            const std::string role(required_role_view);
+            if (role == "ctor")
+            {
+                continue;
+            }
+            std::string reason;
+            UiCallable callable = TsUiRoleCallable(context, class_name, role, reason);
+            if (callable.symbol.empty())
+            {
+                descriptor.unsupported.push_back(
+                    UiUnsupported { .class_name = class_name, .role = role, .reason = reason });
+                continue;
+            }
+            class_info.roles[role] = std::move(callable);
+        }
+
+        const std::map<std::string, std::vector<std::string>>::const_iterator constants_iter =
+            CLASS_CONSTANTS.find(class_name);
+        if (constants_iter != CLASS_CONSTANTS.end())
+        {
+            for (const std::string& constant_name: constants_iter->second)
+            {
+                if (emitted_constants.contains(constant_name))
+                {
+                    class_info.constants[constant_name] = constant_name;
+                }
+            }
+        }
+
+        descriptor.classes[class_name] = std::move(class_info);
+    }
+
+    const auto class_ctor = [&descriptor](const std::string& class_name) -> UiCallable
+    {
+        const std::map<std::string, UiClass>::const_iterator iter =
+            descriptor.classes.find(class_name);
+        return iter == descriptor.classes.end() ? UiCallable {} : iter->second.ctor;
+    };
+    const auto class_role = [&descriptor](const std::string& class_name,
+                                          const std::string& role) -> UiCallable
+    {
+        const std::map<std::string, UiClass>::const_iterator iter =
+            descriptor.classes.find(class_name);
+        if (iter == descriptor.classes.end())
+        {
+            return {};
+        }
+        const std::map<std::string, UiCallable>::const_iterator role_iter =
+            iter->second.roles.find(role);
+        return role_iter == iter->second.roles.end() ? UiCallable {} : role_iter->second;
+    };
+
+    // ---- sizers ----
+    descriptor.sizers.wx_box_sizer.ctor = class_ctor("wxBoxSizer");
+    descriptor.sizers.wx_box_sizer.add_window = class_role("wxBoxSizer", "add_window");
+    descriptor.sizers.wx_box_sizer.add_sizer = class_role("wxBoxSizer", "add_sizer");
+    descriptor.sizers.wx_box_sizer.add_spacer = class_role("wxBoxSizer", "add_spacer");
+    MarkTsUiUnavailable(descriptor.sizers.wx_box_sizer.ctor, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.wx_box_sizer.add_window, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.wx_box_sizer.add_sizer, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.wx_box_sizer.add_spacer, "no_method");
+
+    descriptor.sizers.flags.ctor = class_ctor("wxSizerFlags");
+    descriptor.sizers.flags.proportion = class_role("wxSizerFlags", "proportion");
+    descriptor.sizers.flags.expand = class_role("wxSizerFlags", "expand");
+    descriptor.sizers.flags.border = class_role("wxSizerFlags", "border");
+    descriptor.sizers.flags.left = class_role("wxSizerFlags", "left");
+    descriptor.sizers.flags.right = class_role("wxSizerFlags", "right");
+    descriptor.sizers.flags.top = class_role("wxSizerFlags", "top");
+    descriptor.sizers.flags.bottom = class_role("wxSizerFlags", "bottom");
+    descriptor.sizers.flags.align_h = class_role("wxSizerFlags", "align_h");
+    descriptor.sizers.flags.align_v = class_role("wxSizerFlags", "align_v");
+    MarkTsUiUnavailable(descriptor.sizers.flags.ctor, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.proportion, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.expand, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.border, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.left, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.right, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.top, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.bottom, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.align_h, "no_method");
+    MarkTsUiUnavailable(descriptor.sizers.flags.align_v, "no_method");
+
+    // ---- events ----
+    std::string bind_reason;
+    descriptor.events.bind = TsUiRoleCallable(context, "wxEvtHandler", "bind", bind_reason);
+    std::string bind_id_reason;
+    descriptor.events.bind_id =
+        TsUiRoleCallable(context, "wxEvtHandler", "bind_id", bind_id_reason);
+    MarkTsUiUnavailable(descriptor.events.bind, bind_reason);
+    MarkTsUiUnavailable(descriptor.events.bind_id, bind_id_reason);
+    descriptor.events.handler_type = std::string(kTsEventHandlerType);
+
+    // ---- bitmap ----
+    std::string from_base64_reason;
+    descriptor.bitmap.from_base64 =
+        TsUiRoleCallable(context, "wxBitmap", "from_base64", from_base64_reason);
+    std::string get_bitmap_reason;
+    descriptor.bitmap.get_bitmap =
+        TsUiRoleCallable(context, "wxStaticBitmap", "get_bitmap", get_bitmap_reason);
+    std::string bitmap_delete_reason;
+    descriptor.bitmap.delete_fn =
+        TsUiRoleCallable(context, "wxBitmap", "delete", bitmap_delete_reason);
+    MarkTsUiUnavailable(descriptor.bitmap.from_base64, from_base64_reason);
+    MarkTsUiUnavailable(descriptor.bitmap.get_bitmap, get_bitmap_reason);
+    MarkTsUiUnavailable(descriptor.bitmap.delete_fn, bitmap_delete_reason);
+
+    // ---- font ----
+    const FunctionDecl* const font_ctor = UiFindConstructor(parsed_ffi, "wxFont");
+    if (font_ctor != nullptr)
+    {
+        const std::string font_owner =
+            font_ctor->class_name.empty() ? std::string("wxFont") : font_ctor->class_name;
+        descriptor.font.create.symbol = TsFactoryName(font_owner, *font_ctor);
+        descriptor.font.create.idiom = "constructor";
+        descriptor.font.create.returns = std::string("wxFont");
+        descriptor.font.create.params = TsUiFactoryParams(*font_ctor);
+    }
+    std::string font_delete_reason;
+    descriptor.font.delete_fn = TsUiRoleCallable(context, "wxFont", "delete", font_delete_reason);
+    MarkTsUiUnavailable(descriptor.font.create, "no_method");
+    MarkTsUiUnavailable(descriptor.font.delete_fn, font_delete_reason);
+
+    // ---- std_buttons ----
+    // The create callable is the wxDialog method the class ctor already resolved to.
+    descriptor.std_buttons.create = class_ctor("wxStdDialogButtonSizer");
+    descriptor.std_buttons.add_button = class_role("wxStdDialogButtonSizer", "add_button");
+    descriptor.std_buttons.realize = class_role("wxStdDialogButtonSizer", "realize");
+    MarkTsUiUnavailable(descriptor.std_buttons.create, "no_method");
+    MarkTsUiUnavailable(descriptor.std_buttons.add_button, "no_method");
+    MarkTsUiUnavailable(descriptor.std_buttons.realize, "no_method");
+
+    // ---- app ----
+    // The application lifecycle lives in the hand-maintained src/kwxApp.ts, which the emitter
+    // does not produce, so the descriptor records that instead of naming a generated symbol.
+    descriptor.app.entry = "run";
+    descriptor.app.entry_signature = "run(): number  // src/kwxApp.ts (hand-maintained)";
+    descriptor.app.set_top_window = UiCallable {};
+    descriptor.app.set_top_window.idiom = "unsupported";
+    descriptor.app.set_top_window.reason = std::string("hand_maintained");
+    descriptor.app.emit_entry = false;
+
+    return descriptor;
+}
+
+// Declared arities of every TypeScript member/function indexed from the generated output.
+using TsDeclarationArities = std::unordered_map<std::string, std::unordered_set<std::size_t>>;
+
+// Index just past the ')' that closes the '(' at open_index, or npos when unbalanced.
+[[nodiscard]] static std::size_t TsSkipParentheses(const std::string& source,
+                                                   std::size_t open_index)
+{
+    int depth = 0;
+    for (std::size_t index = open_index; index < source.size(); ++index)
+    {
+        const char character = source[index];
+        if (character == '(')
+        {
+            ++depth;
+        }
+        else if (character == ')')
+        {
+            --depth;
+            if (depth == 0)
+            {
+                return index + 1;
+            }
+        }
+    }
+    return std::string::npos;
+}
+
+// Count the top-level comma-separated parameters between open_index and close_index.
+[[nodiscard]] static std::size_t TsCountParameters(const std::string& source,
+                                                   std::size_t open_index, std::size_t close_index)
+{
+    std::size_t count = 0;
+    bool has_content = false;
+    int depth = 0;
+    for (std::size_t index = open_index + 1; index < close_index; ++index)
+    {
+        const char character = source[index];
+        if (character == '(' || character == '[' || character == '{' || character == '<')
+        {
+            ++depth;
+            has_content = true;
+            continue;
+        }
+        if (character == ')' || character == ']' || character == '}' || character == '>')
+        {
+            --depth;
+            continue;
+        }
+        if (depth == 0 && character == ',')
+        {
+            ++count;
+            continue;
+        }
+        if (std::isspace(static_cast<unsigned char>(character)) == 0)
+        {
+            has_content = true;
+        }
+    }
+    return has_content ? count + 1 : 0;
+}
+
+// Index every identifier that is followed by a parameter list in one TypeScript file.  A member
+// access (`lib.symbols.Foo(...)`, `this.Foo(...)`) is a call site, not a declaration, and is
+// skipped so a body cannot satisfy an entry by accident.
+static void CollectTsDeclarations(const std::string& source, TsDeclarationArities& arities)
+{
+    std::size_t index = 0;
+    while (index < source.size())
+    {
+        const char character = source[index];
+        if (std::isalpha(static_cast<unsigned char>(character)) == 0 && character != '_' &&
+            character != '$')
+        {
+            ++index;
+            continue;
+        }
+
+        const std::size_t name_start = index;
+        while (index < source.size() &&
+               (std::isalnum(static_cast<unsigned char>(source[index])) != 0 ||
+                source[index] == '_' || source[index] == '$'))
+        {
+            ++index;
+        }
+        const std::string name = source.substr(name_start, index - name_start);
+
+        std::size_t before = name_start;
+        while (before > 0 && std::isspace(static_cast<unsigned char>(source[before - 1])) != 0)
+        {
+            --before;
+        }
+        const bool is_member_access = before > 0 && source[before - 1] == '.';
+
+        std::size_t cursor = index;
+        while (cursor < source.size() &&
+               std::isspace(static_cast<unsigned char>(source[cursor])) != 0)
+        {
+            ++cursor;
+        }
+        if (cursor >= source.size() || source[cursor] != '(')
+        {
+            continue;
+        }
+        const std::size_t after_params = TsSkipParentheses(source, cursor);
+        if (after_params == std::string::npos)
+        {
+            return;
+        }
+        if (!is_member_access)
+        {
+            arities[name].insert(TsCountParameters(source, cursor, after_params));
+        }
+        index = after_params;
+    }
+}
+
+// Every labelled callable a descriptor carries, using the labels check-ui reports so a MISMATCH
+// line is directly comparable.
+static void CollectTsUiCallables(const UiDescriptor& descriptor,
+                                 std::vector<std::pair<std::string, const UiCallable*>>& out)
+{
+    const auto add = [&out](const std::string& label, const UiCallable& callable)
+    {
+        out.emplace_back(label, &callable);
+    };
+
+    for (const auto& [class_name, class_info]: descriptor.classes)
+    {
+        add(class_name + ".ctor", class_info.ctor);
+        for (const auto& [role, callable]: class_info.roles)
+        {
+            add(class_name + "." + role, callable);
+        }
+    }
+
+    const UiSizerOps& sizer_ops = descriptor.sizers.wx_box_sizer;
+    add("sizers.wxBoxSizer.ctor", sizer_ops.ctor);
+    add("sizers.wxBoxSizer.add_window", sizer_ops.add_window);
+    add("sizers.wxBoxSizer.add_sizer", sizer_ops.add_sizer);
+    add("sizers.wxBoxSizer.add_spacer", sizer_ops.add_spacer);
+
+    const UiFlags& flags = descriptor.sizers.flags;
+    add("sizers.flags.ctor", flags.ctor);
+    add("sizers.flags.proportion", flags.proportion);
+    add("sizers.flags.expand", flags.expand);
+    add("sizers.flags.border", flags.border);
+    add("sizers.flags.left", flags.left);
+    add("sizers.flags.right", flags.right);
+    add("sizers.flags.top", flags.top);
+    add("sizers.flags.bottom", flags.bottom);
+    add("sizers.flags.align_h", flags.align_h);
+    add("sizers.flags.align_v", flags.align_v);
+
+    add("events.bind", descriptor.events.bind);
+    add("events.bind_id", descriptor.events.bind_id);
+    add("bitmap.from_base64", descriptor.bitmap.from_base64);
+    add("bitmap.get_bitmap", descriptor.bitmap.get_bitmap);
+    add("bitmap.delete", descriptor.bitmap.delete_fn);
+    add("font.create", descriptor.font.create);
+    add("font.delete", descriptor.font.delete_fn);
+    add("std_buttons.create", descriptor.std_buttons.create);
+    add("std_buttons.add_button", descriptor.std_buttons.add_button);
+    add("std_buttons.realize", descriptor.std_buttons.realize);
+    add("app.set_top_window", descriptor.app.set_top_window);
+}
+
+std::vector<std::string> TypeScriptEmitter::VerifyUiDescriptor(const UiDescriptor& descriptor,
+                                                               const fs::path& generated_dir) const
+{
+    // emit-ui hands this method an empty scratch directory and deletes it afterwards, so the
+    // tree has to be regenerated from the model BuildUiDescriptor was called with; otherwise
+    // no declared symbol would exist to compare against.  Nothing outside generated_dir is
+    // touched, and files already there are only rewritten when they would change.
+    if (m_ui_model.has_value())
+    {
+        GenerateInto(*m_ui_model, generated_dir);
+    }
+
+    TsDeclarationArities arities;
+    std::error_code exists_error;
+    if (fs::exists(generated_dir, exists_error) && !exists_error)
+    {
+        for (const auto& entry: fs::recursive_directory_iterator(
+                 generated_dir, fs::directory_options::skip_permission_denied))
+        {
+            std::error_code status_error;
+            if (!entry.is_regular_file(status_error) || status_error)
+            {
+                continue;
+            }
+            std::ifstream input(entry.path(), std::ios::binary);
+            if (!input.is_open())
+            {
+                continue;
+            }
+            std::ostringstream buffer;
+            buffer << input.rdbuf();
+            CollectTsDeclarations(buffer.str(), arities);
+        }
+    }
+
+    std::vector<std::pair<std::string, const UiCallable*>> callables;
+    CollectTsUiCallables(descriptor, callables);
+
+    std::vector<std::string> mismatches;
+    for (const auto& [label, callable]: callables)
+    {
+        if (callable->symbol.empty())
+        {
+            continue;
+        }
+        // Any generated declaration of the symbol with the recorded arity satisfies the entry:
+        // the wrapper may live on a base class the generated class extends.
+        const TsDeclarationArities::const_iterator arity_iter = arities.find(callable->symbol);
+        if (arity_iter != arities.end() && arity_iter->second.contains(callable->params.size()))
+        {
+            continue;
+        }
+        mismatches.push_back("MISMATCH " + label + " " + callable->symbol);
+    }
+    return mismatches;
 }
 
 // -------------------------------------------------------------------------
@@ -2753,7 +3725,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
     {
         for (const auto& func: cls.methods)
         {
-            if (!IsValidFunction(func) || !IsStaticClassFunction(func, &cls))
+            if (!IsValidFunction(func) || !IsStaticClassFunction(func, cls))
             {
                 continue;
             }
@@ -2846,6 +3818,10 @@ void TypeScriptEmitter::EmitClassFile(
     const std::unordered_map<std::string, const ClassInfo*>& class_index,
     const std::unordered_set<std::string>& wrapped_classes)
 {
+    // The import block at the end of this function consumes this per-file state.
+    s_registry_return_types.clear();
+    s_uses_class_registry = false;
+
     // Find the nearest wrapped ancestor for extends-based inheritance.
     const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
     const AncestorMembers ancestors =
@@ -2903,6 +3879,11 @@ void TypeScriptEmitter::EmitClassFile(
     // Both the method wrappers here and the factories below append to this set.
     std::set<std::string> return_imports;
     std::set<std::string> emitted_instance_names;
+    // Signatures already emitted under each member name.  The FFI corpus declares some methods
+    // twice under two C-symbol spellings with an identical visible signature; those duplicates
+    // are harmless and dropped silently, while a duplicate with a different signature is a
+    // genuinely lost overload and still reports a warning.
+    std::unordered_map<std::string, std::vector<AncestorMemberInfo>> emitted_signatures;
     for (const auto& func: cls.methods)
     {
         if (!IsValidFunction(func))
@@ -2920,7 +3901,7 @@ void TypeScriptEmitter::EmitClassFile(
             continue;
         }
         // Skip statics (emitted at module scope in kwx_free_functions_gen.ts)
-        if (IsStaticClassFunction(func, &cls))
+        if (IsStaticClassFunction(func, cls))
         {
             continue;
         }
@@ -2928,6 +3909,21 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string method_name = TsMethodName(cls.name, func);
         if (emitted_instance_names.contains(method_name))
         {
+            const std::unordered_map<std::string, std::vector<AncestorMemberInfo>>::const_iterator
+                recorded = emitted_signatures.find(method_name);
+            if (recorded != emitted_signatures.end())
+            {
+                const AncestorMemberInfo signature =
+                    BuildAncestorMemberInfo(func, cls.name, wrapped_classes);
+                if (std::ranges::any_of(recorded->second,
+                                        [&signature](const AncestorMemberInfo& existing)
+                                        {
+                                            return IsSameSignature(existing, signature);
+                                        }))
+                {
+                    continue;  // duplicate with the same visible signature
+                }
+            }
             std::println(stderr, "  Warning: {}: dropping duplicate method {} (C symbol {})",
                          cls.name, method_name, CFuncName(func));
             continue;  // skip duplicate overload
@@ -2935,6 +3931,8 @@ void TypeScriptEmitter::EmitClassFile(
         const std::string emitted_name = EmitInstanceMethod(
             body, ancestors, cls.name, func, emitted_instance_names, wrapped_classes);
         emitted_instance_names.insert(emitted_name);
+        emitted_signatures[emitted_name].push_back(
+            BuildAncestorMemberInfo(func, cls.name, wrapped_classes));
         if (IsWrappedClassReturn(func, wrapped_classes) &&
             !IsDeniedWrappedReturn(cls.name, func.return_arg))
         {
@@ -2964,7 +3962,7 @@ void TypeScriptEmitter::EmitClassFile(
             for (const auto& func: mixin_class->methods)
             {
                 if (!IsValidFunction(func) || IsFactoryMethod(func) || IsTrueDestructor(func) ||
-                    IsStaticClassFunction(func, mixin_class))
+                    IsStaticClassFunction(func, *mixin_class))
                 {
                     continue;
                 }
@@ -2982,6 +3980,8 @@ void TypeScriptEmitter::EmitClassFile(
                 const std::string emitted_name = EmitInstanceMethod(
                     body, ancestors, mixin_name, func, emitted_instance_names, wrapped_classes);
                 emitted_instance_names.insert(emitted_name);
+                emitted_signatures[emitted_name].push_back(
+                    BuildAncestorMemberInfo(func, mixin_name, wrapped_classes));
                 if (IsWrappedClassReturn(func, wrapped_classes) &&
                     !IsDeniedWrappedReturn(mixin_name, func.return_arg))
                 {
@@ -3083,6 +4083,14 @@ void TypeScriptEmitter::EmitClassFile(
 
     const std::string body_str = body.str();
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (s_uses_class_registry)
+    {
+        output << "import { getClass, registerClass } from \"./kwx_class_registry_gen.ts\";\n";
+    }
+    else
+    {
+        output << "import { registerClass } from \"./kwx_class_registry_gen.ts\";\n";
+    }
     if (body_str.find("Pointer") != std::string::npos)
     {
         output << "import { Pointer } from \"kwx/platform\";\n";
@@ -3102,8 +4110,23 @@ void TypeScriptEmitter::EmitClassFile(
         output << "import { " << imported_class << " } from \"" << TsClassImportPath(imported_class)
                << "\";\n";
     }
+    // A cyclic return keeps its wrapper type through a type-only import: no value edge is
+    // created, so the module graph cannot close a cycle through this file.
+    for (const std::string& registry_type: s_registry_return_types)
+    {
+        if (registry_type == cls.name || registry_type == parent_name ||
+            return_imports.contains(registry_type))
+        {
+            continue;
+        }
+        output << "import type { " << registry_type << " } from \""
+               << TsClassImportPath(registry_type) << "\";\n";
+    }
     output << "\n";
     output << body_str;
+
+    // Comes after the class declaration so the class binding is initialized when it runs.
+    output << "registerClass(\"" << cls.name << "\", " << cls.name << ");\n";
 }
 
 void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& out_dir)
@@ -3146,6 +4169,49 @@ void TypeScriptEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path&
 
     std::println(stderr, "  class files:             {} classes, {} methods", class_names.size(),
                  total_methods);
+}
+
+// -------------------------------------------------------------------------
+// kwx_class_registry_gen.ts — runtime registry of generated wrapper classes
+// -------------------------------------------------------------------------
+
+void TypeScriptEmitter::GenerateClassRegistry(const fs::path& out_dir)
+{
+    const fs::path file_path = out_dir / "kwx_class_registry_gen.ts";
+    ConditionalFileWriter output(file_path);
+
+    WriteGeneratedHeader(output, "//");
+
+    output << R"TS(import type { Pointer } from "kwx/platform";
+
+export type WxWrapperConstructor<T> = new (ptr: Pointer, borrowed?: boolean) => T;
+
+const s_registered = new Map<string, WxWrapperConstructor<unknown>>();
+
+/** Register a generated wrapper class so cyclic return sites can construct it. */
+export function registerClass<T>(name: string, wrapper: WxWrapperConstructor<T>): void
+{
+    s_registered.set(name, wrapper as WxWrapperConstructor<unknown>);
+}
+
+/**
+ * Look up a generated wrapper class.  Throws when that class module was never evaluated,
+ * which can only happen when neither the class module nor the kwx_gen.ts barrel was imported.
+ */
+export function getClass<T>(name: string): WxWrapperConstructor<T>
+{
+    const wrapper = s_registered.get(name);
+    if (wrapper === undefined)
+    {
+        throw new Error(
+            `kwxFFI: wrapper class ${name} is not loaded - import its module or the kwx_gen.ts barrel before calling this method`,
+        );
+    }
+    return wrapper as WxWrapperConstructor<T>;
+}
+)TS";
+
+    std::println(stderr, "  kwx_class_registry_gen.ts: emitted");
 }
 
 // -------------------------------------------------------------------------

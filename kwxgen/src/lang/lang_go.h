@@ -20,6 +20,11 @@ public:
     std::string_view Name() const override { return "go"; }
     [[nodiscard]] CoverageInfo Coverage(const ParsedFFI& parsed_ffi) const override;
 
+    UiDescriptor BuildUiDescriptor(const ParsedFFI& parsed_ffi) const override;
+    std::vector<std::string>
+        VerifyUiDescriptor(const UiDescriptor& descriptor,
+                           const std::filesystem::path& generated_dir) const override;
+
 private:
     static void GenerateGlueFile(const ParsedFFI& parsed_ffi, const std::filesystem::path& out_dir);
     static void GenerateHelpers(const std::filesystem::path& out_dir);

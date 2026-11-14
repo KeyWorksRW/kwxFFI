@@ -27,6 +27,16 @@ extern "C"
         self->SetDefault();
     }
 
+    EXPORT void wxButton_SetAuthNeeded(wxButton* self, bool show)
+    {
+        self->SetAuthNeeded(show);
+    }
+
+    EXPORT int wxButton_GetAuthNeeded(wxButton* self)
+    {
+        return self->GetAuthNeeded() ? 1 : 0;
+    }
+
     EXPORT wxBitmapButton* wxBitmapButton_Create(wxWindow* parent, int id, wxBitmap* bitmap, int x,
                                                  int y, int width, int height, int style)
     {

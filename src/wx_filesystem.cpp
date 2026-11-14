@@ -85,6 +85,18 @@ extern "C"
         return new wxString(wxFileSystem::URLToFileName(*url).GetFullPath());
     }
 
+    EXPORT void wxFileSystem_AddHandler(void* handler)
+    {
+        wxFileSystem::AddHandler((wxFileSystemHandler*) handler);
+    }
+
+    // wxFileSystem::AddHandler takes ownership of the handler: do not delete this
+    // object after registering it with wxFileSystem_AddHandler().
+    EXPORT wxMemoryFSHandler* wxMemoryFSHandler_Create()
+    {
+        return new wxMemoryFSHandler();
+    }
+
     EXPORT void wxMemoryFSHandler_AddFile(wxString* filename, wxString* textdata)
     {
         wxMemoryFSHandler::AddFile(*filename, *textdata);

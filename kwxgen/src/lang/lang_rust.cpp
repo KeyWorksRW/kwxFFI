@@ -16,11 +16,20 @@
 #include <cctype>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <initializer_list>
 #include <map>
+#include <optional>
 #include <print>
 #include <set>
 #include <sstream>
+#include <string>
+#include <string_view>
+#include <system_error>
 #include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 // NOLINTBEGIN(readability-magic-string)
@@ -81,6 +90,16 @@ namespace fs = std::filesystem;
 [[nodiscard]] static std::string RustModuleName(const std::string& className)
 {
     return ToSnakeCase(StripPrefix(className));
+}
+
+// Modules the crate root writes itself, or that GenerateObject owns. A class file must never
+// be written into one of them: the duplicate `pub mod` plus the self-import it produces break
+// the generated crate (kwxObject → "object" collided with the hand-written root handle).
+[[nodiscard]] static bool IsReservedRustModule(const std::string& moduleName)
+{
+    return moduleName == "sys" || moduleName == "object" || moduleName == "support" ||
+           moduleName == "traits" || moduleName == "events" || moduleName == "keys" ||
+           moduleName == "constants" || moduleName == "freefuncs";
 }
 
 // Emit a single extern "C" declaration for sys.rs.
@@ -273,7 +292,7 @@ struct RustSafeParam
 struct RustConvertContext
 {
     const ParsedFFI& ffi;
-    const std::set<std::string>& parent_classes;
+    const std::set<std::string>& trait_classes;
     const std::string& rust_name;
     std::set<std::string>& support_imports;
     // Names already used in the signature being built; nullptr disables uniquing.
@@ -313,29 +332,40 @@ struct RustConvertContext
     }
 }
 
-// Classes that serve as parents get a marker trait in traits.rs.
-[[nodiscard]] static std::set<std::string> BuildParentClassSet(const ParsedFFI& ffi)
+// Defined below; needed here to decide which classes get a marker trait.
+[[nodiscard]] static bool HasGeneratedClass(const std::string& class_name, const ParsedFFI& ffi);
+
+// Classes that get a marker trait in traits.rs: every class with a generated wrapper module,
+// plus every class used as a parent.  A class left out of this set degrades a `TClass(T)` /
+// `TSelf(T)` parameter to `&impl WxObject`, which lets a caller hand over an unrelated
+// wrapper whose pointer the native adapter then misuses.  Parents are unioned in so a
+// wrapper's supertrait chain never dangles.
+[[nodiscard]] static std::set<std::string> BuildTraitClassSet(const ParsedFFI& ffi)
 {
-    std::set<std::string> parent_classes;
+    std::set<std::string> trait_classes;
     for (const auto& [child, parent]: ffi.parent_map)
     {
-        parent_classes.insert(parent);
+        trait_classes.insert(parent);
     }
     for (const auto& cls: ffi.classes)
     {
         if (!cls.parent.empty())
         {
-            parent_classes.insert(cls.parent);
+            trait_classes.insert(cls.parent);
+        }
+        if (HasGeneratedClass(cls.name, ffi))
+        {
+            trait_classes.insert(cls.name);
         }
     }
-    return parent_classes;
+    return trait_classes;
 }
 
 // Marker trait generated for a class, or empty when the class has no trait.
 [[nodiscard]] static std::string TraitForClass(const std::string& class_name,
-                                               const std::set<std::string>& parent_classes)
+                                               const std::set<std::string>& trait_classes)
 {
-    if (!parent_classes.contains(class_name))
+    if (!trait_classes.contains(class_name))
     {
         return {};
     }
@@ -521,6 +551,17 @@ struct RustConvertContext
         return result;
     }
 
+    // Output long geometry passes through as *mut c_long (the C type is already c_long).
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        for (const std::string& component: RustSplitMacroArg(param.macro_arg))
+        {
+            const std::string name = UniqueParamName(RustSafeParamName(component), context);
+            result.push_back({ name, "*mut c_long", name, {}, {}, false });
+        }
+        return result;
+    }
+
     if (param.macro_name == "TPointOutVoid" || param.macro_name == "TSizeOutVoid" ||
         param.macro_name == "TRectOutVoid" || param.macro_name == "TVectorOutVoid")
     {
@@ -580,9 +621,15 @@ struct RustConvertContext
     safe_param.name = UniqueParamName(
         RustSafeParamName(param.param_name.empty() ? "arg" : param.param_name), context);
 
-    if (param.macro_name == "TSelf")
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
     {
-        const std::string trait_name = TraitForClass(param.macro_arg, context.parent_classes);
+        safe_param.safe_type = RustScalarPointerSafeType(scalar_pointer.c_type);
+        safe_param.ffi_expr =
+            safe_param.name + " as " + RustScalarPointerFfiType(scalar_pointer.c_type);
+    }
+    else if (param.macro_name == "TSelf")
+    {
+        const std::string trait_name = TraitForClass(param.macro_arg, context.trait_classes);
         safe_param.safe_type =
             "&impl " + (trait_name.empty() ? std::string { "WxObject" } : trait_name);
         safe_param.ffi_expr = safe_param.name + ".as_ptr()";
@@ -599,7 +646,7 @@ struct RustConvertContext
         }
         else
         {
-            const std::string trait_name = TraitForClass(param.macro_arg, context.parent_classes);
+            const std::string trait_name = TraitForClass(param.macro_arg, context.trait_classes);
             safe_param.safe_type =
                 "&impl " + (trait_name.empty() ? std::string { "WxObject" } : trait_name);
             safe_param.ffi_expr = safe_param.name + ".as_ptr()";
@@ -698,6 +745,11 @@ struct RustConvertContext
         else if (raw_type == "size_t")
         {
             safe_param.safe_type = "usize";
+            safe_param.ffi_expr = safe_param.name;
+        }
+        else if (IsTypedPointerMacro(raw_type))
+        {
+            safe_param.safe_type = "*mut c_void";
             safe_param.ffi_expr = safe_param.name;
         }
         else if (raw_type.contains('*'))
@@ -897,14 +949,14 @@ VerifyResult RustEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* 
 static constexpr std::array<std::string_view, 3> RUST_SUPPORT_CLASSES { "wxPoint", "wxSize",
                                                                         "wxRect" };
 
-// The Rust member name EmitMethodWrappers gives a method.  A destructor folds into the
-// handle lifetime, a constructor becomes new/new_full or a named factory, and every other
-// member is named through RustWrapperMethodName.
+// The Rust member name EmitMethodWrappers gives a method.  A destructor becomes the explicit
+// delete() member, a constructor becomes new/new_full, a new_with_state* fallback or a named
+// factory, and every other member is named through RustWrapperMethodName.
 [[nodiscard]] static std::string RustEmittedMethodKey(const FunctionDecl& method)
 {
     if (IsDestructor(method))
     {
-        return "drop";
+        return "delete";
     }
     if (method.is_constructor && !method.has_self)
     {
@@ -923,6 +975,19 @@ static constexpr std::array<std::string_view, 3> RUST_SUPPORT_CLASSES { "wxPoint
     return RustWrapperMethodName(method);
 }
 
+// The name EmitMethodWrappers gives a receiver-less Create constructor whose class already
+// owns new/new_full from the merged wx* base: new_with_state, then new_with_state_2, ...
+[[nodiscard]] static std::string
+    RustFallbackConstructorName(const std::set<std::string>& emitted_methods)
+{
+    std::string candidate = "new_with_state";
+    for (size_t suffix = 2; emitted_methods.contains(candidate); ++suffix)
+    {
+        candidate = "new_with_state_" + std::to_string(suffix);
+    }
+    return candidate;
+}
+
 // Count the methods EmitMethodWrappers writes for one class.  A consumer also re-emits the
 // methods of every mixin it implements, so those count toward the consumer.
 static void CountRustClassMethods(const ClassInfo& cls, const ParsedFFI& ffi,
@@ -938,6 +1003,13 @@ static void CountRustClassMethods(const ClassInfo& cls, const ParsedFFI& ffi,
     {
         if (emitted_methods.insert(method_key).second)
         {
+            ++wrapped_count;
+        }
+        else if (method_key == "new")
+        {
+            // A merged kwx* helper class keeps its constructor under a fallback name, so it
+            // is wrapped rather than collapsed.  Mirror the emitter's name choice exactly.
+            emitted_methods.insert(RustFallbackConstructorName(emitted_methods));
             ++wrapped_count;
         }
         else
@@ -1011,6 +1083,9 @@ CoverageInfo RustEmitter::Coverage(const ParsedFFI& ffi) const
     {
         emitted_modules.insert(RustModuleName(cls.name));
     }
+    // GenerateObject owns the object module and folds every class that maps to it (kwxObject
+    // included), so those classes are wrapped rather than skipped.
+    emitted_modules.insert("object");
 
     constexpr auto is_support_class = [](const std::string& class_name)
     {
@@ -1234,8 +1309,8 @@ void RustEmitter::GenerateTraits(const ParsedFFI& ffi, const fs::path& srcDir)
     WriteGeneratedHeader(out);
     out << "use std::os::raw::c_void;\n\n";
 
-    // Collect all classes that serve as parents.
-    const std::set<std::string> parentClasses = BuildParentClassSet(ffi);
+    // Every class with a generated wrapper, plus every parent class.
+    const std::set<std::string> traitClasses = BuildTraitClassSet(ffi);
 
     // Root trait: WxObject — all wxWidgets objects impl this.
     out << "/// Base trait for all wxWidgets objects providing raw pointer access.\n";
@@ -1249,38 +1324,55 @@ void RustEmitter::GenerateTraits(const ParsedFFI& ffi, const fs::path& srcDir)
     out << "    }\n";
     out << "}\n\n";
 
-    // Generate a trait for each class that serves as a parent, establishing the hierarchy.
+    // Generate a trait for each class with a generated wrapper, establishing the hierarchy.
     // Sort for deterministic output.
-    std::vector<std::string> sortedParents(parentClasses.begin(), parentClasses.end());
-    std::ranges::sort(sortedParents);
+    std::vector<std::string> sortedClasses(traitClasses.begin(), traitClasses.end());
+    std::ranges::sort(sortedClasses);
 
+    // A kwx* alias and its wx* class share one Rust type and therefore one trait name
+    // (kwxLog/wxLog -> WxLog); emitting it twice would not compile.  Aliases share their
+    // parent, so the first definition in sorted order is the correct one.
+    std::set<std::string> emittedTraits;
     size_t traitCount = 0;
-    for (const auto& parentName: sortedParents)
+    for (const auto& className: sortedClasses)
     {
-        const std::string traitName = StripPrefix(parentName);
+        const std::string traitName = StripPrefix(className);
 
         // Skip wxObject — it's already defined as the root trait WxObject above.
         if (traitName == "Object")
         {
             continue;
         }
-
-        // Find parent of this parent to establish supertrait.
-        const std::unordered_map<std::string, std::string>::const_iterator parent_iter =
-            ffi.parent_map.find(parentName);
-        std::string supertrait;
-        if (parent_iter != ffi.parent_map.end() && !parent_iter->second.empty())
+        if (!emittedTraits.insert(traitName).second)
         {
-            supertrait = "Wx" + StripPrefix(parent_iter->second);
-            // Check if the supertrait's parent is also a parent class; if not, use WxObject
-            if (!parentClasses.contains(parent_iter->second))
-            {
-                supertrait = "WxObject";
-            }
+            continue;
         }
-        else
+
+        // Find the class's parent to establish the supertrait.  An alias parent resolves back
+        // onto this trait's own name (kwxPanel -> wxPanel -> WxPanel), so walk past such a
+        // self-reference instead of collapsing the hierarchy to WxObject.
+        const std::unordered_map<std::string, std::string>::const_iterator parent_iter =
+            ffi.parent_map.find(className);
+        std::string supertrait = "WxObject";
+        std::set<std::string> walked;
+        std::string parent_name =
+            parent_iter == ffi.parent_map.end() ? std::string {} : parent_iter->second;
+        while (!parent_name.empty() && traitClasses.contains(parent_name) &&
+               walked.insert(parent_name).second)
         {
-            supertrait = "WxObject";
+            const std::string parent_trait = StripPrefix(parent_name);
+            if (parent_trait != traitName)
+            {
+                supertrait = "Wx" + parent_trait;
+                break;
+            }
+            const std::unordered_map<std::string, std::string>::const_iterator next_iter =
+                ffi.parent_map.find(parent_name);
+            if (next_iter == ffi.parent_map.end())
+            {
+                break;
+            }
+            parent_name = next_iter->second;
         }
 
         out << "pub trait Wx" << traitName << ": " << supertrait << " {}\n";
@@ -1554,9 +1646,9 @@ void RustEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& sr
     std::ostringstream body;
     std::set<std::string> supportImports;
     std::set<std::string> classImports;
-    const std::set<std::string> parentClasses = BuildParentClassSet(ffi);
+    const std::set<std::string> traitClasses = BuildTraitClassSet(ffi);
     const std::string noName;
-    const RustConvertContext context { ffi, parentClasses, noName, supportImports };
+    const RustConvertContext context { ffi, traitClasses, noName, supportImports };
     const RustReturnContext returnContext { ffi,    noName,       noName,
                                             noName, classImports, supportImports };
 
@@ -1770,13 +1862,26 @@ static void AddMixinMethods(const ParsedFFI& ffi, std::map<std::string, ClassInf
         {
             continue;
         }
+        // A class whose module name is one the crate root already writes would overwrite that
+        // module. kwxObject → "object" is the live case; GenerateObject emits its methods.
+        if (const std::string moduleName = RustModuleName(classInfo.name);
+            IsReservedRustModule(moduleName))
+        {
+            if (moduleName != "object")
+            {
+                std::println(stderr, "  skipping class '{}': module '{}' is reserved",
+                             classInfo.name, moduleName);
+            }
+            continue;
+        }
         AddClassToEmitGroups(groups, classInfo);
     }
 
     // Classes that only appear in the parent map still need a generated type.
     for (const auto& [child, parent]: ffi.parent_map)
     {
-        if (child == "wxObject" || groups.contains(RustModuleName(child)))
+        if (child == "wxObject" || groups.contains(RustModuleName(child)) ||
+            IsReservedRustModule(RustModuleName(child)))
         {
             continue;
         }
@@ -1805,7 +1910,8 @@ static void AddMixinMethods(const ParsedFFI& ffi, std::map<std::string, ClassInf
 
         for (const std::string& parentName: missingParents)
         {
-            if (parentName == "wxObject" || groups.contains(RustModuleName(parentName)))
+            if (parentName == "wxObject" || groups.contains(RustModuleName(parentName)) ||
+                IsReservedRustModule(RustModuleName(parentName)))
             {
                 continue;
             }
@@ -1819,6 +1925,19 @@ static void AddMixinMethods(const ParsedFFI& ffi, std::map<std::string, ClassInf
             }
             AddClassToEmitGroups(groups, std::move(classInfo));
             added = true;
+        }
+    }
+
+    // A class whose parent resolves to its own module has no generated parent type: that parent
+    // is the un-wrapped wx* class the module is named after (kwxAuiSerializer → wxAuiSerializer,
+    // both module aui_serializer). Such a class derives from wxObject, so re-root it to the
+    // Object handle instead of emitting a self-referential Deref.
+    for (auto& group: groups)
+    {
+        ClassInfo& classInfo = group.second;
+        if (!WrapsObject(classInfo) && RustModuleName(classInfo.parent) == group.first)
+        {
+            classInfo.parent.clear();
         }
     }
 
@@ -1846,8 +1965,9 @@ static void AddMixinMethods(const ParsedFFI& ffi, std::map<std::string, ClassInf
     return classes;
 }
 
-// Emit the wrapper methods for a class inside an impl block. Destructor methods are never
-// wrapped: handles are non-owning Copy values, so there is no Drop and no delete().
+// Emit the wrapper methods for a class inside an impl block.  A destructor becomes the
+// explicit delete() member: handles are non-owning Copy values, so no Drop is emitted (it
+// would double-free) and delete() is the deliberate opt-in, as in Go and TypeScript.
 static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const std::string& rustName,
                                const ParsedFFI& ffi, const std::string& parentType)
 {
@@ -1857,9 +1977,9 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
     std::set<std::string> supportImports;
     std::set<std::string> classImports;
 
-    const std::set<std::string> parentClasses = BuildParentClassSet(ffi);
+    const std::set<std::string> traitClasses = BuildTraitClassSet(ffi);
     const std::string currentModule = RustModuleName(cls.name);
-    RustConvertContext context { ffi, parentClasses, rustName, supportImports, nullptr };
+    RustConvertContext context { ffi, traitClasses, rustName, supportImports, nullptr };
     const RustReturnContext returnContext { ffi,        rustName,     currentModule,
                                             parentType, classImports, supportImports };
 
@@ -1872,6 +1992,20 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
 
         if (IsDestructor(method))
         {
+            // At most one delete() per handle: a merged class carries both wx*_Delete and
+            // kwx*_Delete.
+            if (!emittedMethods.insert("delete").second)
+            {
+                continue;
+            }
+            body << "    /// Deletes the native object.  Call this only when this handle owns it, "
+                    "i.e.\n";
+            body << "    /// for a value returned by a factory and not handed to wxWidgets; a\n";
+            body << "    /// wx-owned window or child is destroyed by wx.\n";
+            body << "    pub fn delete(&self) {\n";
+            body << "        unsafe { sys::" << CFuncName(method) << "(self.as_ptr()) }\n";
+            body << "    }\n\n";
+            ++methodCount;
             continue;
         }
 
@@ -1958,7 +2092,53 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
             {
                 if (!emittedMethods.insert("new").second)
                 {
-                    continue;  // One short and one full constructor per class
+                    // new/new_full already wrap the wx* base's own constructor, which a merged
+                    // kwx* helper class shares a handle with.  Keep the helper's factory
+                    // reachable under a fallback name instead of dropping it.
+                    const std::string fallbackName = RustFallbackConstructorName(emittedMethods);
+                    emittedMethods.insert(fallbackName);
+
+                    body << "    /// Alternative constructor wrapping `" << cFuncName
+                         << "`; takes every\n";
+                    body << "    /// declared parameter.  `new`/`new_full` wrap the wxWidgets-own "
+                            "constructor.\n";
+                    body << "    pub fn " << fallbackName << "(";
+                    bool firstFallbackParam = true;
+                    for (const auto& safeParam: params)
+                    {
+                        if (!firstFallbackParam)
+                        {
+                            body << ", ";
+                        }
+                        body << safeParam.name << ": " << safeParam.safe_type;
+                        firstFallbackParam = false;
+                    }
+                    body << ") -> Self {\n";
+                    for (const auto& safeParam: params)
+                    {
+                        if (!safeParam.setup.empty())
+                        {
+                            body << "        " << safeParam.setup << "\n";
+                        }
+                    }
+                    body << "        let ptr = unsafe { sys::" << cFuncName << "(";
+                    bool firstFallbackArg = true;
+                    for (const auto& safeParam: params)
+                    {
+                        if (!firstFallbackArg)
+                        {
+                            body << ", ";
+                        }
+                        body << safeParam.ffi_expr;
+                        firstFallbackArg = false;
+                    }
+                    body << ") };\n";
+                    body << "        assert!(!ptr.is_null(), \"" << cFuncName
+                         << " returned null\");\n";
+                    body << "        Self::from_raw(ptr)\n";
+                    body << "    }\n\n";
+                    ++methodCount;
+                    continue;
                 }
                 emittedMethods.insert("new_full");
 
@@ -2041,7 +2221,10 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
         }
         else
         {
-            // Regular method: pub fn method_name(&self, ...) -> RetType
+            // Receiver shape comes from the shared predicate in lang_common.h that the other
+            // backends (go, lua, typescript, julia) consult: a function whose C wrapper takes
+            // no receiver at all is an associated function, so it gets no &self.
+            const bool is_static = IsStaticClassFunction(method, cls, /*member_of_class=*/true);
             const std::string methodName = RustWrapperMethodName(method);
 
             if (!emittedMethods.insert(methodName).second)
@@ -2051,10 +2234,22 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
 
             const SafeReturn ret = ClassifyMethodReturn(method, returnContext);
 
-            body << "    pub fn " << methodName << "(&self";
+            // Regular method: pub fn method_name(&self, ...) -> RetType
+            body << "    pub fn " << methodName << "(";
+            bool first_signature_param = true;
+            if (!is_static)
+            {
+                body << "&self";
+                first_signature_param = false;
+            }
             for (const auto& safeParam: params)
             {
-                body << ", " << safeParam.name << ": " << safeParam.safe_type;
+                if (!first_signature_param)
+                {
+                    body << ", ";
+                }
+                body << safeParam.name << ": " << safeParam.safe_type;
+                first_signature_param = false;
             }
             body << ")";
             if (!ret.type.empty())
@@ -2194,6 +2389,12 @@ void RustEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const P
     out << "    pub(crate) const fn from_raw(ptr: *mut c_void) -> Self {\n";
     out << "        Self(" << parentType << "::from_raw(ptr))\n";
     out << "    }\n\n";
+    out << "    /// Wraps a raw pointer without taking ownership of the native object.\n";
+    out << "    /// Mirrors Go's `XFromPtr` and TypeScript's `(ptr, borrowed = true)`\n";
+    out << "    /// constructor.  The pointer must really be an object of this type.\n";
+    out << "    pub unsafe fn from_ptr(ptr: *mut c_void) -> Self {\n";
+    out << "        Self::from_raw(ptr)\n";
+    out << "    }\n\n";
     out << "    pub fn as_ptr(&self) -> *mut c_void {\n";
     out << "        self.0.as_ptr()\n";
     out << "    }\n";
@@ -2217,20 +2418,13 @@ void RustEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const P
         // Build the full trait chain: immediate parent up to the root.
         const std::vector<std::string> chain = BuildTraitChain(cls, ffi);
 
-        // Collect the set of classes that are used as parents (and thus have traits).
-        std::set<std::string> parentClasses;
-        for (const auto& [child, parent]: ffi.parent_map)
-        {
-            parentClasses.insert(parent);
-        }
-        for (const auto& cls_info: ffi.classes)
-        {
-            if (!cls_info.parent.empty())
-            {
-                parentClasses.insert(cls_info.parent);
-            }
-        }
+        // The trait set is the one traits.rs emits: shared through BuildTraitClassSet so the
+        // two emitters can never disagree about which classes have a trait.
+        const std::set<std::string> traitClasses = BuildTraitClassSet(ffi);
 
+        // A chain can name the same trait twice (kwxLog -> wxLog); a type implements a trait
+        // at most once, so skip a name already emitted for this wrapper.
+        std::set<std::string> implementedTraits;
         for (const auto& parentName: chain)
         {
             const std::string traitName = "Wx" + StripPrefix(parentName);
@@ -2238,14 +2432,14 @@ void RustEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const P
             {
                 continue;  // Already explicitly implemented above
             }
-            if (parentClasses.contains(parentName))
+            if (traitClasses.contains(parentName) && implementedTraits.insert(traitName).second)
             {
                 out << "impl " << traitName << " for " << rustName << " {}\n";
             }
         }
 
-        // If the class itself is used as a parent, it has a trait too.
-        if (parentClasses.contains(cls.name))
+        // Every class with a wrapper has its own trait, so the handle implements it.
+        if (traitClasses.contains(cls.name) && implementedTraits.insert("Wx" + rustName).second)
         {
             out << "impl Wx" << rustName << " for " << rustName << " {}\n";
         }
@@ -2403,6 +2597,12 @@ void RustEmitter::GenerateObject(const ParsedFFI& ffi, const fs::path& srcDir)
     out << "    pub(crate) const fn from_raw(ptr: *mut c_void) -> Self {\n";
     out << "        Self(ptr)\n";
     out << "    }\n\n";
+    out << "    /// Wraps a raw pointer without taking ownership of the native object.\n";
+    out << "    /// Mirrors Go's `XFromPtr` and TypeScript's `(ptr, borrowed = true)`\n";
+    out << "    /// constructor.  The pointer must really be an object of this type.\n";
+    out << "    pub unsafe fn from_ptr(ptr: *mut c_void) -> Self {\n";
+    out << "        Self::from_raw(ptr)\n";
+    out << "    }\n\n";
     out << "    pub fn as_ptr(&self) -> *mut c_void {\n";
     out << "        self.0\n";
     out << "    }\n\n";
@@ -2417,16 +2617,21 @@ void RustEmitter::GenerateObject(const ParsedFFI& ffi, const fs::path& srcDir)
     out << "    }\n";
     out << "}\n\n";
 
-    // wxObject's own methods (GetClassInfo, IsKindOf, ...) live on the root handle.
+    // Every class that lands in the object module (wxObject, then kwxObject whose module name
+    // is also "object") folds into the single root handle impl. Exactly one EmitMethodWrappers
+    // call: its emittedMethods set is what dedupes set_on_get_class_info, which wxObject and
+    // kwxObject both declare.
+    ClassInfo root;
+    root.name = "wxObject";
     for (const ClassInfo& classInfo: ffi.classes)
     {
-        if (classInfo.name != "wxObject")
+        if (RustModuleName(classInfo.name) != "object")
         {
             continue;
         }
-        EmitMethodWrappers(out, classInfo, "Object", ffi, {});
-        break;
+        root.methods.insert(root.methods.end(), classInfo.methods.begin(), classInfo.methods.end());
     }
+    EmitMethodWrappers(out, root, "Object", ffi, {});
 
     std::println(stderr, "  object.rs:           root handle");
 }
@@ -2465,13 +2670,1121 @@ void RustEmitter::GenerateLib(const ParsedFFI& ffi, const fs::path& srcDir,
 
     out << "\n";
 
-    // One module per class file written by GenerateClassFiles.
+    // One module per class file written by GenerateClassFiles. The set is seeded with the core
+    // modules so a class module can never redeclare one of them.
+    std::set<std::string> emittedModules { "sys",    "object", "support",  "traits",
+                                           "events", "keys",   "constants" };
+    if (!ffi.free_functions.empty())
+    {
+        emittedModules.insert("freefuncs");
+    }
+    size_t classModuleCount = 0;
     for (const auto& moduleName: classModules)
     {
+        if (!emittedModules.insert(moduleName).second)
+        {
+            continue;
+        }
         out << "pub mod " << moduleName << ";\n";
+        ++classModuleCount;
     }
 
-    std::println(stderr, "  lib.rs:              {} class modules", classModules.size());
+    std::println(stderr, "  lib.rs:              {} class modules", classModuleCount);
+}
+
+// -------------------------------------------------------------------------
+// UI descriptor (emit-ui / check-ui)
+// -------------------------------------------------------------------------
+
+// EmitClassFile writes this accessor into every generated handle, so it is the only member a
+// descriptor may name without a model method behind it.
+static constexpr std::string_view RUST_POINTER_ACCESSOR { "as_ptr" };
+
+// Handle type a class is emitted as: "wxFrame" → "Frame".
+[[nodiscard]] static std::string UiHandleType(const std::string& class_name)
+{
+    return StripPrefix(class_name);
+}
+
+// True for the constructors EmitMethodWrappers turns into new/new_full or a named factory; a
+// TBool constructor is the two-phase Create() pattern and gets no wrapper.
+[[nodiscard]] static bool EmitsConstructor(const FunctionDecl& method)
+{
+    if (!method.is_constructor || method.has_self)
+    {
+        return false;
+    }
+    return method.return_type.contains('*') || method.return_macro == "TClass" ||
+           method.return_macro == "TSelf";
+}
+
+// The parameters an emitted declaration takes, receiver excluded. This walks the same
+// converter EmitMethodWrappers uses, so the arity and the names cannot drift.
+[[nodiscard]] static std::vector<UiParam>
+    EmittedMethodParams(const FunctionDecl& method, const std::string& rust_name,
+                        const std::set<std::string>& trait_classes, const ParsedFFI& ffi,
+                        bool short_ctor)
+{
+    std::set<std::string> support_imports;
+    std::set<std::string> used_names;
+    const RustConvertContext context { ffi, trait_classes, rust_name, support_imports,
+                                       &used_names };
+
+    std::vector<UiParam> params;
+    bool self_skipped = false;
+    for (const Param& param: method.params)
+    {
+        if (!self_skipped && param.macro_name == "TSelf")
+        {
+            self_skipped = true;
+            continue;
+        }
+        const std::vector<RustSafeParam> expanded = ConvertParamToSafe(param, context);
+        for (const RustSafeParam& safe_param: expanded)
+        {
+            // The short constructor omits every defaulted parameter.
+            if (short_ctor && safe_param.new_excluded)
+            {
+                continue;
+            }
+            params.push_back({ .name = safe_param.name, .type = safe_param.safe_type });
+        }
+    }
+    return params;
+}
+
+// The literal each defaulted constructor parameter receives in the short form.
+[[nodiscard]] static std::map<std::string, std::string>
+    EmittedConstructorSentinels(const FunctionDecl& method, const std::string& rust_name,
+                                const std::set<std::string>& parent_classes, const ParsedFFI& ffi)
+{
+    std::set<std::string> support_imports;
+    std::set<std::string> used_names;
+    const RustConvertContext context { ffi, parent_classes, rust_name, support_imports,
+                                       &used_names };
+
+    std::map<std::string, std::string> sentinels;
+    bool self_skipped = false;
+    for (const Param& param: method.params)
+    {
+        if (!self_skipped && param.macro_name == "TSelf")
+        {
+            self_skipped = true;
+            continue;
+        }
+        const std::vector<RustSafeParam> expanded = ConvertParamToSafe(param, context);
+        for (const RustSafeParam& safe_param: expanded)
+        {
+            // Only a plain literal is a sentinel; a geometry default is an FFI expression.
+            if (safe_param.new_excluded && !safe_param.new_default.empty() &&
+                !safe_param.new_default.contains("::"))
+            {
+                sentinels.emplace(safe_param.name, safe_param.new_default);
+            }
+        }
+    }
+    return sentinels;
+}
+
+// A valid method the class declares itself.
+[[nodiscard]] static const FunctionDecl* FindOwnMethod(const ClassInfo& class_info,
+                                                       const std::string& method_name)
+{
+    for (const FunctionDecl& method: class_info.methods)
+    {
+        if (IsValidFunction(method) && method.method_name == method_name)
+        {
+            return &method;
+        }
+    }
+    return nullptr;
+}
+
+// A mixin method a consumer re-emits, already converted to the consumer's &self shape.
+[[nodiscard]] static std::optional<FunctionDecl> FindMixinMethod(const ParsedFFI& ffi,
+                                                                 const ClassInfo& class_info,
+                                                                 const std::string& method_name)
+{
+    const std::unordered_map<std::string, std::vector<std::string>>::const_iterator mixin_iter =
+        ffi.mixin_map.find(class_info.name);
+    if (mixin_iter == ffi.mixin_map.end())
+    {
+        return std::nullopt;
+    }
+    for (const std::string& mixin_name: mixin_iter->second)
+    {
+        const ClassInfo* const mixin_class = UiFindClass(ffi, mixin_name);
+        if (mixin_class == nullptr)
+        {
+            continue;
+        }
+        for (const FunctionDecl& method: mixin_class->methods)
+        {
+            if (!IsValidFunction(method) || method.is_constructor || method.is_destructor)
+            {
+                continue;
+            }
+            if (method.method_name == method_name)
+            {
+                return AsConsumerMethod(method, mixin_name);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+// Describe the call a UI role makes, resolving the method the way the emitter does and naming
+// it through the emitter's own helpers. `prefer_self` keeps a role that the emitter exposes
+// as an inherent wrapper on the handle itself even though the method is declared on an
+// ancestor (bind, which every generated handle reaches through Deref).
+[[nodiscard]] static UiCallable DescribeRole(const ParsedFFI& ffi, const std::string& class_name,
+                                             const std::string& method_name,
+                                             bool prefer_self = false)
+{
+    UiCallable callable;
+    const ClassInfo* const class_info = UiFindClass(ffi, class_name);
+    if (class_info == nullptr)
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "not_in_profile";
+        return callable;
+    }
+
+    const FunctionDecl* method = FindOwnMethod(*class_info, method_name);
+    std::optional<FunctionDecl> consumer_method;
+    if (method == nullptr)
+    {
+        consumer_method = FindMixinMethod(ffi, *class_info, method_name);
+        if (consumer_method.has_value())
+        {
+            method = &consumer_method.value();
+        }
+    }
+
+    std::string owner_name = class_name;
+    if (method == nullptr)
+    {
+        const FunctionDecl* const inherited = UiFindMethod(ffi, class_name, method_name);
+        if (inherited != nullptr && !inherited->class_name.empty())
+        {
+            method = inherited;
+            owner_name = inherited->class_name;
+        }
+    }
+
+    if (method == nullptr)
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "no_method";
+        return callable;
+    }
+
+    // A destructor becomes the explicit delete() member, which no UI role calls.
+    if (IsDestructor(*method))
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "not_supported";
+        return callable;
+    }
+    // The parser flags every method whose name starts with Create; only a receiver-less one
+    // with an object return is an allocation, and only that gets new/new_full.
+    const bool emits_ctor = EmitsConstructor(*method);
+    if (method->is_constructor && !emits_ctor && !method->has_self)
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "no_method";
+        return callable;
+    }
+
+    const std::set<std::string> trait_classes = BuildTraitClassSet(ffi);
+    const std::string handle = UiHandleType(owner_name);
+    const std::string member_name =
+        emits_ctor ? RustEmittedMethodKey(*method) : RustWrapperMethodName(*method);
+    // `new` drops every defaulted parameter, so its declared arity is the short one.
+    const bool short_ctor = emits_ctor && method->method_name == "Create";
+    callable.symbol = handle + "::" + member_name;
+    callable.params = EmittedMethodParams(*method, handle, trait_classes, ffi, short_ctor);
+    if (emits_ctor)
+    {
+        // A static factory (Bitmap::create_from_base64) allocates and returns a new handle.
+        callable.idiom = "constructor";
+    }
+    else if (owner_name != class_name && !prefer_self)
+    {
+        // The wrapper lives on the ancestor's module but resolves through Deref, so the call
+        // site is the derived handle while the owner stays the declaring class.  The receiver is
+        // the instance itself, so this is method-on-self: method-on-parent is reserved for a
+        // call on the parent that yields a child handle.
+        callable.idiom = "method-on-self";
+        callable.owner = owner_name;
+    }
+    else
+    {
+        callable.idiom = "method-on-self";
+    }
+    if ((method->return_macro == "TClass" || method->return_macro == "TSelf") &&
+        !method->return_arg.empty())
+    {
+        callable.returns = UiHandleType(method->return_arg);
+    }
+    return callable;
+}
+
+// The constructor EmitMethodWrappers turns into `new`: the class's own method named Create().
+// A TBool Create() is the two-phase pattern and gets no wrapper, so it never qualifies.
+[[nodiscard]] static const FunctionDecl* FindCreateConstructor(const ClassInfo& class_info)
+{
+    for (const FunctionDecl& method: class_info.methods)
+    {
+        if (IsValidFunction(method) && method.method_name == "Create" && EmitsConstructor(method))
+        {
+            return &method;
+        }
+    }
+    return nullptr;
+}
+
+// The class whose module RustEmitter::Generate writes for `class_name`.
+// AddClassToEmitGroups merges a kwx* helper into the wx* class that shares its Rust module
+// name, and that merged impl -- including its new() -- wraps the wx* class's Create.  A
+// reserved module (kwxObject -> "object") is written by GenerateObject from the kwxObject
+// methods instead, so it keeps describing itself.
+[[nodiscard]] static std::string RustEmittedOwner(const ParsedFFI& ffi,
+                                                  const std::string& class_name)
+{
+    const std::string module_name = RustModuleName(class_name);
+    if (IsReservedRustModule(module_name))
+    {
+        return class_name;
+    }
+    for (const ClassInfo& candidate: ffi.classes)
+    {
+        if (!candidate.name.starts_with(KWX_PREFIX) &&
+            RustModuleName(candidate.name) == module_name)
+        {
+            return candidate.name;
+        }
+    }
+    return class_name;
+}
+
+// Describe a class constructor as the emitted convenience constructor.
+[[nodiscard]] static UiCallable BuildUiConstructor(const ParsedFFI& ffi,
+                                                   const std::string& class_name)
+{
+    UiCallable callable;
+    const ClassInfo* const class_info = UiFindClass(ffi, class_name);
+    if (class_info == nullptr)
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "not_in_profile";
+        return callable;
+    }
+
+    const FunctionDecl* ctor = FindCreateConstructor(*class_info);
+    if (ctor == nullptr)
+    {
+        // No short Create(): a named factory is the only allocation the class emits.
+        ctor = UiFindConstructor(ffi, class_name);
+    }
+    if (ctor == nullptr || !EmitsConstructor(*ctor))
+    {
+        callable.idiom = "unsupported";
+        callable.reason = "no_method";
+        return callable;
+    }
+
+    // An inherited allocator is emitted on the ancestor's module, not on this class.
+    const std::string owner_name = ctor->class_name.empty() ? class_name : ctor->class_name;
+    const std::string handle = UiHandleType(owner_name);
+    const std::set<std::string> trait_classes = BuildTraitClassSet(ffi);
+    // Only a Create() constructor has the short `new` form; a named factory keeps every param.
+    const bool is_create = ctor->method_name == "Create";
+
+    callable.symbol = handle + "::" + RustEmittedMethodKey(*ctor);
+    callable.params = EmittedMethodParams(*ctor, handle, trait_classes, ffi, is_create);
+    // A Create() factory returns the class handle; a named factory returns what it declares.
+    std::string declared_return = UiHandleType(class_name);
+    if ((ctor->return_macro == "TClass" || ctor->return_macro == "TSelf") &&
+        !ctor->return_arg.empty())
+    {
+        declared_return = UiHandleType(ctor->return_arg);
+    }
+    callable.returns = declared_return;
+    if (owner_name != class_name)
+    {
+        // An inherited allocator is still called to produce this class's handle; the owner stays
+        // the declaring class.  Only a genuine parent-receiver factory would be
+        // method-on-parent, and this path is not one.
+        callable.idiom = "method-on-self";
+        callable.owner = owner_name;
+    }
+    else if (is_create)
+    {
+        callable.idiom = "builder";
+    }
+    else
+    {
+        // A named factory (wxBitmap_CreateFromBase64) still allocates a new handle.
+        callable.idiom = "constructor";
+    }
+
+    std::map<std::string, std::string> sentinels =
+        EmittedConstructorSentinels(*ctor, handle, trait_classes, ffi);
+    if (!sentinels.empty())
+    {
+        callable.sentinels = std::move(sentinels);
+    }
+    return callable;
+}
+
+// How constants.rs spells a constant, or empty when the backend does not emit it. A constant
+// with a known non-pointer value is a `const`, otherwise it stays an accessor function.
+[[nodiscard]] static std::string ConstantSpelling(const ParsedFFI& ffi, const std::string& name)
+{
+    const ConstantDecl* constant = nullptr;
+    for (const ConstantDecl& candidate: ffi.constants)
+    {
+        if (candidate.constant_name == name)
+        {
+            constant = &candidate;
+            break;
+        }
+    }
+    if (constant == nullptr)
+    {
+        return {};
+    }
+    const bool is_pointer = constant->return_type.contains('*');
+    const bool has_value = !is_pointer && ffi.constant_values.contains(name);
+    if (has_value)
+    {
+        return "constants::" + name;
+    }
+    return "constants::" + name + "()";
+}
+
+UiDescriptor RustEmitter::BuildUiDescriptor(const ParsedFFI& ffi) const
+{
+    // --verify calls VerifyUiDescriptor with an empty directory and no model, so keep the
+    // profiled model this descriptor was built from and regenerate the crate there.
+    ui_ffi = std::make_shared<const ParsedFFI>(ffi);
+
+    UiDescriptor descriptor;
+
+    descriptor.naming = {
+        { "class_type", "non-owning Copy newtype: pub struct Frame(pub(crate) Window)" },
+        { "constructor", "associated fn Type::new; Type::new_full keeps every parameter" },
+        { "method", "inherent &self method, snake_case" },
+        { "constant", "constants::NAME (a const, or an accessor fn when no value is known)" },
+        { "module", "src/<snake_case>.rs, declared in lib.rs as pub mod <snake_case>" },
+    };
+
+    // Record the callable, or record why the class cannot express the role.
+    const auto add_role = [&ffi, &descriptor](UiClass& ui_class, const std::string& class_name,
+                                              const std::string& role,
+                                              const std::string& method_name)
+    {
+        UiCallable callable = DescribeRole(ffi, class_name, method_name);
+        if (callable.symbol.empty())
+        {
+            descriptor.unsupported.push_back({ .class_name = class_name,
+                                               .role = role,
+                                               .reason = callable.reason.value_or("no_method") });
+            return;
+        }
+        ui_class.roles.emplace(role, std::move(callable));
+    };
+
+    // Same, for a role the emitter exposes on the handle even though the method is inherited
+    // (bind, which every generated handle reaches through Deref).
+    const auto add_inherited_role =
+        [&ffi, &descriptor](UiClass& ui_class, const std::string& class_name,
+                            const std::string& role, const std::string& method_name)
+    {
+        UiCallable callable = DescribeRole(ffi, class_name, method_name, true);
+        if (callable.symbol.empty())
+        {
+            descriptor.unsupported.push_back({ .class_name = class_name,
+                                               .role = role,
+                                               .reason = callable.reason.value_or("no_method") });
+            return;
+        }
+        ui_class.roles.emplace(role, std::move(callable));
+    };
+
+    const auto add_pointer_role = [](UiClass& ui_class, const std::string& class_name)
+    {
+        UiCallable callable;
+        callable.symbol = UiHandleType(class_name) + "::" + std::string(RUST_POINTER_ACCESSOR);
+        callable.idiom = "method-on-self";
+        ui_class.roles.emplace("ptr", std::move(callable));
+    };
+
+    const auto class_constants = [&ffi](std::initializer_list<std::string_view> names)
+    {
+        std::map<std::string, std::string> constants;
+        for (const std::string_view name: names)
+        {
+            const std::string constant_name(name);
+            const std::string spelling = ConstantSpelling(ffi, constant_name);
+            if (spelling.empty())
+            {
+                continue;
+            }
+            constants.emplace(constant_name, spelling);
+        }
+        return constants;
+    };
+
+    // Describe a required class, or record the whole class as unsupported and return nullptr.
+    const auto describe_class = [&descriptor, &ffi](const std::string& class_name,
+                                                    const std::string& type_name) -> UiClass*
+    {
+        UiCallable ctor = BuildUiConstructor(ffi, class_name);
+        if (ctor.symbol.empty())
+        {
+            descriptor.unsupported.push_back({ .class_name = class_name,
+                                               .role = "",
+                                               .reason = ctor.reason.value_or("no_method") });
+            return nullptr;
+        }
+
+        UiClass ui_class;
+        ui_class.type = type_name;
+        // A Rust class is obtained through an associated builder fn, not a constructor call.
+        ui_class.idiom = ctor.idiom;
+        ui_class.ctor = std::move(ctor);
+        return &descriptor.classes.emplace(class_name, std::move(ui_class)).first->second;
+    };
+
+    if (UiClass* const frame_class = describe_class("wxFrame", "Frame"); frame_class != nullptr)
+    {
+        add_role(*frame_class, "wxFrame", "show", "Show");
+        add_role(*frame_class, "wxFrame", "hide", "Hide");
+        add_role(*frame_class, "wxFrame", "set_title", "SetTitle");
+        add_role(*frame_class, "wxFrame", "set_size", "SetSize");
+        add_role(*frame_class, "wxFrame", "set_min_size", "SetMinSize");
+        add_role(*frame_class, "wxFrame", "center", "Center");
+        add_role(*frame_class, "wxFrame", "set_sizer", "SetSizer");
+        add_role(*frame_class, "wxFrame", "set_font", "SetFont");
+        add_role(*frame_class, "wxFrame", "set_icon", "SetIcon");
+        add_role(*frame_class, "wxFrame", "create_statusbar", "CreateStatusBar");
+        add_role(*frame_class, "wxFrame", "set_menubar", "SetMenuBar");
+        add_inherited_role(*frame_class, "wxFrame", "bind", "Bind");
+        add_inherited_role(*frame_class, "wxFrame", "bind_id", "Bind");
+        add_role(*frame_class, "wxFrame", "destroy", "Destroy");
+        add_pointer_role(*frame_class, "wxFrame");
+        add_role(*frame_class, "wxFrame", "delete", "Delete");
+        frame_class->constants = class_constants({ "DEFAULT_FRAME_STYLE", "ID_ANY" });
+    }
+
+    if (UiClass* const dialog_class = describe_class("wxDialog", "Dialog"); dialog_class != nullptr)
+    {
+        add_role(*dialog_class, "wxDialog", "show", "Show");
+        add_role(*dialog_class, "wxDialog", "hide", "Hide");
+        add_role(*dialog_class, "wxDialog", "set_title", "SetTitle");
+        add_role(*dialog_class, "wxDialog", "set_size", "SetSize");
+        add_role(*dialog_class, "wxDialog", "set_min_size", "SetMinSize");
+        add_role(*dialog_class, "wxDialog", "center", "Center");
+        add_role(*dialog_class, "wxDialog", "set_sizer", "SetSizer");
+        add_role(*dialog_class, "wxDialog", "set_font", "SetFont");
+        add_role(*dialog_class, "wxDialog", "set_icon", "SetIcon");
+        add_role(*dialog_class, "wxDialog", "show_modal", "ShowModal");
+        add_role(*dialog_class, "wxDialog", "end_modal", "EndModal");
+        add_role(*dialog_class, "wxDialog", "set_escape_id", "SetEscapeId");
+        add_role(*dialog_class, "wxDialog", "set_affirmative_id", "SetAffirmativeId");
+        add_inherited_role(*dialog_class, "wxDialog", "bind", "Bind");
+        add_inherited_role(*dialog_class, "wxDialog", "bind_id", "Bind");
+        add_role(*dialog_class, "wxDialog", "destroy", "Destroy");
+        add_pointer_role(*dialog_class, "wxDialog");
+        add_role(*dialog_class, "wxDialog", "delete", "Delete");
+        dialog_class->constants = class_constants({ "ID_ANY" });
+    }
+
+    if (UiClass* const text_class = describe_class("wxTextCtrl", "TextCtrl"); text_class != nullptr)
+    {
+        add_role(*text_class, "wxTextCtrl", "show", "Show");
+        add_role(*text_class, "wxTextCtrl", "hide", "Hide");
+        add_role(*text_class, "wxTextCtrl", "set_value", "SetValue");
+        add_role(*text_class, "wxTextCtrl", "set_label", "SetLabel");
+        add_role(*text_class, "wxTextCtrl", "set_size", "SetSize");
+        add_role(*text_class, "wxTextCtrl", "set_min_size", "SetMinSize");
+        add_role(*text_class, "wxTextCtrl", "set_font", "SetFont");
+        add_role(*text_class, "wxTextCtrl", "set_size_hints", "SetSizeHints");
+        add_inherited_role(*text_class, "wxTextCtrl", "bind", "Bind");
+        add_inherited_role(*text_class, "wxTextCtrl", "bind_id", "Bind");
+        add_role(*text_class, "wxTextCtrl", "destroy", "Destroy");
+        add_pointer_role(*text_class, "wxTextCtrl");
+        add_role(*text_class, "wxTextCtrl", "delete", "Delete");
+        text_class->constants = class_constants({ "ID_ANY" });
+    }
+
+    if (UiClass* const box_sizer_class = describe_class("wxBoxSizer", "BoxSizer");
+        box_sizer_class != nullptr)
+    {
+        add_role(*box_sizer_class, "wxBoxSizer", "add_window", "AddWindow");
+        add_role(*box_sizer_class, "wxBoxSizer", "add_sizer", "AddSizer");
+        add_role(*box_sizer_class, "wxBoxSizer", "add_spacer", "AddSpacer");
+        add_pointer_role(*box_sizer_class, "wxBoxSizer");
+        add_role(*box_sizer_class, "wxBoxSizer", "destroy", "Destroy");
+        add_role(*box_sizer_class, "wxBoxSizer", "delete", "Delete");
+        box_sizer_class->constants = class_constants({ "VERTICAL", "HORIZONTAL" });
+    }
+
+    if (UiClass* const bitmap_class = describe_class("wxStaticBitmap", "StaticBitmap");
+        bitmap_class != nullptr)
+    {
+        add_role(*bitmap_class, "wxStaticBitmap", "set_bitmap", "SetBitmap");
+        add_role(*bitmap_class, "wxStaticBitmap", "set_size", "SetSize");
+        add_role(*bitmap_class, "wxStaticBitmap", "set_min_size", "SetMinSize");
+        add_role(*bitmap_class, "wxStaticBitmap", "show", "Show");
+        add_role(*bitmap_class, "wxStaticBitmap", "hide", "Hide");
+        add_role(*bitmap_class, "wxStaticBitmap", "destroy", "Destroy");
+        add_pointer_role(*bitmap_class, "wxStaticBitmap");
+        add_role(*bitmap_class, "wxStaticBitmap", "delete", "Delete");
+        bitmap_class->constants = class_constants({ "ID_ANY" });
+    }
+
+    if (UiClass* const std_button_class =
+            describe_class("wxStdDialogButtonSizer", "StdDialogButtonSizer");
+        std_button_class != nullptr)
+    {
+        add_role(*std_button_class, "wxStdDialogButtonSizer", "add_button", "AddButton");
+        add_role(*std_button_class, "wxStdDialogButtonSizer", "realize", "Realize");
+        add_role(*std_button_class, "wxStdDialogButtonSizer", "add_window", "AddWindow");
+        add_pointer_role(*std_button_class, "wxStdDialogButtonSizer");
+        add_role(*std_button_class, "wxStdDialogButtonSizer", "destroy", "Destroy");
+        add_role(*std_button_class, "wxStdDialogButtonSizer", "delete", "Delete");
+    }
+
+    if (UiClass* const flags_class = describe_class("wxSizerFlags", "SizerFlags");
+        flags_class != nullptr)
+    {
+        add_role(*flags_class, "wxSizerFlags", "proportion", "Proportion");
+        add_role(*flags_class, "wxSizerFlags", "expand", "Expand");
+        add_role(*flags_class, "wxSizerFlags", "border", "Border");
+        add_role(*flags_class, "wxSizerFlags", "left", "Left");
+        add_role(*flags_class, "wxSizerFlags", "right", "Right");
+        add_role(*flags_class, "wxSizerFlags", "top", "Top");
+        add_role(*flags_class, "wxSizerFlags", "bottom", "Bottom");
+        add_role(*flags_class, "wxSizerFlags", "align_h", "CenterHorizontal");
+        add_role(*flags_class, "wxSizerFlags", "align_v", "CenterVertical");
+        add_role(*flags_class, "wxSizerFlags", "delete", "Delete");
+        flags_class->constants = class_constants({ "EXPAND", "ALL", "ALIGN_CENTER", "ALIGN_LEFT",
+                                                   "ALIGN_RIGHT", "ALIGN_TOP", "ALIGN_BOTTOM" });
+    }
+
+    // --- global blocks -----------------------------------------------------
+    descriptor.sizers.wx_box_sizer.ctor = BuildUiConstructor(ffi, "wxBoxSizer");
+    descriptor.sizers.wx_box_sizer.add_window = DescribeRole(ffi, "wxBoxSizer", "AddWindow");
+    descriptor.sizers.wx_box_sizer.add_sizer = DescribeRole(ffi, "wxBoxSizer", "AddSizer");
+    descriptor.sizers.wx_box_sizer.add_spacer = DescribeRole(ffi, "wxBoxSizer", "AddSpacer");
+
+    descriptor.sizers.flags.ctor = BuildUiConstructor(ffi, "wxSizerFlags");
+    descriptor.sizers.flags.proportion = DescribeRole(ffi, "wxSizerFlags", "Proportion");
+    descriptor.sizers.flags.expand = DescribeRole(ffi, "wxSizerFlags", "Expand");
+    descriptor.sizers.flags.border = DescribeRole(ffi, "wxSizerFlags", "Border");
+    descriptor.sizers.flags.left = DescribeRole(ffi, "wxSizerFlags", "Left");
+    descriptor.sizers.flags.right = DescribeRole(ffi, "wxSizerFlags", "Right");
+    descriptor.sizers.flags.top = DescribeRole(ffi, "wxSizerFlags", "Top");
+    descriptor.sizers.flags.bottom = DescribeRole(ffi, "wxSizerFlags", "Bottom");
+    descriptor.sizers.flags.align_h = DescribeRole(ffi, "wxSizerFlags", "CenterHorizontal");
+    descriptor.sizers.flags.align_v = DescribeRole(ffi, "wxSizerFlags", "CenterVertical");
+
+    // rust binds through EvtHandler::bind(first, last, type, closure), with id expressed by
+    // passing the same value for both ends of the range.
+    descriptor.events.bind = DescribeRole(ffi, "wxEvtHandler", "Bind", true);
+    descriptor.events.bind_id = DescribeRole(ffi, "wxEvtHandler", "Bind", true);
+    descriptor.events.handler_type = "&impl WxObject (a crate::closure::Closure handle)";
+
+    descriptor.bitmap.from_base64 = DescribeRole(ffi, "wxBitmap", "CreateFromBase64");
+    descriptor.bitmap.get_bitmap = DescribeRole(ffi, "wxStaticBitmap", "GetBitmap");
+    descriptor.bitmap.delete_fn = DescribeRole(ffi, "wxBitmap", "Delete");
+
+    descriptor.font.create = BuildUiConstructor(ffi, "wxFont");
+    descriptor.font.delete_fn = DescribeRole(ffi, "wxFont", "Delete");
+
+    descriptor.std_buttons.create = BuildUiConstructor(ffi, "wxStdDialogButtonSizer");
+    descriptor.std_buttons.add_button = DescribeRole(ffi, "wxStdDialogButtonSizer", "AddButton");
+    descriptor.std_buttons.realize = DescribeRole(ffi, "wxStdDialogButtonSizer", "Realize");
+
+    descriptor.app.entry = "main";
+    descriptor.app.entry_signature = "fn main()";
+    descriptor.app.emit_entry = false;
+    // The generated crate exposes App::get_top_window only; kwxRust consumers supply
+    // app::set_top_window in their own prelude.
+    descriptor.app.set_top_window =
+        UiCallable { .idiom = "unsupported", .reason = "hand_maintained" };
+
+    // Every other class the selection names still gets a constructor entry when this backend
+    // wraps it, so a consumer can tell "not modelled" from "the model has no such class".
+    // A class this backend cannot express is recorded as unsupported instead of dropped, and a
+    // class the model does not contain at all is left for main's not_in_profile accounting.
+    // For --classes form the resolved list is exactly the seven classes described above, so this
+    // loop adds nothing.
+    std::vector<std::string> missing;
+    const std::vector<std::string> selected_classes =
+        UiResolveClassSelection(ffi, ui_class_selection_, missing);
+
+    const CoverageInfo coverage = Coverage(ffi);
+    const std::unordered_set<std::string> wrapped(coverage.wrapped_classes.begin(),
+                                                  coverage.wrapped_classes.end());
+    for (const std::string& class_name: selected_classes)
+    {
+        if (UiIsRequiredClass(class_name) || descriptor.classes.contains(class_name))
+        {
+            continue;  // owned by describe_class / add_role above
+        }
+        if (UiFindClass(ffi, class_name) == nullptr)
+        {
+            continue;
+        }
+        // A generic ctor may only name a wrapper this backend actually generates; the classes
+        // absent from the coverage report are hand-maintained, skipped or consumer-provided.
+        if (!wrapped.contains(class_name))
+        {
+            descriptor.unsupported.push_back(
+                { .class_name = class_name, .role = "", .reason = "not_supported" });
+            continue;
+        }
+        if (UiFindCanonicalConstructor(ffi, class_name) == nullptr)
+        {
+            descriptor.unsupported.push_back(
+                { .class_name = class_name, .role = "", .reason = "no_method" });
+            continue;
+        }
+
+        // BuildUiConstructor spells the symbol and the return handle exactly as Generate does,
+        // for the class that owns the emitted module: a kwx* helper merged into its wx*
+        // counterpart has no impl block of its own, so the wx* class's Create becomes new().
+        const std::string emitted_owner = RustEmittedOwner(ffi, class_name);
+        const std::string type_name = UiHandleType(emitted_owner);
+        UiCallable ctor = BuildUiConstructor(ffi, emitted_owner);
+        // EmitMethodWrappers takes `new` from a Create constructor in the module's own method
+        // list and writes it on the module's handle, so a declaration the parser filed under a
+        // differently named class -- wxMBConvUTF8_Create listed on wxMBConv -- is spelled
+        // MBConv::new.  A constructor reached through an ancestor keeps the ancestor's handle:
+        // that is the impl which emits it.
+        const ClassInfo* const emitted_class = UiFindClass(ffi, emitted_owner);
+        if (emitted_class != nullptr && FindCreateConstructor(*emitted_class) != nullptr)
+        {
+            const std::size_t handle_separator = ctor.symbol.find("::");
+            if (handle_separator != std::string::npos &&
+                ctor.symbol.substr(0, handle_separator) != type_name)
+            {
+                ctor.symbol = type_name + ctor.symbol.substr(handle_separator);
+            }
+        }
+        if (ctor.symbol.empty() || type_name.empty())
+        {
+            descriptor.unsupported.push_back({ .class_name = class_name,
+                                               .role = "ctor",
+                                               .reason = ctor.reason.value_or("no_naming") });
+            continue;
+        }
+
+        UiClass class_info;
+        class_info.type = type_name;
+        // The class idiom follows the ctor (builder for Create(), constructor for a factory),
+        // exactly as describe_class sets it for a required class.
+        class_info.idiom = ctor.idiom;
+        class_info.ctor = std::move(ctor);
+        descriptor.classes.emplace(class_name, std::move(class_info));
+    }
+
+    return descriptor;
+}
+
+// -------------------------------------------------------------------------
+// UI descriptor verification
+// -------------------------------------------------------------------------
+
+[[nodiscard]] static std::string TrimAscii(const std::string& text)
+{
+    const std::size_t first = text.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos)
+    {
+        return {};
+    }
+    const std::size_t last = text.find_last_not_of(" \t\r\n");
+    return text.substr(first, last - first + 1);
+}
+
+[[nodiscard]] static bool IsReceiverParam(const std::string& param_text)
+{
+    const std::string text = TrimAscii(param_text);
+    return text == "&self" || text == "self" || text == "&mut self" || text == "mut self";
+}
+
+// Count the parameters in a parameter-list text (already without the outer parentheses),
+// ignoring the implicit receiver. `&self` is the only receiver EmitMethodWrappers writes.
+[[nodiscard]] static std::size_t CountParamList(const std::string& param_list)
+{
+    std::size_t count = 0;
+    std::string current;
+    int angle_depth = 0;
+    int paren_depth = 0;
+    const auto flush = [&count, &current]()
+    {
+        if (!TrimAscii(current).empty() && !IsReceiverParam(current))
+        {
+            ++count;
+        }
+        current.clear();
+    };
+
+    for (const char character: param_list)
+    {
+        if (character == '<')
+        {
+            ++angle_depth;
+            current += character;
+            continue;
+        }
+        if (character == '>')
+        {
+            --angle_depth;
+            current += character;
+            continue;
+        }
+        if (character == '(')
+        {
+            ++paren_depth;
+            current += character;
+            continue;
+        }
+        if (character == ')')
+        {
+            --paren_depth;
+            current += character;
+            continue;
+        }
+        if (character == ',' && angle_depth == 0 && paren_depth == 0)
+        {
+            flush();
+            continue;
+        }
+        current += character;
+    }
+    flush();
+    return count;
+}
+
+// The type an `impl` header opens: `Frame`, `WxObject for Frame`, `Deref for Frame` → Frame.
+[[nodiscard]] static std::string ImplTypeName(const std::string& header)
+{
+    std::string text = TrimAscii(header);
+    const std::size_t for_pos = text.find(" for ");
+    if (for_pos != std::string::npos)
+    {
+        text = TrimAscii(text.substr(for_pos + 5));
+    }
+    const std::size_t stop = text.find_first_of("< {");
+    if (stop != std::string::npos)
+    {
+        text = text.substr(0, stop);
+    }
+    return TrimAscii(text);
+}
+
+// One `pub fn` declaration found inside an impl block.
+struct UiEmittedDeclaration
+{
+    std::string type_name;
+    std::string function_name;
+    std::size_t param_count = 0;
+};
+
+// Record every `fn name(...)` declared directly in an impl body.
+static void ScanImplBody(const std::string& type_name, const std::string& body,
+                         std::vector<UiEmittedDeclaration>& emitted)
+{
+    if (type_name.empty())
+    {
+        return;
+    }
+
+    std::size_t cursor = 0;
+    while (true)
+    {
+        const std::size_t fn_pos = body.find("fn ", cursor);
+        if (fn_pos == std::string::npos)
+        {
+            return;
+        }
+        if (fn_pos > 0 && (std::isalnum(static_cast<unsigned char>(body[fn_pos - 1])) != 0 ||
+                           body[fn_pos - 1] == '_'))
+        {
+            cursor = fn_pos + 3;
+            continue;
+        }
+
+        std::size_t name_end = fn_pos + 3;
+        while (name_end < body.size() &&
+               (std::isalnum(static_cast<unsigned char>(body[name_end])) != 0 ||
+                body[name_end] == '_'))
+        {
+            ++name_end;
+        }
+        const std::string function_name = body.substr(fn_pos + 3, name_end - fn_pos - 3);
+
+        const std::size_t open = body.find('(', name_end);
+        if (open == std::string::npos)
+        {
+            return;
+        }
+        // `fn` inside a comment or string has a statement terminator before any parameter list.
+        const std::size_t stray = body.find_first_of("{;\n", name_end);
+        if (stray != std::string::npos && stray < open)
+        {
+            cursor = open;
+            continue;
+        }
+
+        std::string param_list;
+        int depth = 0;
+        std::size_t index = open;
+        bool closed = false;
+        for (; index < body.size(); ++index)
+        {
+            const char character = body[index];
+            if (character == '(')
+            {
+                ++depth;
+                if (depth > 1)
+                {
+                    param_list += character;
+                }
+                continue;
+            }
+            if (character == ')')
+            {
+                --depth;
+                if (depth == 0)
+                {
+                    closed = true;
+                    break;
+                }
+                param_list += character;
+                continue;
+            }
+            param_list += character;
+        }
+        if (!closed)
+        {
+            return;
+        }
+
+        UiEmittedDeclaration declaration;
+        declaration.type_name = type_name;
+        declaration.function_name = function_name;
+        declaration.param_count = CountParamList(param_list);
+        emitted.push_back(std::move(declaration));
+        cursor = index + 1;
+    }
+}
+
+// Record every fn declared in every impl block of a source file, however it is laid out.
+static void ScanRustSource(const std::string& text, std::vector<UiEmittedDeclaration>& emitted)
+{
+    std::size_t cursor = 0;
+    while (true)
+    {
+        const std::size_t impl_pos = text.find("impl", cursor);
+        if (impl_pos == std::string::npos)
+        {
+            return;
+        }
+        if (impl_pos > 0 && (std::isalnum(static_cast<unsigned char>(text[impl_pos - 1])) != 0 ||
+                             text[impl_pos - 1] == '_'))
+        {
+            cursor = impl_pos + 4;
+            continue;
+        }
+        // Ignore the word inside a line comment, which would otherwise look like a header.
+        const std::size_t line_start = text.rfind('\n', impl_pos);
+        const std::size_t line_begin = line_start == std::string::npos ? 0 : line_start + 1;
+        if (text.find("//", line_begin) < impl_pos)
+        {
+            cursor = impl_pos + 4;
+            continue;
+        }
+
+        const std::size_t open = text.find('{', impl_pos);
+        if (open == std::string::npos)
+        {
+            return;
+        }
+        const std::string header = text.substr(impl_pos + 4, open - impl_pos - 4);
+        // A header mentions no path and spans no line, which keeps prose in comments out.
+        if (header.find('\n') != std::string::npos || header.find('/') != std::string::npos ||
+            header.find(';') != std::string::npos)
+        {
+            cursor = open + 1;
+            continue;
+        }
+
+        int depth = 0;
+        std::size_t close = std::string::npos;
+        for (std::size_t index = open; index < text.size(); ++index)
+        {
+            if (text[index] == '{')
+            {
+                ++depth;
+                continue;
+            }
+            if (text[index] == '}')
+            {
+                --depth;
+                if (depth == 0)
+                {
+                    close = index;
+                    break;
+                }
+            }
+        }
+        if (close == std::string::npos)
+        {
+            return;
+        }
+
+        const std::string body = text.substr(open + 1, close - open - 1);
+        ScanImplBody(ImplTypeName(header), body, emitted);
+        cursor = close + 1;
+    }
+}
+
+// Every callable a descriptor declares, labelled with its dotted path.
+static void CollectUiCallables(const UiDescriptor& descriptor,
+                               std::vector<std::pair<std::string, const UiCallable*>>& declared)
+{
+    for (const auto& [class_name, class_info]: descriptor.classes)
+    {
+        declared.emplace_back(class_name + ".ctor", &class_info.ctor);
+        for (const auto& [role, callable]: class_info.roles)
+        {
+            declared.emplace_back(class_name + "." + role, &callable);
+        }
+    }
+
+    declared.emplace_back("sizers.wxBoxSizer.ctor", &descriptor.sizers.wx_box_sizer.ctor);
+    declared.emplace_back("sizers.wxBoxSizer.add_window",
+                          &descriptor.sizers.wx_box_sizer.add_window);
+    declared.emplace_back("sizers.wxBoxSizer.add_sizer", &descriptor.sizers.wx_box_sizer.add_sizer);
+    declared.emplace_back("sizers.wxBoxSizer.add_spacer",
+                          &descriptor.sizers.wx_box_sizer.add_spacer);
+
+    declared.emplace_back("sizers.flags.ctor", &descriptor.sizers.flags.ctor);
+    declared.emplace_back("sizers.flags.proportion", &descriptor.sizers.flags.proportion);
+    declared.emplace_back("sizers.flags.expand", &descriptor.sizers.flags.expand);
+    declared.emplace_back("sizers.flags.border", &descriptor.sizers.flags.border);
+    declared.emplace_back("sizers.flags.left", &descriptor.sizers.flags.left);
+    declared.emplace_back("sizers.flags.right", &descriptor.sizers.flags.right);
+    declared.emplace_back("sizers.flags.top", &descriptor.sizers.flags.top);
+    declared.emplace_back("sizers.flags.bottom", &descriptor.sizers.flags.bottom);
+    declared.emplace_back("sizers.flags.align_h", &descriptor.sizers.flags.align_h);
+    declared.emplace_back("sizers.flags.align_v", &descriptor.sizers.flags.align_v);
+
+    declared.emplace_back("events.bind", &descriptor.events.bind);
+    declared.emplace_back("events.bind_id", &descriptor.events.bind_id);
+    declared.emplace_back("bitmap.from_base64", &descriptor.bitmap.from_base64);
+    declared.emplace_back("bitmap.get_bitmap", &descriptor.bitmap.get_bitmap);
+    declared.emplace_back("bitmap.delete", &descriptor.bitmap.delete_fn);
+    declared.emplace_back("font.create", &descriptor.font.create);
+    declared.emplace_back("font.delete", &descriptor.font.delete_fn);
+    declared.emplace_back("std_buttons.create", &descriptor.std_buttons.create);
+    declared.emplace_back("std_buttons.add_button", &descriptor.std_buttons.add_button);
+    declared.emplace_back("std_buttons.realize", &descriptor.std_buttons.realize);
+    declared.emplace_back("app.set_top_window", &descriptor.app.set_top_window);
+}
+
+std::vector<std::string>
+    RustEmitter::VerifyUiDescriptor(const UiDescriptor& descriptor,
+                                    const std::filesystem::path& generated_dir) const
+{
+    std::vector<std::string> mismatches;
+
+    // The descriptor is verified against the crate this backend would write for the same
+    // model, so the scanned tree is generated here rather than assumed to exist. Generate()
+    // is non-const, hence the throwaway instance.
+    if (ui_ffi == nullptr)
+    {
+        return mismatches;
+    }
+    RustEmitter generator;
+    generator.Generate(*ui_ffi, generated_dir);
+
+    std::error_code status_error;
+    if (!fs::is_directory(generated_dir, status_error))
+    {
+        return mismatches;
+    }
+
+    std::vector<fs::path> rust_files;
+    for (const auto& entry: fs::recursive_directory_iterator(
+             generated_dir, fs::directory_options::skip_permission_denied))
+    {
+        std::error_code entry_error;
+        if (!entry.is_regular_file(entry_error) || entry_error)
+        {
+            continue;
+        }
+        if (entry.path().extension() == ".rs")
+        {
+            rust_files.push_back(entry.path());
+        }
+    }
+    std::ranges::sort(rust_files);
+
+    std::vector<UiEmittedDeclaration> declarations;
+    for (const fs::path& file_path: rust_files)
+    {
+        std::ifstream input(file_path);
+        if (!input.is_open())
+        {
+            continue;
+        }
+
+        std::ostringstream buffer;
+        buffer << input.rdbuf();
+        ScanRustSource(buffer.str(), declarations);
+    }
+
+    std::vector<std::pair<std::string, const UiCallable*>> declared;
+    CollectUiCallables(descriptor, declared);
+
+    for (const auto& [label, callable]: declared)
+    {
+        if (callable->symbol.empty())
+        {
+            continue;
+        }
+
+        const std::size_t separator = callable->symbol.find("::");
+        if (separator == std::string::npos)
+        {
+            mismatches.push_back("MISMATCH " + label + " " + callable->symbol);
+            continue;
+        }
+        const std::string type_name = callable->symbol.substr(0, separator);
+        const std::string function_name = callable->symbol.substr(separator + 2);
+
+        const bool matched = std::ranges::any_of(
+            declarations,
+            [&type_name, &function_name, &callable](const UiEmittedDeclaration& declaration)
+            {
+                return declaration.type_name == type_name &&
+                       declaration.function_name == function_name &&
+                       declaration.param_count == callable->params.size();
+            });
+        if (!matched)
+        {
+            mismatches.push_back("MISMATCH " + label + " " + callable->symbol);
+        }
+    }
+
+    return mismatches;
 }
 
 // NOLINTEND(readability-magic-string)

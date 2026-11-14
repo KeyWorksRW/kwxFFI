@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>  // size_t
 #include <stdint.h>  // uint8_t, uint32_t, int64_t, intptr_t, uintptr_t
 #include <time.h>    // time_t
 
@@ -21,6 +22,16 @@
 #undef TIntPtr
 #undef TBool
 #undef TBoolInt
+#undef TIntOut
+#undef TLongOut
+#undef TDoubleOut
+#undef TBoolOut
+#undef TUIntOut
+#undef TSizeTOut
+#undef TInt64Out
+#undef TIntInOut
+#undef TDoubleInOut
+#undef TULongInOut
 #undef TClass
 #undef TClassOwned
 #undef TSelf
@@ -58,6 +69,16 @@
 #undef TArrayObjectOut
 #undef TArrayObjectOutVoid
 #undef TColorRGB
+#undef TBytesIn
+#undef TBytesOut
+#undef TByteOut
+#undef TCharOut
+#undef TIntArrayIn
+#undef TIntArrayOut
+#undef TDoubleArrayOut
+#undef TIntIn
+#undef TBoolIn
+#undef TCookie
 
 /* Class definitions */
 #define TClassDef(tp)
@@ -91,6 +112,40 @@
 
 /* boolean as int */
 #define TBoolInt int
+
+/* scalar values passed through a pointer.
+   "Out" means the callee only writes the value, so the caller needs no initialization.
+   "InOut" means the callee also reads the incoming value, so a binding must not discard
+   the caller's initialization (Fortran uses INTENT(INOUT)).  Keeping the pointee type in
+   the macro name lets every binding generator map the parameter without reading the
+   implementation. */
+#define TIntOut      int*
+#define TLongOut     long*
+#define TDoubleOut   double*
+#define TBoolOut     TBool*
+#define TUIntOut     unsigned*
+#define TSizeTOut    size_t* /* single out size_t; NOT the TSizeOut geometry expansion (int*) */
+#define TInt64Out    TInt64* /* single out 64-bit integer */
+#define TIntInOut    int*
+#define TDoubleInOut double*
+#define TULongInOut  unsigned long*
+
+/* Descriptive pointer macros for buffers and arrays.  The macro name carries the intent a
+   binding generator cannot recover from a bare C pointer: byte buffer vs single byte, input
+   vs output, an array of a known element type, or a pointer whose only purpose is to return
+   a value.  Their C expansions keep the ABI identical to the hand-written spellings they
+   replace. */
+
+#define TBytesIn        const unsigned char* /* input byte buffer */
+#define TBytesOut       unsigned char*       /* output byte buffer */
+#define TByteOut        unsigned char*       /* single output byte */
+#define TCharOut        TChar*               /* single output character */
+#define TIntArrayIn     const int*           /* input int array */
+#define TIntArrayOut    int*                 /* output int array */
+#define TDoubleArrayOut double*              /* output double array */
+#define TIntIn          int*   /* single input int, pointer is retained by the callee */
+#define TBoolIn         TBool* /* single input bool as int, pointer is retained */
+#define TCookie         void** /* opaque cookie in/out pointer */
 
 /* classes.
    "Ref" is used for classes assigned by reference.

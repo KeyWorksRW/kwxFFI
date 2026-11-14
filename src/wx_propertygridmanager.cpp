@@ -21,6 +21,23 @@ extern "C"
     }
 
     // Page management
+    // The manager takes ownership of a page object passed to these methods.
+    EXPORT wxPropertyGridPage* wxPropertyGridManager_AddPageObject(wxPropertyGridManager* self,
+                                                                   wxString* label,
+                                                                   wxBitmapBundle* bitmap,
+                                                                   wxPropertyGridPage* page)
+    {
+        return self->AddPage(*label, bitmap ? *bitmap : wxBitmapBundle(), page);
+    }
+
+    EXPORT wxPropertyGridPage* wxPropertyGridManager_InsertPageObject(wxPropertyGridManager* self,
+                                                                      int index, wxString* label,
+                                                                      wxBitmapBundle* bitmap,
+                                                                      wxPropertyGridPage* page)
+    {
+        return self->InsertPage(index, *label, bitmap ? *bitmap : wxBitmapBundle(), page);
+    }
+
     EXPORT wxPropertyGridPage* wxPropertyGridManager_AddPage(wxPropertyGridManager* self,
                                                              wxString* label, wxBitmapBundle* bmp)
     {
@@ -598,6 +615,18 @@ extern "C"
     EXPORT void wxPropertyGridPage_RefreshProperty(wxPropertyGridPage* self, wxPGProperty* property)
     {
         self->RefreshProperty(property);
+    }
+
+    EXPORT wxPropertyGridPage* wxPropertyGridPage_Create()
+    {
+        return new wxPropertyGridPage();
+    }
+
+    // A page handed to the manager is owned by the manager; do not delete it
+    // afterwards.
+    EXPORT void wxPropertyGridPage_Delete(wxPropertyGridPage* self)
+    {
+        delete self;
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----

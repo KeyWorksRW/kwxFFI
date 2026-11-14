@@ -6,6 +6,7 @@
 //   2. Safe Rust types for wrapper structs (i32, bool, f64, etc.)
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <sstream>
 #include <string>
@@ -112,6 +113,66 @@ inline std::string RustFFIReturnType(const std::string& return_type,
     return "c_int";
 }
 
+// FFI type for the pointee behind a scalar-pointer macro.
+[[nodiscard]] inline std::string RustScalarPointerFfiType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "*mut c_long";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "*mut c_ulong";
+    }
+    if (c_type == "double")
+    {
+        return "*mut c_double";
+    }
+    if (c_type == "unsigned")
+    {
+        return "*mut c_uint";
+    }
+    if (c_type == "size_t")
+    {
+        return "*mut usize";
+    }
+    if (c_type == "int64_t")
+    {
+        return "*mut i64";
+    }
+    return "*mut c_int";
+}
+
+// Safe wrapper type for the same parameter; the call site casts it to the FFI pointee.
+[[nodiscard]] inline std::string RustScalarPointerSafeType(const std::string& c_type)
+{
+    if (c_type == "long")
+    {
+        return "*mut i64";
+    }
+    if (c_type == "unsigned long")
+    {
+        return "*mut u64";
+    }
+    if (c_type == "double")
+    {
+        return "*mut f64";
+    }
+    if (c_type == "unsigned")
+    {
+        return "*mut u32";
+    }
+    if (c_type == "size_t")
+    {
+        return "*mut usize";
+    }
+    if (c_type == "int64_t")
+    {
+        return "*mut i64";
+    }
+    return "*mut i32";
+}
+
 // Split comma-separated macro arg: "x, y" → {"x", "y"}
 inline std::vector<std::string> RustSplitMacroArg(const std::string& arg)
 {
@@ -167,6 +228,16 @@ inline std::vector<RustFFIParam> ExpandParamToRustFFI(const Param& param)
         return result;
     }
 
+    // Output long geometry parameters → *mut c_long pointers
+    if (param.macro_name == "TPointOutLong" || param.macro_name == "TSizeOutLong")
+    {
+        for (auto& n: RustSplitMacroArg(param.macro_arg))
+        {
+            result.push_back({ "*mut c_long", RustEscapeName(n) });
+        }
+        return result;
+    }
+
     // Output geometry void pointers
     if (param.macro_name == "TPointOutVoid" || param.macro_name == "TSizeOutVoid" ||
         param.macro_name == "TRectOutVoid" || param.macro_name == "TVectorOutVoid")
@@ -213,6 +284,21 @@ inline std::vector<RustFFIParam> ExpandParamToRustFFI(const Param& param)
     {
         const std::string name = param.param_name.empty() ? "arr" : param.param_name;
         result.push_back({ "*mut c_void", RustEscapeName(name) });
+        return result;
+    }
+
+    if (IsTypedPointerMacro(param.raw_type))
+    {
+        result.push_back(
+            { "*mut c_void", RustEscapeName(param.param_name.empty() ? "arg" : param.param_name) });
+        return result;
+    }
+
+    // Scalar value passed through a pointer.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param, scalar_pointer))
+    {
+        result.push_back({ RustScalarPointerFfiType(scalar_pointer.c_type),
+                           RustEscapeName(param.param_name.empty() ? "arg" : param.param_name) });
         return result;
     }
 

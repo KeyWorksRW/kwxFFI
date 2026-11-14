@@ -17,6 +17,13 @@ extern "C"
                                        style);
     }
 
+    EXPORT void* wxStaticBox_CreateWithLabelWindow(wxWindow* parent, int id, wxWindow* label, int x,
+                                                   int y, int width, int height, int style)
+    {
+        return (void*) new wxStaticBox(parent, id, label, wxPoint(x, y), wxSize(width, height),
+                                       style);
+    }
+
     EXPORT void wxStaticBox_GetBordersForSizer(wxStaticBox* self, int* borderTop, int* borderOther)
     {
         self->GetBordersForSizer(borderTop, borderOther);

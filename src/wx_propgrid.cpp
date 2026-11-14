@@ -5,6 +5,28 @@
 
 #include "kwx_wrapper.h"
 
+#include <wx/xrc/xh_propgrid.h>
+
+// wxPropertyGridInterface is a mixin base of wxPropertyGrid, wxPropertyGridManager
+// and wxPropertyGridPage. It is a non-primary base in all three hierarchies, so a
+// wxPropertyGridInterface* is not the same address as the concrete object pointer
+// that kwxgen passes in (void*). Cross-cast through wxObject -- the unique
+// polymorphic base shared by all three consumers -- with dynamic_cast.
+static inline wxPropertyGridInterface* AsPropertyGridInterface(void* self)
+{
+    return dynamic_cast<wxPropertyGridInterface*>(static_cast<wxObject*>(self));
+}
+
+// wxSystemColourProperty::ColToInd() is protected, so a local subclass makes the
+// member public for the FFI wrapper (the same pattern as kwxGenericAboutDialog in
+// wx_aboutdlg.cpp).  The objects themselves are plain wxSystemColourProperty
+// instances, hence static_cast rather than dynamic_cast.
+class kwxSystemColourPropertyAccess : public wxSystemColourProperty
+{
+public:
+    using wxSystemColourProperty::ColToInd;
+};
+
 // ===========================================================================
 // wxPGEditor
 // ===========================================================================
@@ -194,6 +216,272 @@ extern "C"
     }
 
     // =======================================================================
+    // wxPGChoices / wxPGChoiceEntry
+    // =======================================================================
+
+    EXPORT wxPGChoices* wxPGChoices_Create()
+    {
+        return new wxPGChoices();
+    }
+
+    EXPORT void wxPGChoices_Delete(wxPGChoices* self)
+    {
+        delete self;
+    }
+
+    EXPORT unsigned int wxPGChoices_GetCount(wxPGChoices* self)
+    {
+        return self->GetCount();
+    }
+
+    EXPORT wxString* wxPGChoices_GetLabel(wxPGChoices* self, unsigned int index)
+    {
+        return new wxString(self->GetLabel(index));
+    }
+
+    EXPORT int wxPGChoices_GetValue(wxPGChoices* self, unsigned int index)
+    {
+        return self->GetValue(index);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_Item(wxPGChoices* self, unsigned int index)
+    {
+        if (!self->IsOk() || index >= self->GetCount())
+        {
+            return nullptr;
+        }
+
+        return &self->Item(index);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_Add(wxPGChoices* self, wxString* label, int value)
+    {
+        if (!label)
+        {
+            return nullptr;
+        }
+
+        return &self->Add(*label, value);
+    }
+
+    EXPORT wxPGChoiceEntry* wxPGChoices_AddAsSorted(wxPGChoices* self, wxString* label, int value)
+    {
+        if (!label)
+        {
+            return nullptr;
+        }
+
+        return &self->AddAsSorted(*label, value);
+    }
+
+    EXPORT void wxPGChoices_AddStrings(wxPGChoices* self, wxArrayString* labels, wxArrayInt* values)
+    {
+        if (!labels || !values)
+        {
+            return;
+        }
+
+        self->Add(*labels, *values);
+    }
+
+    EXPORT void wxPGChoices_Set(wxPGChoices* self, wxArrayString* labels, wxArrayInt* values)
+    {
+        self->Set(labels ? *labels : wxArrayString(), values ? *values : wxArrayInt());
+    }
+
+    EXPORT void wxPGChoices_RemoveAt(wxPGChoices* self, unsigned int index, unsigned int count)
+    {
+        self->RemoveAt(index, count);
+    }
+
+    EXPORT int wxPGChoices_Index(wxPGChoices* self, wxString* label)
+    {
+        if (!label)
+        {
+            return wxNOT_FOUND;
+        }
+
+        return self->Index(*label);
+    }
+
+    EXPORT int wxPGChoices_IndexValue(wxPGChoices* self, int value)
+    {
+        return self->Index(value);
+    }
+
+    EXPORT void wxPGChoices_Clear(wxPGChoices* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT int wxPGChoices_IsOk(wxPGChoices* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT wxPGChoices* wxPGChoices_Copy(wxPGChoices* self)
+    {
+        return new wxPGChoices(self->Copy());
+    }
+
+    EXPORT void wxPGChoiceEntry_SetValue(wxPGChoiceEntry* self, int value)
+    {
+        self->SetValue(value);
+    }
+
+    EXPORT int wxPGChoiceEntry_GetValue(wxPGChoiceEntry* self)
+    {
+        return self->GetValue();
+    }
+
+    // =======================================================================
+    // Choices on a property, and the choices-taking property constructors
+    // =======================================================================
+
+    EXPORT int wxPGProperty_SetChoices(wxPGProperty* self, wxPGChoices* choices)
+    {
+        if (!choices)
+        {
+            return 0;
+        }
+
+        return self->SetChoices(*choices);
+    }
+
+    EXPORT wxPGChoices* wxPGProperty_GetChoices(wxPGProperty* self)
+    {
+        return new wxPGChoices(self->GetChoices());
+    }
+
+    // The wxEnumProperty/wxEditEnumProperty/wxFlagsProperty choices overloads take a
+    // non-const wxPGChoices& (they may cache the choices), so the handle is passed
+    // through rather than copied.
+    EXPORT wxEnumProperty* wxEnumProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                            wxPGChoices* choices, int value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxEnumProperty(*label, *name, *choices, value);
+    }
+
+    EXPORT wxEditEnumProperty* wxEditEnumProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                                    wxPGChoices* choices,
+                                                                    wxString* value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxEditEnumProperty(*label, *name, *choices, value ? *value : wxString());
+    }
+
+    EXPORT wxFlagsProperty* wxFlagsProperty_CreateWithChoices(wxString* label, wxString* name,
+                                                              wxPGChoices* choices, long value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxFlagsProperty(*label, *name, *choices, value);
+    }
+
+    EXPORT wxArrayStringProperty*
+        wxArrayStringProperty_CreateFromArray(wxString* label, wxString* name, wxArrayString* value)
+    {
+        return new wxArrayStringProperty(*label, *name, value ? *value : wxArrayString());
+    }
+
+#if wxUSE_CHOICEDLG
+
+    EXPORT wxMultiChoiceProperty*
+        wxMultiChoiceProperty_CreateFromArray(wxString* label, wxString* name, wxArrayString* value)
+    {
+        return new wxMultiChoiceProperty(*label, *name, value ? *value : wxArrayString());
+    }
+
+    EXPORT wxMultiChoiceProperty* wxMultiChoiceProperty_CreateWithChoices(wxString* label,
+                                                                          wxString* name,
+                                                                          wxPGChoices* choices,
+                                                                          wxArrayString* value)
+    {
+        if (!choices)
+        {
+            return nullptr;
+        }
+
+        return new wxMultiChoiceProperty(*label, *name, *choices, value ? *value : wxArrayString());
+    }
+
+#else
+
+    EXPORT void* wxMultiChoiceProperty_CreateFromArray([[maybe_unused]] wxString* label,
+                                                       [[maybe_unused]] wxString* name,
+                                                       [[maybe_unused]] wxArrayString* value)
+    {
+        return nullptr;
+    }
+
+    EXPORT void* wxMultiChoiceProperty_CreateWithChoices([[maybe_unused]] wxString* label,
+                                                         [[maybe_unused]] wxString* name,
+                                                         [[maybe_unused]] wxPGChoices* choices,
+                                                         [[maybe_unused]] wxArrayString* value)
+    {
+        return nullptr;
+    }
+
+#endif  // wxUSE_CHOICEDLG
+
+    // =======================================================================
+    // wxSystemColourProperty / wxCursorProperty
+    // =======================================================================
+
+    EXPORT wxSystemColourProperty* wxSystemColourProperty_Create(wxString* label, wxString* name,
+                                                                 wxColourPropertyValue* value)
+    {
+        return new wxSystemColourProperty(*label, *name, value ? *value : wxColourPropertyValue());
+    }
+
+    EXPORT void wxSystemColourProperty_Delete(wxSystemColourProperty* self)
+    {
+        delete self;
+    }
+
+    EXPORT wxColourPropertyValue* wxSystemColourProperty_GetVal(wxSystemColourProperty* self)
+    {
+        return new wxColourPropertyValue(self->GetVal());
+    }
+
+    EXPORT wxColour* wxSystemColourProperty_GetColour(wxSystemColourProperty* self, int index)
+    {
+        return new wxColour(self->GetColour(index));
+    }
+
+    EXPORT int wxSystemColourProperty_ColToInd(wxSystemColourProperty* self, wxColour* colour)
+    {
+        if (!colour)
+        {
+            return wxNOT_FOUND;
+        }
+
+        return static_cast<kwxSystemColourPropertyAccess*>(self)->ColToInd(*colour);
+    }
+
+    EXPORT wxCursorProperty* wxCursorProperty_Create(wxString* label, wxString* name, int value)
+    {
+        return new wxCursorProperty(*label, *name, value);
+    }
+
+    EXPORT void wxCursorProperty_Delete(wxCursorProperty* self)
+    {
+        delete self;
+    }
+
+    // =======================================================================
     // wxNumericPropertyValidator
     // =======================================================================
 
@@ -351,7 +639,13 @@ extern "C"
 
     EXPORT void* wxPropertyGridInterface_GetProperty(void* pObject, void* name)
     {
-        return (void*) ((wxPropertyGridInterface*) pObject)->GetProperty(*(wxString*) name);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(pObject);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetProperty(*static_cast<wxString*>(name));
     }
 
     EXPORT void wxPropertyGridInterface_RegisterAdditionalEditors()
@@ -362,8 +656,14 @@ extern "C"
     EXPORT void wxPropertyGridInterface_SetPropertyAttributeAll(void* pObject, void* attrName,
                                                                 void* value)
     {
-        ((wxPropertyGridInterface*) pObject)
-            ->SetPropertyAttributeAll(*(wxString*) attrName, *(wxVariant*) value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(pObject);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyAttributeAll(*static_cast<wxString*>(attrName),
+                                       *static_cast<wxVariant*>(value));
     }
 }
 
@@ -402,6 +702,13 @@ extern "C"
                                                       unsigned int column)
     {
         return self->GetColumnWidth(column);
+    }
+
+    EXPORT int wxPropertyGridPageState_GetColumnFullWidth(wxPropertyGridPageState* self,
+                                                          wxPGProperty* property,
+                                                          unsigned int column)
+    {
+        return self->GetColumnFullWidth(property, column);
     }
 
     EXPORT int wxPropertyGridPageState_GetVirtualWidth(wxPropertyGridPageState* self)
@@ -460,414 +767,1175 @@ extern "C"
     // wxPropertyGridInterface
     // =======================================================================
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByName(wxPropertyGridInterface* self,
-                                                                   wxString* name)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByName(void* self, wxString* name)
     {
-        return self->GetPropertyByName(*name);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyByName(*name);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByName2(wxPropertyGridInterface* self,
-                                                                    wxString* name,
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByName2(void* self, wxString* name,
                                                                     wxString* subname)
     {
-        return self->GetPropertyByName(*name, *subname);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyByName(*name, *subname);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByLabel(wxPropertyGridInterface* self,
-                                                                    wxString* label)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyByLabel(void* self, wxString* label)
     {
-        return self->GetPropertyByLabel(*label);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyByLabel(*label);
     }
 
-    EXPORT wxString* wxPropertyGridInterface_GetPropertyName(wxPropertyGridInterface* self,
-                                                             wxPGProperty* property)
+    EXPORT wxString* wxPropertyGridInterface_GetPropertyName(void* self, wxPGProperty* property)
     {
-        return new wxString(self->GetPropertyName(property));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxString();
+        }
+
+        return new wxString(iface->GetPropertyName(property));
     }
 
-    EXPORT wxString* wxPropertyGridInterface_GetPropertyLabel(wxPropertyGridInterface* self,
-                                                              wxPGProperty* id)
+    EXPORT wxString* wxPropertyGridInterface_GetPropertyLabel(void* self, wxPGProperty* id)
     {
-        return new wxString(self->GetPropertyLabel(id));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxString();
+        }
+
+        return new wxString(iface->GetPropertyLabel(id));
     }
 
-    EXPORT wxString* wxPropertyGridInterface_GetPropertyHelpString(wxPropertyGridInterface* self,
-                                                                   wxPGProperty* id)
+    EXPORT wxString* wxPropertyGridInterface_GetPropertyHelpString(void* self, wxPGProperty* id)
     {
-        return new wxString(self->GetPropertyHelpString(id));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxString();
+        }
+
+        return new wxString(iface->GetPropertyHelpString(id));
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyParent(wxPropertyGridInterface* self,
-                                                                   wxPGProperty* id)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetPropertyParent(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyParent(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyParent(id);
     }
 
-    EXPORT wxPropertyCategory*
-        wxPropertyGridInterface_GetPropertyCategory(wxPropertyGridInterface* self, wxPGProperty* id)
+    EXPORT wxPropertyCategory* wxPropertyGridInterface_GetPropertyCategory(void* self,
+                                                                           wxPGProperty* id)
     {
-        return self->GetPropertyCategory(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyCategory(id);
     }
 
-    EXPORT wxPGEditor* wxPropertyGridInterface_GetPropertyEditor(wxPropertyGridInterface* self,
-                                                                 wxPGProperty* id)
+    EXPORT wxPGEditor* wxPropertyGridInterface_GetPropertyEditor(void* self, wxPGProperty* id)
     {
-        return const_cast<wxPGEditor*>(self->GetPropertyEditor(id));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return const_cast<wxPGEditor*>(iface->GetPropertyEditor(id));
     }
 
-    EXPORT wxBitmap* wxPropertyGridInterface_GetPropertyImage(wxPropertyGridInterface* self,
-                                                              wxPGProperty* id)
+    EXPORT wxBitmap* wxPropertyGridInterface_GetPropertyImage(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyImage(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyImage(id);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetFirstChild(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetFirstChild(void* self, wxPGProperty* id)
     {
-        return self->GetFirstChild(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetFirstChild(id);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetFirst(wxPropertyGridInterface* self, int flags)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetFirst(void* self, int flags)
     {
-        return self->GetFirst(flags);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetFirst(flags);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_GetSelection(wxPropertyGridInterface* self)
+    EXPORT wxPGProperty* wxPropertyGridInterface_GetSelection(void* self)
     {
-        return self->GetSelection();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetSelection();
     }
 
-    EXPORT wxPropertyGridPageState* wxPropertyGridInterface_GetState(wxPropertyGridInterface* self)
+    EXPORT wxPropertyGridPageState* wxPropertyGridInterface_GetState(void* self)
     {
-        return self->GetState();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetState();
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_Append(wxPropertyGridInterface* self,
+    EXPORT wxPGProperty* wxPropertyGridInterface_Append(void* self, wxPGProperty* property)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->Append(property);
+    }
+
+    EXPORT wxPGProperty* wxPropertyGridInterface_AppendIn(void* self, wxPGProperty* id,
+                                                          wxPGProperty* property)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->AppendIn(id, property);
+    }
+
+    EXPORT wxPGProperty* wxPropertyGridInterface_Insert(void* self, wxPGProperty* prior_this,
                                                         wxPGProperty* property)
     {
-        return self->Append(property);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->Insert(prior_this, property);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_AppendIn(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id, wxPGProperty* property)
+    EXPORT wxPGProperty* wxPropertyGridInterface_Insert2(void* self, wxPGProperty* parent,
+                                                         int index, wxPGProperty* property)
     {
-        return self->AppendIn(id, property);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->Insert(parent, index, property);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_Insert(wxPropertyGridInterface* self,
-                                                        wxPGProperty* prior_this,
-                                                        wxPGProperty* property)
-    {
-        return self->Insert(prior_this, property);
-    }
-
-    EXPORT wxPGProperty* wxPropertyGridInterface_Insert2(wxPropertyGridInterface* self,
-                                                         wxPGProperty* parent, int index,
-                                                         wxPGProperty* property)
-    {
-        return self->Insert(parent, index, property);
-    }
-
-    EXPORT wxPGProperty* wxPropertyGridInterface_ReplaceProperty(wxPropertyGridInterface* self,
-                                                                 wxPGProperty* id,
+    EXPORT wxPGProperty* wxPropertyGridInterface_ReplaceProperty(void* self, wxPGProperty* id,
                                                                  wxPGProperty* property)
     {
-        return self->ReplaceProperty(id, property);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->ReplaceProperty(id, property);
     }
 
-    EXPORT wxPGProperty* wxPropertyGridInterface_RemoveProperty(wxPropertyGridInterface* self,
-                                                                wxPGProperty* id)
+    EXPORT wxPGProperty* wxPropertyGridInterface_RemoveProperty(void* self, wxPGProperty* id)
     {
-        return self->RemoveProperty(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->RemoveProperty(id);
     }
 
-    EXPORT void wxPropertyGridInterface_DeleteProperty(wxPropertyGridInterface* self,
-                                                       wxPGProperty* id)
+    EXPORT void wxPropertyGridInterface_DeleteProperty(void* self, wxPGProperty* id)
     {
-        self->DeleteProperty(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->DeleteProperty(id);
     }
 
-    EXPORT void wxPropertyGridInterface_Clear(wxPropertyGridInterface* self)
+    EXPORT void wxPropertyGridInterface_Clear(void* self)
     {
-        self->Clear();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->Clear();
     }
 
-    EXPORT int wxPropertyGridInterface_ClearSelection(wxPropertyGridInterface* self,
-                                                      bool validation)
+    EXPORT int wxPropertyGridInterface_ClearSelection(void* self, bool validation)
     {
-        return self->ClearSelection(validation);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->ClearSelection(validation);
     }
 
-    EXPORT void wxPropertyGridInterface_ClearModifiedStatus(wxPropertyGridInterface* self)
+    EXPORT void wxPropertyGridInterface_ClearModifiedStatus(void* self)
     {
-        self->ClearModifiedStatus();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->ClearModifiedStatus();
     }
 
-    EXPORT int wxPropertyGridInterface_EditorValidate(wxPropertyGridInterface* self)
+    EXPORT int wxPropertyGridInterface_EditorValidate(void* self)
     {
-        return self->EditorValidate();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->EditorValidate();
     }
 
-    EXPORT int wxPropertyGridInterface_Collapse(wxPropertyGridInterface* self, wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_Collapse(void* self, wxPGProperty* id)
     {
-        return self->Collapse(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->Collapse(id);
     }
 
-    EXPORT int wxPropertyGridInterface_CollapseAll(wxPropertyGridInterface* self)
+    EXPORT int wxPropertyGridInterface_CollapseAll(void* self)
     {
-        return self->CollapseAll();
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->CollapseAll();
     }
 
-    EXPORT int wxPropertyGridInterface_Expand(wxPropertyGridInterface* self, wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_Expand(void* self, wxPGProperty* id)
     {
-        return self->Expand(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->Expand(id);
     }
 
-    EXPORT int wxPropertyGridInterface_ExpandAll(wxPropertyGridInterface* self, bool expand)
+    EXPORT int wxPropertyGridInterface_ExpandAll(void* self, bool expand)
     {
-        return self->ExpandAll(expand);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->ExpandAll(expand);
     }
 
-    EXPORT int wxPropertyGridInterface_DisableProperty(wxPropertyGridInterface* self,
-                                                       wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_DisableProperty(void* self, wxPGProperty* id)
     {
-        return self->DisableProperty(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->DisableProperty(id);
     }
 
-    EXPORT int wxPropertyGridInterface_EnableProperty(wxPropertyGridInterface* self,
-                                                      wxPGProperty* id, bool enable)
+    EXPORT int wxPropertyGridInterface_EnableProperty(void* self, wxPGProperty* id, bool enable)
     {
-        return self->EnableProperty(id, enable);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->EnableProperty(id, enable);
     }
 
-    EXPORT int wxPropertyGridInterface_HideProperty(wxPropertyGridInterface* self, wxPGProperty* id,
-                                                    bool hide, int flags)
+    EXPORT int wxPropertyGridInterface_HideProperty(void* self, wxPGProperty* id, bool hide,
+                                                    int flags)
     {
-        return self->HideProperty(id, hide, static_cast<wxPGPropertyValuesFlags>(flags));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->HideProperty(id, hide, static_cast<wxPGPropertyValuesFlags>(flags));
     }
 
-    EXPORT void wxPropertyGridInterface_LimitPropertyEditing(wxPropertyGridInterface* self,
-                                                             wxPGProperty* id, bool limit)
+    EXPORT void wxPropertyGridInterface_LimitPropertyEditing(void* self, wxPGProperty* id,
+                                                             bool limit)
     {
-        self->LimitPropertyEditing(id, limit);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->LimitPropertyEditing(id, limit);
     }
 
-    EXPORT void wxPropertyGridInterface_RefreshGrid(wxPropertyGridInterface* self,
-                                                    wxPropertyGridPageState* state)
+    EXPORT void wxPropertyGridInterface_RefreshGrid(void* self, wxPropertyGridPageState* state)
     {
-        self->RefreshGrid(state);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->RefreshGrid(state);
     }
 
-    EXPORT void wxPropertyGridInterface_RefreshProperty(wxPropertyGridInterface* self,
-                                                        wxPGProperty* property)
+    EXPORT void wxPropertyGridInterface_RefreshProperty(void* self, wxPGProperty* property)
     {
-        self->RefreshProperty(property);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->RefreshProperty(property);
     }
 
-    EXPORT wxVariant* wxPropertyGridInterface_GetPropertyValue(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id)
+    EXPORT wxVariant* wxPropertyGridInterface_GetPropertyValue(void* self, wxPGProperty* id)
     {
-        return new wxVariant(self->GetPropertyValue(id));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxVariant();
+        }
+
+        return new wxVariant(iface->GetPropertyValue(id));
     }
 
-    EXPORT wxString* wxPropertyGridInterface_GetPropertyValueAsString(wxPropertyGridInterface* self,
-                                                                      wxPGProperty* id)
+    EXPORT wxString* wxPropertyGridInterface_GetPropertyValueAsString(void* self, wxPGProperty* id)
     {
-        return new wxString(self->GetPropertyValueAsString(id));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxString();
+        }
+
+        return new wxString(iface->GetPropertyValueAsString(id));
     }
 
-    EXPORT long wxPropertyGridInterface_GetPropertyValueAsLong(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id)
+    EXPORT long wxPropertyGridInterface_GetPropertyValueAsLong(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyValueAsLong(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0;
+        }
+
+        return iface->GetPropertyValueAsLong(id);
     }
 
-    EXPORT int wxPropertyGridInterface_GetPropertyValueAsInt(wxPropertyGridInterface* self,
-                                                             wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_GetPropertyValueAsInt(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyValueAsInt(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0;
+        }
+
+        return iface->GetPropertyValueAsInt(id);
     }
 
-    EXPORT int wxPropertyGridInterface_GetPropertyValueAsBool(wxPropertyGridInterface* self,
-                                                              wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_GetPropertyValueAsBool(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyValueAsBool(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->GetPropertyValueAsBool(id);
     }
 
-    EXPORT double wxPropertyGridInterface_GetPropertyValueAsDouble(wxPropertyGridInterface* self,
-                                                                   wxPGProperty* id)
+    EXPORT double wxPropertyGridInterface_GetPropertyValueAsDouble(void* self, wxPGProperty* id)
     {
-        return self->GetPropertyValueAsDouble(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0.0;
+        }
+
+        return iface->GetPropertyValueAsDouble(id);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValue(wxPropertyGridInterface* self,
-                                                         wxPGProperty* id, wxVariant* value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValue(void* self, wxPGProperty* id,
+                                                         wxVariant* value)
     {
-        self->SetPropertyValue(id, *value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !value)
+        {
+            return;
+        }
+
+        iface->SetPropertyValue(id, *value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueString(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id, wxString* value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueString(void* self, wxPGProperty* id,
+                                                               wxString* value)
     {
-        self->SetPropertyValueString(id, *value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !value)
+        {
+            return;
+        }
+
+        iface->SetPropertyValueString(id, *value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueLong(wxPropertyGridInterface* self,
-                                                             wxPGProperty* id, long value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueLong(void* self, wxPGProperty* id,
+                                                             long value)
     {
-        self->SetPropertyValue(id, value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyValue(id, value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueInt(wxPropertyGridInterface* self,
-                                                            wxPGProperty* id, int value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueInt(void* self, wxPGProperty* id, int value)
     {
-        self->SetPropertyValue(id, value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyValue(id, value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueDouble(wxPropertyGridInterface* self,
-                                                               wxPGProperty* id, double value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueDouble(void* self, wxPGProperty* id,
+                                                               double value)
     {
-        self->SetPropertyValue(id, value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyValue(id, value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueBool(wxPropertyGridInterface* self,
-                                                             wxPGProperty* id, bool value)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueBool(void* self, wxPGProperty* id,
+                                                             bool value)
     {
-        self->SetPropertyValue(id, value);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyValue(id, value);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyValueUnspecified(wxPropertyGridInterface* self,
-                                                                    wxPGProperty* id)
+    EXPORT void wxPropertyGridInterface_SetPropertyValueUnspecified(void* self, wxPGProperty* id)
     {
-        self->SetPropertyValueUnspecified(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyValueUnspecified(id);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyLabel(wxPropertyGridInterface* self,
-                                                         wxPGProperty* id, wxString* label)
+    EXPORT void wxPropertyGridInterface_SetPropertyLabel(void* self, wxPGProperty* id,
+                                                         wxString* label)
     {
-        self->SetPropertyLabel(id, *label);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !label)
+        {
+            return;
+        }
+
+        iface->SetPropertyLabel(id, *label);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyName(wxPropertyGridInterface* self,
-                                                        wxPGProperty* id, wxString* name)
+    EXPORT void wxPropertyGridInterface_SetPropertyName(void* self, wxPGProperty* id,
+                                                        wxString* name)
     {
-        self->SetPropertyName(id, *name);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !name)
+        {
+            return;
+        }
+
+        iface->SetPropertyName(id, *name);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyHelpString(wxPropertyGridInterface* self,
-                                                              wxPGProperty* id, wxString* text)
+    EXPORT void wxPropertyGridInterface_SetPropertyHelpString(void* self, wxPGProperty* id,
+                                                              wxString* text)
     {
-        self->SetPropertyHelpString(id, *text);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !text)
+        {
+            return;
+        }
+
+        iface->SetPropertyHelpString(id, *text);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyReadOnly(wxPropertyGridInterface* self,
-                                                            wxPGProperty* id, bool read_only,
-                                                            int flags)
+    EXPORT void wxPropertyGridInterface_SetPropertyReadOnly(void* self, wxPGProperty* id,
+                                                            bool read_only, int flags)
     {
-        self->SetPropertyReadOnly(id, read_only, static_cast<wxPGPropertyValuesFlags>(flags));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyReadOnly(id, read_only, static_cast<wxPGPropertyValuesFlags>(flags));
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyEditor(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id, wxPGEditor* editor)
+    EXPORT void wxPropertyGridInterface_SetPropertyEditor(void* self, wxPGProperty* id,
+                                                          wxPGEditor* editor)
     {
-        self->SetPropertyEditor(id, editor);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyEditor(id, editor);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyEditorByName(wxPropertyGridInterface* self,
-                                                                wxPGProperty* id, wxString* name)
+    EXPORT void wxPropertyGridInterface_SetPropertyEditorByName(void* self, wxPGProperty* id,
+                                                                wxString* name)
     {
-        self->SetPropertyEditor(id, *name);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !name)
+        {
+            return;
+        }
+
+        iface->SetPropertyEditor(id, *name);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyImage(wxPropertyGridInterface* self,
-                                                         wxPGProperty* id, wxBitmapBundle* bitmap)
+    EXPORT void wxPropertyGridInterface_SetPropertyImage(void* self, wxPGProperty* id,
+                                                         wxBitmapBundle* bitmap)
     {
-        self->SetPropertyImage(id, *bitmap);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !bitmap)
+        {
+            return;
+        }
+
+        iface->SetPropertyImage(id, *bitmap);
     }
 
-    EXPORT void wxPropertyGridInterface_SetPropertyCell(wxPropertyGridInterface* self,
-                                                        wxPGProperty* id, int column,
+    EXPORT void wxPropertyGridInterface_SetPropertyCell(void* self, wxPGProperty* id, int column,
                                                         wxString* text, wxBitmapBundle* bitmap,
                                                         wxColour* fg_col, wxColour* bg_col)
     {
-        self->SetPropertyCell(id, column, *text, *bitmap, *fg_col, *bg_col);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyCell(id, column, text ? *text : wxString(),
+                               bitmap ? *bitmap : wxBitmapBundle(), fg_col ? *fg_col : wxColour(),
+                               bg_col ? *bg_col : wxColour());
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyCategory(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyCategory(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyCategory(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyCategory(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyEnabled(wxPropertyGridInterface* self,
-                                                         wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyEnabled(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyEnabled(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyEnabled(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyExpanded(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyExpanded(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyExpanded(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyExpanded(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyModified(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyModified(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyModified(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyModified(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertySelected(wxPropertyGridInterface* self,
-                                                          wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertySelected(void* self, wxPGProperty* id)
     {
-        return self->IsPropertySelected(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertySelected(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyShown(wxPropertyGridInterface* self,
-                                                       wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyShown(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyShown(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyShown(id);
     }
 
-    EXPORT int wxPropertyGridInterface_IsPropertyValueUnspecified(wxPropertyGridInterface* self,
-                                                                  wxPGProperty* id)
+    EXPORT int wxPropertyGridInterface_IsPropertyValueUnspecified(void* self, wxPGProperty* id)
     {
-        return self->IsPropertyValueUnspecified(id);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->IsPropertyValueUnspecified(id);
     }
 
-    EXPORT int wxPropertyGridInterface_SetColumnProportion(wxPropertyGridInterface* self,
-                                                           unsigned int column, int proportion)
+    EXPORT int wxPropertyGridInterface_SetColumnProportion(void* self, unsigned int column,
+                                                           int proportion)
     {
-        return self->SetColumnProportion(column, proportion);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->SetColumnProportion(column, proportion);
     }
 
-    EXPORT int wxPropertyGridInterface_GetColumnProportion(wxPropertyGridInterface* self,
-                                                           unsigned int column)
+    EXPORT int wxPropertyGridInterface_GetColumnProportion(void* self, unsigned int column)
     {
-        return self->GetColumnProportion(column);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0;
+        }
+
+        return iface->GetColumnProportion(column);
     }
 
-    EXPORT wxString* wxPropertyGridInterface_SaveEditableState(wxPropertyGridInterface* self,
-                                                               int included_states)
+    EXPORT wxString* wxPropertyGridInterface_SaveEditableState(void* self, int included_states)
     {
-        return new wxString(self->SaveEditableState(included_states));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxString();
+        }
+
+        return new wxString(iface->SaveEditableState(included_states));
     }
 
-    EXPORT int wxPropertyGridInterface_RestoreEditableState(wxPropertyGridInterface* self,
-                                                            wxString* src, int restore_states)
+    EXPORT int wxPropertyGridInterface_RestoreEditableState(void* self, wxString* src,
+                                                            int restore_states)
     {
-        return self->RestoreEditableState(*src, restore_states);
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !src)
+        {
+            return false;
+        }
+
+        return iface->RestoreEditableState(*src, restore_states);
     }
 
-    EXPORT void wxPropertyGridInterface_Sort(wxPropertyGridInterface* self, int flags)
+    EXPORT void wxPropertyGridInterface_Sort(void* self, int flags)
     {
-        self->Sort(static_cast<wxPGPropertyValuesFlags>(flags));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->Sort(static_cast<wxPGPropertyValuesFlags>(flags));
     }
 
-    EXPORT void wxPropertyGridInterface_SortChildren(wxPropertyGridInterface* self,
-                                                     wxPGProperty* id, int flags)
+    EXPORT void wxPropertyGridInterface_SortChildren(void* self, wxPGProperty* id, int flags)
     {
-        self->SortChildren(id, static_cast<wxPGPropertyValuesFlags>(flags));
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SortChildren(id, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+
+    // ---- Additional wxPropertyGridInterface methods ----
+
+    EXPORT void wxPropertyGridInterface_BeginAddChildren(void* self, wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->BeginAddChildren(id);
+    }
+
+    EXPORT void wxPropertyGridInterface_EndAddChildren(void* self, wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->EndAddChildren(id);
+    }
+
+    EXPORT int wxPropertyGridInterface_ChangePropertyValue(void* self, wxPGProperty* id,
+                                                           wxVariant* value)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !value)
+        {
+            return false;
+        }
+
+        return iface->ChangePropertyValue(id, *value);
+    }
+
+    EXPORT wxVariant* wxPropertyGridInterface_GetPropertyAttribute(void* self, wxPGProperty* id,
+                                                                   wxString* attrName)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !attrName)
+        {
+            return new wxVariant();
+        }
+
+        return new wxVariant(iface->GetPropertyAttribute(id, *attrName));
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyAttribute(void* self, wxPGProperty* id,
+                                                             wxString* attrName, wxVariant* value,
+                                                             int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !attrName || !value)
+        {
+            return;
+        }
+
+        iface->SetPropertyAttribute(id, *attrName, *value,
+                                    static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+
+    EXPORT void* wxPropertyGridInterface_GetPropertyClientData(void* self, wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyClientData(id);
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyClientData(void* self, wxPGProperty* id,
+                                                              void* clientData)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyClientData(id, clientData);
+    }
+
+    EXPORT wxValidator* wxPropertyGridInterface_GetPropertyValidator(void* self, wxPGProperty* id)
+    {
+#if wxUSE_VALIDATORS
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return nullptr;
+        }
+
+        return iface->GetPropertyValidator(id);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(id);
+        return nullptr;
+#endif
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyValidator(void* self, wxPGProperty* id,
+                                                             wxValidator* validator)
+    {
+#if wxUSE_VALIDATORS
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !validator)
+        {
+            return;
+        }
+
+        iface->SetPropertyValidator(id, *validator);
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(id);
+        wxUnusedVar(validator);
+#endif
+    }
+
+    EXPORT wxVariant* wxPropertyGridInterface_GetPropertyValues(void* self, wxString* listname,
+                                                                wxPGProperty* baseparent, int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxVariant();
+        }
+
+        return new wxVariant(iface->GetPropertyValues(listname ? *listname : wxString(), baseparent,
+                                                      static_cast<wxPGPropertyValuesFlags>(flags)));
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyValues(void* self, wxVariant* list,
+                                                          wxPGProperty* baseparent)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !list)
+        {
+            return;
+        }
+
+        iface->SetPropertyValues(*list, baseparent);
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyBackgroundColour(void* self, wxPGProperty* id,
+                                                                    wxColour* colour, int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !colour)
+        {
+            return;
+        }
+
+        iface->SetPropertyBackgroundColour(id, *colour,
+                                           static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyTextColour(void* self, wxPGProperty* id,
+                                                              wxColour* colour, int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface || !colour)
+        {
+            return;
+        }
+
+        iface->SetPropertyTextColour(id, *colour, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+
+    EXPORT void wxPropertyGridInterface_SetPropertyColoursToDefault(void* self, wxPGProperty* id,
+                                                                    int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetPropertyColoursToDefault(id, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+
+    EXPORT wxColour* wxPropertyGridInterface_GetPropertyBackgroundColour(void* self,
+                                                                         wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxColour();
+        }
+
+        return new wxColour(iface->GetPropertyBackgroundColour(id));
+    }
+
+    EXPORT wxColour* wxPropertyGridInterface_GetPropertyTextColour(void* self, wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxColour();
+        }
+
+        return new wxColour(iface->GetPropertyTextColour(id));
+    }
+
+    EXPORT int wxPropertyGridInterface_SetPropertyMaxLength(void* self, wxPGProperty* id,
+                                                            int maxLen)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return false;
+        }
+
+        return iface->SetPropertyMaxLength(id, maxLen);
+    }
+
+    EXPORT void wxPropertyGridInterface_SetValidationFailureBehavior(void* self, int flags)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return;
+        }
+
+        iface->SetValidationFailureBehavior(static_cast<wxPGVFBFlags>(flags));
+    }
+
+    EXPORT unsigned long wxPropertyGridInterface_GetPropertyValueAsULong(void* self,
+                                                                         wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0;
+        }
+
+        return iface->GetPropertyValueAsULong(id);
+    }
+
+    EXPORT int64_t wxPropertyGridInterface_GetPropertyValueAsLongLong(void* self, wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return 0;
+        }
+
+        return iface->GetPropertyValueAsLongLong(id);
+    }
+
+    EXPORT wxArrayString* wxPropertyGridInterface_GetPropertyValueAsArrayString(void* self,
+                                                                                wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxArrayString();
+        }
+
+        return new wxArrayString(iface->GetPropertyValueAsArrayString(id));
+    }
+
+    EXPORT wxArrayInt* wxPropertyGridInterface_GetPropertyValueAsArrayInt(void* self,
+                                                                          wxPGProperty* id)
+    {
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxArrayInt();
+        }
+
+        return new wxArrayInt(iface->GetPropertyValueAsArrayInt(id));
+    }
+
+    EXPORT wxDateTime* wxPropertyGridInterface_GetPropertyValueAsDateTime(void* self,
+                                                                          wxPGProperty* id)
+    {
+#if wxUSE_DATETIME
+        wxPropertyGridInterface* const iface = AsPropertyGridInterface(self);
+        if (!iface)
+        {
+            return new wxDateTime();
+        }
+
+        return new wxDateTime(iface->GetPropertyValueAsDateTime(id));
+#else
+        wxUnusedVar(self);
+        wxUnusedVar(id);
+        return new wxDateTime();
+#endif
+    }
+
+    EXPORT wxPGEditor* wxPropertyGridInterface_GetEditorByName(wxString* name)
+    {
+        return wxPropertyGridInterface::GetEditorByName(*name);
+    }
+
+    EXPORT void wxPropertyGridInterface_InitAllTypeHandlers()
+    {
+        wxPropertyGridInterface::InitAllTypeHandlers();
+    }
+
+    EXPORT void wxPropertyGridInterface_SetBoolChoices(wxString* trueChoice, wxString* falseChoice)
+    {
+        wxPropertyGridInterface::SetBoolChoices(trueChoice ? *trueChoice : wxString(),
+                                                falseChoice ? *falseChoice : wxString());
+    }
+
+    // =======================================================================
+    // wxColourPropertyValue
+    // =======================================================================
+
+    EXPORT wxColourPropertyValue* wxColourPropertyValue_Create()
+    {
+        return new wxColourPropertyValue();
+    }
+
+    EXPORT wxColourPropertyValue* wxColourPropertyValue_CreateWithType(unsigned int type,
+                                                                       wxColour* colour)
+    {
+        return new wxColourPropertyValue(type, colour ? *colour : wxColour());
+    }
+
+    EXPORT wxColourPropertyValue* wxColourPropertyValue_CreateFromColour(wxColour* colour)
+    {
+        return new wxColourPropertyValue(colour ? *colour : wxColour());
+    }
+
+    EXPORT void wxColourPropertyValue_Delete(wxColourPropertyValue* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxColourPropertyValue_Init(wxColourPropertyValue* self, unsigned int type,
+                                           wxColour* colour)
+    {
+        self->Init(type, colour ? *colour : wxColour());
+    }
+
+    EXPORT unsigned int wxColourPropertyValue_GetType(wxColourPropertyValue* self)
+    {
+        return self->m_type;
+    }
+
+    EXPORT void wxColourPropertyValue_SetType(wxColourPropertyValue* self, unsigned int type)
+    {
+        self->m_type = type;
+    }
+
+    EXPORT wxColour* wxColourPropertyValue_GetColour(wxColourPropertyValue* self)
+    {
+        return new wxColour(self->m_colour);
+    }
+
+    EXPORT void wxColourPropertyValue_SetColour(wxColourPropertyValue* self, wxColour* colour)
+    {
+        self->m_colour = colour ? *colour : wxColour();
+    }
+
+    EXPORT wxColourPropertyValue* wxVariant_GetColourPropertyValue(wxVariant* variant)
+    {
+        if (!variant || variant->GetType() != "wxColourPropertyValue")
+        {
+            return nullptr;
+        }
+
+        auto* result = new wxColourPropertyValue();
+        *result << *variant;
+        return result;
+    }
+
+    // =======================================================================
+    // wxPropertyGridXmlHandler
+    // =======================================================================
+
+    EXPORT wxPropertyGridXmlHandler* wxPropertyGridXmlHandler_Create()
+    {
+        return new wxPropertyGridXmlHandler();
+    }
+
+    EXPORT void wxPropertyGridXmlHandler_Delete(wxPropertyGridXmlHandler* self)
+    {
+        delete self;
     }
 }
 
@@ -1112,4 +2180,30 @@ extern "C"
     EXPORT void wxImageFileProperty_Delete([[maybe_unused]] void* self) {}
 
 #endif  // wxUSE_IMAGE
+
+    // =======================================================================
+    // wxPropertyGridEvent validation feedback
+    // =======================================================================
+
+    // These assert GetEventType() == wxEVT_PG_CHANGING inside wxWidgets, so the
+    // object is passed through unchanged -- no guard that would hide the assert.
+    EXPORT void wxPropertyGridEvent_SetValidationFailureBehavior(wxPropertyGridEvent* self,
+                                                                 int flags)
+    {
+        self->SetValidationFailureBehavior(static_cast<wxPGVFBFlags>(flags));
+    }
+
+    EXPORT void wxPropertyGridEvent_SetValidationFailureMessage(wxPropertyGridEvent* self,
+                                                                wxString* message)
+    {
+        if (message)
+        {
+            self->SetValidationFailureMessage(*message);
+        }
+    }
+
+    EXPORT int wxPropertyGridEvent_GetValidationFailureBehavior(wxPropertyGridEvent* self)
+    {
+        return static_cast<int>(self->GetValidationFailureBehavior());
+    }
 }

@@ -24,7 +24,7 @@ TBool wxProcess_Activate(TSelf(wxProcess) pObject);
 long wxProcess_GetPid(TSelf(wxProcess) pObject);
 void wxProcess_SetPriority(TSelf(wxProcess) pObject, unsigned priority);
 unsigned wxProcess_GetPriority(TSelf(wxProcess) pObject);
-int wxProcess_Kill(int pid, int sig, int flags, int* rc);
+int wxProcess_Kill(int pid, int sig, int flags, TIntOut rc);
 TBool wxProcess_Exists(int pid);
 TClass(wxProcess) wxProcess_Open(TClass(wxString) cmd, int flags);
 TBool wxProcess_IsInputAvailable(TSelf(wxProcess) pObject);

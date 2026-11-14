@@ -5,6 +5,8 @@
 
 #include <wx/cmdline.h>
 #include <wx/dir.h>
+#include <wx/dirdlg.h>
+#include <wx/editlbox.h>
 #include <wx/fdrepdlg.h>
 #include <wx/filedlg.h>
 #include <wx/filename.h>
@@ -117,6 +119,14 @@ extern "C"
     EXPORT int expwxVERTICAL()
     {
         return (int) wxVERTICAL;
+    }
+    EXPORT int expwxLI_HORIZONTAL()
+    {
+        return (int) wxLI_HORIZONTAL;
+    }
+    EXPORT int expwxLI_VERTICAL()
+    {
+        return (int) wxLI_VERTICAL;
     }
     EXPORT int expwxBOTH()
     {
@@ -383,6 +393,10 @@ extern "C"
     {
         return (int) wxLB_SORT;
     }
+    EXPORT int expwxLB_HSCROLL()
+    {
+        return (int) wxLB_HSCROLL;
+    }
     EXPORT int expwxLB_SINGLE()
     {
         return (int) wxLB_SINGLE;
@@ -447,13 +461,33 @@ extern "C"
     {
         return (int) wxRB_GROUP;
     }
+    EXPORT int expwxGA_HORIZONTAL()
+    {
+        return static_cast<int>(wxGA_HORIZONTAL);
+    }
+    EXPORT int expwxGA_PROGRESS()
+    {
+        return static_cast<int>(wxGA_PROGRESS);
+    }
     EXPORT int expwxGA_SMOOTH()
     {
         return (int) wxGA_SMOOTH;
     }
+    EXPORT int expwxGA_VERTICAL()
+    {
+        return static_cast<int>(wxGA_VERTICAL);
+    }
     EXPORT int expwxSL_AUTOTICKS()
     {
         return (int) wxSL_AUTOTICKS;
+    }
+    EXPORT int expwxSL_HORIZONTAL()
+    {
+        return (int) wxSL_HORIZONTAL;
+    }
+    EXPORT int expwxSL_VERTICAL()
+    {
+        return (int) wxSL_VERTICAL;
     }
     EXPORT int expwxSL_LABELS()
     {
@@ -482,6 +516,18 @@ extern "C"
     EXPORT int expwxSL_SELRANGE()
     {
         return (int) wxSL_SELRANGE;
+    }
+    EXPORT int expwxSL_INVERSE()
+    {
+        return static_cast<int>(wxSL_INVERSE);
+    }
+    EXPORT int expwxSL_MIN_MAX_LABELS()
+    {
+        return static_cast<int>(wxSL_MIN_MAX_LABELS);
+    }
+    EXPORT int expwxSL_VALUE_LABEL()
+    {
+        return static_cast<int>(wxSL_VALUE_LABEL);
     }
     EXPORT int expwxBU_AUTODRAW()
     {
@@ -567,6 +613,14 @@ extern "C"
     {
         return (int) wxSP_ARROW_KEYS;
     }
+    EXPORT int expwxSP_HORIZONTAL()
+    {
+        return (int) wxSP_HORIZONTAL;
+    }
+    EXPORT int expwxSP_VERTICAL()
+    {
+        return (int) wxSP_VERTICAL;
+    }
     EXPORT int expwxSP_WRAP()
     {
         return (int) wxSP_WRAP;
@@ -602,6 +656,26 @@ extern "C"
     EXPORT int expwxSP_3D()
     {
         return (int) wxSP_3D;
+    }
+    EXPORT int expwxEL_ALLOW_NEW()
+    {
+        return (int) wxEL_ALLOW_NEW;
+    }
+    EXPORT int expwxEL_ALLOW_EDIT()
+    {
+        return (int) wxEL_ALLOW_EDIT;
+    }
+    EXPORT int expwxEL_ALLOW_DELETE()
+    {
+        return (int) wxEL_ALLOW_DELETE;
+    }
+    EXPORT int expwxEL_NO_REORDER()
+    {
+        return (int) wxEL_NO_REORDER;
+    }
+    EXPORT int expwxEL_DEFAULT_STYLE()
+    {
+        return (int) wxEL_DEFAULT_STYLE;
     }
     EXPORT int expwxFRAME_TOOL_WINDOW()
     {
@@ -675,6 +749,22 @@ extern "C"
         return (int) wxTBK_HORZ_LAYOUT;
     }
 #endif
+    EXPORT int expwxST_ELLIPSIZE_START()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_START);
+    }
+    EXPORT int expwxST_ELLIPSIZE_MIDDLE()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxST_ELLIPSIZE_END()
+    {
+        return static_cast<int>(wxST_ELLIPSIZE_END);
+    }
+    EXPORT int expwxST_WRAP()
+    {
+        return static_cast<int>(wxST_WRAP);
+    }
     EXPORT int expwxST_SIZEGRIP()
     {
         return (int) wxST_SIZEGRIP;
@@ -4013,6 +4103,18 @@ extern "C"
     {
         return (int) wxTE_WORDWRAP;
     }
+    EXPORT int expwxTE_CHARWRAP()
+    {
+        return static_cast<int>(wxTE_CHARWRAP);
+    }
+    EXPORT int expwxTE_DONTWRAP()
+    {
+        return static_cast<int>(wxTE_DONTWRAP);
+    }
+    EXPORT int expwxTE_BESTWRAP()
+    {
+        return static_cast<int>(wxTE_BESTWRAP);
+    }
     EXPORT int expwxEXEC_ASYNC()
     {
         return (int) wxEXEC_ASYNC;
@@ -5035,6 +5137,10 @@ extern "C"
     EXPORT wxString* expwxVERSION_NUM_DOT_STRING()
     {
         return new wxString(wxVERSION_NUM_DOT_STRING);
+    }
+    EXPORT wxString* expwxDirDialogDefaultFolderStr()
+    {
+        return new wxString(wxDirDialogDefaultFolderStr);
     }
     EXPORT wxString* expwxFileSelectorDefaultWildcardStr()
     {
@@ -6693,6 +6799,18 @@ extern "C"
     {
         return static_cast<int>(wxDateTime::Sat);
     }
+    EXPORT int expwxCLRP_DEFAULT_STYLE()
+    {
+        return static_cast<int>(wxCLRP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxCLRP_SHOW_LABEL()
+    {
+        return static_cast<int>(wxCLRP_SHOW_LABEL);
+    }
+    EXPORT int expwxCLRP_SHOW_ALPHA()
+    {
+        return static_cast<int>(wxCLRP_SHOW_ALPHA);
+    }
     EXPORT int expwxCLRP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxCLRP_USE_TEXTCTRL);
@@ -6789,9 +6907,61 @@ extern "C"
     {
         return static_cast<int>(wxCONTENT_PROTECTION_NONE);
     }
+    EXPORT int expwxApp_Appearance_System()
+    {
+        return static_cast<int>(wxApp::Appearance::System);
+    }
+    EXPORT int expwxApp_Appearance_Light()
+    {
+        return static_cast<int>(wxApp::Appearance::Light);
+    }
+    EXPORT int expwxApp_Appearance_Dark()
+    {
+        return static_cast<int>(wxApp::Appearance::Dark);
+    }
+    EXPORT int expwxApp_AppearanceResult_Failure()
+    {
+        return static_cast<int>(wxApp::AppearanceResult::Failure);
+    }
+    EXPORT int expwxApp_AppearanceResult_Ok()
+    {
+        return static_cast<int>(wxApp::AppearanceResult::Ok);
+    }
+    EXPORT int expwxApp_AppearanceResult_CannotChange()
+    {
+        return static_cast<int>(wxApp::AppearanceResult::CannotChange);
+    }
+    EXPORT int expwxODCB_STD_CONTROL_PAINT()
+    {
+        return static_cast<int>(wxODCB_STD_CONTROL_PAINT);
+    }
+    EXPORT int expwxStaticBitmapBase_Scale_None()
+    {
+        return static_cast<int>(wxStaticBitmapBase::Scale_None);
+    }
+    EXPORT int expwxStaticBitmapBase_Scale_Fill()
+    {
+        return static_cast<int>(wxStaticBitmapBase::Scale_Fill);
+    }
+    EXPORT int expwxStaticBitmapBase_Scale_AspectFit()
+    {
+        return static_cast<int>(wxStaticBitmapBase::Scale_AspectFit);
+    }
+    EXPORT int expwxStaticBitmapBase_Scale_AspectFill()
+    {
+        return static_cast<int>(wxStaticBitmapBase::Scale_AspectFill);
+    }
+    EXPORT int expwxCONTROL_CHECKABLE()
+    {
+        return static_cast<int>(wxCONTROL_CHECKABLE);
+    }
     EXPORT int expwxCONTROL_CHECKED()
     {
         return static_cast<int>(wxCONTROL_CHECKED);
+    }
+    EXPORT int expwxCONTROL_CELL()
+    {
+        return static_cast<int>(wxCONTROL_CELL);
     }
     EXPORT int expwxCONTROL_CURRENT()
     {
@@ -6805,9 +6975,33 @@ extern "C"
     {
         return static_cast<int>(wxCONTROL_DISABLED);
     }
+    EXPORT int expwxCONTROL_EXPANDED()
+    {
+        return static_cast<int>(wxCONTROL_EXPANDED);
+    }
+    EXPORT int expwxCONTROL_FLAGS_MASK()
+    {
+        return static_cast<int>(wxCONTROL_FLAGS_MASK);
+    }
+    EXPORT int expwxCONTROL_FLAT()
+    {
+        return static_cast<int>(wxCONTROL_FLAT);
+    }
     EXPORT int expwxCONTROL_FOCUSED()
     {
         return static_cast<int>(wxCONTROL_FOCUSED);
+    }
+    EXPORT int expwxCONTROL_ISDEFAULT()
+    {
+        return static_cast<int>(wxCONTROL_ISDEFAULT);
+    }
+    EXPORT int expwxCONTROL_ISSUBMENU()
+    {
+        return static_cast<int>(wxCONTROL_ISSUBMENU);
+    }
+    EXPORT int expwxCONTROL_NONE()
+    {
+        return static_cast<int>(wxCONTROL_NONE);
     }
     EXPORT int expwxCONTROL_PRESSED()
     {
@@ -6816,6 +7010,10 @@ extern "C"
     EXPORT int expwxCONTROL_SELECTED()
     {
         return static_cast<int>(wxCONTROL_SELECTED);
+    }
+    EXPORT int expwxCONTROL_SIZEGRIP()
+    {
+        return static_cast<int>(wxCONTROL_SIZEGRIP);
     }
     EXPORT int expwxCONTROL_SPECIAL()
     {
@@ -6893,9 +7091,17 @@ extern "C"
     {
         return static_cast<int>(wxDIRCTRL_SHOW_FILTERS);
     }
+    EXPORT int expwxDIRP_CHANGE_DIR()
+    {
+        return static_cast<int>(wxDIRP_CHANGE_DIR);
+    }
     EXPORT int expwxDIRP_DEFAULT_STYLE()
     {
         return static_cast<int>(wxDIRP_DEFAULT_STYLE);
+    }
+    EXPORT int expwxDIRP_DIR_MUST_EXIST()
+    {
+        return static_cast<int>(wxDIRP_DIR_MUST_EXIST);
     }
     EXPORT int expwxDIRP_SMALL()
     {
@@ -6965,9 +7171,21 @@ extern "C"
     {
         return static_cast<int>(wxDrag_DefaultMove);
     }
+    EXPORT int expwxELLIPSIZE_NONE()
+    {
+        return static_cast<int>(wxELLIPSIZE_NONE);
+    }
+    EXPORT int expwxELLIPSIZE_START()
+    {
+        return static_cast<int>(wxELLIPSIZE_START);
+    }
     EXPORT int expwxELLIPSIZE_MIDDLE()
     {
         return static_cast<int>(wxELLIPSIZE_MIDDLE);
+    }
+    EXPORT int expwxELLIPSIZE_END()
+    {
+        return static_cast<int>(wxELLIPSIZE_END);
     }
     EXPORT int expwxEXEC_SHOW_CONSOLE()
     {
@@ -7041,6 +7259,26 @@ extern "C"
     {
         return static_cast<int>(wxFLEX_GROWMODE_NONE);
     }
+    EXPORT int expwxFLP_OPEN()
+    {
+        return static_cast<int>(wxFLP_OPEN);
+    }
+    EXPORT int expwxFLP_SAVE()
+    {
+        return static_cast<int>(wxFLP_SAVE);
+    }
+    EXPORT int expwxFLP_OVERWRITE_PROMPT()
+    {
+        return static_cast<int>(wxFLP_OVERWRITE_PROMPT);
+    }
+    EXPORT int expwxFLP_FILE_MUST_EXIST()
+    {
+        return static_cast<int>(wxFLP_FILE_MUST_EXIST);
+    }
+    EXPORT int expwxFLP_CHANGE_DIR()
+    {
+        return static_cast<int>(wxFLP_CHANGE_DIR);
+    }
     EXPORT int expwxFLP_DEFAULT_STYLE()
     {
         return static_cast<int>(wxFLP_DEFAULT_STYLE);
@@ -7052,6 +7290,14 @@ extern "C"
     EXPORT int expwxFLP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxFLP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxFNTP_FONTDESC_AS_LABEL()
+    {
+        return static_cast<int>(wxFNTP_FONTDESC_AS_LABEL);
+    }
+    EXPORT int expwxFNTP_USEFONT_FOR_LABEL()
+    {
+        return static_cast<int>(wxFNTP_USEFONT_FOR_LABEL);
     }
     EXPORT int expwxFNTP_DEFAULT_STYLE()
     {
@@ -7197,6 +7443,46 @@ extern "C"
     {
         return static_cast<int>(wxGrid::wxGridSelectRowsOrColumns);
     }
+    // wxGrid::TabBehaviour, used by SetTabBehaviour().  The sample derives the
+    // value from its menu ids, so the three enumerators must be reachable.
+    EXPORT int expTab_Stop()
+    {
+        return static_cast<int>(wxGrid::Tab_Stop);
+    }
+    EXPORT int expTab_Wrap()
+    {
+        return static_cast<int>(wxGrid::Tab_Wrap);
+    }
+    EXPORT int expTab_Leave()
+    {
+        return static_cast<int>(wxGrid::Tab_Leave);
+    }
+    // wxGridActivationSource::Origin and wxGridActivationResult::Action, used
+    // by the TryActivate callback of kwxGridCellActivatableEditorHook.
+    EXPORT int expGridActivationProgram()
+    {
+        return static_cast<int>(wxGridActivationSource::Program);
+    }
+    EXPORT int expGridActivationKey()
+    {
+        return static_cast<int>(wxGridActivationSource::Key);
+    }
+    EXPORT int expGridActivationMouse()
+    {
+        return static_cast<int>(wxGridActivationSource::Mouse);
+    }
+    EXPORT int expGridActivationIgnore()
+    {
+        return static_cast<int>(wxGridActivationResult::Ignore);
+    }
+    EXPORT int expGridActivationChange()
+    {
+        return static_cast<int>(wxGridActivationResult::Change);
+    }
+    EXPORT int expGridActivationShowEditor()
+    {
+        return static_cast<int>(wxGridActivationResult::ShowEditor);
+    }
     EXPORT int expwxHDR_SORT_ICON_NONE()
     {
         return static_cast<int>(wxHDR_SORT_ICON_NONE);
@@ -7224,6 +7510,18 @@ extern "C"
     EXPORT int expwxHF_DEFAULT_STYLE()
     {
         return static_cast<int>(wxHF_DEFAULT_STYLE);
+    }
+    EXPORT int expwxHL_ALIGN_LEFT()
+    {
+        return static_cast<int>(wxHL_ALIGN_LEFT);
+    }
+    EXPORT int expwxHL_ALIGN_RIGHT()
+    {
+        return static_cast<int>(wxHL_ALIGN_RIGHT);
+    }
+    EXPORT int expwxHL_ALIGN_CENTRE()
+    {
+        return static_cast<int>(wxHL_ALIGN_CENTRE);
     }
     EXPORT int expwxHL_DEFAULT_STYLE()
     {
@@ -7695,6 +7993,50 @@ extern "C"
     {
         return static_cast<int>(wxPD_SMOOTH);
     }
+    EXPORT wxString* expwxPG_ARRAY_DELIMITER()
+    {
+        return new wxString(wxPG_ARRAY_DELIMITER);
+    }
+    EXPORT wxString* expwxPG_ATTR_AUTOCOMPLETE()
+    {
+        return new wxString(wxPG_ATTR_AUTOCOMPLETE);
+    }
+    EXPORT wxString* expwxPG_ATTR_DEFAULT_VALUE()
+    {
+        return new wxString(wxPG_ATTR_DEFAULT_VALUE);
+    }
+    EXPORT wxString* expwxPG_ATTR_HINT()
+    {
+        return new wxString(wxPG_ATTR_HINT);
+    }
+    EXPORT wxString* expwxPG_ATTR_MAX()
+    {
+        return new wxString(wxPG_ATTR_MAX);
+    }
+    EXPORT wxString* expwxPG_ATTR_MIN()
+    {
+        return new wxString(wxPG_ATTR_MIN);
+    }
+    EXPORT wxString* expwxPG_ATTR_MULTICHOICE_USERSTRINGMODE()
+    {
+        return new wxString(wxPG_ATTR_MULTICHOICE_USERSTRINGMODE);
+    }
+    EXPORT wxString* expwxPG_ATTR_SPINCTRL_MOTION()
+    {
+        return new wxString(wxPG_ATTR_SPINCTRL_MOTION);
+    }
+    EXPORT wxString* expwxPG_ATTR_SPINCTRL_STEP()
+    {
+        return new wxString(wxPG_ATTR_SPINCTRL_STEP);
+    }
+    EXPORT wxString* expwxPG_ATTR_SPINCTRL_WRAP()
+    {
+        return new wxString(wxPG_ATTR_SPINCTRL_WRAP);
+    }
+    EXPORT wxString* expwxPG_ATTR_UNITS()
+    {
+        return new wxString(wxPG_ATTR_UNITS);
+    }
     EXPORT int expwxPG_AUTO_SORT()
     {
         return static_cast<int>(wxPG_AUTO_SORT);
@@ -7703,9 +8045,37 @@ extern "C"
     {
         return static_cast<int>(wxPG_BOLD_MODIFIED);
     }
+    EXPORT wxString* expwxPG_BOOL_USE_CHECKBOX()
+    {
+        return new wxString(wxPG_BOOL_USE_CHECKBOX);
+    }
+    EXPORT wxString* expwxPG_BOOL_USE_DOUBLE_CLICK_CYCLING()
+    {
+        return new wxString(wxPG_BOOL_USE_DOUBLE_CLICK_CYCLING);
+    }
+    EXPORT wxString* expwxPG_COLOUR_ALLOW_CUSTOM()
+    {
+        return new wxString(wxPG_COLOUR_ALLOW_CUSTOM);
+    }
+    EXPORT wxString* expwxPG_COLOUR_HAS_ALPHA()
+    {
+        return new wxString(wxPG_COLOUR_HAS_ALPHA);
+    }
+    EXPORT wxString* expwxPG_DATE_FORMAT()
+    {
+        return new wxString(wxPG_DATE_FORMAT);
+    }
+    EXPORT wxString* expwxPG_DATE_PICKER_STYLE()
+    {
+        return new wxString(wxPG_DATE_PICKER_STYLE);
+    }
     EXPORT int expwxPG_DESCRIPTION()
     {
         return static_cast<int>(wxPG_DESCRIPTION);
+    }
+    EXPORT wxString* expwxPG_DIALOG_TITLE()
+    {
+        return new wxString(wxPG_DIALOG_TITLE);
     }
     EXPORT int expwxPG_EX_ALWAYS_ALLOW_FOCUS()
     {
@@ -7759,6 +8129,30 @@ extern "C"
     {
         return static_cast<int>(wxPG_EX_WRITEONLY_BUILTIN_ATTRIBUTES);
     }
+    EXPORT wxString* expwxPG_FILE_DIALOG_STYLE()
+    {
+        return new wxString(wxPG_FILE_DIALOG_STYLE);
+    }
+    EXPORT wxString* expwxPG_FILE_INITIAL_PATH()
+    {
+        return new wxString(wxPG_FILE_INITIAL_PATH);
+    }
+    EXPORT wxString* expwxPG_FILE_SHOW_FULL_PATH()
+    {
+        return new wxString(wxPG_FILE_SHOW_FULL_PATH);
+    }
+    EXPORT wxString* expwxPG_FILE_SHOW_RELATIVE_PATH()
+    {
+        return new wxString(wxPG_FILE_SHOW_RELATIVE_PATH);
+    }
+    EXPORT wxString* expwxPG_FILE_WILDCARD()
+    {
+        return new wxString(wxPG_FILE_WILDCARD);
+    }
+    EXPORT wxString* expwxPG_FLOAT_PRECISION()
+    {
+        return new wxString(wxPG_FLOAT_PRECISION);
+    }
     EXPORT int expwxPG_HIDE_CATEGORIES()
     {
         return static_cast<int>(wxPG_HIDE_CATEGORIES);
@@ -7807,6 +8201,10 @@ extern "C"
     {
         return static_cast<int>(wxPG_STATIC_SPLITTER);
     }
+    EXPORT wxString* expwxPG_STRING_PASSWORD()
+    {
+        return new wxString(wxPG_STRING_PASSWORD);
+    }
     EXPORT int expwxPG_TOOLBAR()
     {
         return static_cast<int>(wxPG_TOOLBAR);
@@ -7814,6 +8212,50 @@ extern "C"
     EXPORT int expwxPG_TOOLTIPS()
     {
         return static_cast<int>(wxPG_TOOLTIPS);
+    }
+    EXPORT wxString* expwxPG_UINT_BASE()
+    {
+        return new wxString(wxPG_UINT_BASE);
+    }
+    EXPORT wxString* expwxPG_UINT_PREFIX()
+    {
+        return new wxString(wxPG_UINT_PREFIX);
+    }
+    EXPORT int expwxPG_VFB_BEEP()
+    {
+        return static_cast<int>(wxPGVFBFlags::Beep);
+    }
+    EXPORT int expwxPG_VFB_DEFAULT()
+    {
+        return static_cast<int>(wxPGVFBFlags::Default);
+    }
+    EXPORT int expwxPG_VFB_MARK_CELL()
+    {
+        return static_cast<int>(wxPGVFBFlags::MarkCell);
+    }
+    EXPORT int expwxPG_VFB_NULL()
+    {
+        return static_cast<int>(wxPGVFBFlags::Null);
+    }
+    EXPORT int expwxPG_VFB_SHOW_MESSAGE()
+    {
+        return static_cast<int>(wxPGVFBFlags::ShowMessage);
+    }
+    EXPORT int expwxPG_VFB_SHOW_MESSAGE_ON_STATUSBAR()
+    {
+        return static_cast<int>(wxPGVFBFlags::ShowMessageOnStatusBar);
+    }
+    EXPORT int expwxPG_VFB_SHOW_MESSAGEBOX()
+    {
+        return static_cast<int>(wxPGVFBFlags::ShowMessageBox);
+    }
+    EXPORT int expwxPG_VFB_STAY_IN_PROPERTY()
+    {
+        return static_cast<int>(wxPGVFBFlags::StayInProperty);
+    }
+    EXPORT int expwxPG_VFB_UNDEFINED()
+    {
+        return static_cast<int>(wxPGVFBFlags::Undefined);
     }
     EXPORT int expwxPNG_TYPE_COLOUR()
     {
@@ -7891,50 +8333,6 @@ extern "C"
     {
         return static_cast<int>(wxRIBBON_ART_GALLERY_HOVER_BACKGROUND_COLOUR);
     }
-    EXPORT int expwxRIBBON_BAR_DEFAULT_STYLE()
-    {
-        return static_cast<int>(wxRIBBON_BAR_DEFAULT_STYLE);
-    }
-    EXPORT int expwxRIBBON_BAR_FLOW_HORIZONTAL()
-    {
-        return static_cast<int>(wxRIBBON_BAR_FLOW_HORIZONTAL);
-    }
-    EXPORT int expwxRIBBON_BAR_FLOW_VERTICAL()
-    {
-        return static_cast<int>(wxRIBBON_BAR_FLOW_VERTICAL);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_HELP_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_HELP_BUTTON);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_ICONS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_ICONS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PAGE_LABELS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PAGE_LABELS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_PANEL_EXT_BUTTONS);
-    }
-    EXPORT int expwxRIBBON_BAR_SHOW_TOGGLE_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_BAR_SHOW_TOGGLE_BUTTON);
-    }
-    EXPORT int expwxRIBBON_PANEL_DEFAULT_STYLE()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_DEFAULT_STYLE);
-    }
-    EXPORT int expwxRIBBON_PANEL_EXT_BUTTON()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_EXT_BUTTON);
-    }
-    EXPORT int expwxRIBBON_PANEL_NO_AUTO_MINIMISE()
-    {
-        return static_cast<int>(wxRIBBON_PANEL_NO_AUTO_MINIMISE);
-    }
     EXPORT int expwxRICHTEXT_FIELD_STYLE_COMPOSITE()
     {
         return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_COMPOSITE);
@@ -7955,9 +8353,145 @@ extern "C"
     {
         return static_cast<int>(wxRichTextFieldTypeStandard::wxRICHTEXT_FIELD_STYLE_START_TAG);
     }
+    EXPORT int expwxRICHTEXT_FORMAT_BACKGROUND()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_BACKGROUND);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_BORDERS()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_BORDERS);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_BULLETS()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_BULLETS);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_CHARACTER()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_CHARACTER);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_FONT()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_FONT);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_HELP_BUTTON()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_HELP_BUTTON);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_INDENTS_SPACING()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_INDENTS_SPACING);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_LIST_STYLE()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_LIST_STYLE);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_MARGINS()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_MARGINS);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_PARAGRAPH()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_PARAGRAPH);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_SIZE()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_SIZE);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_STYLE()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_STYLE);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_STYLE_EDITOR()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_STYLE_EDITOR);
+    }
+    EXPORT int expwxRICHTEXT_FORMAT_TABS()
+    {
+        return static_cast<int>(wxRICHTEXT_FORMAT_TABS);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_CONVERT_FACENAMES()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_CONVERT_FACENAMES);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_INCLUDE_STYLESHEET()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_INCLUDE_STYLESHEET);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_NO_HEADER_FOOTER()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_NO_HEADER_FOOTER);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_SAVE_IMAGES_TO_BASE64()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_SAVE_IMAGES_TO_BASE64);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_SAVE_IMAGES_TO_FILES()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_SAVE_IMAGES_TO_FILES);
+    }
+    EXPORT int expwxRICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY()
+    {
+        return static_cast<int>(wxRICHTEXT_HANDLER_SAVE_IMAGES_TO_MEMORY);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_APPLY_STYLES()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_APPLY_STYLES);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_BROWSE()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_BROWSE);
+    }
     EXPORT int expwxRICHTEXT_ORGANISER_BROWSE_NUMBERING()
     {
         return static_cast<int>(wxRICHTEXT_ORGANISER_BROWSE_NUMBERING);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_CREATE_STYLES()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_CREATE_STYLES);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_DELETE_STYLES()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_DELETE_STYLES);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_EDIT_STYLES()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_EDIT_STYLES);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_OK_CANCEL()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_OK_CANCEL);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_ORGANISE()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_ORGANISE);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_RENAME_STYLES()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_RENAME_STYLES);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_RENUMBER()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_RENUMBER);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_SHOW_ALL()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_SHOW_ALL);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_SHOW_BOX()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_SHOW_BOX);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_SHOW_CHARACTER()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_SHOW_CHARACTER);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_SHOW_LIST()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_SHOW_LIST);
+    }
+    EXPORT int expwxRICHTEXT_ORGANISER_SHOW_PARAGRAPH()
+    {
+        return static_cast<int>(wxRICHTEXT_ORGANISER_SHOW_PARAGRAPH);
     }
     EXPORT int expwxRICHTEXT_PAGE_ALL()
     {
@@ -7971,9 +8505,65 @@ extern "C"
     {
         return static_cast<int>(wxRICHTEXT_PAGE_RIGHT);
     }
+    EXPORT int expwxRICHTEXT_SETSTYLE_CHARACTERS_ONLY()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_CHARACTERS_ONLY);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_NONE()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_NONE);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_OPTIMIZE()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_OPTIMIZE);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_PARAGRAPHS_ONLY()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_PARAGRAPHS_ONLY);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_REMOVE()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_REMOVE);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_RENUMBER()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_RENUMBER);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_RESET()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_RESET);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_SPECIFY_LEVEL()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_SPECIFY_LEVEL);
+    }
+    EXPORT int expwxRICHTEXT_SETSTYLE_WITH_UNDO()
+    {
+        return static_cast<int>(wxRICHTEXT_SETSTYLE_WITH_UNDO);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_ANY()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_ANY);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_HTML()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_HTML);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_PDF()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_PDF);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_RTF()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_RTF);
+    }
     EXPORT int expwxRICHTEXT_TYPE_TEXT()
     {
         return static_cast<int>(wxRICHTEXT_TYPE_TEXT);
+    }
+    EXPORT int expwxRICHTEXT_TYPE_XML()
+    {
+        return static_cast<int>(wxRICHTEXT_TYPE_XML);
     }
     EXPORT int expwxSHOW_SB_DEFAULT()
     {
@@ -8239,6 +8829,14 @@ extern "C"
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE);
     }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ALIGN_CENTRE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ALIGN_CENTRE);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ALIGN_LEFT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ALIGN_LEFT);
+    }
     EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ALIGN_RIGHT()
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ALIGN_RIGHT);
@@ -8247,9 +8845,25 @@ extern "C"
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ARABIC);
     }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_BITMAP()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_BITMAP);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_CONTINUATION()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_CONTINUATION);
+    }
     EXPORT int expwxTEXT_ATTR_BULLET_STYLE_LETTERS_LOWER()
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_LETTERS_LOWER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_LETTERS_UPPER()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_LETTERS_UPPER);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_NONE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_NONE);
     }
     EXPORT int expwxTEXT_ATTR_BULLET_STYLE_OUTLINE()
     {
@@ -8263,6 +8877,10 @@ extern "C"
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_PERIOD);
     }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_RIGHT_PARENTHESIS()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_RIGHT_PARENTHESIS);
+    }
     EXPORT int expwxTEXT_ATTR_BULLET_STYLE_ROMAN_LOWER()
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_ROMAN_LOWER);
@@ -8274,6 +8892,10 @@ extern "C"
     EXPORT int expwxTEXT_ATTR_BULLET_STYLE_STANDARD()
     {
         return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_STANDARD);
+    }
+    EXPORT int expwxTEXT_ATTR_BULLET_STYLE_SYMBOL()
+    {
+        return static_cast<int>(wxTEXT_ATTR_BULLET_STYLE_SYMBOL);
     }
     EXPORT int expwxTEXT_ATTR_EFFECT_STRIKETHROUGH()
     {
@@ -8343,21 +8965,209 @@ extern "C"
     {
         return static_cast<int>(wxTEXT_ATTR_UNDERLINE_SPECIAL);
     }
+    EXPORT int expwxTEXT_ATTR_UNITS_HUNDREDTHS_POINT()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_HUNDREDTHS_POINT);
+    }
+    EXPORT int expwxTEXT_ATTR_UNITS_MASK()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_MASK);
+    }
+    EXPORT int expwxTEXT_ATTR_UNITS_PERCENTAGE()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_PERCENTAGE);
+    }
     EXPORT int expwxTEXT_ATTR_UNITS_PIXELS()
     {
         return static_cast<int>(wxTEXT_ATTR_UNITS_PIXELS);
+    }
+    EXPORT int expwxTEXT_ATTR_UNITS_POINTS()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_POINTS);
+    }
+    EXPORT int expwxTEXT_ATTR_UNITS_TENTHS_MM()
+    {
+        return static_cast<int>(wxTEXT_ATTR_UNITS_TENTHS_MM);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_COLOUR()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_COLOUR);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_DASHED()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_DASHED);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_DOTTED()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_DOTTED);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_DOUBLE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_DOUBLE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_GROOVE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_GROOVE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_INSET()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_INSET);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_MEDIUM()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_MEDIUM);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_NONE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_OUTSET()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_OUTSET);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_RIDGE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_RIDGE);
     }
     EXPORT int expwxTEXT_BOX_ATTR_BORDER_SOLID()
     {
         return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_SOLID);
     }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_STYLE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_STYLE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_THICK()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_THICK);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BORDER_THIN()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BORDER_THIN);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_BOX_STYLE_NAME()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_BOX_STYLE_NAME);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CLEAR()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CLEAR);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CLEAR_BOTH()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CLEAR_BOTH);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CLEAR_LEFT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CLEAR_LEFT);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CLEAR_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CLEAR_NONE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CLEAR_RIGHT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CLEAR_RIGHT);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_COLLAPSE_BORDERS()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_COLLAPSE_BORDERS);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_COLLAPSE_FULL()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_COLLAPSE_FULL);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_COLLAPSE_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_COLLAPSE_NONE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_CORNER_RADIUS()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_CORNER_RADIUS);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_FLOAT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT);
+    }
     EXPORT int expwxTEXT_BOX_ATTR_FLOAT_LEFT()
     {
         return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT_LEFT);
     }
+    EXPORT int expwxTEXT_BOX_ATTR_FLOAT_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT_NONE);
+    }
     EXPORT int expwxTEXT_BOX_ATTR_FLOAT_RIGHT()
     {
         return static_cast<int>(wxTEXT_BOX_ATTR_FLOAT_RIGHT);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_POSITION_ABSOLUTE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_POSITION_ABSOLUTE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_POSITION_FIXED()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_POSITION_FIXED);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_POSITION_MASK()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_POSITION_MASK);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_POSITION_RELATIVE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_POSITION_RELATIVE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_POSITION_STATIC()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_POSITION_STATIC);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_BOTTOM()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_BOTTOM);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_CENTRE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_CENTRE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_NONE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_TOP()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_TOP);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_NONE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_NONE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_NORMAL()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_NORMAL);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_NO_WRAP()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_NO_WRAP);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_LINE()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_LINE);
+    }
+    EXPORT int expwxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_WRAP()
+    {
+        return static_cast<int>(wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_WRAP);
     }
     EXPORT int expwxTEXT_TYPE_RTF()
     {
@@ -8606,6 +9416,38 @@ extern "C"
     EXPORT int expwxWINDOW_VARIANT_SMALL()
     {
         return static_cast<int>(wxWINDOW_VARIANT_SMALL);
+    }
+    EXPORT int expwxWIZARD_EX_HELPBUTTON()
+    {
+        return static_cast<int>(wxWIZARD_EX_HELPBUTTON);
+    }
+    EXPORT int expwxWIZARD_VALIGN_TOP()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_TOP);
+    }
+    EXPORT int expwxWIZARD_VALIGN_CENTRE()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_CENTRE);
+    }
+    EXPORT int expwxWIZARD_VALIGN_BOTTOM()
+    {
+        return static_cast<int>(wxWIZARD_VALIGN_BOTTOM);
+    }
+    EXPORT int expwxWIZARD_HALIGN_LEFT()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_LEFT);
+    }
+    EXPORT int expwxWIZARD_HALIGN_CENTRE()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_CENTRE);
+    }
+    EXPORT int expwxWIZARD_HALIGN_RIGHT()
+    {
+        return static_cast<int>(wxWIZARD_HALIGN_RIGHT);
+    }
+    EXPORT int expwxWIZARD_TILE()
+    {
+        return static_cast<int>(wxWIZARD_TILE);
     }
     EXPORT int expwxXML_ELEMENT_NODE()
     {

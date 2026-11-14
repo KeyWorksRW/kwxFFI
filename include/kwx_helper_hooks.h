@@ -46,6 +46,7 @@
 #include <wx/htmllbox.h>
 #include <wx/log.h>
 #include <wx/modalhook.h>
+#include <wx/nativewin.h>
 #include <wx/object.h>
 #include <wx/panel.h>
 #include <wx/preferences.h>
@@ -426,14 +427,17 @@ public:
 // ---------------------------------------------------------------------------
 
 // Return a UTF-8 page name.  The string is copied before the callback returns.
-typedef void* (*kwxPreferencesPageNameFunc)(void* pObject);
+// The void-only callback ABI cannot return a value, so the callback publishes
+// its name with SetNameResult() before returning.
+typedef void (*kwxPreferencesPageNameFunc)(void* pObject);
 
-// parent is a wxWindow*.  Return a wxWindow* the caller takes ownership of.
-typedef void* (*kwxPreferencesPageWindowFunc)(void* pObject, void* parent);
+// parent is a wxWindow*.  The callback publishes the wxWindow* it created with
+// SetCreateWindowResult(); the page takes ownership of that window.
+typedef void (*kwxPreferencesPageWindowFunc)(void* pObject, void* parent);
 
-// Return a wxBitmapBundle*; this class copies it and deletes the original, so
-// the callback must allocate it with new.  A null return means "no icon".
-typedef void* (*kwxPreferencesPageIconFunc)(void* pObject);
+// The callback publishes a wxBitmapBundle* allocated with new via
+// SetGetIconResult(); the page copies it and deletes the original.
+typedef void (*kwxPreferencesPageIconFunc)(void* pObject);
 
 class kwxPreferencesPage : public wxPreferencesPage
 {
@@ -442,6 +446,11 @@ private:
     kwxPreferencesPageNameFunc m_get_name_func;
     kwxPreferencesPageWindowFunc m_create_window_func;
     kwxPreferencesPageIconFunc m_get_icon_func;
+
+    // Scratch results the callbacks fill in; cleared before each callback runs.
+    mutable wxString m_result_name;
+    mutable wxWindow* m_result_window;
+    mutable wxBitmapBundle* m_result_icon;
 
 public:
     explicit kwxPreferencesPage(void* pObject);
@@ -453,9 +462,62 @@ public:
     }
     void SetOnGetIcon(void* pFunction) { m_get_icon_func = (kwxPreferencesPageIconFunc) pFunction; }
 
+    // Store the value a callback wants GetName()/CreateWindow()/GetIcon() to
+    // return.  Only the callback whose override is running should call these.
+    void SetNameResult(const char* name) { m_result_name = name ? wxString(name) : wxString(); }
+    void SetCreateWindowResult(wxWindow* window) { m_result_window = window; }
+    void SetGetIconResult(wxBitmapBundle* bundle) { m_result_icon = bundle; }
+
     wxString GetName() const override;
     wxWindow* CreateWindow(wxWindow* parent) override;
     wxBitmapBundle GetIcon() const override;
+};
+
+// ---------------------------------------------------------------------------
+// wxStockPreferencesPage callbacks
+//
+// wxStockPreferencesPage supplies the stock "General"/"Advanced" page names but
+// leaves CreateWindow() pure, so it cannot be instantiated on its own.  This
+// helper adds a callback-driven CreateWindow() to it, which is what a port needs
+// to use the stock page directly.
+//
+// The helper deliberately does NOT derive from kwxPreferencesPage: it needs
+// wxStockPreferencesPage::GetName(), not the callback-driven one.  The FFI block
+// for wxStockPreferencesPage is therefore declared without a parent, so a
+// generated binding never inherits the kwxPreferencesPage setters, which
+// down-cast their receiver and would be undefined behaviour on this object.
+// ---------------------------------------------------------------------------
+
+// m_object is the per-page callback context: it is handed to every CreateWindow
+// callback, so a port reaches its own state directly instead of publishing it
+// through a global or static.
+class kwxStockPreferencesPage : public wxStockPreferencesPage
+{
+private:
+    void* m_object;
+    kwxPreferencesPageWindowFunc m_create_window_func;
+    wxWindow* m_result_window;
+
+public:
+    // pObject is the callback state pointer handed to every CreateWindow
+    // callback.  The kind-only form keeps the previous behaviour with a null
+    // state pointer.
+    explicit kwxStockPreferencesPage(Kind kind, void* pObject = nullptr) :
+        wxStockPreferencesPage(kind)
+    {
+        m_object = pObject;
+        m_create_window_func = nullptr;
+        m_result_window = nullptr;
+    }
+
+    void SetOnCreateWindow(void* pFunction)
+    {
+        m_create_window_func = (kwxPreferencesPageWindowFunc) pFunction;
+    }
+
+    void SetCreateWindowResult(wxWindow* window) { m_result_window = window; }
+
+    wxWindow* CreateWindow(wxWindow* parent) override;
 };
 
 // ---------------------------------------------------------------------------
@@ -619,6 +681,41 @@ public:
 protected:
     int Enter(wxDialog* dialog) override;
     void Exit(wxDialog* dialog) override;
+};
+
+// ---------------------------------------------------------------------------
+// wxNativeWindow callbacks
+// ---------------------------------------------------------------------------
+
+// MSWOnNotify is MSW-only.  The callback returns non-zero when it handled the
+// native notification; otherwise the base class runs.  lParam and result are
+// the WXLPARAM values passed straight through to the native handler.
+typedef int (*kwxNativeWindowNotifyFunc)(void* pObject, int idCtrl, void* lParam, void* result);
+
+// handle is the platform-native child window (HWND / GtkWidget* / NSView*);
+// wxNativeWindow neither creates nor destroys it.  On non-MSW platforms
+// SetOnMSWNotify() still stores the pointer but never fires.  The MSW override
+// of MSWOnNotify() lives in the platform-split subclass in src/kwx_hooks.cpp.
+class kwxNativeWindow : public wxNativeWindow
+{
+private:
+    void* m_object;
+    kwxNativeWindowNotifyFunc m_notify_func = nullptr;
+
+protected:
+    // Delivers a native notification to the language callback.  The MSW
+    // override of MSWOnNotify() lives in the platform-split subclass in
+    // src/kwx_hooks.cpp: its WXLPARAM signature exists only on MSW, and a
+    // public header must not carry a platform guard.
+    bool InvokeMSWNotify(int idCtrl, void* lParam, void* result)
+    {
+        return m_notify_func != nullptr && m_notify_func(m_object, idCtrl, lParam, result) != 0;
+    }
+
+public:
+    kwxNativeWindow(void* pObject, wxWindow* parent, wxWindowID id, void* handle);
+
+    void SetOnMSWNotify(void* pFunction) { m_notify_func = (kwxNativeWindowNotifyFunc) pFunction; }
 };
 
 // ---------------------------------------------------------------------------
@@ -799,6 +896,18 @@ public:
 // delete it.
 typedef void* (*kwxWizardPageFunc)(void* pObject);
 
+// Out-parameter spelling of the navigation hooks. GetNext()/GetPrev() return a
+// page pointer, which a runtime whose native thunk cannot return a value cannot
+// produce; these callbacks write the page pointer through `page` instead. `page`
+// is initialized to null before the call, so a callback that writes nothing means
+// "last page" (GetNext) or "first page" (GetPrev).
+typedef void (*kwxWizardPageGetPageOutFunc)(void* pObject, void** page);
+
+// Out-parameter spelling of the transfer hooks: write 0 to veto (false) and any
+// other value to accept (true). `result` is initialized to 1 before the call, so a
+// callback that writes nothing keeps wxWidgets' accept-by-default behaviour.
+typedef void (*kwxWizardPageTransferOutFunc)(void* pObject, int* result);
+
 // GetNext() and GetPrev() are both pure virtual (wx/wizard.h:72-73).
 class kwxWizardPage : public wxWizardPage
 {
@@ -806,15 +915,49 @@ private:
     void* m_object;
     kwxWizardPageFunc m_get_next_func;
     kwxWizardPageFunc m_get_prev_func;
+    kwxAppConsoleBoolFunc m_transfer_data_from_window_func;
+    kwxAppConsoleBoolFunc m_transfer_data_to_window_func;
+    kwxWizardPageGetPageOutFunc m_get_next_out_func;
+    kwxWizardPageGetPageOutFunc m_get_prev_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_from_window_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_to_window_out_func;
 
 public:
     explicit kwxWizardPage(void* pObject);
 
     void SetOnGetNext(void* pFunction) { m_get_next_func = (kwxWizardPageFunc) pFunction; }
     void SetOnGetPrev(void* pFunction) { m_get_prev_func = (kwxWizardPageFunc) pFunction; }
+    void SetOnTransferDataFromWindow(void* pFunction)
+    {
+        m_transfer_data_from_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnTransferDataToWindow(void* pFunction)
+    {
+        m_transfer_data_to_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+
+    // An Out callback takes precedence over the returning spelling.
+    void SetOnGetNextOut(void* pFunction)
+    {
+        m_get_next_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnGetPrevOut(void* pFunction)
+    {
+        m_get_prev_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnTransferDataFromWindowOut(void* pFunction)
+    {
+        m_transfer_data_from_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
+    void SetOnTransferDataToWindowOut(void* pFunction)
+    {
+        m_transfer_data_to_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
 
     wxWizardPage* GetNext() const override;
     wxWizardPage* GetPrev() const override;
+    bool TransferDataFromWindow() override;
+    bool TransferDataToWindow() override;
 };
 
 // ---------------------------------------------------------------------------
@@ -847,6 +990,19 @@ public:
         m_process_left_down_func = (kwxPopupLeftDownFunc) pFunction;
     }
     void SetOnOnDismiss(void* pFunction) { m_on_dismiss_func = (kwxTimerFunc) pFunction; }
+
+    // A callback replaces the override above.  A port that needs the C++ shape
+    // "log, then call the wxWidgets implementation" calls the matching
+    // CallBase* function from inside its callback: the qualified call invokes
+    // the wxWidgets implementation directly instead of re-entering the
+    // override (and therefore the callback) through virtual dispatch.
+    void CallBasePopup(wxWindow* focus) { wxPopupTransientWindow::Popup(focus); }
+    bool CallBaseShow(bool show) { return wxPopupTransientWindow::Show(show); }
+    bool CallBaseProcessLeftDown(wxMouseEvent& event)
+    {
+        return wxPopupTransientWindow::ProcessLeftDown(event);
+    }
+    void CallBaseOnDismiss() { wxPopupTransientWindow::OnDismiss(); }
 
     void Popup(wxWindow* focus = nullptr) override;
     bool Show(bool show = true) override;

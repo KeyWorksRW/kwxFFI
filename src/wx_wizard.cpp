@@ -111,10 +111,56 @@ extern "C"
 
     EXPORT void wxWizard_GetBitmap(wxWizard* self, wxBitmap* bitmap)
     {
-        // wxWizard doesn't have GetBitmap directly, use the page bitmap via GetCurrentPage
-        wxWizardPage* page = self->GetCurrentPage();
-        if (page)
-            *bitmap = page->GetBitmap();
+        // wxWizard::GetBitmap() is the wizard's own default bitmap, not the
+        // current page's bitmap (wx/generic/wizard.h:58).
+        *bitmap = self->GetBitmap();
+    }
+
+    EXPORT void* wxWizard_CreateDefault()
+    {
+        // Two-step construction: the sample sets the extra style first, and only
+        // Create() runs DoCreateControls().  Passing the style to the one-step
+        // ctor here would already have built the button row without Help.
+        return (void*) new wxWizard();
+    }
+
+    EXPORT int wxWizard_Create2(wxWizard* self, wxWindow* parent, int id, wxString* text,
+                                wxBitmapBundle* bitmap, int x, int y, long style)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        wxString title;
+        if (text)
+            title = *text;
+        return self->Create(parent, id, title, bmp, wxPoint(x, y), style) ? 1 : 0;
+    }
+
+    EXPORT void wxWizard_SetBitmap(wxWizard* self, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        self->SetBitmap(bmp);
+    }
+
+    EXPORT int wxWizard_GetBitmapPlacement(wxWizard* self)
+    {
+        return self->GetBitmapPlacement();
+    }
+
+    EXPORT void* wxWizardPageSimple_CreateWithBundle(wxWizard* parent, wxWizardPage* prev,
+                                                     wxWizardPage* next, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+            bmp = *bitmap;
+        return (void*) new wxWizardPageSimple(parent, prev, next, bmp);
+    }
+
+    EXPORT void* wxWizardEvent_GetPage(wxWizardEvent* self)
+    {
+        return (void*) self->GetPage();
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----

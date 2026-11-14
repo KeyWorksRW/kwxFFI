@@ -30,6 +30,7 @@
 // at the call site.
 
 #include "../model.h"
+#include "lang_common.h"
 
 #include <sstream>
 #include <string>
@@ -211,6 +212,16 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
         return result;
     }
 
+    // Output long geometry: long* output pointers → "pointer"
+    if (param_in.macro_name == "TPointOutLong" || param_in.macro_name == "TSizeOutLong")
+    {
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
+        {
+            result.push_back({ "\"pointer\"", TsEscapeName(name_str) });
+        }
+        return result;
+    }
+
     if (param_in.macro_name == "TPointOutVoid" || param_in.macro_name == "TSizeOutVoid" ||
         param_in.macro_name == "TRectOutVoid" || param_in.macro_name == "TVectorOutVoid")
     {
@@ -266,6 +277,22 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     if (param_in.macro_name == "TArrayObjectOutVoid")
     {
         const std::string pname = param_in.param_name.empty() ? "arr" : param_in.param_name;
+        result.push_back({ "\"pointer\"", TsEscapeName(pname) });
+        return result;
+    }
+
+    if (IsTypedPointerMacro(param_in.raw_type))
+    {
+        const std::string pname = param_in.param_name.empty() ? "arg_" : param_in.param_name;
+        result.push_back({ "\"pointer\"", TsEscapeName(pname) });
+        return result;
+    }
+
+    // Scalar value passed through a pointer: the FFI layer sees a generic pointer and the
+    // runtime API keeps its existing Pointer shape.
+    if (ScalarPointerInfo scalar_pointer; LookupScalarPointer(param_in, scalar_pointer))
+    {
+        const std::string pname = param_in.param_name.empty() ? "arg_" : param_in.param_name;
         result.push_back({ "\"pointer\"", TsEscapeName(pname) });
         return result;
     }

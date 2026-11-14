@@ -106,6 +106,8 @@ int wxPropertyGridPageState_GetColumnCount(TSelf(wxPropertyGridPageState) pObjec
 int wxPropertyGridPageState_GetColumnMinWidth(TSelf(wxPropertyGridPageState) pObject, int column);
 int wxPropertyGridPageState_GetColumnWidth(TSelf(wxPropertyGridPageState) pObject,
                                            unsigned int column);
+int wxPropertyGridPageState_GetColumnFullWidth(TSelf(wxPropertyGridPageState) pObject,
+                                               TClass(wxPGProperty) property, unsigned int column);
 int wxPropertyGridPageState_GetVirtualWidth(TSelf(wxPropertyGridPageState) pObject);
 int wxPropertyGridPageState_GetVirtualHeight(TSelf(wxPropertyGridPageState) pObject);
 int wxPropertyGridPageState_GetActualVirtualHeight(TSelf(wxPropertyGridPageState) pObject);
@@ -124,13 +126,19 @@ void wxPropertyGridPageState_VirtualHeightChanged(TSelf(wxPropertyGridPageState)
 // wxPropertyGridInterface
 // ---------------------------------------------------------------------------
 
+// wxPropertyGridInterface is a mixin over wxPropertyGrid, wxPropertyGridManager
+// and wxPropertyGridPage; kwxgen passes the concrete object pointer, so the
+// implementations cast through wxObject before calling the interface methods.
 TClassDef(wxPropertyGridInterface) TClass(wxPGProperty)
     wxPropertyGridInterface_GetPropertyByName(TSelf(wxPropertyGridInterface) pObject,
                                               TClass(wxString) name);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void* wxPropertyGridInterface_GetProperty(TSelf(wxPropertyGridInterface) pObject, TClass(wxString) name);
+void* wxPropertyGridInterface_GetProperty(TSelf(wxPropertyGridInterface) pObject,
+                                          TClass(wxString) name);
 void wxPropertyGridInterface_RegisterAdditionalEditors();
-void wxPropertyGridInterface_SetPropertyAttributeAll(TSelf(wxPropertyGridInterface) pObject, TClass(wxString) attrName, TClass(wxVariant) value);
+void wxPropertyGridInterface_SetPropertyAttributeAll(TSelf(wxPropertyGridInterface) pObject,
+                                                     TClass(wxString) attrName,
+                                                     TClass(wxVariant) value);
 TClass(wxPGProperty)
     wxPropertyGridInterface_GetPropertyByName2(TSelf(wxPropertyGridInterface) pObject,
                                                TClass(wxString) name, TClass(wxString) subname);
@@ -276,6 +284,73 @@ TBool wxPropertyGridInterface_RestoreEditableState(TSelf(wxPropertyGridInterface
 void wxPropertyGridInterface_Sort(TSelf(wxPropertyGridInterface) pObject, int flags);
 void wxPropertyGridInterface_SortChildren(TSelf(wxPropertyGridInterface) pObject,
                                           TClass(wxPGProperty) id, int flags);
+void wxPropertyGridInterface_BeginAddChildren(TSelf(wxPropertyGridInterface) pObject,
+                                              TClass(wxPGProperty) id);
+void wxPropertyGridInterface_EndAddChildren(TSelf(wxPropertyGridInterface) pObject,
+                                            TClass(wxPGProperty) id);
+TBool wxPropertyGridInterface_ChangePropertyValue(TSelf(wxPropertyGridInterface) pObject,
+                                                  TClass(wxPGProperty) id, TClass(wxVariant) value);
+TClass(wxVariant)
+    wxPropertyGridInterface_GetPropertyAttribute(TSelf(wxPropertyGridInterface) pObject,
+                                                 TClass(wxPGProperty) id,
+                                                 TClass(wxString) attrName);
+void wxPropertyGridInterface_SetPropertyAttribute(TSelf(wxPropertyGridInterface) pObject,
+                                                  TClass(wxPGProperty) id,
+                                                  TClass(wxString) attrName,
+                                                  TClass(wxVariant) value, int flags);
+void* wxPropertyGridInterface_GetPropertyClientData(TSelf(wxPropertyGridInterface) pObject,
+                                                    TClass(wxPGProperty) id);
+void wxPropertyGridInterface_SetPropertyClientData(TSelf(wxPropertyGridInterface) pObject,
+                                                   TClass(wxPGProperty) id, void* clientData);
+TClass(wxValidator)
+    wxPropertyGridInterface_GetPropertyValidator(TSelf(wxPropertyGridInterface) pObject,
+                                                 TClass(wxPGProperty) id);
+void wxPropertyGridInterface_SetPropertyValidator(TSelf(wxPropertyGridInterface) pObject,
+                                                  TClass(wxPGProperty) id,
+                                                  TClass(wxValidator) validator);
+TClass(wxVariant)
+    wxPropertyGridInterface_GetPropertyValues(TSelf(wxPropertyGridInterface) pObject,
+                                              TClass(wxString) listname,
+                                              TClass(wxPGProperty) baseparent, int flags);
+void wxPropertyGridInterface_SetPropertyValues(TSelf(wxPropertyGridInterface) pObject,
+                                               TClass(wxVariant) list,
+                                               TClass(wxPGProperty) baseparent);
+void wxPropertyGridInterface_SetPropertyBackgroundColour(TSelf(wxPropertyGridInterface) pObject,
+                                                         TClass(wxPGProperty) id,
+                                                         TClass(wxColour) colour, int flags);
+void wxPropertyGridInterface_SetPropertyTextColour(TSelf(wxPropertyGridInterface) pObject,
+                                                   TClass(wxPGProperty) id, TClass(wxColour) colour,
+                                                   int flags);
+void wxPropertyGridInterface_SetPropertyColoursToDefault(TSelf(wxPropertyGridInterface) pObject,
+                                                         TClass(wxPGProperty) id, int flags);
+TClass(wxColour)
+    wxPropertyGridInterface_GetPropertyBackgroundColour(TSelf(wxPropertyGridInterface) pObject,
+                                                        TClass(wxPGProperty) id);
+TClass(wxColour)
+    wxPropertyGridInterface_GetPropertyTextColour(TSelf(wxPropertyGridInterface) pObject,
+                                                  TClass(wxPGProperty) id);
+TBool wxPropertyGridInterface_SetPropertyMaxLength(TSelf(wxPropertyGridInterface) pObject,
+                                                   TClass(wxPGProperty) id, int maxLen);
+void wxPropertyGridInterface_SetValidationFailureBehavior(TSelf(wxPropertyGridInterface) pObject,
+                                                          int flags);
+unsigned long wxPropertyGridInterface_GetPropertyValueAsULong(TSelf(wxPropertyGridInterface)
+                                                                  pObject,
+                                                              TClass(wxPGProperty) id);
+TInt64 wxPropertyGridInterface_GetPropertyValueAsLongLong(TSelf(wxPropertyGridInterface) pObject,
+                                                          TClass(wxPGProperty) id);
+TClass(wxArrayString)
+    wxPropertyGridInterface_GetPropertyValueAsArrayString(TSelf(wxPropertyGridInterface) pObject,
+                                                          TClass(wxPGProperty) id);
+TClass(wxArrayInt)
+    wxPropertyGridInterface_GetPropertyValueAsArrayInt(TSelf(wxPropertyGridInterface) pObject,
+                                                       TClass(wxPGProperty) id);
+TClass(wxDateTime)
+    wxPropertyGridInterface_GetPropertyValueAsDateTime(TSelf(wxPropertyGridInterface) pObject,
+                                                       TClass(wxPGProperty) id);
+TClass(wxPGEditor) wxPropertyGridInterface_GetEditorByName(TClass(wxString) name);
+void wxPropertyGridInterface_InitAllTypeHandlers();
+void wxPropertyGridInterface_SetBoolChoices(TClass(wxString) trueChoice,
+                                            TClass(wxString) falseChoice);
 
 // ---------------------------------------------------------------------------
 // wxPropertyGrid (extends TClassDefExtend(wxPropertyGrid, wxControl))
@@ -284,7 +359,8 @@ void wxPropertyGridInterface_SortChildren(TSelf(wxPropertyGridInterface) pObject
 TClassDefExtend(wxPropertyGrid,
                 wxControl) int wxPropertyGrid_GetColumnCount(TSelf(wxPropertyGrid) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxPoint) wxPropertyGrid_GetGoodEditorDialogPosition(TSelf(wxPropertyGrid) pObject, void* p, TClass(wxSize) sz);
+TClass(wxPoint) wxPropertyGrid_GetGoodEditorDialogPosition(TSelf(wxPropertyGrid) pObject, void* p,
+                                                           TClass(wxSize) sz);
 void* wxPropertyGrid_RegisterEditorClass(void* editor, TBool noDefCheck);
 int wxPropertyGrid_GetRowHeight(TSelf(wxPropertyGrid) pObject);
 int wxPropertyGrid_GetFontHeight(TSelf(wxPropertyGrid) pObject);
@@ -383,6 +459,10 @@ TClassDefExtend(wxPropertyGridPage, wxEvtHandler) TClass(wxSize)
     wxPropertyGridPage_FitColumns(TSelf(wxPropertyGridPage) pObject);
 TClass(wxPropertyGridPageState) wxPropertyGridPage_GetStatePtr(TSelf(wxPropertyGridPage) pObject);
 int wxPropertyGridPage_GetToolId(TSelf(wxPropertyGridPage) pObject);
+// A page passed to the manager is owned by the manager; the caller must not
+// delete it afterwards.
+TClass(wxPropertyGridPage) wxPropertyGridPage_Create();
+void wxPropertyGridPage_Delete(TSelf(wxPropertyGridPage) pObject);
 void wxPropertyGridPage_Init(TSelf(wxPropertyGridPage) pObject);
 TBool wxPropertyGridPage_IsHandlingAllEvents(TSelf(wxPropertyGridPage) pObject);
 void wxPropertyGridPage_OnShow(TSelf(wxPropertyGridPage) pObject);
@@ -454,3 +534,145 @@ TClassDefExtend(wxImageFileProperty, wxFileProperty) TClass(wxImageFileProperty)
     wxImageFileProperty_Create(TClass(wxString) label, TClass(wxString) name,
                                TClass(wxString) value);
 void wxImageFileProperty_Delete(TSelf(wxImageFileProperty) pObject);
+
+// ---------------------------------------------------------------------------
+// wxPropertyGridManager page objects
+// (extends TClassDefExtend(wxPropertyGridManager, wxPanel))
+// ---------------------------------------------------------------------------
+
+// The manager takes ownership of a page object passed to these methods.
+TClassDefExtend(wxPropertyGridManager, wxPanel) TClass(wxPropertyGridPage)
+    wxPropertyGridManager_AddPageObject(TSelf(wxPropertyGridManager) pObject,
+                                        TClass(wxString) label, TClass(wxBitmapBundle) bitmap,
+                                        TClass(wxPropertyGridPage) page);
+TClass(wxPropertyGridPage)
+    wxPropertyGridManager_InsertPageObject(TSelf(wxPropertyGridManager) pObject, int index,
+                                           TClass(wxString) label, TClass(wxBitmapBundle) bitmap,
+                                           TClass(wxPropertyGridPage) page);
+
+// ---------------------------------------------------------------------------
+// wxColourPropertyValue (wx/propgrid/advprops.h)
+// ---------------------------------------------------------------------------
+
+TClassDefExtend(wxColourPropertyValue, wxObject) TClass(wxColourPropertyValue)
+    wxColourPropertyValue_Create();
+TClass(wxColourPropertyValue)
+    wxColourPropertyValue_CreateWithType(unsigned int type, TClass(wxColour) colour);
+TClass(wxColourPropertyValue) wxColourPropertyValue_CreateFromColour(TClass(wxColour) colour);
+void wxColourPropertyValue_Delete(TSelf(wxColourPropertyValue) pObject);
+void wxColourPropertyValue_Init(TSelf(wxColourPropertyValue) pObject, unsigned int type,
+                                TClass(wxColour) colour);
+unsigned int wxColourPropertyValue_GetType(TSelf(wxColourPropertyValue) pObject);
+void wxColourPropertyValue_SetType(TSelf(wxColourPropertyValue) pObject, unsigned int type);
+TClass(wxColour) wxColourPropertyValue_GetColour(TSelf(wxColourPropertyValue) pObject);
+void wxColourPropertyValue_SetColour(TSelf(wxColourPropertyValue) pObject, TClass(wxColour) colour);
+
+// Extracts a wxColourPropertyValue from a variant of that type; returns null for
+// any other variant type.
+TClass(wxColourPropertyValue) wxVariant_GetColourPropertyValue(TClass(wxVariant) variant);
+
+// ---------------------------------------------------------------------------
+// wxPropertyGridXmlHandler (wx/xrc/xh_propgrid.h)
+// ---------------------------------------------------------------------------
+
+// Create one of these and pass it to wxXmlResource_AddHandler() before
+// wxXmlResource_Load() so that <wxPropertyGrid> XRC nodes can be loaded.
+TClassDefExtend(wxPropertyGridXmlHandler, wxXmlResourceHandler) TClass(wxPropertyGridXmlHandler)
+    wxPropertyGridXmlHandler_Create();
+void wxPropertyGridXmlHandler_Delete(TSelf(wxPropertyGridXmlHandler) pObject);
+
+// ---------------------------------------------------------------------------
+// wxPGChoices / wxPGChoiceEntry (wx/propgrid/property.h)
+// ---------------------------------------------------------------------------
+
+// wxPGChoices is a reference-counted value type with no wxObject base, so the
+// FFI handle owns a heap copy that Delete() releases.  Item()/Add()/AddAsSorted()
+// return a reference to an entry owned by the choices object: the returned
+// handle is borrowed and stays valid only while the choices object lives.
+TClassDef(wxPGChoices) TClass(wxPGChoices) wxPGChoices_Create();
+void wxPGChoices_Delete(TSelf(wxPGChoices) pObject);
+unsigned int wxPGChoices_GetCount(TSelf(wxPGChoices) pObject);
+TClass(wxString) wxPGChoices_GetLabel(TSelf(wxPGChoices) pObject, unsigned int index);
+int wxPGChoices_GetValue(TSelf(wxPGChoices) pObject, unsigned int index);
+TClass(wxPGChoiceEntry) wxPGChoices_Item(TSelf(wxPGChoices) pObject, unsigned int index);
+TClass(wxPGChoiceEntry)
+    wxPGChoices_Add(TSelf(wxPGChoices) pObject, TClass(wxString) label, int value);
+TClass(wxPGChoiceEntry)
+    wxPGChoices_AddAsSorted(TSelf(wxPGChoices) pObject, TClass(wxString) label, int value);
+void wxPGChoices_AddStrings(TSelf(wxPGChoices) pObject, TClass(wxArrayString) labels,
+                            TClass(wxArrayInt) values);
+void wxPGChoices_Set(TSelf(wxPGChoices) pObject, TClass(wxArrayString) labels,
+                     TClass(wxArrayInt) values);
+void wxPGChoices_RemoveAt(TSelf(wxPGChoices) pObject, unsigned int index, unsigned int count);
+int wxPGChoices_Index(TSelf(wxPGChoices) pObject, TClass(wxString) label);
+int wxPGChoices_IndexValue(TSelf(wxPGChoices) pObject, int value);
+void wxPGChoices_Clear(TSelf(wxPGChoices) pObject);
+TBool wxPGChoices_IsOk(TSelf(wxPGChoices) pObject);
+TClass(wxPGChoices) wxPGChoices_Copy(TSelf(wxPGChoices) pObject);
+
+// A choice entry is a wxPGCell carrying an int value; the wxPGCell_* wrappers
+// (SetText, SetFgCol, SetBgCol, SetBitmap, SetFont) apply to it as well because
+// the generated bindings derive the entry type from wxPGCell.
+TClassDefExtend(wxPGChoiceEntry,
+                wxPGCell) void wxPGChoiceEntry_SetValue(TSelf(wxPGChoiceEntry) pObject, int value);
+int wxPGChoiceEntry_GetValue(TSelf(wxPGChoiceEntry) pObject);
+
+// ---------------------------------------------------------------------------
+// Choices on a property, and the choices-taking property constructors
+// ---------------------------------------------------------------------------
+
+// GetChoices() returns a new copy the caller must delete.  SetChoices() returns
+// 0 when choices is null.
+TBool wxPGProperty_SetChoices(TSelf(wxPGProperty) pObject, TClass(wxPGChoices) choices);
+TClass(wxPGChoices) wxPGProperty_GetChoices(TSelf(wxPGProperty) pObject);
+
+TClass(wxEnumProperty)
+    wxEnumProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                     TClass(wxPGChoices) choices, int value);
+TClass(wxEditEnumProperty)
+    wxEditEnumProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                         TClass(wxPGChoices) choices, TClass(wxString) value);
+TClass(wxFlagsProperty)
+    wxFlagsProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                      TClass(wxPGChoices) choices, long value);
+TClass(wxArrayStringProperty)
+    wxArrayStringProperty_CreateFromArray(TClass(wxString) label, TClass(wxString) name,
+                                          TClass(wxArrayString) value);
+TClass(wxMultiChoiceProperty)
+    wxMultiChoiceProperty_CreateFromArray(TClass(wxString) label, TClass(wxString) name,
+                                          TClass(wxArrayString) value);
+TClass(wxMultiChoiceProperty)
+    wxMultiChoiceProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
+                                            TClass(wxPGChoices) choices,
+                                            TClass(wxArrayString) value);
+
+// ---------------------------------------------------------------------------
+// wxSystemColourProperty / wxCursorProperty (wx/propgrid/advprops.h)
+// ---------------------------------------------------------------------------
+
+TClassDefExtend(wxSystemColourProperty, wxEnumProperty) TClass(wxSystemColourProperty)
+    wxSystemColourProperty_Create(TClass(wxString) label, TClass(wxString) name,
+                                  TClass(wxColourPropertyValue) value);
+void wxSystemColourProperty_Delete(TSelf(wxSystemColourProperty) pObject);
+TClass(wxColourPropertyValue) wxSystemColourProperty_GetVal(TSelf(wxSystemColourProperty) pObject);
+TClass(wxColour) wxSystemColourProperty_GetColour(TSelf(wxSystemColourProperty) pObject, int index);
+int wxSystemColourProperty_ColToInd(TSelf(wxSystemColourProperty) pObject, TClass(wxColour) colour);
+
+TClassDefExtend(wxCursorProperty, wxEnumProperty) TClass(wxCursorProperty)
+    wxCursorProperty_Create(TClass(wxString) label, TClass(wxString) name, int value);
+void wxCursorProperty_Delete(TSelf(wxCursorProperty) pObject);
+
+// ---------------------------------------------------------------------------
+// wxPropertyGridEvent validation feedback (extends the block in kwx_classes.h)
+// ---------------------------------------------------------------------------
+
+// Only meaningful for wxEVT_PG_CHANGING.  The flag values are the wxPG_VFB_*
+// constants exported from src/kwx_defs.cpp.
+TClassDefExtend(
+    wxPropertyGridEvent,
+    wxNotifyEvent) void wxPropertyGridEvent_SetValidationFailureBehavior(TSelf(wxPropertyGridEvent)
+                                                                             pObject,
+                                                                         int flags);
+void wxPropertyGridEvent_SetValidationFailureMessage(TSelf(wxPropertyGridEvent) pObject,
+                                                     TClass(wxString) message);
+int wxPropertyGridEvent_GetValidationFailureBehavior(TSelf(wxPropertyGridEvent) pObject);

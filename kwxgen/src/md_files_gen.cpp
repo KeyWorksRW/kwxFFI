@@ -395,6 +395,12 @@ static void WriteEventsMarkdown(const ParsedFFI& ffi, const LangMeta& lang, cons
     for (const auto& event: sorted)
     {
         out << event.event_name << "(id, handler)\n";
+        // The wx-prefixed spelling is the one the docstrings promise, and the Julia binding
+        // emits it as a deprecated alias.  Document both names.
+        if (event.export_name.starts_with("exp_wx") && !event.event_name.starts_with("wx"))
+        {
+            out << "wx" << event.event_name << "(id, handler)  (deprecated alias)\n";
+        }
     }
 }
 

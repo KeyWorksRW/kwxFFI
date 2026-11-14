@@ -1,5 +1,7 @@
 #pragma once
 
+#include "kwx_types.h"
+
 // Base-utility regular expression, XML, URI, base64 and memory-buffer wrappers.
 //
 // These classes are classified `base-utility` in `.private/coverage_expansion_inventory.md`
@@ -143,6 +145,6 @@ void wxMemoryBuffer_Clear(TSelf(wxMemoryBuffer) pObject);
 // returned buffer is NUL-terminated, `decoded_length` receives the byte count, and the caller
 // releases the buffer with wxCFree().
 TClass(wxString) wxBase64EncodeBuffer(void* source, size_t src_length);
-void* wxBase64DecodeBuffer(TClass(wxString) text, int mode, size_t* decoded_length);
+void* wxBase64DecodeBuffer(TClass(wxString) text, int mode, TSizeTOut decoded_length);
 size_t wxBase64EncodedSizeOf(size_t src_length);
 size_t wxBase64DecodedSizeOf(size_t encoded_length);

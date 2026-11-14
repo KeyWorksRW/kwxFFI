@@ -22,7 +22,8 @@ void wxWindow_CentreOnParent(TSelf(wxWindow) pObject, int dir);
 TClass(wxWindow) wxWindow_FindWindowById(long winid, void* parent);
 TClass(wxWindow) wxWindow_FindWindowByName(TClass(wxString) name, void* parent);
 TClass(wxSizer) wxWindow_GetContainingSizer(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetMinSizeFromKnownDirection(TSelf(wxWindow) pObject, int direction, int size, int availableOtherDir);
+TClass(wxSize) wxWindow_GetMinSizeFromKnownDirection(TSelf(wxWindow) pObject, int direction,
+                                                     int size, int availableOtherDir);
 TBool wxWindow_IsTransparentBackgroundSupported(TSelf(wxWindow) pObject, void* reason);
 void wxWindow_PostSizeEvent(TSelf(wxWindow) pObject);
 void wxWindow_UnreserveControlId(int id, int count);
@@ -172,8 +173,9 @@ TBool wxControl_ShouldInheritColours(TSelf(wxControl) pObject);
 
 TClassDefExtend(wxTextCtrl, wxControl) TClass(wxPoint)
     wxTextCtrl_PositionToCoords(TSelf(wxTextCtrl) pObject, long pos);
-int wxTextCtrl_HitTest(TSelf(wxTextCtrl) pObject, TPoint(x, y), long* pos);
-int wxTextCtrl_HitTestColumnRow(TSelf(wxTextCtrl) pObject, TPoint(x, y), long* column, long* row);
+int wxTextCtrl_HitTest(TSelf(wxTextCtrl) pObject, TPoint(x, y), TLongOut pos);
+int wxTextCtrl_HitTestColumnRow(TSelf(wxTextCtrl) pObject, TPoint(x, y), TLongOut column,
+                                TLongOut row);
 TBool wxTextCtrl_IsRTFSupported(TSelf(wxTextCtrl) pObject);
 TClass(wxString) wxTextCtrl_GetRTFValue(TSelf(wxTextCtrl) pObject);
 void wxTextCtrl_SetRTFValue(TSelf(wxTextCtrl) pObject, TClass(wxString) value);

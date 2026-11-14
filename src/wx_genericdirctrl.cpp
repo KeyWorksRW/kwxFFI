@@ -50,6 +50,14 @@ extern "C"
         return result;
     }
 
+    EXPORT wxString* wxGenericDirCtrl_GetPathForItem(wxGenericDirCtrl* self, wxTreeItemId* item)
+    {
+        wxString* result = new wxString();
+        if (item)
+            *result = self->GetPath(*item);
+        return result;
+    }
+
     EXPORT void wxGenericDirCtrl_GetPaths(wxGenericDirCtrl* self, wxArrayString* paths)
     {
         self->GetPaths(*paths);

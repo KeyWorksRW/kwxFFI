@@ -11,6 +11,32 @@ extern "C"
         return (void*) new wxFileHistory(maxFiles);
     }
 
+    EXPORT void* wxFileHistory_CreateEx(int maxFiles, int idBase)
+    {
+        return static_cast<void*>(new wxFileHistory(maxFiles, idBase));
+    }
+
+    EXPORT int wxFileHistory_GetBaseId(void* pObject)
+    {
+        return static_cast<int>(static_cast<wxFileHistory*>(pObject)->GetBaseId());
+    }
+
+    EXPORT void wxFileHistory_SetBaseId(void* pObject, int baseId)
+    {
+        static_cast<wxFileHistory*>(pObject)->SetBaseId(baseId);
+    }
+
+    EXPORT void wxFileHistory_SetMenuPathStyle(void* pObject, int style)
+    {
+        static_cast<wxFileHistory*>(pObject)->SetMenuPathStyle(
+            static_cast<wxFileHistoryMenuPathStyle>(style));
+    }
+
+    EXPORT int wxFileHistory_GetMenuPathStyle(void* pObject)
+    {
+        return static_cast<int>(static_cast<wxFileHistory*>(pObject)->GetMenuPathStyle());
+    }
+
     EXPORT void wxFileHistory_Delete(void* pObject)
     {
         delete (wxFileHistory*) pObject;

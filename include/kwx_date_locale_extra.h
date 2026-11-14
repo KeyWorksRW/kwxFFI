@@ -37,7 +37,7 @@ TClassDef(wxDateTime) void wxDateTime_SetFromTimeT(TSelf(wxDateTime) pObject, ti
 void wxDateTime_SetFromJDN(TSelf(wxDateTime) pObject, double julian_day);
 TClass(wxDateTime) wxDateTime_CreateFromTimeT(time_t ticks);
 TClass(wxDateTime) wxDateTime_CreateFromJDN(double julian_day);
-TBool wxDateTime_GetFirstWeekDay(int* first_week_day);
+TBool wxDateTime_GetFirstWeekDay(TIntOut first_week_day);
 TClass(wxString) wxDateTime_GetEnglishMonthName(int month, int flags);
 TClass(wxString) wxDateTime_GetEnglishWeekDayName(int weekday, int flags);
 void wxDateTime_GetDateOnly(TSelf(wxDateTime) pObject, TClassRef(wxDateTime) ref);
@@ -255,8 +255,8 @@ TClassDef(wxNumberFormatter) TClass(wxString) wxNumberFormatter_ToStringLong(lon
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TClass(wxString) wxNumberFormatter_ToString(long val, int style);
 TClass(wxString) wxNumberFormatter_Format(TClass(wxString) format, double value);
-TBool wxNumberFormatter_FromStringLong(TClass(wxString) text, long* value);
-TBool wxNumberFormatter_FromStringDouble(TClass(wxString) text, double* value);
+TBool wxNumberFormatter_FromStringLong(TClass(wxString) text, TLongOut value);
+TBool wxNumberFormatter_FromStringDouble(TClass(wxString) text, TDoubleOut value);
 void wxNumberFormatter_RemoveTrailingZeroes(TClass(wxString) text);
 TClass(wxString) wxNumberFormatter_RemoveCurrencySymbolOrCode(TClass(wxString) text, int style);
 
@@ -321,6 +321,11 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // call kwxMessageOutputUseStderr() (see kwx_log.h) so that output reaches the console rather
 // than wxMessageOutputBest's modal fallback.
 //
+// ParseArgs() and ParseStringArgs() are Parse()/ParseString() with wxWidgets' own reporting
+// enabled: a help switch or a syntax error is written to the active wxMessageOutput and the
+// call returns -1 (help) or a positive error code.  For a GUI-subsystem process call
+// kwxMessageOutputUseStderr() (see kwx_log.h) first so the text reaches the inherited console.
+//
 // Value types are the wxCmdLineParamType values, flags are combinations of the
 // wxCmdLineEntryFlags values, and GetOptionLong() returns `default_value` when the option was
 // not found or did not hold a number.
@@ -343,6 +348,8 @@ void wxCmdLineParser_AddParam(TSelf(wxCmdLineParser) pObject, TClass(wxString) d
                               int type, int flags);
 int wxCmdLineParser_Parse(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
 int wxCmdLineParser_ParseString(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
+int wxCmdLineParser_ParseArgs(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
+int wxCmdLineParser_ParseStringArgs(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
 TBool wxCmdLineParser_Found(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 int wxCmdLineParser_GetParamCount(TSelf(wxCmdLineParser) pObject);
 TClass(wxString) wxCmdLineParser_GetParam(TSelf(wxCmdLineParser) pObject, int index);
@@ -409,6 +416,12 @@ void wxVariant_Append(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 void wxVariant_Insert(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 TBool wxVariant_Member(TSelf(wxVariant) pObject, TClass(wxVariant) value);
 void wxVariant_ClearList(TSelf(wxVariant) pObject);
-TBool wxVariant_ConvertToLong(TSelf(wxVariant) pObject, long* value);
-TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, double* value);
-TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, int* value);
+TBool wxVariant_ConvertToLong(TSelf(wxVariant) pObject, TLongOut value);
+TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, TDoubleOut value);
+TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, TIntOut value);
+// wxVariant list element access: a new copy of element `index`, which the caller
+// owns.  Returns null when index is out of range.
+TClass(wxVariant) wxVariant_Item(TSelf(wxVariant) pObject, size_t index);
+// Extracts the wxFont held by a "wxFont" variant; null for any other type.  The
+// caller owns the returned wxFont.
+TClass(wxFont) wxVariant_GetFont(TSelf(wxVariant) pObject);

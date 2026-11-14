@@ -13,6 +13,7 @@ void wxHtmlWindow_SelectLine(TSelf(wxHtmlWindow) pObject, TPoint(x, y));
 void wxHtmlWindow_SelectWord(TSelf(wxHtmlWindow) pObject, TPoint(x, y));
 TClass(wxString) wxHtmlWindow_SelectionToText(TSelf(wxHtmlWindow) pObject);
 void wxHtmlWindow_SetBackgroundImage(TSelf(wxHtmlWindow) pObject, TClass(wxBitmapBundle) bmpBg);
+void wxHtmlWindow_SetHTMLBackgroundImage(TSelf(wxHtmlWindow) pObject, TClass(wxBitmapBundle) bmpBg);
 void wxHtmlWindow_SetStandardFonts(TSelf(wxHtmlWindow) pObject, int size,
                                    TClass(wxString) normal_face, TClass(wxString) fixed_face);
 TClass(wxString) wxHtmlWindow_ToText(TSelf(wxHtmlWindow) pObject);
@@ -117,7 +118,7 @@ void wxHtmlEasyPrinting_SetHeader(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxSt
 void wxHtmlEasyPrinting_SetFooter(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxString) footer,
                                   int pg);
 void wxHtmlEasyPrinting_SetFonts(TSelf(wxHtmlEasyPrinting) pObject, TClass(wxString) normal_face,
-                                 TClass(wxString) fixed_face, int* sizes);
+                                 TClass(wxString) fixed_face, TIntArrayIn sizes);
 void wxHtmlEasyPrinting_SetStandardFonts(TSelf(wxHtmlEasyPrinting) pObject, int size,
                                          TClass(wxString) normal_face, TClass(wxString) fixed_face);
 void* wxHtmlEasyPrinting_GetPrintData(TSelf(wxHtmlEasyPrinting) pObject);
@@ -137,7 +138,7 @@ void wxHtmlPrintout_SetHtmlText(TSelf(wxHtmlPrintout) pObject, TClass(wxString) 
 void wxHtmlPrintout_SetHeader(TSelf(wxHtmlPrintout) pObject, TClass(wxString) header, int pg);
 void wxHtmlPrintout_SetFooter(TSelf(wxHtmlPrintout) pObject, TClass(wxString) footer, int pg);
 void wxHtmlPrintout_SetFonts(TSelf(wxHtmlPrintout) pObject, TClass(wxString) normal_face,
-                             TClass(wxString) fixed_face, int* sizes);
+                             TClass(wxString) fixed_face, TIntArrayIn sizes);
 void wxHtmlPrintout_SetStandardFonts(TSelf(wxHtmlPrintout) pObject, int size,
                                      TClass(wxString) normal_face, TClass(wxString) fixed_face);
 void wxHtmlPrintout_SetMargins(TSelf(wxHtmlPrintout) pObject, float top, float bottom, float left,

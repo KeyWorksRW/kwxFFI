@@ -118,13 +118,31 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
     --out     src/gen/
 ```
 
-**Generated output** (`src/gen/`): one `.jl` file per class using `ccall`, plus
-`events.jl`, `keys.jl`, `constants.jl`. Include from your package:
+**Generated output** (`--out`):
+
+| File | Contents |
+|---|---|
+| `KwxFFI_gen.jl` | `module KwxFFI` with the raw `ccall` wrappers |
+| `events_gen.jl`, `keys_gen.jl`, `constants_gen.jl` | event ids, key codes, constants |
+| `classes_gen.jl`, `freefuncs_gen.jl` | raw class methods and free functions |
+| `types_gen.jl` | abstract roots, `wxEvent`, `_wx_wrap` |
+| `wxstring_gen.jl` | `wxString` lifecycle, `_wx_take_cstring`, `_wx_take_wxstring` |
+| `wx_idiomatic_gen.jl` | includes `types_gen.jl` plus one wrapper file per class |
+
+Include in this order from your module:
 
 ```julia
-include("gen/events.jl")
-include("gen/Button.jl")
+include("wx/KwxFFI_gen.jl")
+include("wx/wxstring_gen.jl")
+include("wx/wx_idiomatic_gen.jl")   # includes types_gen.jl
 ```
+
+The generated `types_gen.jl` and `wxstring_gen.jl` replace the hand-written
+`core/types.jl` and `core/strings.jl`; do not include both. `TString` parameters take an
+`AbstractString` and are passed as a `Cstring` without allocating a `wxString`; only a
+`TClass(wxString)` parameter needs the temporary, which the wrapper releases in a `finally`
+block. `TString` returns are freed through the library's `wxCFree`, never `Libc.free`
+(cross-CRT free corrupts the Windows heap).
 
 Regenerate any time kwxFFI is updated; commit the generated files alongside hand-written code.
 
@@ -194,6 +212,8 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
   `kwxConstants_IntTable` accessors) consumed by `kwx_constants_gen.ts`. Compile it into the
   kwxFFI shared library alongside the other `src/` files.
 - `kwx_free_functions_gen.ts` — TypeScript wrappers for non-class C functions.
+- `kwx_class_registry_gen.ts` — runtime registry of wrapper classes; each class module registers
+  itself so a cyclic return site can construct the returned wrapper without a value import.
 - `wx{Class}_gen.ts` — One file per class with a TypeScript class wrapping the FFI calls.
   Constructors are emitted as module-level `createWx{Class}()` functions rather than
   static `Create()` methods: TypeScript requires a derived static side to be assignable
@@ -206,12 +226,15 @@ extern/kwxFFI/bin/Debug/kwxgen generate \
   and a different return type — is exposed as `<Name>__<DeclaringClass>`; `generate`
   prints these renames as one block at the end of the run.
   A wrapper class is imported by value only when that cannot close a module cycle. When a
-  method returns a wrapper whose `extends` chain leads back to the declaring class, the
-  return keeps the raw `Pointer` contract: an eager value import would leave the base class
-  binding in its temporal dead zone and the generated corpus would fail to load with a
-  `ReferenceError`. `generate` reports each such downgrade as
-  `TypeScript: <class>: <Class> return stays raw Pointer (import cycle)`. The decision is
-  propagated down the inheritance chain, so a re-declared member keeps the ancestor's
+  method returns a wrapper whose `extends` chain leads back to the declaring class, the value
+  import is dropped, but the return keeps its wrapper type: the file adds an erased
+  `import type { wxType } from "./wxType_gen.ts"` annotation (no module edge is created) and
+  constructs the result with `getClass<wxType>("wxType")` from `kwx_class_registry_gen.ts`.
+  Every generated class module registers itself with that registry at the end of its own file,
+  so no import cycle can form. The registry throws when the returned class module was never
+  evaluated — import the `kwx_gen.ts` barrel (or that class module) first. `generate` reports
+  the routed count as one `class registry: <n> cyclic return sites` line. The decision is
+  still propagated down the inheritance chain, so a re-declared member keeps the ancestor's
   annotation instead of being renamed.
 - `kwx_gen.ts` — Master barrel re-export of every generated module.
 
