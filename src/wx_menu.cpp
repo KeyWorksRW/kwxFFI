@@ -14,6 +14,11 @@ extern "C"
         return new wxMenu(*title, style);
     }
 
+    EXPORT wxMenu* wxMenu_CreateDefault()
+    {
+        return new wxMenu();
+    }
+
     EXPORT void wxMenu_DeletePointer(wxMenu* self)
     {
         delete self;

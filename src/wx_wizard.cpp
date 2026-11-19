@@ -79,6 +79,14 @@ extern "C"
         self->SetNext((wxWizardPage*) next);
     }
 
+    EXPORT void* wxWizardPageSimple_Chain(wxWizardPageSimple* self, wxWizardPageSimple* next)
+    {
+        // Chain() returns a reference to *next, which wx owns — a borrowed wrapper.
+        if (!self || !next)
+            return nullptr;
+        return (void*) &self->Chain(next);
+    }
+
     EXPORT int wxWizardEvent_GetDirection(wxWizardEvent* self)
     {
         return self->GetDirection();
@@ -147,6 +155,40 @@ extern "C"
     EXPORT int wxWizard_GetBitmapPlacement(wxWizard* self)
     {
         return self->GetBitmapPlacement();
+    }
+
+    EXPORT int wxWizard_IsRunning(wxWizard* self)
+    {
+        return self->IsRunning() ? 1 : 0;
+    }
+
+    EXPORT void wxWizard_SetBitmapBackgroundColour(wxWizard* self, wxColour* colour)
+    {
+        if (colour)
+            self->SetBitmapBackgroundColour(*colour);
+    }
+
+    EXPORT void wxWizard_GetBitmapBackgroundColour(wxWizard* self, wxColour* colour)
+    {
+        *colour = self->GetBitmapBackgroundColour();
+    }
+
+    EXPORT void wxWizard_SetMinimumBitmapWidth(wxWizard* self, int width)
+    {
+        self->SetMinimumBitmapWidth(width);
+    }
+
+    EXPORT int wxWizard_GetMinimumBitmapWidth(wxWizard* self)
+    {
+        return self->GetMinimumBitmapWidth();
+    }
+
+    EXPORT int wxWizard_TileBitmap(int left, int top, int width, int height, wxDC* dc,
+                                   wxBitmap* bitmap)
+    {
+        if (!dc || !bitmap)
+            return 0;
+        return wxWizard::TileBitmap(wxRect(left, top, width, height), *dc, *bitmap) ? 1 : 0;
     }
 
     EXPORT void* wxWizardPageSimple_CreateWithBundle(wxWizard* parent, wxWizardPage* prev,

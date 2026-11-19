@@ -251,9 +251,18 @@ extern "C"
         return AsTextEntry(self)->AutoCompleteDirectories();
     }
 
-    EXPORT int wxTextEntry_AutoCompleteCompleter(void* self, void* completer)
+    EXPORT int wxTextEntry_AutoCompleteCompleter(void* self, wxTextCompleterSimple* completer)
     {
         return AsTextEntry(self)->AutoComplete(static_cast<wxTextCompleter*>(completer));
+    }
+
+    // Fixed-list auto-completion from a wxArrayString; equivalent to
+    // wxTextEntry_AutoComplete but avoids a hand-built const char** array.
+    EXPORT int wxTextEntry_AutoCompleteStrings(void* self, wxArrayString* items)
+    {
+        if (!items)
+            return false;
+        return AsTextEntry(self)->AutoComplete(*items);
     }
 
     // ---------------------------------------------------------------------

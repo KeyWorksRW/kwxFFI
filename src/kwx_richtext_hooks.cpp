@@ -8,15 +8,18 @@
 
 #include "kwx_wrapper.h"
 
+#include <cstdint>
+
 // ---------------------------------------------------------------------------
-// Callback shapes.  Every callback returns void, receives the foreign object
-// first and takes at most two further arguments.  A callback that must produce
-// a value publishes it with the matching Set*Result function on the same object
-// before it returns; a callback that returns without publishing keeps the
-// base-class behaviour.  This is the include/kwx_propgrid_hooks.h ABI, and it
-// is what lets a runtime whose native thunk is void (*)(void*, void*, void*)
-// install every hook — an int-returning callback would answer from an undefined
-// return register.
+// Callback shapes.  The plain per-hook typedefs below return void, receive the
+// object-level callback token first and take at most two further arguments.  A
+// callback that must produce a value publishes it with the matching Set*Result
+// function on the same object before it returns; a callback that returns
+// without publishing keeps the base-class behaviour.
+//
+// Because that first argument identifies the object rather than the hook, a
+// runtime that can form only one C function pointer cannot install these
+// directly; kwxHookFunc below is the uniform single-thunk form that can.
 // ---------------------------------------------------------------------------
 
 typedef void (*kwxRtcPrepareContentFunc)(void* pObject, void* container);
@@ -33,6 +36,11 @@ typedef void (*kwxRdhVirtualSubobjectCountFunc)(void* pObject, void* obj);
 typedef void (*kwxRdhHasVirtualTextFunc)(void* pObject, void* obj);
 typedef void (*kwxRdhGetVirtualTextFunc)(void* pObject, void* obj);
 
+// Uniform single-thunk hook ABI — see include/kwx_richtext_hooks.h.  The
+// first argument is the per-hook token, the next two are the hook
+// arguments; unused positions are null.
+typedef void (*kwxHookFunc)(void* data, void* arg1, void* arg2);
+
 // ---------------------------------------------------------------------------
 // kwxRichTextCtrl
 //
@@ -48,6 +56,16 @@ private:
     kwxRtcPrepareContentFunc m_prepare_content_func;
     kwxRtcCanDeleteRangeFunc m_can_delete_range_func;
     kwxRtcCanInsertContentFunc m_can_insert_content_func;
+
+    kwxHookFunc m_prepare_content_hook;
+    void* m_prepare_content_hook_data;
+    kwxHookFunc m_can_delete_range_hook;
+    void* m_can_delete_range_hook_data;
+    kwxHookFunc m_can_insert_content_hook;
+    void* m_can_insert_content_hook_data;
+
+    long m_lock_id;
+    bool m_locked;
 
     mutable bool m_result_bool;
     mutable bool m_has_result;
@@ -69,6 +87,22 @@ public:
         m_can_insert_content_func = (kwxRtcCanInsertContentFunc) pFunction;
     }
 
+    void SetOnPrepareContentWithData(void* pFunction, void* data)
+    {
+        m_prepare_content_hook = (kwxHookFunc) pFunction;
+        m_prepare_content_hook_data = data;
+    }
+    void SetOnCanDeleteRangeWithData(void* pFunction, void* data)
+    {
+        m_can_delete_range_hook = (kwxHookFunc) pFunction;
+        m_can_delete_range_hook_data = data;
+    }
+    void SetOnCanInsertContentWithData(void* pFunction, void* data)
+    {
+        m_can_insert_content_hook = (kwxHookFunc) pFunction;
+        m_can_insert_content_hook_data = data;
+    }
+
     void SetCanDeleteRangeResult(bool result)
     {
         m_result_bool = result;
@@ -79,6 +113,18 @@ public:
         m_result_bool = result;
         m_has_result = true;
     }
+
+    void SetCallbackObject(void* object) { m_object = object; }
+    void* GetCallbackObject() const { return m_object; }
+    void SetLockId(long id) { m_lock_id = id; }
+    long GetLockId() const { return m_lock_id; }
+    void BeginLock()
+    {
+        ++m_lock_id;
+        m_locked = true;
+    }
+    void EndLock() { m_locked = false; }
+    bool IsLocked() const { return m_locked; }
 
     void PrepareContent(wxRichTextParagraphLayoutBox& container) override;
     bool CanDeleteRange(wxRichTextParagraphLayoutBox& container,
@@ -95,12 +141,49 @@ kwxRichTextCtrl::kwxRichTextCtrl(void* pObject, wxWindow* parent, wxWindowID id,
     m_prepare_content_func = nullptr;
     m_can_delete_range_func = nullptr;
     m_can_insert_content_func = nullptr;
+    m_prepare_content_hook = nullptr;
+    m_prepare_content_hook_data = nullptr;
+    m_can_delete_range_hook = nullptr;
+    m_can_delete_range_hook_data = nullptr;
+    m_can_insert_content_hook = nullptr;
+    m_can_insert_content_hook_data = nullptr;
     m_result_bool = false;
     m_has_result = false;
+    m_lock_id = 0;
+    m_locked = false;
 }
 
 void kwxRichTextCtrl::PrepareContent(wxRichTextParagraphLayoutBox& container)
 {
+    // Tag every leaf object of every paragraph with the current lock id, mirroring
+    // MyRichTextCtrl::PrepareContent in wxSamples/src/richtext/richtext.cpp:2152-2175.
+    if (m_locked)
+    {
+        wxRichTextObjectList::compatibility_iterator node = container.GetChildren().GetFirst();
+        while (node)
+        {
+            wxRichTextParagraph* para = wxDynamicCast(node->GetData(), wxRichTextParagraph);
+            if (para)
+            {
+                wxRichTextObjectList::compatibility_iterator childNode =
+                    para->GetChildren().GetFirst();
+                while (childNode)
+                {
+                    wxRichTextObject* obj = childNode->GetData();
+                    obj->GetProperties().SetProperty("Lock", m_lock_id);
+                    childNode = childNode->GetNext();
+                }
+            }
+            node = node->GetNext();
+        }
+    }
+
+    if (m_prepare_content_hook)
+    {
+        m_prepare_content_hook(m_prepare_content_hook_data, &container, nullptr);
+        return;
+    }
+
     if (!m_prepare_content_func)
     {
         wxRichTextCtrl::PrepareContent(container);
@@ -112,6 +195,19 @@ void kwxRichTextCtrl::PrepareContent(wxRichTextParagraphLayoutBox& container)
 bool kwxRichTextCtrl::CanDeleteRange(wxRichTextParagraphLayoutBox& container,
                                      const wxRichTextRange& range) const
 {
+    if (m_can_delete_range_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_can_delete_range_hook(m_can_delete_range_hook_data, &container,
+                                const_cast<wxRichTextRange*>(&range));
+        if (!m_has_result)
+        {
+            return wxRichTextCtrl::CanDeleteRange(container, range);
+        }
+        return m_result_bool;
+    }
+
     if (!m_can_delete_range_func)
     {
         return wxRichTextCtrl::CanDeleteRange(container, range);
@@ -129,6 +225,19 @@ bool kwxRichTextCtrl::CanDeleteRange(wxRichTextParagraphLayoutBox& container,
 
 bool kwxRichTextCtrl::CanInsertContent(wxRichTextParagraphLayoutBox& container, long pos) const
 {
+    if (m_can_insert_content_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_can_insert_content_hook(m_can_insert_content_hook_data, &container,
+                                  (void*) (intptr_t) pos);
+        if (!m_has_result)
+        {
+            return wxRichTextCtrl::CanInsertContent(container, pos);
+        }
+        return m_result_bool;
+    }
+
     if (!m_can_insert_content_func)
     {
         return wxRichTextCtrl::CanInsertContent(container, pos);
@@ -161,12 +270,27 @@ private:
     kwxRtfUpdateFieldFunc m_update_field_func;
     kwxRtfIsTopLevelFunc m_is_top_level_func;
 
+    kwxHookFunc m_can_edit_properties_hook;
+    void* m_can_edit_properties_hook_data;
+    kwxHookFunc m_edit_properties_hook;
+    void* m_edit_properties_hook_data;
+    kwxHookFunc m_get_properties_menu_label_hook;
+    void* m_get_properties_menu_label_hook_data;
+    kwxHookFunc m_update_field_hook;
+    void* m_update_field_hook_data;
+    kwxHookFunc m_is_top_level_hook;
+    void* m_is_top_level_hook_data;
+
     mutable wxString m_result_string;
     mutable bool m_result_bool;
     mutable bool m_has_result;
 
+    void Init(void* pObject);
+
 public:
     kwxRichTextFieldTypeStandard(void* pObject, const wxString& name, const wxString& label,
+                                 int displayStyle);
+    kwxRichTextFieldTypeStandard(void* pObject, const wxString& name, const wxBitmap& bitmap,
                                  int displayStyle);
 
     void SetOnCanEditProperties(void* pFunction)
@@ -188,6 +312,32 @@ public:
     void SetOnIsTopLevel(void* pFunction)
     {
         m_is_top_level_func = (kwxRtfIsTopLevelFunc) pFunction;
+    }
+
+    void SetOnCanEditPropertiesWithData(void* pFunction, void* data)
+    {
+        m_can_edit_properties_hook = (kwxHookFunc) pFunction;
+        m_can_edit_properties_hook_data = data;
+    }
+    void SetOnEditPropertiesWithData(void* pFunction, void* data)
+    {
+        m_edit_properties_hook = (kwxHookFunc) pFunction;
+        m_edit_properties_hook_data = data;
+    }
+    void SetOnGetPropertiesMenuLabelWithData(void* pFunction, void* data)
+    {
+        m_get_properties_menu_label_hook = (kwxHookFunc) pFunction;
+        m_get_properties_menu_label_hook_data = data;
+    }
+    void SetOnUpdateFieldWithData(void* pFunction, void* data)
+    {
+        m_update_field_hook = (kwxHookFunc) pFunction;
+        m_update_field_hook_data = data;
+    }
+    void SetOnIsTopLevelWithData(void* pFunction, void* data)
+    {
+        m_is_top_level_hook = (kwxHookFunc) pFunction;
+        m_is_top_level_hook_data = data;
     }
 
     void SetPropertiesMenuLabelResult(wxString* label)
@@ -228,18 +378,53 @@ kwxRichTextFieldTypeStandard::kwxRichTextFieldTypeStandard(void* pObject, const 
                                                            int displayStyle) :
     wxRichTextFieldTypeStandard(name, label, displayStyle)
 {
+    Init(pObject);
+}
+
+kwxRichTextFieldTypeStandard::kwxRichTextFieldTypeStandard(void* pObject, const wxString& name,
+                                                           const wxBitmap& bitmap,
+                                                           int displayStyle) :
+    wxRichTextFieldTypeStandard(name, bitmap, displayStyle)
+{
+    Init(pObject);
+}
+
+void kwxRichTextFieldTypeStandard::Init(void* pObject)
+{
     m_object = pObject;
     m_can_edit_properties_func = nullptr;
     m_edit_properties_func = nullptr;
     m_get_properties_menu_label_func = nullptr;
     m_update_field_func = nullptr;
     m_is_top_level_func = nullptr;
+    m_can_edit_properties_hook = nullptr;
+    m_can_edit_properties_hook_data = nullptr;
+    m_edit_properties_hook = nullptr;
+    m_edit_properties_hook_data = nullptr;
+    m_get_properties_menu_label_hook = nullptr;
+    m_get_properties_menu_label_hook_data = nullptr;
+    m_update_field_hook = nullptr;
+    m_update_field_hook_data = nullptr;
+    m_is_top_level_hook = nullptr;
+    m_is_top_level_hook_data = nullptr;
     m_result_bool = false;
     m_has_result = false;
 }
 
 bool kwxRichTextFieldTypeStandard::CanEditProperties(wxRichTextField* obj) const
 {
+    if (m_can_edit_properties_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_can_edit_properties_hook(m_can_edit_properties_hook_data, obj, nullptr);
+        if (!m_has_result)
+        {
+            return wxRichTextFieldTypeStandard::CanEditProperties(obj);
+        }
+        return m_result_bool;
+    }
+
     if (!m_can_edit_properties_func)
     {
         return wxRichTextFieldTypeStandard::CanEditProperties(obj);
@@ -258,6 +443,18 @@ bool kwxRichTextFieldTypeStandard::CanEditProperties(wxRichTextField* obj) const
 bool kwxRichTextFieldTypeStandard::EditProperties(wxRichTextField* obj, wxWindow* parent,
                                                   wxRichTextBuffer* buffer)
 {
+    if (m_edit_properties_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_edit_properties_hook(m_edit_properties_hook_data, obj, parent);
+        if (!m_has_result)
+        {
+            return wxRichTextFieldTypeStandard::EditProperties(obj, parent, buffer);
+        }
+        return m_result_bool;
+    }
+
     if (!m_edit_properties_func)
     {
         return wxRichTextFieldTypeStandard::EditProperties(obj, parent, buffer);
@@ -275,6 +472,18 @@ bool kwxRichTextFieldTypeStandard::EditProperties(wxRichTextField* obj, wxWindow
 
 wxString kwxRichTextFieldTypeStandard::GetPropertiesMenuLabel(wxRichTextField* obj) const
 {
+    if (m_get_properties_menu_label_hook)
+    {
+        m_result_string.clear();
+        m_has_result = false;
+        m_get_properties_menu_label_hook(m_get_properties_menu_label_hook_data, obj, nullptr);
+        if (!m_has_result)
+        {
+            return wxRichTextFieldTypeStandard::GetPropertiesMenuLabel(obj);
+        }
+        return m_result_string;
+    }
+
     if (!m_get_properties_menu_label_func)
     {
         return wxRichTextFieldTypeStandard::GetPropertiesMenuLabel(obj);
@@ -292,6 +501,18 @@ wxString kwxRichTextFieldTypeStandard::GetPropertiesMenuLabel(wxRichTextField* o
 
 bool kwxRichTextFieldTypeStandard::UpdateField(wxRichTextBuffer* buffer, wxRichTextField* obj)
 {
+    if (m_update_field_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_update_field_hook(m_update_field_hook_data, buffer, obj);
+        if (!m_has_result)
+        {
+            return wxRichTextFieldTypeStandard::UpdateField(buffer, obj);
+        }
+        return m_result_bool;
+    }
+
     if (!m_update_field_func)
     {
         return wxRichTextFieldTypeStandard::UpdateField(buffer, obj);
@@ -309,6 +530,18 @@ bool kwxRichTextFieldTypeStandard::UpdateField(wxRichTextBuffer* buffer, wxRichT
 
 bool kwxRichTextFieldTypeStandard::IsTopLevel(wxRichTextField* obj) const
 {
+    if (m_is_top_level_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_is_top_level_hook(m_is_top_level_hook_data, obj, nullptr);
+        if (!m_has_result)
+        {
+            return wxRichTextFieldTypeStandard::IsTopLevel(obj);
+        }
+        return m_result_bool;
+    }
+
     if (!m_is_top_level_func)
     {
         return wxRichTextFieldTypeStandard::IsTopLevel(obj);
@@ -343,6 +576,17 @@ private:
     kwxRdhHasVirtualTextFunc m_has_virtual_text_func;
     kwxRdhGetVirtualTextFunc m_get_virtual_text_func;
 
+    kwxHookFunc m_has_virtual_attributes_hook;
+    void* m_has_virtual_attributes_hook_data;
+    kwxHookFunc m_get_virtual_attributes_hook;
+    void* m_get_virtual_attributes_hook_data;
+    kwxHookFunc m_subobject_count_hook;
+    void* m_subobject_count_hook_data;
+    kwxHookFunc m_has_virtual_text_hook;
+    void* m_has_virtual_text_hook_data;
+    kwxHookFunc m_get_virtual_text_hook;
+    void* m_get_virtual_text_hook_data;
+
     mutable wxString m_result_string;
     mutable bool m_result_bool;
     mutable int m_result_int;
@@ -370,6 +614,32 @@ public:
     void SetOnGetVirtualText(void* pFunction)
     {
         m_get_virtual_text_func = (kwxRdhGetVirtualTextFunc) pFunction;
+    }
+
+    void SetOnHasVirtualAttributesWithData(void* pFunction, void* data)
+    {
+        m_has_virtual_attributes_hook = (kwxHookFunc) pFunction;
+        m_has_virtual_attributes_hook_data = data;
+    }
+    void SetOnGetVirtualAttributesWithData(void* pFunction, void* data)
+    {
+        m_get_virtual_attributes_hook = (kwxHookFunc) pFunction;
+        m_get_virtual_attributes_hook_data = data;
+    }
+    void SetOnGetVirtualSubobjectAttributesCountWithData(void* pFunction, void* data)
+    {
+        m_subobject_count_hook = (kwxHookFunc) pFunction;
+        m_subobject_count_hook_data = data;
+    }
+    void SetOnHasVirtualTextWithData(void* pFunction, void* data)
+    {
+        m_has_virtual_text_hook = (kwxHookFunc) pFunction;
+        m_has_virtual_text_hook_data = data;
+    }
+    void SetOnGetVirtualTextWithData(void* pFunction, void* data)
+    {
+        m_get_virtual_text_hook = (kwxHookFunc) pFunction;
+        m_get_virtual_text_hook_data = data;
     }
 
     void SetVirtualTextResult(wxString* text)
@@ -416,6 +686,16 @@ kwxRichTextDrawingHandler::kwxRichTextDrawingHandler(void* pObject, const wxStri
     m_subobject_count_func = nullptr;
     m_has_virtual_text_func = nullptr;
     m_get_virtual_text_func = nullptr;
+    m_has_virtual_attributes_hook = nullptr;
+    m_has_virtual_attributes_hook_data = nullptr;
+    m_get_virtual_attributes_hook = nullptr;
+    m_get_virtual_attributes_hook_data = nullptr;
+    m_subobject_count_hook = nullptr;
+    m_subobject_count_hook_data = nullptr;
+    m_has_virtual_text_hook = nullptr;
+    m_has_virtual_text_hook_data = nullptr;
+    m_get_virtual_text_hook = nullptr;
+    m_get_virtual_text_hook_data = nullptr;
     m_result_bool = false;
     m_result_int = 0;
     m_has_result = false;
@@ -423,6 +703,18 @@ kwxRichTextDrawingHandler::kwxRichTextDrawingHandler(void* pObject, const wxStri
 
 bool kwxRichTextDrawingHandler::HasVirtualAttributes(wxRichTextObject* obj) const
 {
+    if (m_has_virtual_attributes_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_has_virtual_attributes_hook(m_has_virtual_attributes_hook_data, obj, nullptr);
+        if (!m_has_result)
+        {
+            return false;
+        }
+        return m_result_bool;
+    }
+
     if (!m_has_virtual_attributes_func)
     {
         return false;
@@ -441,6 +733,18 @@ bool kwxRichTextDrawingHandler::HasVirtualAttributes(wxRichTextObject* obj) cons
 bool kwxRichTextDrawingHandler::GetVirtualAttributes(wxRichTextAttr& attr,
                                                      wxRichTextObject* obj) const
 {
+    if (m_get_virtual_attributes_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_get_virtual_attributes_hook(m_get_virtual_attributes_hook_data, &attr, obj);
+        if (!m_has_result)
+        {
+            return false;
+        }
+        return m_result_bool;
+    }
+
     if (!m_get_virtual_attributes_func)
     {
         return false;
@@ -458,6 +762,18 @@ bool kwxRichTextDrawingHandler::GetVirtualAttributes(wxRichTextAttr& attr,
 
 int kwxRichTextDrawingHandler::GetVirtualSubobjectAttributesCount(wxRichTextObject* obj) const
 {
+    if (m_subobject_count_hook)
+    {
+        m_result_int = 0;
+        m_has_result = false;
+        m_subobject_count_hook(m_subobject_count_hook_data, obj, nullptr);
+        if (!m_has_result)
+        {
+            return 0;
+        }
+        return m_result_int;
+    }
+
     if (!m_subobject_count_func)
     {
         return 0;
@@ -482,6 +798,19 @@ int kwxRichTextDrawingHandler::GetVirtualSubobjectAttributes(
 
 bool kwxRichTextDrawingHandler::HasVirtualText(const wxRichTextPlainText* obj) const
 {
+    if (m_has_virtual_text_hook)
+    {
+        m_result_bool = false;
+        m_has_result = false;
+        m_has_virtual_text_hook(m_has_virtual_text_hook_data, const_cast<wxRichTextPlainText*>(obj),
+                                nullptr);
+        if (!m_has_result)
+        {
+            return false;
+        }
+        return m_result_bool;
+    }
+
     if (!m_has_virtual_text_func)
     {
         return false;
@@ -499,6 +828,20 @@ bool kwxRichTextDrawingHandler::HasVirtualText(const wxRichTextPlainText* obj) c
 
 bool kwxRichTextDrawingHandler::GetVirtualText(const wxRichTextPlainText* obj, wxString& text) const
 {
+    if (m_get_virtual_text_hook)
+    {
+        m_result_string.clear();
+        m_has_result = false;
+        m_get_virtual_text_hook(m_get_virtual_text_hook_data, const_cast<wxRichTextPlainText*>(obj),
+                                nullptr);
+        if (!m_has_result)
+        {
+            return false;
+        }
+        text = m_result_string;
+        return true;
+    }
+
     if (!m_get_virtual_text_func)
     {
         return false;
@@ -543,6 +886,15 @@ extern "C"
         }
     }
 
+    EXPORT void kwxRichTextCtrl_SetOnPrepareContentWithData(kwxRichTextCtrl* self, void* pFunction,
+                                                            void* data)
+    {
+        if (self)
+        {
+            self->SetOnPrepareContentWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextCtrl_SetOnCanDeleteRange(kwxRichTextCtrl* self, void* pFunction)
     {
         if (self)
@@ -551,11 +903,29 @@ extern "C"
         }
     }
 
+    EXPORT void kwxRichTextCtrl_SetOnCanDeleteRangeWithData(kwxRichTextCtrl* self, void* pFunction,
+                                                            void* data)
+    {
+        if (self)
+        {
+            self->SetOnCanDeleteRangeWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextCtrl_SetOnCanInsertContent(kwxRichTextCtrl* self, void* pFunction)
     {
         if (self)
         {
             self->SetOnCanInsertContent(pFunction);
+        }
+    }
+
+    EXPORT void kwxRichTextCtrl_SetOnCanInsertContentWithData(kwxRichTextCtrl* self,
+                                                              void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnCanInsertContentWithData(pFunction, data);
         }
     }
 
@@ -575,6 +945,53 @@ extern "C"
         }
     }
 
+    EXPORT void kwxRichTextCtrl_SetCallbackObject(kwxRichTextCtrl* self, void* object)
+    {
+        if (self)
+        {
+            self->SetCallbackObject(object);
+        }
+    }
+
+    EXPORT void* kwxRichTextCtrl_GetCallbackObject(kwxRichTextCtrl* self)
+    {
+        return self ? self->GetCallbackObject() : nullptr;
+    }
+
+    EXPORT void kwxRichTextCtrl_SetLockId(kwxRichTextCtrl* self, long id)
+    {
+        if (self)
+        {
+            self->SetLockId(id);
+        }
+    }
+
+    EXPORT long kwxRichTextCtrl_GetLockId(kwxRichTextCtrl* self)
+    {
+        return self ? self->GetLockId() : 0;
+    }
+
+    EXPORT void kwxRichTextCtrl_BeginLock(kwxRichTextCtrl* self)
+    {
+        if (self)
+        {
+            self->BeginLock();
+        }
+    }
+
+    EXPORT void kwxRichTextCtrl_EndLock(kwxRichTextCtrl* self)
+    {
+        if (self)
+        {
+            self->EndLock();
+        }
+    }
+
+    EXPORT int kwxRichTextCtrl_IsLocked(kwxRichTextCtrl* self)
+    {
+        return self && self->IsLocked();
+    }
+
     // kwxRichTextFieldTypeStandard --------------------------------------------
 
     EXPORT void* kwxRichTextFieldTypeStandard_Create(void* pObject, wxString* name, wxString* label,
@@ -582,6 +999,13 @@ extern "C"
     {
         return new kwxRichTextFieldTypeStandard(pObject, name ? *name : wxString(),
                                                 label ? *label : wxString(), displayStyle);
+    }
+
+    EXPORT void* kwxRichTextFieldTypeStandard_CreateWithBitmap(void* pObject, wxString* name,
+                                                               wxBitmap* bitmap, int displayStyle)
+    {
+        return new kwxRichTextFieldTypeStandard(pObject, name ? *name : wxString(),
+                                                bitmap ? *bitmap : wxNullBitmap, displayStyle);
     }
 
     EXPORT void kwxRichTextFieldTypeStandard_Delete(kwxRichTextFieldTypeStandard* self)
@@ -599,6 +1023,15 @@ extern "C"
         }
     }
 
+    EXPORT void kwxRichTextFieldTypeStandard_SetOnCanEditPropertiesWithData(
+        kwxRichTextFieldTypeStandard* self, void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnCanEditPropertiesWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextFieldTypeStandard_SetOnEditProperties(kwxRichTextFieldTypeStandard* self,
                                                                  void* pFunction)
     {
@@ -609,12 +1042,31 @@ extern "C"
     }
 
     EXPORT void
+        kwxRichTextFieldTypeStandard_SetOnEditPropertiesWithData(kwxRichTextFieldTypeStandard* self,
+                                                                 void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnEditPropertiesWithData(pFunction, data);
+        }
+    }
+
+    EXPORT void
         kwxRichTextFieldTypeStandard_SetOnGetPropertiesMenuLabel(kwxRichTextFieldTypeStandard* self,
                                                                  void* pFunction)
     {
         if (self)
         {
             self->SetOnGetPropertiesMenuLabel(pFunction);
+        }
+    }
+
+    EXPORT void kwxRichTextFieldTypeStandard_SetOnGetPropertiesMenuLabelWithData(
+        kwxRichTextFieldTypeStandard* self, void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnGetPropertiesMenuLabelWithData(pFunction, data);
         }
     }
 
@@ -675,12 +1127,32 @@ extern "C"
         }
     }
 
+    EXPORT void
+        kwxRichTextFieldTypeStandard_SetOnUpdateFieldWithData(kwxRichTextFieldTypeStandard* self,
+                                                              void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnUpdateFieldWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextFieldTypeStandard_SetOnIsTopLevel(kwxRichTextFieldTypeStandard* self,
                                                              void* pFunction)
     {
         if (self)
         {
             self->SetOnIsTopLevel(pFunction);
+        }
+    }
+
+    EXPORT void
+        kwxRichTextFieldTypeStandard_SetOnIsTopLevelWithData(kwxRichTextFieldTypeStandard* self,
+                                                             void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnIsTopLevelWithData(pFunction, data);
         }
     }
 
@@ -705,12 +1177,32 @@ extern "C"
         }
     }
 
+    EXPORT void
+        kwxRichTextDrawingHandler_SetOnHasVirtualAttributesWithData(kwxRichTextDrawingHandler* self,
+                                                                    void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnHasVirtualAttributesWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextDrawingHandler_SetOnGetVirtualAttributes(kwxRichTextDrawingHandler* self,
                                                                     void* pFunction)
     {
         if (self)
         {
             self->SetOnGetVirtualAttributes(pFunction);
+        }
+    }
+
+    EXPORT void
+        kwxRichTextDrawingHandler_SetOnGetVirtualAttributesWithData(kwxRichTextDrawingHandler* self,
+                                                                    void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnGetVirtualAttributesWithData(pFunction, data);
         }
     }
 
@@ -723,6 +1215,15 @@ extern "C"
         }
     }
 
+    EXPORT void kwxRichTextDrawingHandler_SetOnGetVirtualSubobjectAttributesCountWithData(
+        kwxRichTextDrawingHandler* self, void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnGetVirtualSubobjectAttributesCountWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextDrawingHandler_SetOnHasVirtualText(kwxRichTextDrawingHandler* self,
                                                               void* pFunction)
     {
@@ -732,12 +1233,32 @@ extern "C"
         }
     }
 
+    EXPORT void
+        kwxRichTextDrawingHandler_SetOnHasVirtualTextWithData(kwxRichTextDrawingHandler* self,
+                                                              void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnHasVirtualTextWithData(pFunction, data);
+        }
+    }
+
     EXPORT void kwxRichTextDrawingHandler_SetOnGetVirtualText(kwxRichTextDrawingHandler* self,
                                                               void* pFunction)
     {
         if (self)
         {
             self->SetOnGetVirtualText(pFunction);
+        }
+    }
+
+    EXPORT void
+        kwxRichTextDrawingHandler_SetOnGetVirtualTextWithData(kwxRichTextDrawingHandler* self,
+                                                              void* pFunction, void* data)
+    {
+        if (self)
+        {
+            self->SetOnGetVirtualTextWithData(pFunction, data);
         }
     }
 

@@ -21,15 +21,15 @@
 /* wxAnyButton                                                               */
 /* ------------------------------------------------------------------------- */
 
-TClassDefExtend(wxAnyButton, wxControl) TClass(wxBitmap)
+TClassDefExtend(wxAnyButton, wxControl) TClassOwned(wxBitmap)
     wxAnyButton_GetBitmap(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapLabel(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapPressed(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapDisabled(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapCurrent(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapFocus(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapSelected(TSelf(wxAnyButton) pObject);
-TClass(wxBitmap) wxAnyButton_GetBitmapHover(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapLabel(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapPressed(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapDisabled(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapCurrent(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapFocus(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapSelected(TSelf(wxAnyButton) pObject);
+TClassOwned(wxBitmap) wxAnyButton_GetBitmapHover(TSelf(wxAnyButton) pObject);
 void wxAnyButton_SetBitmap(TSelf(wxAnyButton) pObject, TClass(wxBitmapBundle) bitmap, int dir);
 void wxAnyButton_SetBitmapLabel(TSelf(wxAnyButton) pObject, TClass(wxBitmapBundle) bitmap);
 void wxAnyButton_SetBitmapPressed(TSelf(wxAnyButton) pObject, TClass(wxBitmapBundle) bitmap);
@@ -39,7 +39,7 @@ void wxAnyButton_SetBitmapFocus(TSelf(wxAnyButton) pObject, TClass(wxBitmapBundl
 void wxAnyButton_SetBitmapSelected(TSelf(wxAnyButton) pObject, TClass(wxBitmap) bitmap);
 void wxAnyButton_SetBitmapHover(TSelf(wxAnyButton) pObject, TClass(wxBitmap) bitmap);
 void wxAnyButton_SetBitmapMargins(TSelf(wxAnyButton) pObject, int x, int y);
-TClass(wxSize) wxAnyButton_GetBitmapMargins(TSelf(wxAnyButton) pObject);
+TClassOwned(wxSize) wxAnyButton_GetBitmapMargins(TSelf(wxAnyButton) pObject);
 void wxAnyButton_SetBitmapPosition(TSelf(wxAnyButton) pObject, int dir);
 int wxAnyButton_GetNormalState(TSelf(wxAnyButton) pObject);
 TBool wxAnyButton_DontShowLabel(TSelf(wxAnyButton) pObject);

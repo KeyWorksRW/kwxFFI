@@ -46,8 +46,8 @@ void wxHtmlCell_SetLink(TSelf(wxHtmlCell) pObject, void* link);
 void wxHtmlCell_SetNext(TSelf(wxHtmlCell) pObject, void* cell);
 void wxHtmlCell_Layout(TSelf(wxHtmlCell) pObject, int width);
 void* wxHtmlCell_FindCellByPos(TSelf(wxHtmlCell) pObject, int x, int y, unsigned flags);
-TClass(wxPoint) wxHtmlCell_GetAbsPos(TSelf(wxHtmlCell) pObject, void* rootCell);
-TClass(wxRect) wxHtmlCell_GetRect(TSelf(wxHtmlCell) pObject, void* rootCell);
+TClassOwned(wxPoint) wxHtmlCell_GetAbsPos(TSelf(wxHtmlCell) pObject, void* rootCell);
+TClassOwned(wxRect) wxHtmlCell_GetRect(TSelf(wxHtmlCell) pObject, void* rootCell);
 void* wxHtmlCell_GetRootCell(TSelf(wxHtmlCell) pObject);
 void* wxHtmlCell_GetFirstTerminal(TSelf(wxHtmlCell) pObject);
 void* wxHtmlCell_GetLastTerminal(TSelf(wxHtmlCell) pObject);
@@ -58,7 +58,7 @@ TClass(wxString) wxHtmlCell_Dump(TSelf(wxHtmlCell) pObject, int indent);
 
 TClassDefExtend(wxHtmlCellEvent,
                 wxCommandEvent) void* wxHtmlCellEvent_GetCell(TSelf(wxHtmlCellEvent) pObject);
-TClass(wxPoint) wxHtmlCellEvent_GetPoint(TSelf(wxHtmlCellEvent) pObject);
+TClassOwned(wxPoint) wxHtmlCellEvent_GetPoint(TSelf(wxHtmlCellEvent) pObject);
 void* wxHtmlCellEvent_GetMouseEvent(TSelf(wxHtmlCellEvent) pObject);
 void wxHtmlCellEvent_SetLinkClicked(TSelf(wxHtmlCellEvent) pObject, TBool linkClicked);
 TBool wxHtmlCellEvent_GetLinkClicked(TSelf(wxHtmlCellEvent) pObject);

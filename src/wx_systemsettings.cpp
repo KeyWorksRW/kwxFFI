@@ -32,7 +32,7 @@ extern "C"
     }
 
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-    EXPORT void* wxSystemSettings_GetAppearance()
+    EXPORT wxSystemAppearance* wxSystemSettings_GetAppearance()
     {
         // wxSystemAppearance is only obtainable by value and has a private constructor.
         wxSystemAppearance const value = wxSystemSettings::GetAppearance();
@@ -44,6 +44,16 @@ extern "C"
         return pObject->IsDark();
     }
 
+    EXPORT int wxSystemAppearance_IsSystemDark(wxSystemAppearance* pObject)
+    {
+        return pObject->IsSystemDark();
+    }
+
+    EXPORT int wxSystemAppearance_AreAppsDark(wxSystemAppearance* pObject)
+    {
+        return pObject->AreAppsDark();
+    }
+
     EXPORT int wxSystemAppearance_IsUsingDarkBackground(wxSystemAppearance* pObject)
     {
         return pObject->IsUsingDarkBackground();
@@ -52,5 +62,11 @@ extern "C"
     EXPORT wxString* wxSystemAppearance_GetName(wxSystemAppearance* pObject)
     {
         return new wxString(pObject->GetName());
+    }
+
+    // wxSystemAppearance has a trivial public destructor and no base class.
+    EXPORT void wxSystemAppearance_Delete(wxSystemAppearance* pObject)
+    {
+        delete pObject;
     }
 }

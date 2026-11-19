@@ -165,7 +165,7 @@ cmake --build build/kwxgen
 extern/kwxFFI/bin/Debug/kwxgen generate \
     --headers extern/kwxFFI/include \
     --defs    extern/kwxFFI/src/kwx_defs.cpp \
-    --lang    luajit \
+    --lang    lua \
     --out     lua/wx/
 ```
 
@@ -314,13 +314,17 @@ extern/kwxFFI/bin/Release/kwxgen verify \
 | Fortran | `fortran` | `src/gen/` | `cmake --build build` |
 | Go | `go` | `wx/` | `go build ./...` |
 | Julia | `julia` | `src/gen/` | `julia --project -e 'using Pkg; Pkg.precompile()'` |
-| LuaJIT | `luajit` | `lua/wx/` | `luajit -e "require('kwxffi_idiomatic_gen')"` |
+| LuaJIT | `lua` | `lua/wx/` | `luajit -e "require('kwxffi_idiomatic_gen')"` |
 | Rust | `rust` | `crate/` | `cargo check --manifest-path crate/Cargo.toml` |
 | TypeScript | `typescript` | `gen/` | `deno check gen/kwx_gen.ts` |
 
 The Rust backend emits a complete crate (`Cargo.toml` plus `src/`), so its `--out`
 points at the crate root. `verify` lists the stale files when the committed tree is not
 current. Commit the regenerated tree together with the kwxFFI update.
+
+`lua` is the id for the LuaJIT backend (it is the backend's `LanguageEmitter::Name()`),
+so `--lang lua` is the form every other document uses. The descriptive `--lang luajit` is
+still accepted and is normalised to `lua` before dispatch, so existing scripts keep working.
 
 ---
 
@@ -461,7 +465,7 @@ Default profile per language:
 | `fortran` | `full` |
 | `go` | `full` |
 | `julia` | `full` |
-| `luajit` | `full` |
+| `lua` | `full` |
 | `rust` | `full` |
 | `typescript` | `full` |
 

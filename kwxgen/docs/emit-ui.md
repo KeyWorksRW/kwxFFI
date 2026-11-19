@@ -419,9 +419,11 @@ an idiom (`<label>: callable '<symbol>' has no idiom`), must not use the `unsupp
 (`... uses the unsupported idiom`), and if its idiom is `method-on-parent` it **must** carry
 `owner` (`... has no owner`).
 
-A class that is not one of the seven required classes is described by its constructor only:
-`classes.<cls>` carries `ctor`, because per-class `roles` exist only where the descriptor schema
-defines required roles for that class.
+A class that is not one of the seven required classes is normally described by its constructor
+only: `classes.<cls>` carries `ctor`, because per-class `roles` exist only where the schema
+defines required roles for that class. The exceptions are the classes listed in §4.1 — the menu
+tree and the text-like controls whose value a form declares — which publish the roles named
+there as well.
 
 ---
 
@@ -435,16 +437,16 @@ ctor              show                hide               set_title
 set_label         set_value           set_size           set_min_size
 center            set_sizer           set_size_hints     set_font
 set_icon          set_bitmap          create_statusbar   set_menubar
-show_modal        end_modal           set_escape_id      set_affirmative_id
-bind              bind_id             destroy            ptr
-delete            add_window          add_sizer          add_spacer
-realize           add_button          proportion         expand
-border            left                right              top
-bottom            align_h             align_v            create
-get_bitmap        from_base64
+append            show_modal          end_modal          set_escape_id
+set_affirmative_id bind               bind_id            destroy
+ptr               delete              add_window         add_sizer
+add_spacer        realize             add_button          proportion
+expand            border              left               right
+top               bottom              align_h            align_v
+create            get_bitmap          from_base64
 ```
 
-42 roles in total. A descriptor role key outside the list fails `emit-ui` with
+43 roles in total. A descriptor role key outside the list fails `emit-ui` with
 `class '<cls>' uses the unknown role '<role>'`; an `unsupported[].role` outside the list fails
 with `unsupported entry '<cls>' uses the unknown role '<role>'`; an IR role outside the list
 fails `check-ui` with `Error: IR uses the unknown role '<role>' on the node class '<cls>'`
@@ -487,6 +489,21 @@ Coverage rules:
 Coverage is validated **before** the structural rules, so a missing class is reported in
 preference to a stray bad idiom — a class the backend cannot build at all is the more useful
 diagnostic.
+
+### 4.1 Roles for classes outside the required set
+
+These classes are not required, so a backend may list them in `unsupported` with an empty role.
+When a backend does describe one, it publishes the roles below in addition to `ctor`; a role it
+cannot express is listed in `unsupported` with that role and a reason, exactly as for a required
+class. Publishing `ctor` alone, when the role is known to the model, is a stale descriptor.
+
+| Class | Roles beyond `ctor` | Meaning of the role |
+|---|---|---|
+| `wxMenuBar` | `append` | `append(menu, title)` — adds a top-level menu to the bar |
+| `wxMenu` | `append` | `append(item)` — adds a `wxMenuItem`; one role covers a normal item, a separator and a check item because the item itself carries the kind |
+| `wxRichTextCtrl` | `set_value` | `set_value(text)` — replaces the control's content |
+| `wxSearchCtrl` | `set_value` | `set_value(text)` — inherited from `wxTextCtrl` |
+| `wxSpinCtrlDouble` | `set_value` | numeric setter, `set_value(value)` |
 
 ---
 

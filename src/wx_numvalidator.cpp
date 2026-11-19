@@ -91,6 +91,15 @@ public:
         }
     }
 
+    // Only the floating-point delegate has a notion of fractional digits; the integer
+    // validator ignores this setting.
+    void SetPrecision(int precision)
+    {
+        if (m_float_validator)
+        {
+            m_float_validator->SetPrecision(static_cast<unsigned>(precision));
+        }
+    }
     int GetStyle() const { return m_style; }
 
     void SetMinLong(long min_value)
@@ -194,6 +203,11 @@ extern "C"
     EXPORT void wxNumValidator_SetStyle(wxNumValidator* self, int style)
     {
         self->SetStyle(style);
+    }
+
+    EXPORT void wxNumValidator_SetPrecision(wxNumValidator* self, int precision)
+    {
+        self->SetPrecision(precision);
     }
 
     EXPORT int wxNumValidator_GetStyle(wxNumValidator* self)

@@ -89,6 +89,18 @@ extern "C"
         self->Skip(skip);
     }
 
+    // wxPropagationDisabler is C++ RAII: StopPropagation() returns the previous level
+    // and ResumePropagation() restores it. Together they are its exact equivalent.
+    EXPORT int wxEvent_StopPropagation(wxEvent* self)
+    {
+        return self->StopPropagation();
+    }
+
+    EXPORT void wxEvent_ResumePropagation(wxEvent* self, int propagationLevel)
+    {
+        self->ResumePropagation(propagationLevel);
+    }
+
     // Returns non-zero when self is an instance of the wxWidgets class named
     // className.  Classes with RTTI information (the normal case) are checked
     // through wxClassInfo; wxTaskBarIconEvent declares no dynamic class, so it
@@ -882,6 +894,21 @@ extern "C"
         delete self;
     }
 
+    EXPORT void* wxSysMetricChangedEvent_Create()
+    {
+        return new wxSysMetricChangedEvent();
+    }
+
+    EXPORT void wxSysMetricChangedEvent_Delete(wxSysMetricChangedEvent* self)
+    {
+        delete self;
+    }
+
+    EXPORT int wxSysMetricChangedEvent_GetMetric(wxSysMetricChangedEvent* self)
+    {
+        return static_cast<int>(self->GetMetric());
+    }
+
     EXPORT wxPoint* wxDropFilesEvent_GetPosition(wxDropFilesEvent* self)
     {
         return new wxPoint(self->GetPosition());
@@ -947,7 +974,7 @@ extern "C"
         return self->GetImage();
     }
 
-    EXPORT long wxListEvent_GetData(wxListEvent* self)
+    EXPORT uintptr_t wxListEvent_GetData(wxListEvent* self)
     {
         return self->GetData();
     }
@@ -1114,6 +1141,8 @@ extern "C"
     MAKE_EVENT_WRAPPER(EVT_AUI_PANE_CLOSE)
     MAKE_EVENT_WRAPPER(EVT_AUI_PANE_MAXIMIZE)
     MAKE_EVENT_WRAPPER(EVT_AUI_PANE_RESTORE)
+    MAKE_EVENT_WRAPPER(EVT_AUI_PANE_ACTIVATED)
+    MAKE_EVENT_WRAPPER(EVT_AUI_PANE_MINIMIZE)
     MAKE_EVENT_WRAPPER(EVT_AUI_RENDER)
     MAKE_EVENT_WRAPPER(EVT_AUI_FIND_MANAGER)
 #else
@@ -1146,6 +1175,8 @@ extern "C"
     MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_PANE_CLOSE)
     MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_PANE_MAXIMIZE)
     MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_PANE_RESTORE)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_PANE_ACTIVATED)
+    MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_PANE_MINIMIZE)
     MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_RENDER)
     MAKE_UNDEF_EVENT_WRAPPER(EVT_AUI_FIND_MANAGER)
 #endif  // wxUSE_AUI

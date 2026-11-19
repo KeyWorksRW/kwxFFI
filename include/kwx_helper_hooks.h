@@ -37,8 +37,13 @@
 #include <wx/addremovectrl.h>
 #include <wx/app.h>
 #include <wx/apptrait.h>
+#include <wx/aui/tabmdi.h>
 #include <wx/cmdline.h>
+#include <wx/dataview.h>
+#include <wx/debugrpt.h>
+#include <wx/dialog.h>
 #include <wx/docview.h>
+#include <wx/dvrenderers.h>
 #include <wx/event.h>
 #include <wx/filesys.h>
 #include <wx/html/htmlpars.h>
@@ -58,6 +63,7 @@
 #include <wx/variant.h>
 #include <wx/vscroll.h>
 #include <wx/window.h>
+#include <wx/wizard.h>
 
 #include <string>
 
@@ -193,6 +199,11 @@ private:
     kwxObjectClassInfoFunc m_get_class_info_func;
     kwxAppConsoleAssertFunc m_on_assert_failure_func;
     kwxAppConsoleTraitsFunc m_create_traits_func;
+    kwxAppConsoleBoolFunc m_on_fatal_exception_func;
+    kwxAppConsoleBoolFunc m_on_unhandled_exception_func;
+    kwxAppConsoleBoolFunc m_store_current_exception_func;
+    kwxAppConsoleBoolFunc m_on_exception_in_main_loop_func;
+    kwxAppConsoleBoolFunc m_rethrow_stored_exception_func;
 
 public:
     explicit kwxApp(void* pObject);
@@ -219,6 +230,26 @@ public:
     {
         m_create_traits_func = (kwxAppConsoleTraitsFunc) pFunction;
     }
+    void SetOnOnFatalException(void* pFunction)
+    {
+        m_on_fatal_exception_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnOnUnhandledException(void* pFunction)
+    {
+        m_on_unhandled_exception_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnStoreCurrentException(void* pFunction)
+    {
+        m_store_current_exception_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnOnExceptionInMainLoop(void* pFunction)
+    {
+        m_on_exception_in_main_loop_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnRethrowStoredException(void* pFunction)
+    {
+        m_rethrow_stored_exception_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
 
 protected:
     bool OnCmdLineParsed(wxCmdLineParser& parser) override;
@@ -229,6 +260,13 @@ protected:
     void OnAssertFailure(const wxChar* file, int line, const wxChar* func, const wxChar* cond,
                          const wxChar* msg) override;
     wxAppTraits* CreateTraits() override;
+    // A wxApp has the same exception hooks as wxAppConsole, so a port never has to
+    // install them through the wxAppConsole base-name aliases.
+    void OnFatalException() override;
+    void OnUnhandledException() override;
+    bool OnExceptionInMainLoop() override;
+    bool StoreCurrentException() override;
+    void RethrowStoredException() override;
 };
 
 // ---------------------------------------------------------------------------
@@ -250,6 +288,36 @@ public:
     }
 
     wxClassInfo* GetClassInfo() const override;
+};
+
+// ---------------------------------------------------------------------------
+// wxDebugReportUpload callbacks
+// ---------------------------------------------------------------------------
+
+// reply is a wxArrayString*, valid only for the duration of the call; the
+// callback must not keep the pointer.
+typedef void (*kwxDebugReportUploadReplyFunc)(void* pObject, void* reply);
+
+class kwxDebugReportUpload : public wxDebugReportUpload
+{
+private:
+    void* m_object;
+    kwxDebugReportUploadReplyFunc m_on_server_reply_func;
+    bool m_server_reply_result;
+
+public:
+    kwxDebugReportUpload(void* pObject, const wxString& url, const wxString& input,
+                         const wxString& action);
+
+    void SetOnOnServerReply(void* pFunction)
+    {
+        m_on_server_reply_func = (kwxDebugReportUploadReplyFunc) pFunction;
+    }
+    // Publish the hook's answer: non-zero keeps the report, zero reports failure.
+    void SetOnServerReplyResult(bool result) { m_server_reply_result = result; }
+
+protected:
+    bool OnServerReply(const wxArrayString& reply) override;
 };
 
 // ---------------------------------------------------------------------------
@@ -315,6 +383,39 @@ public:
     bool TransferDataToWindow() override;
     wxSize DoGetBestClientSize() const override;
     void ScrollWindow(int dx, int dy, const wxRect* rect = nullptr) override;
+};
+
+// ---------------------------------------------------------------------------
+// wxDialog callbacks
+// ---------------------------------------------------------------------------
+
+// wxDialog's own TransferDataFromWindow / TransferDataToWindow walk the child
+// windows, which is what runs the child validators.  A hook replaces that, so a
+// port that needs the standard transfer must call the chaining export first
+// (a plain virtual call would re-enter the hook).  With no hook installed the
+// helper forwards to wxDialog, i.e. it behaves exactly like a plain dialog.
+class kwxDialog : public wxDialog
+{
+private:
+    void* m_object;
+    kwxAppConsoleBoolFunc m_transfer_data_from_window_func;
+    kwxAppConsoleBoolFunc m_transfer_data_to_window_func;
+
+public:
+    kwxDialog(void* pObject, wxWindow* parent, wxWindowID id, const wxString& title,
+              const wxPoint& pos, const wxSize& size, long style = wxDEFAULT_DIALOG_STYLE);
+
+    void SetOnTransferDataFromWindow(void* pFunction)
+    {
+        m_transfer_data_from_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnTransferDataToWindow(void* pFunction)
+    {
+        m_transfer_data_to_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+
+    bool TransferDataFromWindow() override;
+    bool TransferDataToWindow() override;
 };
 
 // ---------------------------------------------------------------------------
@@ -961,6 +1062,69 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// wxWizardPageSimple callbacks
+// ---------------------------------------------------------------------------
+
+// The same hook family as kwxWizardPage, carried by the page class that owns the
+// chain.  wxWizardPage declares no SetNext()/SetPrev()/Chain() at all, so a page
+// that overrides navigation or transfer and must stay linkable belongs here, not
+// on kwxWizardPage.  Unlike kwxWizardPage, every override falls through to
+// wxWizardPageSimple when its hook is not installed, so the prev/next pointers
+// installed through SetNext()/SetPrev()/Chain() keep their meaning on a page that
+// overrides nothing.
+class kwxWizardPageSimple : public wxWizardPageSimple
+{
+private:
+    void* m_object;
+    kwxWizardPageFunc m_get_next_func;
+    kwxWizardPageFunc m_get_prev_func;
+    kwxAppConsoleBoolFunc m_transfer_data_from_window_func;
+    kwxAppConsoleBoolFunc m_transfer_data_to_window_func;
+    kwxWizardPageGetPageOutFunc m_get_next_out_func;
+    kwxWizardPageGetPageOutFunc m_get_prev_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_from_window_out_func;
+    kwxWizardPageTransferOutFunc m_transfer_data_to_window_out_func;
+
+public:
+    kwxWizardPageSimple(void* pObject, wxWizard* parent, wxWizardPage* prev, wxWizardPage* next,
+                        const wxBitmapBundle& bitmap);
+
+    void SetOnGetNext(void* pFunction) { m_get_next_func = (kwxWizardPageFunc) pFunction; }
+    void SetOnGetPrev(void* pFunction) { m_get_prev_func = (kwxWizardPageFunc) pFunction; }
+    void SetOnTransferDataFromWindow(void* pFunction)
+    {
+        m_transfer_data_from_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+    void SetOnTransferDataToWindow(void* pFunction)
+    {
+        m_transfer_data_to_window_func = (kwxAppConsoleBoolFunc) pFunction;
+    }
+
+    // An Out callback takes precedence over the returning spelling.
+    void SetOnGetNextOut(void* pFunction)
+    {
+        m_get_next_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnGetPrevOut(void* pFunction)
+    {
+        m_get_prev_out_func = (kwxWizardPageGetPageOutFunc) pFunction;
+    }
+    void SetOnTransferDataFromWindowOut(void* pFunction)
+    {
+        m_transfer_data_from_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
+    void SetOnTransferDataToWindowOut(void* pFunction)
+    {
+        m_transfer_data_to_window_out_func = (kwxWizardPageTransferOutFunc) pFunction;
+    }
+
+    wxWizardPage* GetNext() const override;
+    wxWizardPage* GetPrev() const override;
+    bool TransferDataFromWindow() override;
+    bool TransferDataToWindow() override;
+};
+
+// ---------------------------------------------------------------------------
 // wxPopupTransientWindow callbacks
 // ---------------------------------------------------------------------------
 
@@ -1026,6 +1190,12 @@ typedef void (*kwxDocumentModifyFunc)(void* pObject, int modified);
 // LoadObject() and SaveObject() are absent on purpose: their signatures take
 // std::istream& / std::ostream& (wx/docview.h:101-105), which cannot cross a
 // fixed extern "C" boundary; they are recorded as not-representable.
+// The library-wide uniform thunk, void (*)(void* data, void* arg1, void* arg2).  A
+// late-bound backend can install only this shape, so every value-returning typed
+// callback above has a WithData twin that is checked before it.
+// Integers/bools travel as (void*)(intptr_t)value.
+typedef void (*kwxDocumentHookFn)(void* data, void* arg1, void* arg2);
+
 class kwxDocument : public wxDocument
 {
 private:
@@ -1038,8 +1208,29 @@ private:
     kwxDocumentCreateFunc m_on_create_func;
     kwxDocumentStringBoolFunc m_on_open_document_func;
 
+    kwxDocumentHookFn m_do_open_document_hook;
+    void* m_do_open_document_hook_data;
+    kwxDocumentHookFn m_do_save_document_hook;
+    void* m_do_save_document_hook_data;
+    kwxDocumentHookFn m_is_modified_hook;
+    void* m_is_modified_hook_data;
+    kwxDocumentHookFn m_modify_hook;
+    void* m_modify_hook_data;
+    kwxDocumentHookFn m_on_create_hook;
+    void* m_on_create_hook_data;
+    kwxDocumentHookFn m_on_open_document_hook;
+    void* m_on_open_document_hook_data;
+
+    // Set by the Set...Result members and cleared before every hook call, so only
+    // the call in flight can answer; IsModified() is const, hence mutable.
+    mutable bool m_published;
+    mutable bool m_result_bool;
+
 public:
-    explicit kwxDocument(void* pObject);
+    // parent is the owning document for a child/details document; the base
+    // constructor moves the new object into parent->m_childDocuments and does not
+    // register it with the document manager.
+    explicit kwxDocument(void* pObject, wxDocument* parent = nullptr);
 
     void SetOnDoOpenDocument(void* pFunction)
     {
@@ -1059,6 +1250,63 @@ public:
     void SetOnOnOpenDocument(void* pFunction)
     {
         m_on_open_document_func = (kwxDocumentStringBoolFunc) pFunction;
+    }
+
+    void SetOnDoOpenDocumentWithData(void* pFunction, void* data)
+    {
+        m_do_open_document_hook = (kwxDocumentHookFn) pFunction;
+        m_do_open_document_hook_data = data;
+    }
+    void SetOnDoSaveDocumentWithData(void* pFunction, void* data)
+    {
+        m_do_save_document_hook = (kwxDocumentHookFn) pFunction;
+        m_do_save_document_hook_data = data;
+    }
+    void SetOnIsModifiedWithData(void* pFunction, void* data)
+    {
+        m_is_modified_hook = (kwxDocumentHookFn) pFunction;
+        m_is_modified_hook_data = data;
+    }
+    void SetOnModifyWithData(void* pFunction, void* data)
+    {
+        m_modify_hook = (kwxDocumentHookFn) pFunction;
+        m_modify_hook_data = data;
+    }
+    void SetOnOnCreateWithData(void* pFunction, void* data)
+    {
+        m_on_create_hook = (kwxDocumentHookFn) pFunction;
+        m_on_create_hook_data = data;
+    }
+    void SetOnOnOpenDocumentWithData(void* pFunction, void* data)
+    {
+        m_on_open_document_hook = (kwxDocumentHookFn) pFunction;
+        m_on_open_document_hook_data = data;
+    }
+
+    void SetDoOpenDocumentResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetDoSaveDocumentResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetIsModifiedResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetOnCreateResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetOnOpenDocumentResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
     }
 
 protected:
@@ -1082,6 +1330,9 @@ typedef int (*kwxViewCloseFunc)(void* pObject, int deleteWindow);
 typedef int (*kwxViewCreateFunc)(void* pObject, void* document, long flags);
 typedef void (*kwxViewUpdateFunc)(void* pObject, void* sender, void* hint);
 
+// The same uniform thunk for the two value-returning view hooks.
+typedef void (*kwxViewHookFn)(void* data, void* arg1, void* arg2);
+
 // OnDraw() is the only pure virtual on wxView, so overriding it makes this
 // class concrete.
 class kwxView : public wxView
@@ -1093,6 +1344,17 @@ private:
     kwxViewCreateFunc m_on_create_func;
     kwxViewUpdateFunc m_on_update_func;
 
+    kwxViewHookFn m_on_create_hook;
+    void* m_on_create_hook_data;
+    kwxViewHookFn m_on_close_hook;
+    void* m_on_close_hook_data;
+
+    // See kwxDocument: only the call in flight can answer, so the published value is
+    // cleared before every invocation.  The view hooks are not const, but the pair is
+    // kept mutable so both helpers have the same shape.
+    mutable bool m_published;
+    mutable bool m_result_bool;
+
 public:
     explicit kwxView(void* pObject);
 
@@ -1101,10 +1363,115 @@ public:
     void SetOnOnCreate(void* pFunction) { m_on_create_func = (kwxViewCreateFunc) pFunction; }
     void SetOnOnUpdate(void* pFunction) { m_on_update_func = (kwxViewUpdateFunc) pFunction; }
 
+    void SetOnOnCreateWithData(void* pFunction, void* data)
+    {
+        m_on_create_hook = (kwxViewHookFn) pFunction;
+        m_on_create_hook_data = data;
+    }
+    void SetOnOnCloseWithData(void* pFunction, void* data)
+    {
+        m_on_close_hook = (kwxViewHookFn) pFunction;
+        m_on_close_hook_data = data;
+    }
+
+    void SetOnCreateResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetOnCloseResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+
     void OnDraw(wxDC* dc) override;
     bool OnClose(bool deleteWindow) override;
     bool OnCreate(wxDocument* document, long flags) override;
     void OnUpdate(wxView* sender, wxObject* hint) override;
+};
+
+// ---------------------------------------------------------------------------
+// wxDocTemplate callbacks
+// ---------------------------------------------------------------------------
+
+// Called from DoCreateDocument()/DoCreateView().  The template object is passed so one
+// callback can serve several templates; the hook publishes what it built with
+// kwxDocTemplate_SetCreatedDocument()/SetCreatedView() before returning.
+typedef void (*kwxDocTemplateCreateDocumentFunc)(void* pObject, void* templateObject);
+typedef void (*kwxDocTemplateCreateViewFunc)(void* pObject, void* templateObject, void* document);
+
+// DoCreateDocument()/DoCreateView() are the only override points that keep the whole
+// base lifecycle (InitDocument, OnCreate, SetDocument) intact -- do not override
+// CreateDocument()/CreateView() themselves.
+//
+// DoCreateView() receives no argument, so the document it is creating a view for is
+// recorded by InitDocument(), which the base CreateDocument() calls before the
+// document's OnCreate(); a view created later by a separate CreateView() request (the
+// "new view" command) therefore reaches its hook with a null document.
+class kwxDocTemplate : public wxDocTemplate
+{
+private:
+    void* m_object;
+    kwxDocTemplateCreateDocumentFunc m_create_document_func;
+    kwxDocTemplateCreateViewFunc m_create_view_func;
+    wxDocument* m_created_document;
+    wxView* m_created_view;
+    wxDocument* m_initing_document;
+
+public:
+    kwxDocTemplate(void* pObject, wxDocManager* manager, const wxString& descr,
+                   const wxString& filter, const wxString& dir, const wxString& ext,
+                   const wxString& docTypeName, const wxString& viewTypeName, long flags);
+
+    void SetOnCreateDocument(void* pFunction)
+    {
+        m_create_document_func = (kwxDocTemplateCreateDocumentFunc) pFunction;
+    }
+    void SetOnCreateView(void* pFunction)
+    {
+        m_create_view_func = (kwxDocTemplateCreateViewFunc) pFunction;
+    }
+    void SetCreatedDocument(wxDocument* doc) { m_created_document = doc; }
+    void SetCreatedView(wxView* view) { m_created_view = view; }
+
+    bool InitDocument(wxDocument* doc, const wxString& path, long flags) override;
+
+protected:
+    wxDocument* DoCreateDocument() override;
+    wxView* DoCreateView() override;
+};
+
+// ---------------------------------------------------------------------------
+// Document/view frames for AUI MDI
+// ---------------------------------------------------------------------------
+// wxDocParentFrameAny<T> and wxDocChildFrameAny<T, P> are templates (wx/docview.h:829,
+// :669), so no binding can name the instantiation a port needs for the C++ sample's
+// --aui mode.  These two classes ARE those instantiations under a C-visible name.
+// Each inherits its frame class as its FIRST base, which is what the generated
+// `extends` clause claims, so a helper can be passed wherever the base frame is
+// expected.  Frames are wx-owned: there is deliberately no _Delete -- destroy them with
+// wxWindow_Destroy, exactly as for wxDocParentFrame / wxDocChildFrame.
+class kwxDocAuiParentFrame : public wxDocParentFrameAny<wxAuiMDIParentFrame>
+{
+public:
+    kwxDocAuiParentFrame() = default;
+    kwxDocAuiParentFrame(wxDocManager* manager, wxFrame* parent, wxWindowID id,
+                         const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+    {
+        Create(manager, parent, id, title, pos, size, style);
+    }
+};
+
+class kwxDocAuiChildFrame : public wxDocChildFrameAny<wxAuiMDIChildFrame, wxAuiMDIParentFrame>
+{
+public:
+    kwxDocAuiChildFrame() = default;
+    kwxDocAuiChildFrame(wxDocument* doc, wxView* view, wxAuiMDIParentFrame* parent, wxWindowID id,
+                        const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+    {
+        Create(doc, view, parent, id, title, pos, size, style);
+    }
 };
 
 // ---------------------------------------------------------------------------
@@ -1241,6 +1608,958 @@ public:
     void OnAdd() override;
     void OnRemove() override;
 };
+
+// ---------------------------------------------------------------------------
+// wxDataViewModel / wxDataViewIndexListModel / wxDataViewVirtualListModel callbacks
+// ---------------------------------------------------------------------------
+//
+// A foreign language cannot subclass a wxDataView model, so the helpers below derive
+// from the real wxWidgets model, keep one foreign function pointer plus one token per
+// virtual, and forward each virtual to it.  The callback shape is the library-wide
+// uniform thunk
+//
+//     void (*)(void* data, void* arg1, void* arg2)
+//
+// where `data` is the per-hook token (never pObject).  Integers cross as
+// (void*)(intptr_t)value, so an integer zero arrives as NULL.  Out-values are
+// published with the Set*Result members while the callback runs; the in-flight block
+// is cleared before every call, so a callback that publishes nothing leaves the
+// neutral default below in place.
+//
+// The wxDataViewModel queries are const, so the in-flight block they write while their
+// callback runs is mutable.  Only one hook runs at a time, so a single set of result
+// slots serves every hook.
+
+using kwxDataViewHookFn = void (*)(void* data, void* arg1, void* arg2);
+
+class kwxDataViewModel : public wxDataViewModel
+{
+private:
+    void* m_object;
+
+    kwxDataViewHookFn m_get_value_hook;
+    void* m_get_value_hook_data;
+    kwxDataViewHookFn m_set_value_hook;
+    void* m_set_value_hook_data;
+    kwxDataViewHookFn m_get_parent_hook;
+    void* m_get_parent_hook_data;
+    kwxDataViewHookFn m_is_container_hook;
+    void* m_is_container_hook_data;
+    kwxDataViewHookFn m_get_children_hook;
+    void* m_get_children_hook_data;
+    kwxDataViewHookFn m_has_value_hook;
+    void* m_has_value_hook_data;
+    kwxDataViewHookFn m_is_enabled_hook;
+    void* m_is_enabled_hook_data;
+    kwxDataViewHookFn m_has_container_columns_hook;
+    void* m_has_container_columns_hook_data;
+    kwxDataViewHookFn m_compare_hook;
+    void* m_compare_hook_data;
+    kwxDataViewHookFn m_has_default_compare_hook;
+    void* m_has_default_compare_hook_data;
+    kwxDataViewHookFn m_resort_hook;
+    void* m_resort_hook_data;
+    kwxDataViewHookFn m_get_attr_hook;
+    void* m_get_attr_hook_data;
+
+    mutable bool m_published;
+    mutable unsigned int m_pending_column;
+    mutable bool m_pending_ascending;
+    mutable wxVariant m_result_variant;
+    mutable wxDataViewItem m_result_item;
+    mutable bool m_result_bool;
+    mutable int m_result_int;
+    mutable unsigned int m_result_uint;
+    mutable wxDataViewItemAttr m_result_attr;
+    mutable wxDataViewItemArray* m_children_target;
+
+    void ResetInFlight() const;
+
+public:
+    explicit kwxDataViewModel(void* pObject);
+
+    void SetOnGetValueWithData(void* pFunction, void* data)
+    {
+        m_get_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_value_hook_data = data;
+    }
+    void SetOnSetValueWithData(void* pFunction, void* data)
+    {
+        m_set_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_set_value_hook_data = data;
+    }
+    void SetOnGetParentWithData(void* pFunction, void* data)
+    {
+        m_get_parent_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_parent_hook_data = data;
+    }
+    void SetOnIsContainerWithData(void* pFunction, void* data)
+    {
+        m_is_container_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_is_container_hook_data = data;
+    }
+    void SetOnGetChildrenWithData(void* pFunction, void* data)
+    {
+        m_get_children_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_children_hook_data = data;
+    }
+    void SetOnHasValueWithData(void* pFunction, void* data)
+    {
+        m_has_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_value_hook_data = data;
+    }
+    void SetOnIsEnabledWithData(void* pFunction, void* data)
+    {
+        m_is_enabled_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_is_enabled_hook_data = data;
+    }
+    void SetOnHasContainerColumnsWithData(void* pFunction, void* data)
+    {
+        m_has_container_columns_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_container_columns_hook_data = data;
+    }
+    void SetOnCompareWithData(void* pFunction, void* data)
+    {
+        m_compare_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_compare_hook_data = data;
+    }
+    void SetOnHasDefaultCompareWithData(void* pFunction, void* data)
+    {
+        m_has_default_compare_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_default_compare_hook_data = data;
+    }
+    void SetOnResortWithData(void* pFunction, void* data)
+    {
+        m_resort_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_resort_hook_data = data;
+    }
+    void SetOnGetAttrWithData(void* pFunction, void* data)
+    {
+        m_get_attr_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_attr_hook_data = data;
+    }
+
+    unsigned int GetPendingColumn() const { return m_pending_column; }
+    bool GetPendingAscending() const { return m_pending_ascending; }
+
+    void SetGetValueResult(const wxVariant& value)
+    {
+        m_result_variant = value;
+        m_published = true;
+    }
+    void SetSetValueResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetGetParentResult(const wxDataViewItem& parent)
+    {
+        m_result_item = parent;
+        m_published = true;
+    }
+    void SetIsContainerResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetGetChildrenCountResult(unsigned int count)
+    {
+        m_result_uint = count;
+        m_published = true;
+    }
+    // Appends to the array the in-flight GetChildren() received.  It deliberately does not
+    // publish a count: an appended array is already the answer, and only an explicit
+    // SetGetChildrenCountResult overrides the array size.
+    void AddChildResult(const wxDataViewItem& item)
+    {
+        if (m_children_target)
+        {
+            m_children_target->Add(item);
+        }
+    }
+    void SetHasValueResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetIsEnabledResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetHasContainerColumnsResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetCompareResult(int result)
+    {
+        m_result_int = result;
+        m_published = true;
+    }
+    void SetHasDefaultCompareResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    // Copies the attribute and is itself the success signal for GetAttr.
+    void SetGetAttrResult(const wxDataViewItemAttr& attr)
+    {
+        m_result_attr = attr;
+        m_result_bool = true;
+        m_published = true;
+    }
+    void GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const override;
+    bool SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col) override;
+    wxDataViewItem GetParent(const wxDataViewItem& item) const override;
+    bool IsContainer(const wxDataViewItem& item) const override;
+    unsigned int GetChildren(const wxDataViewItem& item,
+                             wxDataViewItemArray& children) const override;
+    bool HasValue(const wxDataViewItem& item, unsigned int col) const override;
+    bool IsEnabled(const wxDataViewItem& item, unsigned int col) const override;
+    bool GetAttr(const wxDataViewItem& item, unsigned int col,
+                 wxDataViewItemAttr& attr) const override;
+    bool HasContainerColumns(const wxDataViewItem& item) const override;
+    int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column,
+                bool ascending) const override;
+    bool HasDefaultCompare() const override;
+    void Resort() override;
+};
+
+// Shared override bodies for the two row-based models.  A member template cannot be
+// defined out of line without an explicit instantiation, and wxDataViewVirtualListModel
+// is a typedef of wxDataViewIndexListModel on macOS, which would make a second explicit
+// instantiation of the same specialisation an error -- so the bodies live here.
+template <typename TModel>
+class kwxDataViewRowModel : public TModel
+{
+private:
+    void* m_object;
+
+    kwxDataViewHookFn m_get_value_by_row_hook;
+    void* m_get_value_by_row_hook_data;
+    kwxDataViewHookFn m_set_value_by_row_hook;
+    void* m_set_value_by_row_hook_data;
+    kwxDataViewHookFn m_get_row_hook;
+    void* m_get_row_hook_data;
+    kwxDataViewHookFn m_get_count_hook;
+    void* m_get_count_hook_data;
+    kwxDataViewHookFn m_get_attr_by_row_hook;
+    void* m_get_attr_by_row_hook_data;
+    kwxDataViewHookFn m_is_enabled_by_row_hook;
+    void* m_is_enabled_by_row_hook_data;
+    kwxDataViewHookFn m_compare_hook;
+    void* m_compare_hook_data;
+    kwxDataViewHookFn m_has_default_compare_hook;
+    void* m_has_default_compare_hook_data;
+
+    mutable bool m_published;
+    mutable unsigned int m_pending_row;
+    mutable unsigned int m_pending_column;
+    mutable bool m_pending_ascending;
+    mutable wxVariant m_result_variant;
+    mutable bool m_result_bool;
+    mutable int m_result_int;
+    mutable unsigned int m_result_uint;
+    mutable wxDataViewItemAttr m_result_attr;
+
+    void ResetInFlight() const
+    {
+        m_published = false;
+        m_pending_row = 0;
+        m_pending_column = 0;
+        m_pending_ascending = false;
+        m_result_variant = wxVariant();
+        m_result_bool = false;
+        m_result_int = 0;
+        m_result_uint = 0;
+        m_result_attr = wxDataViewItemAttr();
+    }
+
+protected:
+    kwxDataViewRowModel(void* pObject, unsigned int initialSize) : TModel(initialSize)
+    {
+        m_object = pObject;
+        m_get_value_by_row_hook = nullptr;
+        m_get_value_by_row_hook_data = nullptr;
+        m_set_value_by_row_hook = nullptr;
+        m_set_value_by_row_hook_data = nullptr;
+        m_get_row_hook = nullptr;
+        m_get_row_hook_data = nullptr;
+        m_get_count_hook = nullptr;
+        m_get_count_hook_data = nullptr;
+        m_get_attr_by_row_hook = nullptr;
+        m_get_attr_by_row_hook_data = nullptr;
+        m_is_enabled_by_row_hook = nullptr;
+        m_is_enabled_by_row_hook_data = nullptr;
+        m_compare_hook = nullptr;
+        m_compare_hook_data = nullptr;
+        m_has_default_compare_hook = nullptr;
+        m_has_default_compare_hook_data = nullptr;
+        ResetInFlight();
+    }
+
+public:
+    void SetOnGetValueByRowWithData(void* pFunction, void* data)
+    {
+        m_get_value_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_value_by_row_hook_data = data;
+    }
+    void SetOnSetValueByRowWithData(void* pFunction, void* data)
+    {
+        m_set_value_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_set_value_by_row_hook_data = data;
+    }
+    void SetOnGetRowWithData(void* pFunction, void* data)
+    {
+        m_get_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_row_hook_data = data;
+    }
+    void SetOnGetCountWithData(void* pFunction, void* data)
+    {
+        m_get_count_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_count_hook_data = data;
+    }
+    void SetOnGetAttrByRowWithData(void* pFunction, void* data)
+    {
+        m_get_attr_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_attr_by_row_hook_data = data;
+    }
+    void SetOnIsEnabledByRowWithData(void* pFunction, void* data)
+    {
+        m_is_enabled_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_is_enabled_by_row_hook_data = data;
+    }
+    void SetOnCompareWithData(void* pFunction, void* data)
+    {
+        m_compare_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_compare_hook_data = data;
+    }
+    void SetOnHasDefaultCompareWithData(void* pFunction, void* data)
+    {
+        m_has_default_compare_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_default_compare_hook_data = data;
+    }
+
+    unsigned int GetPendingColumn() const { return m_pending_column; }
+    unsigned int GetPendingRow() const { return m_pending_row; }
+    bool GetPendingAscending() const { return m_pending_ascending; }
+
+    void SetGetValueByRowResult(const wxVariant& value)
+    {
+        m_result_variant = value;
+        m_published = true;
+    }
+    void SetSetValueByRowResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetGetRowResult(unsigned int row)
+    {
+        m_result_uint = row;
+        m_published = true;
+    }
+    void SetGetCountResult(unsigned int count)
+    {
+        m_result_uint = count;
+        m_published = true;
+    }
+    void SetGetAttrByRowResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    // Copies the attribute and is itself the success signal for GetAttrByRow.
+    void SetGetAttrByRowAttr(const wxDataViewItemAttr& attr)
+    {
+        m_result_attr = attr;
+        m_result_bool = true;
+        m_published = true;
+    }
+    void SetIsEnabledByRowResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetCompareResult(int result)
+    {
+        m_result_int = result;
+        m_published = true;
+    }
+    void SetHasDefaultCompareResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+
+    void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override
+    {
+        if (!m_get_value_by_row_hook)
+        {
+            // No callback: leave the variant untouched, which is what an empty cell is.
+            return;
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_get_value_by_row_hook(m_get_value_by_row_hook_data, (void*) (intptr_t) row, nullptr);
+        if (m_published)
+        {
+            variant = m_result_variant;
+        }
+    }
+
+    bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override
+    {
+        if (!m_set_value_by_row_hook)
+        {
+            return false;
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_set_value_by_row_hook(m_set_value_by_row_hook_data, const_cast<wxVariant*>(&variant),
+                                nullptr);
+        return m_published ? m_result_bool : false;
+    }
+
+    unsigned int GetRow(const wxDataViewItem& item) const override
+    {
+        if (!m_get_row_hook)
+        {
+            return 0;
+        }
+        ResetInFlight();
+        m_get_row_hook(m_get_row_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+        return m_published ? m_result_uint : 0;
+    }
+
+    unsigned int GetCount() const override
+    {
+        if (!m_get_count_hook)
+        {
+            return 0;
+        }
+        ResetInFlight();
+        m_get_count_hook(m_get_count_hook_data, nullptr, nullptr);
+        return m_published ? m_result_uint : 0;
+    }
+
+    // A port publishes the attribute with SetGetAttrByRowAttr, which copies it and
+    // implies success; publishing only the boolean leaves the attribute untouched.
+    bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override
+    {
+        if (!m_get_attr_by_row_hook)
+        {
+            return false;
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_get_attr_by_row_hook(m_get_attr_by_row_hook_data, (void*) (intptr_t) row,
+                               (void*) (intptr_t) col);
+        if (!m_published)
+        {
+            return false;
+        }
+        if (m_result_bool)
+        {
+            attr = m_result_attr;
+        }
+        return m_result_bool;
+    }
+
+    bool IsEnabledByRow(unsigned int row, unsigned int col) const override
+    {
+        if (!m_is_enabled_by_row_hook)
+        {
+            return true;
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_is_enabled_by_row_hook(m_is_enabled_by_row_hook_data, (void*) (intptr_t) row,
+                                 (void*) (intptr_t) col);
+        return m_published ? m_result_bool : true;
+    }
+
+    int Compare(const wxDataViewItem& item1, const wxDataViewItem& item2, unsigned int column,
+                bool ascending) const override
+    {
+        if (!m_compare_hook)
+        {
+            // 0 is "the rows compare equal"; the base classes' index compare is not
+            // reachable here without a callback because wxDataViewVirtualListModel
+            // overrides Compare itself and wxDataViewIndexListModel does not.
+            return 0;
+        }
+        ResetInFlight();
+        m_pending_column = column;
+        m_pending_ascending = ascending;
+        m_compare_hook(m_compare_hook_data, const_cast<wxDataViewItem*>(&item1),
+                       const_cast<wxDataViewItem*>(&item2));
+        return m_published ? m_result_int : 0;
+    }
+
+    bool HasDefaultCompare() const override
+    {
+        if (!m_has_default_compare_hook)
+        {
+            return false;
+        }
+        ResetInFlight();
+        m_has_default_compare_hook(m_has_default_compare_hook_data, nullptr, nullptr);
+        return m_published ? m_result_bool : false;
+    }
+};
+
+class kwxDataViewVirtualListModel : public kwxDataViewRowModel<wxDataViewVirtualListModel>
+{
+public:
+    kwxDataViewVirtualListModel(void* pObject, unsigned int initialSize) :
+        kwxDataViewRowModel<wxDataViewVirtualListModel>(pObject, initialSize)
+    {
+    }
+};
+
+class kwxDataViewIndexListModel : public kwxDataViewRowModel<wxDataViewIndexListModel>
+{
+public:
+    kwxDataViewIndexListModel(void* pObject, unsigned int initialSize) :
+        kwxDataViewRowModel<wxDataViewIndexListModel>(pObject, initialSize)
+    {
+    }
+};
+
+// ---------------------------------------------------------------------------
+// wxDataViewListStore
+// ---------------------------------------------------------------------------
+//
+// The store keeps its own rows and columns.  With no hook installed every override below
+// calls the wxDataViewListStore implementation instead of returning a neutral constant,
+// so an unhooked store behaves exactly like a plain one.
+//
+// Hook argument map, after `data`:
+//
+//   HasValue            (&item, NULL)                     column -> GetPendingColumn
+//   IsEnabledByRow      ((void*)(intptr_t)row, (void*)(intptr_t)col)
+//   GetAttrByRow        ((void*)(intptr_t)row, (void*)(intptr_t)col)
+//                                                       attr   -> SetGetAttrByRowAttr
+//
+// The attribute is published with SetGetAttrByRowAttr, which copies it and implies
+// success.
+//
+// The store is reference counted like every wxDataViewModel: a consumer releases it with
+// wxDataViewModel_DecRef, never with delete.
+
+class kwxDataViewListStore : public wxDataViewListStore
+{
+private:
+    void* m_object;
+
+    kwxDataViewHookFn m_has_value_hook;
+    void* m_has_value_hook_data;
+    kwxDataViewHookFn m_is_enabled_by_row_hook;
+    void* m_is_enabled_by_row_hook_data;
+    kwxDataViewHookFn m_get_attr_by_row_hook;
+    void* m_get_attr_by_row_hook_data;
+
+    mutable bool m_published;
+    mutable unsigned int m_pending_row;
+    mutable unsigned int m_pending_column;
+    mutable bool m_result_bool;
+    mutable wxDataViewItemAttr m_result_attr;
+
+    void ResetInFlight() const
+    {
+        m_published = false;
+        m_pending_row = 0;
+        m_pending_column = 0;
+        m_result_bool = false;
+        m_result_attr = wxDataViewItemAttr();
+    }
+
+public:
+    explicit kwxDataViewListStore(void* pObject) : wxDataViewListStore()
+    {
+        m_object = pObject;
+        m_has_value_hook = nullptr;
+        m_has_value_hook_data = nullptr;
+        m_is_enabled_by_row_hook = nullptr;
+        m_is_enabled_by_row_hook_data = nullptr;
+        m_get_attr_by_row_hook = nullptr;
+        m_get_attr_by_row_hook_data = nullptr;
+        ResetInFlight();
+    }
+
+    void SetOnHasValueWithData(void* pFunction, void* data)
+    {
+        m_has_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_value_hook_data = data;
+    }
+    void SetOnIsEnabledByRowWithData(void* pFunction, void* data)
+    {
+        m_is_enabled_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_is_enabled_by_row_hook_data = data;
+    }
+    void SetOnGetAttrByRowWithData(void* pFunction, void* data)
+    {
+        m_get_attr_by_row_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_attr_by_row_hook_data = data;
+    }
+
+    unsigned int GetPendingRow() const { return m_pending_row; }
+    unsigned int GetPendingColumn() const { return m_pending_column; }
+
+    void SetHasValueResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetIsEnabledByRowResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetGetAttrByRowResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    // Copies the attribute and implies success, so a port publishes no separate boolean.
+    void SetGetAttrByRowAttr(const wxDataViewItemAttr& attr)
+    {
+        m_result_attr = attr;
+        m_result_bool = true;
+        m_published = true;
+    }
+
+    bool HasValue(const wxDataViewItem& item, unsigned int col) const override
+    {
+        if (!m_has_value_hook)
+        {
+            return wxDataViewListStore::HasValue(item, col);
+        }
+        ResetInFlight();
+        m_pending_column = col;
+        m_has_value_hook(m_has_value_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+        return m_published ? m_result_bool : wxDataViewListStore::HasValue(item, col);
+    }
+
+    bool IsEnabledByRow(unsigned int row, unsigned int col) const override
+    {
+        if (!m_is_enabled_by_row_hook)
+        {
+            return wxDataViewListStore::IsEnabledByRow(row, col);
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_is_enabled_by_row_hook(m_is_enabled_by_row_hook_data, (void*) (intptr_t) row,
+                                 (void*) (intptr_t) col);
+        return m_published ? m_result_bool : wxDataViewListStore::IsEnabledByRow(row, col);
+    }
+
+    bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override
+    {
+        if (!m_get_attr_by_row_hook)
+        {
+            return wxDataViewListStore::GetAttrByRow(row, col, attr);
+        }
+        ResetInFlight();
+        m_pending_row = row;
+        m_pending_column = col;
+        m_get_attr_by_row_hook(m_get_attr_by_row_hook_data, (void*) (intptr_t) row,
+                               (void*) (intptr_t) col);
+        if (!m_published)
+        {
+            return wxDataViewListStore::GetAttrByRow(row, col, attr);
+        }
+        if (m_result_bool)
+        {
+            attr = m_result_attr;
+        }
+        return m_result_bool;
+    }
+};
+
+// ---------------------------------------------------------------------------
+// wxDataViewCustomRenderer callbacks
+// ---------------------------------------------------------------------------
+//
+// Same thunk and the same publication rule as the models.  The renderer carries no data
+// of its own beyond the in-flight block, so a Render callback reads the cell it must
+// paint from GetRenderRect / GetRenderState / GetRenderDC and the value to draw from
+// GetCurrentValue.
+//
+// Activate() and LeftClick() are deprecated in wxWidgets (ActivateCell() replaces both)
+// but a port may still implement them, so their overrides are declared here and the
+// deprecation warning they raise is suppressed for this block only.
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4996)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+class kwxDataViewCustomRenderer : public wxDataViewCustomRenderer
+{
+private:
+    void* m_object;
+
+    kwxDataViewHookFn m_render_hook;
+    void* m_render_hook_data;
+    kwxDataViewHookFn m_get_size_hook;
+    void* m_get_size_hook_data;
+    kwxDataViewHookFn m_set_value_hook;
+    void* m_set_value_hook_data;
+    kwxDataViewHookFn m_get_value_hook;
+    void* m_get_value_hook_data;
+    kwxDataViewHookFn m_activate_cell_hook;
+    void* m_activate_cell_hook_data;
+    kwxDataViewHookFn m_activate_hook;
+    void* m_activate_hook_data;
+    kwxDataViewHookFn m_left_click_hook;
+    void* m_left_click_hook_data;
+    kwxDataViewHookFn m_start_drag_hook;
+    void* m_start_drag_hook_data;
+    kwxDataViewHookFn m_create_editor_ctrl_hook;
+    void* m_create_editor_ctrl_hook_data;
+    kwxDataViewHookFn m_get_value_from_editor_ctrl_hook;
+    void* m_get_value_from_editor_ctrl_hook_data;
+    kwxDataViewHookFn m_validate_hook;
+    void* m_validate_hook_data;
+    kwxDataViewHookFn m_has_editor_ctrl_hook;
+    void* m_has_editor_ctrl_hook_data;
+    kwxDataViewHookFn m_accessible_description_hook;
+    void* m_accessible_description_hook_data;
+
+    // In-flight block.  GetSize() and GetValue() are const, so the state their callbacks
+    // read is mutable.  m_current_value, m_editor_parent and m_editor_ctrl are NOT
+    // cleared between calls: Render() runs after SetValue() and needs the value that call
+    // stored, and GetEditorParent()/GetEditorCtrl() report what the last CreateEditorCtrl()
+    // received and returned.
+    mutable bool m_published;
+    mutable wxRect m_render_rect;
+    mutable int m_render_state;
+    mutable wxDC* m_render_dc;
+    mutable unsigned int m_pending_column;
+    mutable wxRect m_editor_rect;
+    mutable wxWindow* m_editor_parent;
+    mutable wxWindow* m_editor_ctrl;
+    mutable wxVariant m_current_value;
+    mutable bool m_result_bool;
+    mutable wxSize m_result_size;
+    mutable wxVariant m_result_variant;
+    mutable wxWindow* m_result_window;
+    mutable const wxMouseEvent* m_mouse_event;
+    mutable wxPoint m_pending_cursor;
+    mutable bool m_cursor_valid;
+    mutable bool m_has_editor_value;
+    mutable wxString m_accessible_description;
+
+    void ResetInFlight() const;
+
+public:
+    kwxDataViewCustomRenderer(void* pObject, const wxString& variantType, wxDataViewCellMode mode,
+                              int align);
+
+    void SetOnRenderWithData(void* pFunction, void* data)
+    {
+        m_render_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_render_hook_data = data;
+    }
+    void SetOnGetSizeWithData(void* pFunction, void* data)
+    {
+        m_get_size_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_size_hook_data = data;
+    }
+    void SetOnSetValueWithData(void* pFunction, void* data)
+    {
+        m_set_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_set_value_hook_data = data;
+    }
+    void SetOnGetValueWithData(void* pFunction, void* data)
+    {
+        m_get_value_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_value_hook_data = data;
+    }
+    void SetOnActivateCellWithData(void* pFunction, void* data)
+    {
+        m_activate_cell_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_activate_cell_hook_data = data;
+    }
+    void SetOnActivateWithData(void* pFunction, void* data)
+    {
+        m_activate_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_activate_hook_data = data;
+    }
+    void SetOnLeftClickWithData(void* pFunction, void* data)
+    {
+        m_left_click_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_left_click_hook_data = data;
+    }
+    void SetOnStartDragWithData(void* pFunction, void* data)
+    {
+        m_start_drag_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_start_drag_hook_data = data;
+    }
+    void SetOnCreateEditorCtrlWithData(void* pFunction, void* data)
+    {
+        m_create_editor_ctrl_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_create_editor_ctrl_hook_data = data;
+    }
+    void SetOnGetValueFromEditorCtrlWithData(void* pFunction, void* data)
+    {
+        m_get_value_from_editor_ctrl_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_get_value_from_editor_ctrl_hook_data = data;
+    }
+    void SetOnValidateWithData(void* pFunction, void* data)
+    {
+        m_validate_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_validate_hook_data = data;
+    }
+    void SetOnHasEditorCtrlWithData(void* pFunction, void* data)
+    {
+        m_has_editor_ctrl_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_has_editor_ctrl_hook_data = data;
+    }
+    void SetOnGetAccessibleDescriptionWithData(void* pFunction, void* data)
+    {
+        m_accessible_description_hook = reinterpret_cast<kwxDataViewHookFn>(pFunction);
+        m_accessible_description_hook_data = data;
+    }
+
+    // RenderText()/GetTextExtent() are protected on wxDataViewCustomRenderer, so a
+    // Render()/GetSize() callback can only reach them through these forwarders.  The
+    // qualified call is deliberate: it always runs the standard renderer's implementation,
+    // never a derived override.
+    void CallRenderText(const wxString& text, int xoffset, const wxRect& cell, wxDC* dc, int state)
+    {
+        wxDataViewCustomRenderer::RenderText(text, xoffset, cell, dc, state);
+    }
+    wxSize CallGetTextExtent(const wxString& text) const
+    {
+        return wxDataViewCustomRenderer::GetTextExtent(text);
+    }
+
+    wxDC* GetRenderDC() const { return m_render_dc; }
+    const wxRect& GetRenderRect() const { return m_render_rect; }
+    int GetRenderState() const { return m_render_state; }
+    const wxVariant& GetCurrentValue() const { return m_current_value; }
+    const wxRect& GetEditorRect() const { return m_editor_rect; }
+    wxWindow* GetEditorParent() const { return m_editor_parent; }
+    wxWindow* GetEditorCtrl() const { return m_editor_ctrl; }
+    unsigned int GetPendingColumn() const { return m_pending_column; }
+    // Borrowed: valid only inside the ActivateCell callback that received it.
+    const wxMouseEvent* GetActivateCellMouseEvent() const { return m_mouse_event; }
+    int GetPendingCursorX() const { return m_pending_cursor.x; }
+    int GetPendingCursorY() const { return m_pending_cursor.y; }
+
+    void SetRenderResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetGetSizeResult(const wxSize& size)
+    {
+        m_result_size = size;
+        m_published = true;
+    }
+    void SetGetValueResult(const wxVariant& value)
+    {
+        m_result_variant = value;
+        m_published = true;
+    }
+    void SetSetValueResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetActivateCellResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetActivateResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetLeftClickResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetStartDragResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetCreateEditorCtrlResult(wxWindow* editor)
+    {
+        m_result_window = editor;
+        m_published = true;
+    }
+    void SetGetValueFromEditorCtrlResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    // Publishing the edited value is itself the success signal for GetValueFromEditorCtrl.
+    void SetGetValueFromEditorCtrlValue(const wxVariant& value)
+    {
+        m_result_variant = value;
+        m_has_editor_value = true;
+    }
+    void SetValidateResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    void SetHasEditorCtrlResult(bool result)
+    {
+        m_result_bool = result;
+        m_published = true;
+    }
+    // Copies on purpose: the callback's string buffer is call-scoped in every binding.
+    void SetAccessibleDescription(const wxString& description)
+    {
+        m_accessible_description = description;
+        m_published = true;
+    }
+
+    bool Render(wxRect cell, wxDC* draw_dc, int state) override;
+    wxSize GetSize() const override;
+    bool SetValue(const wxVariant& value) override;
+    bool GetValue(wxVariant& value) const override;
+    bool ActivateCell(const wxRect& cell, wxDataViewModel* model, const wxDataViewItem& item,
+                      unsigned int col, const wxMouseEvent* mouseEvent) override;
+    bool Activate(wxRect cell, wxDataViewModel* model, const wxDataViewItem& item,
+                  unsigned int col) override;
+    bool LeftClick(wxPoint cursor, wxRect cell, wxDataViewModel* model, const wxDataViewItem& item,
+                   unsigned int col) override;
+    bool StartDrag(const wxPoint& cursor, const wxRect& cell, wxDataViewModel* model,
+                   const wxDataViewItem& item, unsigned int col) override;
+    wxWindow* CreateEditorCtrl(wxWindow* parent, wxRect labelRect, const wxVariant& value) override;
+    bool GetValueFromEditorCtrl(wxWindow* editor, wxVariant& value) override;
+    bool Validate(wxVariant& value) override;
+    bool HasEditorCtrl() const override;
+
+    // The base declares it pure when wxWidgets was built with accessibility support; a
+    // scripted renderer has no descriptive text of its own.
+#if wxUSE_ACCESSIBILITY
+    wxString GetAccessibleDescription() const override;
+#endif
+};
+
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
 
 // The exported kwx<Base>_* / <Base>_* declarations are NOT in this header.
 // kwxgen expands the quoted includes of include/kwx_classes.h, so every

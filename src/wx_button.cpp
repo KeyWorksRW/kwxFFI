@@ -44,6 +44,14 @@ extern "C"
                                   wxDefaultValidator);
     }
 
+    EXPORT wxBitmapButton* wxBitmapButton_CreateWithBundle(wxWindow* parent, int id,
+                                                           wxBitmapBundle* bitmap, int x, int y,
+                                                           int width, int height, int style)
+    {
+        return new wxBitmapButton(parent, id, bitmap ? *bitmap : wxBitmapBundle(), wxPoint(x, y),
+                                  wxSize(width, height), style, wxDefaultValidator);
+    }
+
     EXPORT void wxBitmapButton_GetBitmapLabel(wxBitmapButton* self, wxBitmap* ref)
     {
         *ref = self->GetBitmapLabel();
@@ -82,6 +90,30 @@ extern "C"
     EXPORT void wxBitmapButton_SetBitmapLabel(wxBitmapButton* self, wxBitmap* bitmap)
     {
         self->SetBitmapLabel(*bitmap);
+    }
+
+    EXPORT void wxBitmapButton_SetBitmapDisabledBundle(wxBitmapButton* self,
+                                                       wxBitmapBundle* disabled)
+    {
+        self->SetBitmapDisabled(*disabled);
+    }
+
+    EXPORT void wxBitmapButton_SetBitmapFocusBundle(wxBitmapButton* self, wxBitmapBundle* focus)
+    {
+        self->SetBitmapFocus(*focus);
+    }
+
+    EXPORT void wxBitmapButton_SetBitmapLabelBundle(wxBitmapButton* self, wxBitmapBundle* bitmap)
+    {
+        self->SetBitmapLabel(*bitmap);
+    }
+
+    // SetBitmapSelected() has no bundle overload (wx/anybutton.h:114 takes a
+    // wxBitmap only); "selected" is the legacy synonym of "pressed", so the
+    // bundle goes to SetBitmapPressed() into the same state slot.
+    EXPORT void wxBitmapButton_SetBitmapSelectedBundle(wxBitmapButton* self, wxBitmapBundle* sel)
+    {
+        self->SetBitmapPressed(*sel);
     }
 
     EXPORT void wxBitmapButton_SetMargins(wxBitmapButton* self, int x, int y)

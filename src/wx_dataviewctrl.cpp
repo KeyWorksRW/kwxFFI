@@ -28,6 +28,45 @@ extern "C"
         return self->GetModel();
     }
 
+    // GetSortingColumns() returns a wxVector<wxDataViewColumn*>, which cannot cross the
+    // boundary, so it is exposed as a count plus an index.  The column is owned by the
+    // control (borrowed); an out-of-range pos returns null.
+    EXPORT int wxDataViewCtrl_GetSortingColumnCount(wxDataViewCtrl* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        const wxVector<wxDataViewColumn*> columns = self->GetSortingColumns();
+        return static_cast<int>(columns.size());
+    }
+
+    EXPORT wxDataViewColumn* wxDataViewCtrl_GetSortingColumnAt(wxDataViewCtrl* self, int pos)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        const wxVector<wxDataViewColumn*> columns = self->GetSortingColumns();
+        if (pos < 0 || static_cast<size_t>(pos) >= columns.size())
+        {
+            return nullptr;
+        }
+        return columns[static_cast<size_t>(pos)];
+    }
+
+    EXPORT wxHeaderCtrl* wxDataViewCtrl_GenericGetHeader(wxDataViewCtrl* self)
+    {
+#if defined(wxHAS_GENERIC_DATAVIEWCTRL)
+        return self->GenericGetHeader();
+#else
+        // Native control: there is no generic header to resize, so answer null and let
+        // the caller fall back to the "no header" path.
+        wxUnusedVar(self);
+        return nullptr;
+#endif
+    }
+
     // Column management
     EXPORT wxDataViewColumn* wxDataViewCtrl_AppendTextColumn(wxDataViewCtrl* self, wxString* label,
                                                              unsigned int model_column, int mode,
@@ -226,6 +265,19 @@ extern "C"
     {
         wxPoint pt(x, y);
         self->HitTest(pt, *item, *col);
+    }
+
+    EXPORT int wxDataViewCtrl_HitTestColumnPosition(wxDataViewCtrl* self, int x, int y,
+                                                    wxDataViewItem* item)
+    {
+        wxPoint pt(x, y);
+        wxDataViewColumn* col = nullptr;
+        self->HitTest(pt, *item, col);
+        if (!item->IsOk() || !col)
+        {
+            return -1;
+        }
+        return self->GetColumnPosition(col);
     }
 
     EXPORT void wxDataViewCtrl_GetItemRect(wxDataViewCtrl* self, wxDataViewItem* item,
@@ -447,5 +499,1032 @@ extern "C"
     EXPORT int wxDataViewCtrl_SetForegroundColour(void* pObject, void* colour)
     {
         return ((wxDataViewCtrl*) pObject)->SetForegroundColour(*(wxColour*) colour);
+    }
+
+    // Only the single-format overload of EnableDropTarget() is wrapped: a
+    // wxVector<wxDataFormat> has no FFI handle, so the vector overload is skipped.
+    EXPORT int wxDataViewCtrl_EnableDropTarget(wxDataViewCtrl* self, wxDataFormat* format)
+    {
+        return self->EnableDropTarget(*format);
+    }
+
+    // --- wxDataViewColumn: the portable header-column surface ---
+    // The column pointer is owned by the wxDataViewCtrl that appended it.
+
+    EXPORT wxString* wxDataViewColumn_GetTitle(wxDataViewColumn* self)
+    {
+        return new wxString(self->GetTitle());
+    }
+
+    EXPORT void wxDataViewColumn_SetTitle(wxDataViewColumn* self, wxString* title)
+    {
+        self->SetTitle(*title);
+    }
+
+    EXPORT wxBitmapBundle* wxDataViewColumn_GetBitmapBundle(wxDataViewColumn* self)
+    {
+        return new wxBitmapBundle(self->GetBitmapBundle());
+    }
+
+    EXPORT void wxDataViewColumn_SetBitmap(wxDataViewColumn* self, wxBitmapBundle* bitmap)
+    {
+        self->SetBitmap(bitmap ? *bitmap : wxBitmapBundle());
+    }
+
+    EXPORT int wxDataViewColumn_GetWidth(wxDataViewColumn* self)
+    {
+        return self->GetWidth();
+    }
+
+    EXPORT void wxDataViewColumn_SetWidth(wxDataViewColumn* self, int width)
+    {
+        self->SetWidth(width);
+    }
+
+    EXPORT int wxDataViewColumn_GetMinWidth(wxDataViewColumn* self)
+    {
+        return self->GetMinWidth();
+    }
+
+    EXPORT void wxDataViewColumn_SetMinWidth(wxDataViewColumn* self, int min_width)
+    {
+        self->SetMinWidth(min_width);
+    }
+
+    EXPORT int wxDataViewColumn_GetAlignment(wxDataViewColumn* self)
+    {
+        return static_cast<int>(self->GetAlignment());
+    }
+
+    EXPORT void wxDataViewColumn_SetAlignment(wxDataViewColumn* self, int alignment)
+    {
+        self->SetAlignment(static_cast<wxAlignment>(alignment));
+    }
+
+    EXPORT int wxDataViewColumn_GetFlags(wxDataViewColumn* self)
+    {
+        return self->GetFlags();
+    }
+
+    EXPORT void wxDataViewColumn_SetFlags(wxDataViewColumn* self, int flags)
+    {
+        self->SetFlags(flags);
+    }
+
+    EXPORT void wxDataViewColumn_SetFlag(wxDataViewColumn* self, int flag)
+    {
+        self->SetFlag(flag);
+    }
+
+    EXPORT void wxDataViewColumn_ChangeFlag(wxDataViewColumn* self, int flag, int set)
+    {
+        self->ChangeFlag(flag, set != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsResizeable(wxDataViewColumn* self)
+    {
+        return self->IsResizeable();
+    }
+
+    EXPORT void wxDataViewColumn_SetResizeable(wxDataViewColumn* self, int resizeable)
+    {
+        self->SetResizeable(resizeable != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsSortable(wxDataViewColumn* self)
+    {
+        return self->IsSortable();
+    }
+
+    EXPORT void wxDataViewColumn_SetSortable(wxDataViewColumn* self, int sortable)
+    {
+        self->SetSortable(sortable != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsReorderable(wxDataViewColumn* self)
+    {
+        return self->IsReorderable();
+    }
+
+    EXPORT void wxDataViewColumn_SetReorderable(wxDataViewColumn* self, int reorderable)
+    {
+        self->SetReorderable(reorderable != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsHidden(wxDataViewColumn* self)
+    {
+        return self->IsHidden();
+    }
+
+    EXPORT void wxDataViewColumn_SetHidden(wxDataViewColumn* self, int hidden)
+    {
+        self->SetHidden(hidden != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsShown(wxDataViewColumn* self)
+    {
+        return self->IsShown();
+    }
+
+    EXPORT int wxDataViewColumn_IsSortKey(wxDataViewColumn* self)
+    {
+        return self->IsSortKey();
+    }
+
+    EXPORT void wxDataViewColumn_SetSortOrder(wxDataViewColumn* self, int ascending)
+    {
+        self->SetSortOrder(ascending != 0);
+    }
+
+    EXPORT int wxDataViewColumn_IsSortOrderAscending(wxDataViewColumn* self)
+    {
+        return self->IsSortOrderAscending();
+    }
+
+    EXPORT void wxDataViewColumn_UnsetAsSortKey(wxDataViewColumn* self)
+    {
+        self->UnsetAsSortKey();
+    }
+
+    EXPORT unsigned int wxDataViewColumn_GetModelColumn(wxDataViewColumn* self)
+    {
+        return self->GetModelColumn();
+    }
+
+    // The renderer a column displays with; the column owns it, so the pointer is borrowed.
+    EXPORT wxDataViewRenderer* wxDataViewColumn_GetRenderer(wxDataViewColumn* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return self->GetRenderer();
+    }
+
+    // --- wxDataViewItemAttr: per-cell colour and font ---
+
+    EXPORT wxDataViewItemAttr* wxDataViewItemAttr_Create()
+    {
+        return new wxDataViewItemAttr();
+    }
+
+    EXPORT void wxDataViewItemAttr_Copy(wxDataViewItemAttr* self, wxDataViewItemAttr* other)
+    {
+        if (!self || !other)
+        {
+            return;
+        }
+        *self = *other;
+    }
+
+    EXPORT void wxDataViewItemAttr_Delete(wxDataViewItemAttr* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxDataViewItemAttr_SetColour(wxDataViewItemAttr* self, wxColour* colour)
+    {
+        if (!self || !colour)
+        {
+            return;
+        }
+        self->SetColour(*colour);
+    }
+
+    EXPORT void wxDataViewItemAttr_SetBackgroundColour(wxDataViewItemAttr* self, wxColour* colour)
+    {
+        if (!self || !colour)
+        {
+            return;
+        }
+        self->SetBackgroundColour(*colour);
+    }
+
+    EXPORT void wxDataViewItemAttr_SetBold(wxDataViewItemAttr* self, int set)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetBold(set != 0);
+    }
+
+    EXPORT void wxDataViewItemAttr_SetItalic(wxDataViewItemAttr* self, int set)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetItalic(set != 0);
+    }
+
+    EXPORT void wxDataViewItemAttr_SetStrikethrough(wxDataViewItemAttr* self, int set)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetStrikethrough(set != 0);
+    }
+
+    EXPORT int wxDataViewItemAttr_HasColour(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasColour() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_HasFont(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasFont() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_HasBackgroundColour(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasBackgroundColour() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_GetBold(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetBold() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_GetItalic(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetItalic() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_GetStrikethrough(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetStrikethrough() ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewItemAttr_IsDefault(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return 1;
+        }
+        return self->IsDefault() ? 1 : 0;
+    }
+
+    // Borrowed, owned by the attribute: valid only while the attribute lives.
+    EXPORT wxColour* wxDataViewItemAttr_GetColour(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxColour*>(&self->GetColour());
+    }
+
+    // Borrowed, owned by the attribute: valid only while the attribute lives.
+    EXPORT wxColour* wxDataViewItemAttr_GetBackgroundColour(wxDataViewItemAttr* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxColour*>(&self->GetBackgroundColour());
+    }
+
+    // Returns a new font the caller owns.
+    EXPORT wxFont* wxDataViewItemAttr_GetEffectiveFont(wxDataViewItemAttr* self, wxFont* font)
+    {
+        if (!self || !font)
+        {
+            return nullptr;
+        }
+        return new wxFont(self->GetEffectiveFont(*font));
+    }
+
+    // --- wxDataViewModel: queries and change notifications ---
+
+    EXPORT void wxDataViewModel_GetValue(wxDataViewModel* self, wxVariant* variant,
+                                         wxDataViewItem* item, unsigned int col)
+    {
+        self->GetValue(*variant, *item, col);
+    }
+
+    EXPORT int wxDataViewModel_SetValue(wxDataViewModel* self, wxVariant* variant,
+                                        wxDataViewItem* item, unsigned int col)
+    {
+        return self->SetValue(*variant, *item, col);
+    }
+
+    EXPORT int wxDataViewModel_ChangeValue(wxDataViewModel* self, wxVariant* variant,
+                                           wxDataViewItem* item, unsigned int col)
+    {
+        return self->ChangeValue(*variant, *item, col);
+    }
+
+    EXPORT int wxDataViewModel_HasValue(wxDataViewModel* self, wxDataViewItem* item,
+                                        unsigned int col)
+    {
+        return self->HasValue(*item, col);
+    }
+
+    EXPORT int wxDataViewModel_IsEnabled(wxDataViewModel* self, wxDataViewItem* item,
+                                         unsigned int col)
+    {
+        return self->IsEnabled(*item, col);
+    }
+
+    EXPORT int wxDataViewModel_GetAttr(wxDataViewModel* self, wxDataViewItem* item,
+                                       unsigned int col, wxDataViewItemAttr* attr)
+    {
+        return self->GetAttr(*item, col, *attr);
+    }
+
+    EXPORT void wxDataViewModel_GetParent(wxDataViewModel* self, wxDataViewItem* item,
+                                          wxDataViewItem* parent)
+    {
+        *parent = self->GetParent(*item);
+    }
+
+    EXPORT int wxDataViewModel_IsContainer(wxDataViewModel* self, wxDataViewItem* item)
+    {
+        return self->IsContainer(*item);
+    }
+
+    EXPORT int wxDataViewModel_HasContainerColumns(wxDataViewModel* self, wxDataViewItem* item)
+    {
+        return self->HasContainerColumns(*item);
+    }
+
+    EXPORT unsigned int wxDataViewModel_GetChildren(wxDataViewModel* self, wxDataViewItem* item,
+                                                    wxDataViewItemArray* children)
+    {
+        return self->GetChildren(*item, *children);
+    }
+
+    EXPORT int wxDataViewModel_ItemAdded(wxDataViewModel* self, wxDataViewItem* parent,
+                                         wxDataViewItem* item)
+    {
+        return self->ItemAdded(*parent, *item);
+    }
+
+    EXPORT int wxDataViewModel_ItemsAdded(wxDataViewModel* self, wxDataViewItem* parent,
+                                          wxDataViewItemArray* items)
+    {
+        return self->ItemsAdded(*parent, *items);
+    }
+
+    EXPORT int wxDataViewModel_ItemDeleted(wxDataViewModel* self, wxDataViewItem* parent,
+                                           wxDataViewItem* item)
+    {
+        return self->ItemDeleted(*parent, *item);
+    }
+
+    EXPORT int wxDataViewModel_ItemsDeleted(wxDataViewModel* self, wxDataViewItem* parent,
+                                            wxDataViewItemArray* items)
+    {
+        return self->ItemsDeleted(*parent, *items);
+    }
+
+    EXPORT int wxDataViewModel_ItemChanged(wxDataViewModel* self, wxDataViewItem* item)
+    {
+        return self->ItemChanged(*item);
+    }
+
+    EXPORT int wxDataViewModel_ItemsChanged(wxDataViewModel* self, wxDataViewItemArray* items)
+    {
+        return self->ItemsChanged(*items);
+    }
+
+    EXPORT int wxDataViewModel_ValueChanged(wxDataViewModel* self, wxDataViewItem* item,
+                                            unsigned int col)
+    {
+        return self->ValueChanged(*item, col);
+    }
+
+    EXPORT int wxDataViewModel_Cleared(wxDataViewModel* self)
+    {
+        return self->Cleared();
+    }
+
+    EXPORT int wxDataViewModel_BeforeReset(wxDataViewModel* self)
+    {
+        return self->BeforeReset();
+    }
+
+    EXPORT int wxDataViewModel_AfterReset(wxDataViewModel* self)
+    {
+        return self->AfterReset();
+    }
+
+    EXPORT int wxDataViewModel_Compare(wxDataViewModel* self, wxDataViewItem* item1,
+                                       wxDataViewItem* item2, unsigned int column, int ascending)
+    {
+        return self->Compare(*item1, *item2, column, ascending != 0);
+    }
+
+    EXPORT int wxDataViewModel_HasDefaultCompare(wxDataViewModel* self)
+    {
+        return self->HasDefaultCompare();
+    }
+
+    EXPORT void wxDataViewModel_Resort(wxDataViewModel* self)
+    {
+        self->Resort();
+    }
+
+    // wxDataViewModel derives from wxRefCounter and its destructor is protected, and
+    // wxDataViewCtrl_AssociateModel() does not take ownership of the model, so the
+    // reference has to be dropped with DecRef() -- never with delete.
+    EXPORT void wxDataViewModel_IncRef(wxDataViewModel* self)
+    {
+        self->IncRef();
+    }
+
+    EXPORT void wxDataViewModel_DecRef(wxDataViewModel* self)
+    {
+        self->DecRef();
+    }
+
+    // --- wxDataViewTreeStore ---
+
+    EXPORT wxDataViewTreeStore* wxDataViewTreeStore_Create()
+    {
+        return new wxDataViewTreeStore();
+    }
+
+    // The store is reference counted with an initial count of 1 from Create().
+    EXPORT void wxDataViewTreeStore_Delete(wxDataViewTreeStore* self)
+    {
+        self->DecRef();
+    }
+
+    EXPORT void wxDataViewTreeStore_AppendContainer(wxDataViewTreeStore* self,
+                                                    wxDataViewItem* parent, wxString* text,
+                                                    wxBitmapBundle* icon, wxBitmapBundle* expanded,
+                                                    wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->AppendContainer(*parent, *text, icon ? *icon : wxBitmapBundle(),
+                                        expanded ? *expanded : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_AppendItem(wxDataViewTreeStore* self, wxDataViewItem* parent,
+                                               wxString* text, wxBitmapBundle* icon,
+                                               wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->AppendItem(*parent, *text, icon ? *icon : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_PrependContainer(wxDataViewTreeStore* self,
+                                                     wxDataViewItem* parent, wxString* text,
+                                                     wxBitmapBundle* icon, wxBitmapBundle* expanded,
+                                                     wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->PrependContainer(*parent, *text, icon ? *icon : wxBitmapBundle(),
+                                         expanded ? *expanded : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_PrependItem(wxDataViewTreeStore* self, wxDataViewItem* parent,
+                                                wxString* text, wxBitmapBundle* icon,
+                                                wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->PrependItem(*parent, *text, icon ? *icon : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_InsertContainer(wxDataViewTreeStore* self,
+                                                    wxDataViewItem* parent,
+                                                    wxDataViewItem* previous, wxString* text,
+                                                    wxBitmapBundle* icon, wxBitmapBundle* expanded,
+                                                    wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->InsertContainer(*parent, *previous, *text, icon ? *icon : wxBitmapBundle(),
+                                        expanded ? *expanded : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_InsertItem(wxDataViewTreeStore* self, wxDataViewItem* parent,
+                                               wxDataViewItem* previous, wxString* text,
+                                               wxBitmapBundle* icon, wxClientData* data,
+                                               wxDataViewItem* result)
+    {
+        *result =
+            self->InsertItem(*parent, *previous, *text, icon ? *icon : wxBitmapBundle(), data);
+    }
+
+    EXPORT void wxDataViewTreeStore_GetNthChild(wxDataViewTreeStore* self, wxDataViewItem* parent,
+                                                unsigned int pos, wxDataViewItem* result)
+    {
+        *result = self->GetNthChild(*parent, pos);
+    }
+
+    EXPORT int wxDataViewTreeStore_GetChildCount(wxDataViewTreeStore* self, wxDataViewItem* parent)
+    {
+        return self->GetChildCount(*parent);
+    }
+
+    EXPORT void wxDataViewTreeStore_SetItemText(wxDataViewTreeStore* self, wxDataViewItem* item,
+                                                wxString* text)
+    {
+        self->SetItemText(*item, *text);
+    }
+
+    EXPORT wxString* wxDataViewTreeStore_GetItemText(wxDataViewTreeStore* self,
+                                                     wxDataViewItem* item)
+    {
+        return new wxString(self->GetItemText(*item));
+    }
+
+    EXPORT void wxDataViewTreeStore_SetItemIcon(wxDataViewTreeStore* self, wxDataViewItem* item,
+                                                wxBitmapBundle* icon)
+    {
+        self->SetItemIcon(*item, icon ? *icon : wxBitmapBundle());
+    }
+
+    EXPORT wxIcon* wxDataViewTreeStore_GetItemIcon(wxDataViewTreeStore* self, wxDataViewItem* item)
+    {
+        return new wxIcon(self->GetItemIcon(*item));
+    }
+
+    EXPORT void wxDataViewTreeStore_SetItemExpandedIcon(wxDataViewTreeStore* self,
+                                                        wxDataViewItem* item, wxBitmapBundle* icon)
+    {
+        self->SetItemExpandedIcon(*item, icon ? *icon : wxBitmapBundle());
+    }
+
+    EXPORT wxIcon* wxDataViewTreeStore_GetItemExpandedIcon(wxDataViewTreeStore* self,
+                                                           wxDataViewItem* item)
+    {
+        return new wxIcon(self->GetItemExpandedIcon(*item));
+    }
+
+    EXPORT void wxDataViewTreeStore_SetItemData(wxDataViewTreeStore* self, wxDataViewItem* item,
+                                                wxClientData* data)
+    {
+        self->SetItemData(*item, data);
+    }
+
+    EXPORT wxClientData* wxDataViewTreeStore_GetItemData(wxDataViewTreeStore* self,
+                                                         wxDataViewItem* item)
+    {
+        return self->GetItemData(*item);
+    }
+
+    EXPORT void wxDataViewTreeStore_DeleteItem(wxDataViewTreeStore* self, wxDataViewItem* item)
+    {
+        self->DeleteItem(*item);
+    }
+
+    EXPORT void wxDataViewTreeStore_DeleteChildren(wxDataViewTreeStore* self, wxDataViewItem* item)
+    {
+        self->DeleteChildren(*item);
+    }
+
+    EXPORT void wxDataViewTreeStore_DeleteAllItems(wxDataViewTreeStore* self)
+    {
+        self->DeleteAllItems();
+    }
+
+    // --- wxDataViewTreeCtrl ---
+
+    EXPORT wxDataViewTreeCtrl* wxDataViewTreeCtrl_Create(wxWindow* parent, int id, int x, int y,
+                                                         int width, int height, int style)
+    {
+        return new wxDataViewTreeCtrl(parent, id, wxPoint(x, y), wxSize(width, height), style);
+    }
+
+    EXPORT wxDataViewTreeStore* wxDataViewTreeCtrl_GetStore(wxDataViewTreeCtrl* self)
+    {
+        return self->GetStore();
+    }
+
+    EXPORT void wxDataViewTreeCtrl_AppendContainer(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                                   wxString* text, int icon, int expanded,
+                                                   wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->AppendContainer(*parent, *text, icon, expanded, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_AppendItem(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                              wxString* text, int icon, wxClientData* data,
+                                              wxDataViewItem* result)
+    {
+        *result = self->AppendItem(*parent, *text, icon, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_PrependContainer(wxDataViewTreeCtrl* self,
+                                                    wxDataViewItem* parent, wxString* text,
+                                                    int icon, int expanded, wxClientData* data,
+                                                    wxDataViewItem* result)
+    {
+        *result = self->PrependContainer(*parent, *text, icon, expanded, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_PrependItem(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                               wxString* text, int icon, wxClientData* data,
+                                               wxDataViewItem* result)
+    {
+        *result = self->PrependItem(*parent, *text, icon, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_InsertContainer(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                                   wxDataViewItem* previous, wxString* text,
+                                                   int icon, int expanded, wxClientData* data,
+                                                   wxDataViewItem* result)
+    {
+        *result = self->InsertContainer(*parent, *previous, *text, icon, expanded, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_InsertItem(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                              wxDataViewItem* previous, wxString* text, int icon,
+                                              wxClientData* data, wxDataViewItem* result)
+    {
+        *result = self->InsertItem(*parent, *previous, *text, icon, data);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_DeleteItem(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        self->DeleteItem(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_DeleteChildren(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        self->DeleteChildren(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_DeleteAllItems(wxDataViewTreeCtrl* self)
+    {
+        self->DeleteAllItems();
+    }
+
+    EXPORT int wxDataViewTreeCtrl_GetChildCount(wxDataViewTreeCtrl* self, wxDataViewItem* parent)
+    {
+        return self->GetChildCount(*parent);
+    }
+
+    EXPORT wxString* wxDataViewTreeCtrl_GetItemText(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        return new wxString(self->GetItemText(*item));
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetItemText(wxDataViewTreeCtrl* self, wxDataViewItem* item,
+                                               wxString* text)
+    {
+        self->SetItemText(*item, *text);
+    }
+
+    EXPORT wxIcon* wxDataViewTreeCtrl_GetItemIcon(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        return new wxIcon(self->GetItemIcon(*item));
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetItemIcon(wxDataViewTreeCtrl* self, wxDataViewItem* item,
+                                               wxBitmapBundle* icon)
+    {
+        self->SetItemIcon(*item, icon ? *icon : wxBitmapBundle());
+    }
+
+    EXPORT wxIcon* wxDataViewTreeCtrl_GetItemExpandedIcon(wxDataViewTreeCtrl* self,
+                                                          wxDataViewItem* item)
+    {
+        return new wxIcon(self->GetItemExpandedIcon(*item));
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetItemExpandedIcon(wxDataViewTreeCtrl* self,
+                                                       wxDataViewItem* item, wxBitmapBundle* icon)
+    {
+        self->SetItemExpandedIcon(*item, icon ? *icon : wxBitmapBundle());
+    }
+
+    EXPORT wxClientData* wxDataViewTreeCtrl_GetItemData(wxDataViewTreeCtrl* self,
+                                                        wxDataViewItem* item)
+    {
+        return self->GetItemData(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetItemData(wxDataViewTreeCtrl* self, wxDataViewItem* item,
+                                               wxClientData* data)
+    {
+        self->SetItemData(*item, data);
+    }
+
+    EXPORT int wxDataViewTreeCtrl_IsContainer(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        return self->IsContainer(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_GetItemParent(wxDataViewTreeCtrl* self, wxDataViewItem* item,
+                                                 wxDataViewItem* result)
+    {
+        *result = self->GetItemParent(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_GetNthChild(wxDataViewTreeCtrl* self, wxDataViewItem* parent,
+                                               unsigned int pos, wxDataViewItem* result)
+    {
+        *result = self->GetNthChild(*parent, pos);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_Expand(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        self->Expand(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_Collapse(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        self->Collapse(*item);
+    }
+
+    EXPORT int wxDataViewTreeCtrl_IsExpanded(wxDataViewTreeCtrl* self, wxDataViewItem* item)
+    {
+        return self->IsExpanded(*item);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetImageList(wxDataViewTreeCtrl* self, wxImageList* list)
+    {
+        self->SetImageList(list);
+    }
+
+    EXPORT wxImageList* wxDataViewTreeCtrl_GetImageList(wxDataViewTreeCtrl* self)
+    {
+        return self->GetImageList();
+    }
+
+    EXPORT void wxDataViewTreeCtrl_AssignImageList(wxDataViewTreeCtrl* self, wxImageList* list)
+    {
+        self->AssignImageList(list);
+    }
+
+    EXPORT void wxDataViewTreeCtrl_SetImages(wxDataViewTreeCtrl* self,
+                                             wxVector<wxBitmapBundle>* images)
+    {
+        if (images)
+        {
+            self->SetImages(*images);
+        }
+    }
+
+    // --- wxDataViewEvent ---
+
+    EXPORT void wxDataViewEvent_GetItem(wxDataViewEvent* self, wxDataViewItem* item)
+    {
+        *item = self->GetItem();
+    }
+
+    // This is the model column index, matching the wxWidgets accessor.
+    EXPORT int wxDataViewEvent_GetColumn(wxDataViewEvent* self)
+    {
+        return self->GetColumn();
+    }
+
+    EXPORT wxDataViewColumn* wxDataViewEvent_GetDataViewColumn(wxDataViewEvent* self)
+    {
+        return self->GetDataViewColumn();
+    }
+
+    EXPORT wxVariant* wxDataViewEvent_GetValue(wxDataViewEvent* self)
+    {
+        return new wxVariant(self->GetValue());
+    }
+
+    EXPORT void wxDataViewEvent_SetValue(wxDataViewEvent* self, wxVariant* value)
+    {
+        self->SetValue(*value);
+    }
+
+    EXPORT wxDataObject* wxDataViewEvent_GetDataObject(wxDataViewEvent* self)
+    {
+        return self->GetDataObject();
+    }
+
+    EXPORT void wxDataViewEvent_SetDataObject(wxDataViewEvent* self, wxDataObject* obj)
+    {
+        self->SetDataObject(obj);
+    }
+
+    EXPORT wxDataFormat* wxDataViewEvent_GetDataFormat(wxDataViewEvent* self)
+    {
+        return new wxDataFormat(self->GetDataFormat());
+    }
+
+    EXPORT void wxDataViewEvent_SetDataFormat(wxDataViewEvent* self, wxDataFormat* format)
+    {
+        self->SetDataFormat(*format);
+    }
+
+    EXPORT size_t wxDataViewEvent_GetDataSize(wxDataViewEvent* self)
+    {
+        return self->GetDataSize();
+    }
+
+    EXPORT void wxDataViewEvent_SetDataSize(wxDataViewEvent* self, size_t size)
+    {
+        self->SetDataSize(size);
+    }
+
+    EXPORT void* wxDataViewEvent_GetDataBuffer(wxDataViewEvent* self)
+    {
+        return self->GetDataBuffer();
+    }
+
+    EXPORT void wxDataViewEvent_SetDataBuffer(wxDataViewEvent* self, void* buffer)
+    {
+        self->SetDataBuffer(buffer);
+    }
+
+    EXPORT int wxDataViewEvent_GetDropEffect(wxDataViewEvent* self)
+    {
+        return static_cast<int>(self->GetDropEffect());
+    }
+
+    // The declared surface is void (kwx_hook_exports.h); the definition used to say int and
+    // returned nothing, which warned on every build.
+    EXPORT void wxDataViewEvent_SetDropEffect(wxDataViewEvent* self, int effect)
+    {
+        self->SetDropEffect(static_cast<wxDragResult>(effect));
+    }
+
+#if wxUSE_DRAG_AND_DROP
+    EXPORT void wxDataViewEvent_SetDragFlags(wxDataViewEvent* self, int flags)
+    {
+        self->SetDragFlags(flags);
+    }
+
+    EXPORT int wxDataViewEvent_GetDragFlags(wxDataViewEvent* self)
+    {
+        return self->GetDragFlags();
+    }
+
+    EXPORT void wxDataViewEvent_SetProposedDropIndex(wxDataViewEvent* self, int index)
+    {
+        self->SetProposedDropIndex(index);
+    }
+
+    EXPORT int wxDataViewEvent_GetProposedDropIndex(wxDataViewEvent* self)
+    {
+        return self->GetProposedDropIndex();
+    }
+#else
+    // wxWidgets built without drag and drop: the accessors do not exist, so the wrappers
+    // stay inert instead of failing to compile.
+    EXPORT void wxDataViewEvent_SetDragFlags([[maybe_unused]] wxDataViewEvent* self,
+                                             [[maybe_unused]] int flags)
+    {
+    }
+
+    EXPORT int wxDataViewEvent_GetDragFlags([[maybe_unused]] wxDataViewEvent* self)
+    {
+        return 0;
+    }
+
+    EXPORT void wxDataViewEvent_SetProposedDropIndex([[maybe_unused]] wxDataViewEvent* self,
+                                                     [[maybe_unused]] int index)
+    {
+    }
+
+    EXPORT int wxDataViewEvent_GetProposedDropIndex([[maybe_unused]] wxDataViewEvent* self)
+    {
+        return 0;
+    }
+#endif
+
+    EXPORT void wxDataViewEvent_GetPosition(wxDataViewEvent* self, int* x, int* y)
+    {
+        wxPoint pos = self->GetPosition();
+        *x = pos.x;
+        *y = pos.y;
+    }
+
+    EXPORT void wxDataViewEvent_SetPosition(wxDataViewEvent* self, int x, int y)
+    {
+        self->SetPosition(x, y);
+    }
+
+    EXPORT int wxDataViewEvent_IsEditCancelled(wxDataViewEvent* self)
+    {
+        return self->IsEditCancelled();
+    }
+
+    // wx 3.3 only provides the no-argument setter that marks the edit as cancelled.
+    EXPORT void wxDataViewEvent_SetEditCancelled(wxDataViewEvent* self)
+    {
+        self->SetEditCancelled();
+    }
+
+    EXPORT wxDataViewModel* wxDataViewEvent_GetModel(wxDataViewEvent* self)
+    {
+        return self->GetModel();
+    }
+
+    // --- wxDataViewIconText / wxDataViewCheckIconText value classes ---
+
+    EXPORT wxDataViewIconText* wxDataViewIconText_Create(wxString* text, wxBitmapBundle* icon)
+    {
+        return new wxDataViewIconText(text ? *text : wxString(), icon ? *icon : wxBitmapBundle());
+    }
+
+    EXPORT wxDataViewIconText* wxDataViewIconText_CreateDefault()
+    {
+        return new wxDataViewIconText();
+    }
+
+    EXPORT void wxDataViewIconText_Copy(wxDataViewIconText* self, wxDataViewIconText* other)
+    {
+        if (other)
+        {
+            *self = *other;
+        }
+    }
+
+    EXPORT void wxDataViewIconText_Delete(wxDataViewIconText* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxDataViewIconText_SetText(wxDataViewIconText* self, wxString* text)
+    {
+        self->SetText(text ? *text : wxString());
+    }
+
+    EXPORT wxString* wxDataViewIconText_GetText(wxDataViewIconText* self)
+    {
+        return new wxString(self->GetText());
+    }
+
+    EXPORT void wxDataViewIconText_SetBitmapBundle(wxDataViewIconText* self, wxBitmapBundle* icon)
+    {
+        self->SetBitmapBundle(icon ? *icon : wxBitmapBundle());
+    }
+
+    // Borrowed: the bundle is the member of this wxDataViewIconText.
+    EXPORT wxBitmapBundle* wxDataViewIconText_GetBitmapBundle(wxDataViewIconText* self)
+    {
+        return const_cast<wxBitmapBundle*>(&self->GetBitmapBundle());
+    }
+
+    EXPORT void wxDataViewIconText_SetIcon(wxDataViewIconText* self, wxIcon* icon)
+    {
+        if (icon)
+        {
+            self->SetIcon(*icon);
+        }
+    }
+
+    EXPORT wxIcon* wxDataViewIconText_GetIcon(wxDataViewIconText* self)
+    {
+        return new wxIcon(self->GetIcon());
+    }
+
+    EXPORT wxDataViewCheckIconText*
+        wxDataViewCheckIconText_Create(wxString* text, wxBitmapBundle* icon, int checkedState)
+    {
+        return new wxDataViewCheckIconText(text ? *text : wxString(),
+                                           icon ? *icon : wxBitmapBundle(),
+                                           static_cast<wxCheckBoxState>(checkedState));
+    }
+
+    EXPORT wxDataViewCheckIconText* wxDataViewCheckIconText_CreateDefault()
+    {
+        return new wxDataViewCheckIconText();
+    }
+
+    EXPORT void wxDataViewCheckIconText_Copy(wxDataViewCheckIconText* self,
+                                             wxDataViewCheckIconText* other)
+    {
+        if (other)
+        {
+            *self = *other;
+        }
+    }
+
+    EXPORT void wxDataViewCheckIconText_Delete(wxDataViewCheckIconText* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxDataViewCheckIconText_SetCheckedState(wxDataViewCheckIconText* self, int state)
+    {
+        self->SetCheckedState(static_cast<wxCheckBoxState>(state));
+    }
+
+    EXPORT int wxDataViewCheckIconText_GetCheckedState(wxDataViewCheckIconText* self)
+    {
+        return static_cast<int>(self->GetCheckedState());
     }
 }

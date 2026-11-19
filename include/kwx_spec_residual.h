@@ -23,14 +23,14 @@ void wxSpinDoubleEvent_SetValue(TSelf(wxSpinDoubleEvent) pObject, double value);
 TClassDefExtend(wxFontPickerEvent, wxCommandEvent) TClass(wxFontPickerEvent)
     wxFontPickerEvent_Create(TClass(wxObject) generator, int id, TClass(wxFont) font);
 void wxFontPickerEvent_Delete(TSelf(wxFontPickerEvent) pObject);
-TClass(wxFont) wxFontPickerEvent_GetFont(TSelf(wxFontPickerEvent) pObject);
+TClassOwned(wxFont) wxFontPickerEvent_GetFont(TSelf(wxFontPickerEvent) pObject);
 void wxFontPickerEvent_SetFont(TSelf(wxFontPickerEvent) pObject, TClass(wxFont) font);
 
 TClassDefExtend(wxColourPickerEvent, wxCommandEvent) TClass(wxColourPickerEvent)
     wxColourPickerEvent_Create(TClass(wxObject) generator, int id, TClass(wxColour) colour,
                                int command_type);
 void wxColourPickerEvent_Delete(TSelf(wxColourPickerEvent) pObject);
-TClass(wxColour) wxColourPickerEvent_GetColour(TSelf(wxColourPickerEvent) pObject);
+TClassOwned(wxColour) wxColourPickerEvent_GetColour(TSelf(wxColourPickerEvent) pObject);
 void wxColourPickerEvent_SetColour(TSelf(wxColourPickerEvent) pObject, TClass(wxColour) colour);
 
 TClassDefExtend(wxFileDirPickerEvent, wxCommandEvent) TClass(wxFileDirPickerEvent)
@@ -86,6 +86,9 @@ void wxTextUrlEvent_Delete(TSelf(wxTextUrlEvent) pObject);
 TClass(wxMouseEvent) wxTextUrlEvent_GetMouseEvent(TSelf(wxTextUrlEvent) pObject);
 long wxTextUrlEvent_GetURLStart(TSelf(wxTextUrlEvent) pObject);
 long wxTextUrlEvent_GetURLEnd(TSelf(wxTextUrlEvent) pObject);
+// wxTextUrlEvent inherits GetString from wxCommandEvent; wxRichTextCtrl stores the
+// clicked URL in that string (richtextctrl.cpp: urlEvent.SetString(urlTarget)).
+TClass(wxString) wxTextUrlEvent_GetString(TSelf(wxTextUrlEvent) pObject);
 
 TClassDefExtend(wxThreadEvent, wxEvent) TClass(wxThreadEvent)
     wxThreadEvent_Create(int event_type, int id);
@@ -158,7 +161,7 @@ TClassDefExtend(wxRearrangeList, wxCheckListBox) TClass(wxRearrangeList)
     wxRearrangeList_Create(TClass(wxWindow) parent, int id, TRect(x, y, width, height),
                            TClass(wxArrayInt) order, TClass(wxArrayString) items, int style);
 void wxRearrangeList_Delete(TSelf(wxRearrangeList) pObject);
-TClass(wxArrayInt) wxRearrangeList_GetCurrentOrder(TSelf(wxRearrangeList) pObject);
+TClassOwned(wxArrayInt) wxRearrangeList_GetCurrentOrder(TSelf(wxRearrangeList) pObject);
 TBool wxRearrangeList_CanMoveCurrentUp(TSelf(wxRearrangeList) pObject);
 TBool wxRearrangeList_CanMoveCurrentDown(TSelf(wxRearrangeList) pObject);
 TBool wxRearrangeList_MoveCurrentUp(TSelf(wxRearrangeList) pObject);
@@ -207,6 +210,18 @@ TClass(wxDCOverlay) wxDCOverlay_CreateFull(TClass(wxOverlay) overlay, TClass(wxD
 void wxDCOverlay_Delete(TSelf(wxDCOverlay) pObject);
 void wxDCOverlay_Clear(TSelf(wxDCOverlay) pObject);
 
+// wxOverlayDC derives from wxDC (wx documents it that way even though it is a
+// wxClientDC in this implementation) and must not outlive the wxOverlay passed
+// to its constructor.
+TClassDefExtend(wxOverlayDC, wxDC) TClass(wxOverlayDC)
+    wxOverlayDC_Create(TClass(wxOverlay) overlay, TClass(wxWindow) win);
+TClass(wxOverlayDC) wxOverlayDC_CreateWithRect(TClass(wxOverlay) overlay, TClass(wxWindow) win,
+                                               TRect(x, y, width, height));
+// Wrap an existing overlay DC in a wxGCDC so that brush/pen alpha is honoured.
+// The returned wxGCDC must be deleted before the wxOverlayDC.
+TClass(wxGCDC) wxOverlayDC_CreateGCDC(TSelf(wxOverlayDC) pObject);
+void wxOverlayDC_Delete(TSelf(wxOverlayDC) pObject);
+
 // ---------------------------------------------------------------------------
 // wxAffineMatrix2D
 // ---------------------------------------------------------------------------
@@ -244,6 +259,18 @@ void wxArtProvider_Push(void* provider);
 TClassOwned(wxBitmapBundle)
     wxArtProvider_GetBitmapBundle(TClass(wxString) id, TClass(wxString) client,
                                   TSize(width, height));
+// C++: GetBitmapBundle(id, client = wxART_OTHER, size = wxDefaultSize).  The four-argument form
+// above cannot express either default, so a port asking for the default-size art had to invent a
+// size of its own; this is the one-argument C++ call.
+TClassOwned(wxBitmapBundle) wxArtProvider_GetBitmapBundleDefault(TClass(wxString) id);
+// wxART_MAKE_CLIENT_ID()/wxART_MAKE_CLIENT_ID_FROM_STR() are macros over a string literal,
+// so no binding can reach them -- yet wxArtProvider::GetBitmapBundle() asserts unless the
+// client id ends in "_C" (client.Last() == 'C', artprov.cpp:489), which is why ports end up
+// hard-coding "wxART_LIST_C".  This appends that suffix to a runtime id: pass wxART_LIST and
+// hand the answer to wxArtProvider_GetBitmapBundle as its `client` argument.  The answer is a
+// UTF-8 char* the caller owns and releases with wxCFree, so it can be passed straight to any
+// wrapper that takes a plain string; a null id answers "_C".
+TString wxArtProvider_MakeClientId(TString id);
 TClassOwned(wxIcon)
     wxArtProvider_GetIcon(TClass(wxString) id, TClass(wxString) client, TSize(width, height));
 TClassOwned(wxIconBundle) wxArtProvider_GetIconBundle(TClass(wxString) id, TClass(wxString) client);
@@ -309,7 +336,7 @@ void wxHelpController_SetParentWindow(TSelf(wxHelpController) pObject, TClass(wx
 TClassDefExtend(wxWizardPage, wxPanel) TClass(wxWizardPage)
     wxWizardPage_GetPrev(TSelf(wxWizardPage) pObject);
 TClass(wxWizardPage) wxWizardPage_GetNext(TSelf(wxWizardPage) pObject);
-TClass(wxBitmap) wxWizardPage_GetBitmap(TSelf(wxWizardPage) pObject);
+TClassOwned(wxBitmap) wxWizardPage_GetBitmap(TSelf(wxWizardPage) pObject);
 
 // ---------------------------------------------------------------------------
 // wxMDIClientWindow
@@ -379,9 +406,10 @@ TBool wxGridTableBase_CanHaveAttributes(TSelf(wxGridTableBase) pObject);
 TClassDefExtend(wxGridCellRenderer, wxGridCellWorker) void wxGridCellRenderer_Draw(
     TSelf(wxGridCellRenderer) pObject, TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
     TClass(wxDC) dc, TRect(x, y, width, height), int row, int col, TBool is_selected);
-TClass(wxSize) wxGridCellRenderer_GetPreferredSize(TSelf(wxGridCellRenderer) pObject,
-                                                   TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
-                                                   TClass(wxDC) dc, int row, int col);
+TClassOwned(wxSize)
+    wxGridCellRenderer_GetPreferredSize(TSelf(wxGridCellRenderer) pObject, TClass(wxGrid) grid,
+                                        TClass(wxGridCellAttr) attr, TClass(wxDC) dc, int row,
+                                        int col);
 int wxGridCellRenderer_GetPreferredHeight(TSelf(wxGridCellRenderer) pObject, TClass(wxGrid) grid,
                                           TClass(wxGridCellAttr) attr, TClass(wxDC) dc, int row,
                                           int col, int width);
@@ -392,18 +420,19 @@ int wxGridCellRenderer_GetPreferredWidth(TSelf(wxGridCellRenderer) pObject, TCla
 TClassDefExtend(wxGridCellBoolRenderer, wxGridCellRenderer) void wxGridCellBoolRenderer_Draw(
     TSelf(wxGridCellBoolRenderer) pObject, TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
     TClass(wxDC) dc, TRect(x, y, width, height), int row, int col, TBool is_selected);
-TClass(wxSize)
+TClassOwned(wxSize)
     wxGridCellBoolRenderer_GetPreferredSize(TSelf(wxGridCellBoolRenderer) pObject,
                                             TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
                                             TClass(wxDC) dc, int row, int col);
-TClass(wxSize) wxGridCellBoolRenderer_GetMaxBestSize(TSelf(wxGridCellBoolRenderer) pObject,
-                                                     TClass(wxGrid) grid,
-                                                     TClass(wxGridCellAttr) attr, TClass(wxDC) dc);
+TClassOwned(wxSize)
+    wxGridCellBoolRenderer_GetMaxBestSize(TSelf(wxGridCellBoolRenderer) pObject,
+                                          TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
+                                          TClass(wxDC) dc);
 
 TClassDefExtend(wxGridCellStringRenderer, wxGridCellRenderer) void wxGridCellStringRenderer_Draw(
     TSelf(wxGridCellStringRenderer) pObject, TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
     TClass(wxDC) dc, TRect(x, y, width, height), int row, int col, TBool is_selected);
-TClass(wxSize)
+TClassOwned(wxSize)
     wxGridCellStringRenderer_GetPreferredSize(TSelf(wxGridCellStringRenderer) pObject,
                                               TClass(wxGrid) grid, TClass(wxGridCellAttr) attr,
                                               TClass(wxDC) dc, int row, int col);
@@ -439,7 +468,7 @@ double wxVariant_GetDouble(TSelf(wxVariant) pObject);
 
 // Abstract (every wxDataObjectBase format function is pure virtual), so it has
 // no Create/Delete wrapper. direction is wxDataObjectBase::Direction.
-TClassDef(wxDataObject) TClass(wxDataFormat)
+TClassDef(wxDataObject) TClassOwned(wxDataFormat)
     wxDataObject_GetPreferredFormat(TSelf(wxDataObject) pObject, int direction);
 int wxDataObject_GetFormatCount(TSelf(wxDataObject) pObject, int direction);
 TBool wxDataObject_IsSupported(TSelf(wxDataObject) pObject, TClass(wxDataFormat) format,
@@ -466,7 +495,7 @@ void wxPGProperty_AddPrivateChild(TSelf(wxPGProperty) pObject, void* prop);
 void* wxPGProperty_AppendChild(TSelf(wxPGProperty) pObject, void* prop);
 void wxPGProperty_DeleteChoice(TSelf(wxPGProperty) pObject, int index);
 void wxPGProperty_EnableCommonValue(TSelf(wxPGProperty) pObject, TBool enable);
-TClass(wxPGCell) wxPGProperty_GetCell(TSelf(wxPGProperty) pObject, unsigned int column);
+TClassOwned(wxPGCell) wxPGProperty_GetCell(TSelf(wxPGProperty) pObject, unsigned int column);
 TClass(wxString) wxPGProperty_GetDisplayedString(TSelf(wxPGProperty) pObject);
 unsigned int wxPGProperty_GetIndexInParent(TSelf(wxPGProperty) pObject);
 TBool wxPGProperty_HasAnyChild(TSelf(wxPGProperty) pObject);
@@ -482,7 +511,7 @@ void wxPGProperty_SetAttribute(TSelf(wxPGProperty) pObject, TClass(wxString) nam
 void wxPGProperty_SetAutoUnspecified(TSelf(wxPGProperty) pObject, TBool enable);
 void wxPGProperty_SetExpanded(TSelf(wxPGProperty) pObject, TBool expanded);
 int wxPGProperty_GetY(TSelf(wxPGProperty) pObject);
-TClass(wxVariant) wxPGProperty_GetValue(TSelf(wxPGProperty) pObject);
+TClassOwned(wxVariant) wxPGProperty_GetValue(TSelf(wxPGProperty) pObject);
 TClass(wxString) wxPGProperty_GetHintText(TSelf(wxPGProperty) pObject);
 TClass(wxPropertyGrid) wxPGProperty_GetGrid(TSelf(wxPGProperty) pObject);
 TClass(wxPropertyGrid) wxPGProperty_GetGridIfDisplayed(TSelf(wxPGProperty) pObject);
@@ -504,7 +533,7 @@ void wxPGProperty_SetName(TSelf(wxPGProperty) pObject, TClass(wxString) name);
 
 // Only the property-value members that wxPropertyGridInterface does not
 // declare in include/kwx_propgrid_extra.h.
-TClassDefExtend(wxPropertyGrid, wxControl) TClass(wxVariant)
+TClassDefExtend(wxPropertyGrid, wxControl) TClassOwned(wxVariant)
     wxPropertyGrid_GetPropertyValue(TSelf(wxPropertyGrid) pObject, TClass(wxPGProperty) id);
 void wxPropertyGrid_SetPropertyValue(TSelf(wxPropertyGrid) pObject, TClass(wxPGProperty) id,
                                      TClass(wxVariant) value);
@@ -515,7 +544,7 @@ TClass(wxString)
 void wxPropertyGrid_SetPropertyHelpString(TSelf(wxPropertyGrid) pObject, TClass(wxPGProperty) id,
                                           TClass(wxString) help);
 TBool wxPropertyGrid_IsPropertyModified(TSelf(wxPropertyGrid) pObject, TClass(wxPGProperty) id);
-TClass(wxVariant) wxPropertyGrid_GetUncommittedPropertyValue(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxVariant) wxPropertyGrid_GetUncommittedPropertyValue(TSelf(wxPropertyGrid) pObject);
 
 // ---------------------------------------------------------------------------
 // wxPrintAbortDialog

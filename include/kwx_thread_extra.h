@@ -83,6 +83,32 @@ void* wxDynamicLibrary_Detach(TSelf(wxDynamicLibrary) pObject);
 TClass(wxString) wxDynamicLibrary_GetName(TSelf(wxDynamicLibrary) pObject);
 
 // ---------------------------------------------------------------------------
+// wxDynamicLibraryDetails / kwxDynamicLibraryList
+// ---------------------------------------------------------------------------
+
+/* wxDynamicLibrary::ListLoaded() returns a wxDynamicLibraryDetailsArray (a
+ * wxBaseArray of value objects) which cannot cross the C boundary, so the list
+ * is an owning helper object and each entry is a borrowed
+ * wxDynamicLibraryDetails* owned by it.  An entry pointer is valid only while
+ * its kwxDynamicLibraryList is alive; never Delete() it. */
+
+TClassDef(wxDynamicLibraryDetails) TClassOwned(wxString)
+    wxDynamicLibraryDetails_GetName(TSelf(wxDynamicLibraryDetails) pObject);
+TClassOwned(wxString) wxDynamicLibraryDetails_GetPath(TSelf(wxDynamicLibraryDetails) pObject);
+TClassOwned(wxString) wxDynamicLibraryDetails_GetVersion(TSelf(wxDynamicLibraryDetails) pObject);
+/* GetAddress() in wxWidgets fills both; these split it.  GetAddress returns
+ * null and GetLength returns 0 when the platform does not report the mapping. */
+void* wxDynamicLibraryDetails_GetAddress(TSelf(wxDynamicLibraryDetails) pObject);
+size_t wxDynamicLibraryDetails_GetLength(TSelf(wxDynamicLibraryDetails) pObject);
+
+TClassDef(kwxDynamicLibraryList) TClass(kwxDynamicLibraryList) kwxDynamicLibraryList_Create();
+void kwxDynamicLibraryList_Delete(TSelf(kwxDynamicLibraryList) pObject);
+size_t kwxDynamicLibraryList_GetCount(TSelf(kwxDynamicLibraryList) pObject);
+// Borrowed pointer owned by the list; null when index is out of range.
+TClass(wxDynamicLibraryDetails)
+    kwxDynamicLibraryList_GetDetails(TSelf(kwxDynamicLibraryList) pObject, size_t index);
+
+// ---------------------------------------------------------------------------
 // wxMutex — methods missing from the block in include/kwx_classes.h
 // ---------------------------------------------------------------------------
 

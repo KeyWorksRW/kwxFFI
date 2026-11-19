@@ -4,6 +4,7 @@
 #include "kwx_wrapper.h"
 
 #include <wx/cmdline.h>
+#include <wx/debugrpt.h>
 #include <wx/dir.h>
 #include <wx/dirdlg.h>
 #include <wx/editlbox.h>
@@ -261,21 +262,45 @@ extern "C"
     {
         return (int) wxBORDER_SUNKEN;
     }
+    EXPORT int expwxSUNKEN_BORDER()
+    {
+        return (int) wxSUNKEN_BORDER;
+    }
     EXPORT int expwxBORDER_RAISED()
     {
         return (int) wxBORDER_RAISED;
+    }
+    EXPORT int expwxRAISED_BORDER()
+    {
+        return (int) wxRAISED_BORDER;
     }
     EXPORT int expwxBORDER_STATIC()
     {
         return (int) wxBORDER_STATIC;
     }
+    EXPORT int expwxSTATIC_BORDER()
+    {
+        return (int) wxSTATIC_BORDER;
+    }
     EXPORT int expwxBORDER_SIMPLE()
     {
         return (int) wxBORDER_SIMPLE;
     }
+    EXPORT int expwxSIMPLE_BORDER()
+    {
+        return (int) wxSIMPLE_BORDER;
+    }
+    EXPORT int expwxBORDER()
+    {
+        return (int) wxBORDER;
+    }
     EXPORT int expwxBORDER_NONE()
     {
         return (int) wxBORDER_NONE;
+    }
+    EXPORT int expwxNO_BORDER()
+    {
+        return (int) wxNO_BORDER;
     }
     EXPORT int expwxBORDER_DEFAULT()
     {
@@ -808,6 +833,13 @@ extern "C"
     EXPORT int expwxICON_ERROR()
     {
         return (int) wxICON_ERROR;
+    }
+    // wxICON_HAND is wxWidgets' compatibility alias for wxICON_ERROR
+    // (build/_deps/wxwidgets-src/include/wx/defs.h:1701); samples/dnd/dnd.cpp uses it.
+    // Export it so a port does not have to substitute wxICON_ERROR for it.
+    EXPORT int expwxICON_HAND()
+    {
+        return (int) wxICON_HAND;
     }
     EXPORT int expwxICON_QUESTION()
     {
@@ -2213,6 +2245,14 @@ extern "C"
     {
         return (int) wxRA_SPECIFY_ROWS;
     }
+    EXPORT int expwxTEMPLATE_INVISIBLE()
+    {
+        return static_cast<int>(wxTEMPLATE_INVISIBLE);
+    }
+    EXPORT int expwxTEMPLATE_VISIBLE()
+    {
+        return static_cast<int>(wxTEMPLATE_VISIBLE);
+    }
     EXPORT int expwxTREE_HITTEST_ABOVE()
     {
         return (int) wxTREE_HITTEST_ABOVE;
@@ -2444,6 +2484,141 @@ extern "C"
     EXPORT const wxFont* expwxSWISS_FONT()
     {
         return wxSWISS_FONT;
+    }
+    EXPORT int expwxPEN_STOCK_RED()
+    {
+        return kwxStockPen_Red;
+    }
+    EXPORT int expwxPEN_STOCK_CYAN()
+    {
+        return kwxStockPen_Cyan;
+    }
+    EXPORT int expwxPEN_STOCK_GREEN()
+    {
+        return kwxStockPen_Green;
+    }
+    EXPORT int expwxPEN_STOCK_BLACK()
+    {
+        return kwxStockPen_Black;
+    }
+    EXPORT int expwxPEN_STOCK_WHITE()
+    {
+        return kwxStockPen_White;
+    }
+    EXPORT int expwxPEN_STOCK_TRANSPARENT()
+    {
+        return kwxStockPen_Transparent;
+    }
+    EXPORT int expwxPEN_STOCK_BLACK_DASHED()
+    {
+        return kwxStockPen_BlackDashed;
+    }
+    EXPORT int expwxPEN_STOCK_GREY()
+    {
+        return kwxStockPen_Grey;
+    }
+    EXPORT int expwxPEN_STOCK_MEDIUM_GREY()
+    {
+        return kwxStockPen_MediumGrey;
+    }
+    EXPORT int expwxPEN_STOCK_LIGHT_GREY()
+    {
+        return kwxStockPen_LightGrey;
+    }
+    EXPORT int expwxBRUSH_STOCK_BLUE()
+    {
+        return kwxStockBrush_Blue;
+    }
+    EXPORT int expwxBRUSH_STOCK_GREEN()
+    {
+        return kwxStockBrush_Green;
+    }
+    EXPORT int expwxBRUSH_STOCK_WHITE()
+    {
+        return kwxStockBrush_White;
+    }
+    EXPORT int expwxBRUSH_STOCK_BLACK()
+    {
+        return kwxStockBrush_Black;
+    }
+    EXPORT int expwxBRUSH_STOCK_GREY()
+    {
+        return kwxStockBrush_Grey;
+    }
+    EXPORT int expwxBRUSH_STOCK_MEDIUM_GREY()
+    {
+        return kwxStockBrush_MediumGrey;
+    }
+    EXPORT int expwxBRUSH_STOCK_LIGHT_GREY()
+    {
+        return kwxStockBrush_LightGrey;
+    }
+    EXPORT int expwxBRUSH_STOCK_TRANSPARENT()
+    {
+        return kwxStockBrush_Transparent;
+    }
+    EXPORT int expwxBRUSH_STOCK_CYAN()
+    {
+        return kwxStockBrush_Cyan;
+    }
+    EXPORT int expwxBRUSH_STOCK_RED()
+    {
+        return kwxStockBrush_Red;
+    }
+    EXPORT int expwxCOLOUR_STOCK_BLACK()
+    {
+        return kwxStockColour_Black;
+    }
+    EXPORT int expwxCOLOUR_STOCK_WHITE()
+    {
+        return kwxStockColour_White;
+    }
+    EXPORT int expwxCOLOUR_STOCK_RED()
+    {
+        return kwxStockColour_Red;
+    }
+    EXPORT int expwxCOLOUR_STOCK_BLUE()
+    {
+        return kwxStockColour_Blue;
+    }
+    EXPORT int expwxCOLOUR_STOCK_GREEN()
+    {
+        return kwxStockColour_Green;
+    }
+    EXPORT int expwxCOLOUR_STOCK_CYAN()
+    {
+        return kwxStockColour_Cyan;
+    }
+    EXPORT int expwxCOLOUR_STOCK_LIGHT_GREY()
+    {
+        return kwxStockColour_LightGrey;
+    }
+    EXPORT int expwxFONT_STOCK_ITALIC()
+    {
+        return kwxStockFont_Italic;
+    }
+    EXPORT int expwxFONT_STOCK_NORMAL()
+    {
+        return kwxStockFont_Normal;
+    }
+    EXPORT int expwxFONT_STOCK_SMALL()
+    {
+        return kwxStockFont_Small;
+    }
+    EXPORT int expwxFONT_STOCK_SWISS()
+    {
+        return kwxStockFont_Swiss;
+    }
+
+    // wxDebugReport::Context: the "context" argument wxDebugReport_AddContext,
+    // wxDebugReport_AddDump and wxDebugReport_AddAll take (include/kwx_debugreport.h).
+    EXPORT int expwxDebugReport_Context_Current()
+    {
+        return (int) wxDebugReport::Context_Current;
+    }
+    EXPORT int expwxDebugReport_Context_Exception()
+    {
+        return (int) wxDebugReport::Context_Exception;
     }
 
     EXPORT int expwxNOT_FOUND()
@@ -4925,6 +5100,10 @@ extern "C"
     {
         return new wxString((const char*) wxART_BUTTON);
     }
+    EXPORT wxString* expwxART_LIST()
+    {
+        return new wxString((const char*) wxART_LIST);
+    }
     EXPORT wxString* expwxART_OTHER()
     {
         return new wxString((const char*) wxART_OTHER);
@@ -4980,6 +5159,14 @@ extern "C"
     EXPORT wxString* expwxART_GO_HOME()
     {
         return new wxString((const char*) wxART_GO_HOME);
+    }
+    EXPORT wxString* expwxART_GOTO_FIRST()
+    {
+        return new wxString((const char*) wxART_GOTO_FIRST);
+    }
+    EXPORT wxString* expwxART_GOTO_LAST()
+    {
+        return new wxString((const char*) wxART_GOTO_LAST);
     }
     EXPORT wxString* expwxART_FILE_OPEN()
     {
@@ -5077,6 +5264,13 @@ extern "C"
     {
         return new wxString((const char*) wxART_INFORMATION);
     }
+    // wxTRACE_OleCalls is the trace-mask *name* wxT("ole") (wx/log.h), used with
+    // wxLog::AddTraceMask(). It is a wxT literal, so it must not be reinterpreted
+    // as char* -- convert the name explicitly instead.
+    EXPORT wxString* expwxTRACE_OleCalls()
+    {
+        return new wxString(wxString::FromUTF8("ole"));
+    }
     EXPORT wxString* expwxART_MISSING_IMAGE()
     {
         return new wxString((const char*) wxART_MISSING_IMAGE);
@@ -5109,6 +5303,18 @@ extern "C"
     {
         return new wxString((const char*) wxART_REDO);
     }
+    EXPORT wxString* expwxART_PLUS()
+    {
+        return new wxString((const char*) wxART_PLUS);
+    }
+    EXPORT wxString* expwxART_MINUS()
+    {
+        return new wxString((const char*) wxART_MINUS);
+    }
+    EXPORT wxString* expwxART_CLOSE()
+    {
+        return new wxString((const char*) wxART_CLOSE);
+    }
     EXPORT wxString* expwxART_QUIT()
     {
         return new wxString((const char*) wxART_QUIT);
@@ -5124,6 +5330,22 @@ extern "C"
     EXPORT wxString* expwxART_FULL_SCREEN()
     {
         return new wxString((const char*) wxART_FULL_SCREEN);
+    }
+    EXPORT wxString* expwxART_EDIT()
+    {
+        return new wxString((const char*) wxART_EDIT);
+    }
+    EXPORT wxString* expwxART_WX_LOGO()
+    {
+        return new wxString((const char*) wxART_WX_LOGO);
+    }
+    EXPORT wxString* expwxART_REFRESH()
+    {
+        return new wxString((const char*) wxART_REFRESH);
+    }
+    EXPORT wxString* expwxART_STOP()
+    {
+        return new wxString((const char*) wxART_STOP);
     }
 
     EXPORT int expwxMINOR_VERSION()
@@ -6534,6 +6756,166 @@ extern "C"
     {
         return static_cast<int>(wxAUI_TB_VERTICAL);
     }
+    EXPORT int expwxAUI_DOCK_NONE()
+    {
+        return static_cast<int>(wxAUI_DOCK_NONE);
+    }
+    EXPORT int expwxAUI_DOCK_TOP()
+    {
+        return static_cast<int>(wxAUI_DOCK_TOP);
+    }
+    EXPORT int expwxAUI_DOCK_RIGHT()
+    {
+        return static_cast<int>(wxAUI_DOCK_RIGHT);
+    }
+    EXPORT int expwxAUI_DOCK_BOTTOM()
+    {
+        return static_cast<int>(wxAUI_DOCK_BOTTOM);
+    }
+    EXPORT int expwxAUI_DOCK_LEFT()
+    {
+        return static_cast<int>(wxAUI_DOCK_LEFT);
+    }
+    EXPORT int expwxAUI_DOCK_CENTER()
+    {
+        return static_cast<int>(wxAUI_DOCK_CENTER);
+    }
+    EXPORT int expwxAUI_DOCK_CENTRE()
+    {
+        return static_cast<int>(wxAUI_DOCK_CENTRE);
+    }
+    EXPORT int expwxAUI_BUTTON_CLOSE()
+    {
+        return static_cast<int>(wxAUI_BUTTON_CLOSE);
+    }
+    EXPORT int expwxAUI_BUTTON_MAXIMIZE_RESTORE()
+    {
+        return static_cast<int>(wxAUI_BUTTON_MAXIMIZE_RESTORE);
+    }
+    EXPORT int expwxAUI_BUTTON_MINIMIZE()
+    {
+        return static_cast<int>(wxAUI_BUTTON_MINIMIZE);
+    }
+    EXPORT int expwxAUI_BUTTON_PIN()
+    {
+        return static_cast<int>(wxAUI_BUTTON_PIN);
+    }
+    EXPORT int expwxAUI_BUTTON_OPTIONS()
+    {
+        return static_cast<int>(wxAUI_BUTTON_OPTIONS);
+    }
+    EXPORT int expwxAUI_BUTTON_WINDOWLIST()
+    {
+        return static_cast<int>(wxAUI_BUTTON_WINDOWLIST);
+    }
+    EXPORT int expwxAUI_BUTTON_LEFT()
+    {
+        return static_cast<int>(wxAUI_BUTTON_LEFT);
+    }
+    EXPORT int expwxAUI_BUTTON_RIGHT()
+    {
+        return static_cast<int>(wxAUI_BUTTON_RIGHT);
+    }
+    EXPORT int expwxAUI_BUTTON_UP()
+    {
+        return static_cast<int>(wxAUI_BUTTON_UP);
+    }
+    EXPORT int expwxAUI_BUTTON_DOWN()
+    {
+        return static_cast<int>(wxAUI_BUTTON_DOWN);
+    }
+    EXPORT int expwxAUI_BUTTON_CUSTOM1()
+    {
+        return static_cast<int>(wxAUI_BUTTON_CUSTOM1);
+    }
+    EXPORT int expwxAUI_BUTTON_CUSTOM2()
+    {
+        return static_cast<int>(wxAUI_BUTTON_CUSTOM2);
+    }
+    EXPORT int expwxAUI_BUTTON_CUSTOM3()
+    {
+        return static_cast<int>(wxAUI_BUTTON_CUSTOM3);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_NORMAL()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_NORMAL);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_HOVER()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_HOVER);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_PRESSED()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_PRESSED);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_DISABLED()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_DISABLED);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_HIDDEN()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_HIDDEN);
+    }
+    EXPORT int expwxAUI_BUTTON_STATE_CHECKED()
+    {
+        return static_cast<int>(wxAUI_BUTTON_STATE_CHECKED);
+    }
+    EXPORT int expwxAUI_INSERT_PANE()
+    {
+        return static_cast<int>(wxAUI_INSERT_PANE);
+    }
+    EXPORT int expwxAUI_INSERT_ROW()
+    {
+        return static_cast<int>(wxAUI_INSERT_ROW);
+    }
+    EXPORT int expwxAUI_INSERT_DOCK()
+    {
+        return static_cast<int>(wxAUI_INSERT_DOCK);
+    }
+    EXPORT int expwxAUI_TB_NO_TOOLTIPS()
+    {
+        return static_cast<int>(wxAUI_TB_NO_TOOLTIPS);
+    }
+    EXPORT int expwxAUI_TB_NO_AUTORESIZE()
+    {
+        return static_cast<int>(wxAUI_TB_NO_AUTORESIZE);
+    }
+    EXPORT int expwxAUI_TB_GRIPPER()
+    {
+        return static_cast<int>(wxAUI_TB_GRIPPER);
+    }
+    EXPORT int expwxAUI_TB_HORZ_LAYOUT()
+    {
+        return static_cast<int>(wxAUI_TB_HORZ_LAYOUT);
+    }
+    EXPORT int expwxAUI_TB_PLAIN_BACKGROUND()
+    {
+        return static_cast<int>(wxAUI_TB_PLAIN_BACKGROUND);
+    }
+    EXPORT int expwxAUI_MGR_DEFAULT()
+    {
+        return static_cast<int>(wxAUI_MGR_DEFAULT);
+    }
+    EXPORT int expwxAUI_MGR_NO_VENETIAN_BLINDS_FADE()
+    {
+        return static_cast<int>(wxAUI_MGR_NO_VENETIAN_BLINDS_FADE);
+    }
+    EXPORT int expwxAUI_NB_MIDDLE_CLICK_CLOSE()
+    {
+        return static_cast<int>(wxAUI_NB_MIDDLE_CLICK_CLOSE);
+    }
+    EXPORT int expwxAUI_TAB_NORMAL()
+    {
+        return static_cast<int>(wxAuiTabKind::Normal);
+    }
+    EXPORT int expwxAUI_TAB_PINNED()
+    {
+        return static_cast<int>(wxAuiTabKind::Pinned);
+    }
+    EXPORT int expwxAUI_TAB_LOCKED()
+    {
+        return static_cast<int>(wxAuiTabKind::Locked);
+    }
     EXPORT int expwxBATTERY_CRITICAL_STATE()
     {
         return static_cast<int>(wxBATTERY_CRITICAL_STATE);
@@ -6561,6 +6943,10 @@ extern "C"
     EXPORT int expwxBG_STYLE_PAINT()
     {
         return static_cast<int>(wxBG_STYLE_PAINT);
+    }
+    EXPORT int expwxBG_STYLE_SYSTEM()
+    {
+        return static_cast<int>(wxBG_STYLE_SYSTEM);
     }
     EXPORT int expwxBG_STYLE_TRANSPARENT()
     {
@@ -7031,6 +7417,14 @@ extern "C"
     {
         return static_cast<int>(wxColourData::NUM_CUSTOM);
     }
+    EXPORT int expwxColourDatabase_CSS()
+    {
+        return static_cast<int>(wxColourDatabase::CSS);
+    }
+    EXPORT int expwxColourDatabase_Traditional()
+    {
+        return static_cast<int>(wxColourDatabase::Traditional);
+    }
     EXPORT int expwxDATAVIEW_CELL_ACTIVATABLE()
     {
         return static_cast<int>(wxDATAVIEW_CELL_ACTIVATABLE);
@@ -7054,6 +7448,38 @@ extern "C"
     EXPORT int expwxDATAVIEW_COL_SORTABLE()
     {
         return static_cast<int>(wxDATAVIEW_COL_SORTABLE);
+    }
+    EXPORT int expwxDV_SINGLE()
+    {
+        return static_cast<int>(wxDV_SINGLE);  // 0x0000
+    }
+    EXPORT int expwxDV_MULTIPLE()
+    {
+        return static_cast<int>(wxDV_MULTIPLE);  // 0x0001
+    }
+    EXPORT int expwxDV_NO_HEADER()
+    {
+        return static_cast<int>(wxDV_NO_HEADER);  // 0x0002
+    }
+    EXPORT int expwxDV_HORIZ_RULES()
+    {
+        return static_cast<int>(wxDV_HORIZ_RULES);  // 0x0004
+    }
+    EXPORT int expwxDV_VERT_RULES()
+    {
+        return static_cast<int>(wxDV_VERT_RULES);  // 0x0008
+    }
+    EXPORT int expwxDV_ROW_LINES()
+    {
+        return static_cast<int>(wxDV_ROW_LINES);  // 0x0010
+    }
+    EXPORT int expwxDV_VARIABLE_LINE_HEIGHT()
+    {
+        return static_cast<int>(wxDV_VARIABLE_LINE_HEIGHT);  // 0x0020
+    }
+    EXPORT int expwxDVR_DEFAULT_ALIGNMENT()
+    {
+        return static_cast<int>(wxDVR_DEFAULT_ALIGNMENT);  // -1
     }
     EXPORT int expwxCHOICEDLG_STYLE()
     {
@@ -7091,6 +7517,10 @@ extern "C"
     {
         return static_cast<int>(wxDIRCTRL_SHOW_FILTERS);
     }
+    EXPORT int expwxDEFAULT_TEMPLATE_FLAGS()
+    {
+        return static_cast<int>(wxDEFAULT_TEMPLATE_FLAGS);
+    }
     EXPORT int expwxDIRP_CHANGE_DIR()
     {
         return static_cast<int>(wxDIRP_CHANGE_DIR);
@@ -7110,6 +7540,10 @@ extern "C"
     EXPORT int expwxDIRP_USE_TEXTCTRL()
     {
         return static_cast<int>(wxDIRP_USE_TEXTCTRL);
+    }
+    EXPORT int expwxDOC_NEW()
+    {
+        return static_cast<int>(wxDOC_NEW);
     }
     EXPORT int expwxDOC_SILENT()
     {
@@ -7919,6 +8353,10 @@ extern "C"
     {
         return static_cast<int>(wxNUM_VAL_SIGN_PLUS);
     }
+    EXPORT int expwxNUM_VAL_SIGN_SPACE()
+    {
+        return static_cast<int>(wxNUM_VAL_SIGN_SPACE);
+    }
     EXPORT int expwxNUM_VAL_THOUSANDS_SEPARATOR()
     {
         return static_cast<int>(wxNUM_VAL_THOUSANDS_SEPARATOR);
@@ -8565,6 +9003,10 @@ extern "C"
     {
         return static_cast<int>(wxRICHTEXT_TYPE_XML);
     }
+    EXPORT int expwxRichTextFormattingDialog_Option_AllowPixelFontSize()
+    {
+        return static_cast<int>(wxRichTextFormattingDialog::Option_AllowPixelFontSize);
+    }
     EXPORT int expwxSHOW_SB_DEFAULT()
     {
         return static_cast<int>(wxSHOW_SB_DEFAULT);
@@ -8736,6 +9178,14 @@ extern "C"
     EXPORT int expwxS_DIR_DEFAULT()
     {
         return static_cast<int>(wxS_DIR_DEFAULT);
+    }
+    EXPORT int expwxSysMetric_CursorSize()
+    {
+        return static_cast<int>(wxSysMetric::CursorSize);
+    }
+    EXPORT int expwxSysMetric_Other()
+    {
+        return static_cast<int>(wxSysMetric::Other);
     }
     EXPORT int expwxTASKBAR_BUTTON_ERROR()
     {

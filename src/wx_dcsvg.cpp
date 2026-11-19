@@ -7,6 +7,8 @@
     #define wxUSE_SVG 1
 #endif
 #include <wx/dcsvg.h>
+#include <wx/graphics.h>
+#include <wx/svggc.h>
 
 extern "C"
 {
@@ -31,6 +33,379 @@ extern "C"
         delete (wxSVGFileDC*) pObject;
     }
 
+    EXPORT void* wxSVGAttributes_Create()
+    {
+        return (void*) new wxSVGAttributes();
+    }
+
+    EXPORT void wxSVGAttributes_Delete(void* pObject)
+    {
+        delete (wxSVGAttributes*) pObject;
+    }
+
+    EXPORT void wxSVGAttributes_SetRole(void* pObject, wxString* role)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->Role(role ? *role : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaLabel(void* pObject, wxString* label)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaLabel(label ? *label : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaLabelledBy(void* pObject, wxString* id)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaLabelledBy(id ? *id : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaDescribedBy(void* pObject, wxString* id)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaDescribedBy(id ? *id : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaHidden(void* pObject, int hidden)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaHidden(hidden != 0);
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaDetails(void* pObject, wxString* id)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaDetails(id ? *id : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetAriaRoleDescription(void* pObject, wxString* description)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->AriaRoleDescription(description ? *description : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetId(void* pObject, wxString* id)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->Id(id ? *id : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_SetClass(void* pObject, wxString* className)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->Class(className ? *className : wxString());
+    }
+
+    EXPORT void wxSVGAttributes_Add(void* pObject, wxString* name, wxString* value)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGAttributes*) pObject)->Add(name ? *name : wxString(), value ? *value : wxString());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAttribute(void* pObject, wxString* name)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAttribute(name ? *name : wxString()));
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAsString(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAsString());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetRole(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetRole());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAriaLabel(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAriaLabel());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAriaLabelledBy(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAriaLabelledBy());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAriaDescribedBy(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAriaDescribedBy());
+    }
+
+    EXPORT int wxSVGAttributes_IsAriaHidden(void* pObject)
+    {
+        if (!pObject)
+        {
+            return 0;
+        }
+        return ((wxSVGAttributes*) pObject)->IsAriaHidden() ? 1 : 0;
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAriaDetails(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAriaDetails());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetAriaRoleDescription(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetAriaRoleDescription());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetId(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetId());
+    }
+
+    EXPORT wxString* wxSVGAttributes_GetClass(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGAttributes*) pObject)->GetClass());
+    }
+
+    EXPORT int wxSVGAttributes_IsEmpty(void* pObject)
+    {
+        if (!pObject)
+        {
+            return 0;
+        }
+        return ((wxSVGAttributes*) pObject)->IsEmpty() ? 1 : 0;
+    }
+
+    EXPORT void* wxCreateSVGBitmapEmbedHandler()
+    {
+        return (void*) new wxSVGBitmapEmbedHandler();
+    }
+
+    EXPORT void wxSVGFileDC_BeginAccessibleGroup(void* pObject, void* attributes, wxString* title,
+                                                 wxString* desc)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        wxSVGAttributes const empty_attributes;
+        ((wxSVGFileDC*) pObject)
+            ->BeginAccessibleGroup(attributes ? *(wxSVGAttributes*) attributes : empty_attributes,
+                                   title ? *title : wxString(), desc ? *desc : wxString());
+    }
+
+    EXPORT void wxSVGFileDC_BeginLayer(void* pObject, double opacity)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGFileDC*) pObject)->BeginLayer(opacity);
+    }
+
+    EXPORT void wxSVGFileDC_EndLayer(void* pObject)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGFileDC*) pObject)->EndLayer();
+    }
+
+    EXPORT int wxSVGFileDC_Save(void* pObject)
+    {
+        if (!pObject)
+        {
+            return 0;
+        }
+        return ((wxSVGFileDC*) pObject)->Save() ? 1 : 0;
+    }
+
+    EXPORT wxString* wxSVGFileDC_GetSVGDocument(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGFileDC*) pObject)->GetSVGDocument());
+    }
+
+    EXPORT void wxSVGFileDC_SetShapeRenderingMode(void* pObject, int mode)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGFileDC*) pObject)->SetShapeRenderingMode((wxSVGShapeRenderingMode) mode);
+    }
+
+    EXPORT void* wxSVGFileDC_CreateWithTitle(wxString* a_filename, wxString* a_title)
+    {
+        return (void*) new wxSVGFileDC(a_filename ? *a_filename : wxString(), 320, 240,
+                                       wxSVG_DEFAULT_DPI, a_title ? *a_title : wxString());
+    }
+
+    EXPORT void* wxSVGFileDC_CreateWithSizeAndTitle(wxString* a_filename, int a_width, int a_height,
+                                                    wxString* a_title)
+    {
+        return (void*) new wxSVGFileDC(a_filename ? *a_filename : wxString(), a_width, a_height,
+                                       wxSVG_DEFAULT_DPI, a_title ? *a_title : wxString());
+    }
+
+    EXPORT void* wxSVGFileDC_CreateWithSizeResolutionAndTitle(wxString* a_filename, int a_width,
+                                                              int a_height, float a_dpi,
+                                                              wxString* a_title)
+    {
+        return (void*) new wxSVGFileDC(a_filename ? *a_filename : wxString(), a_width, a_height,
+                                       a_dpi, a_title ? *a_title : wxString());
+    }
+
+    // No-file measuring DC: writes nothing until Save() is called with a filename.
+    EXPORT void* wxSVGFileDC_CreateFromSize(int a_width, int a_height)
+    {
+        return (void*) new wxSVGFileDC(wxSize(a_width, a_height));
+    }
+
+    EXPORT void* wxSVGFileDC_CreateFromSizeWithFileAndTitle(int a_width, int a_height,
+                                                            wxString* a_filename, wxString* a_title)
+    {
+        return (void*) new wxSVGFileDC(wxSize(a_width, a_height),
+                                       a_filename ? *a_filename : wxString(),
+                                       a_title ? *a_title : wxString());
+    }
+
+    EXPORT void* wxSVGFileDC_CreateFromSizeWithFileTitleAndResolution(int a_width, int a_height,
+                                                                      wxString* a_filename,
+                                                                      wxString* a_title,
+                                                                      float a_dpi)
+    {
+        return (void*) new wxSVGFileDC(wxSize(a_width, a_height),
+                                       a_filename ? *a_filename : wxString(),
+                                       a_title ? *a_title : wxString(), a_dpi);
+    }
+
+    EXPORT void* wxSVGGraphicsContext_Create(void* dc)
+    {
+        if (!dc)
+        {
+            return nullptr;
+        }
+        return (void*) wxSVGGraphicsContext::Create(*(wxSVGFileDC*) dc);
+    }
+
+    EXPORT void* wxSVGGraphicsContext_CreateFromFile(wxString* a_filename, int a_width,
+                                                     int a_height, float a_dpi, wxString* a_title)
+    {
+        return (void*) wxSVGGraphicsContext::Create(a_filename ? *a_filename : wxString(), a_width,
+                                                    a_height, a_dpi,
+                                                    a_title ? *a_title : wxString());
+    }
+
+    EXPORT void* wxSVGGraphicsContext_CreateFromSize(int a_width, int a_height,
+                                                     wxString* a_filename, wxString* a_title)
+    {
+        return (void*) wxSVGGraphicsContext::Create(wxSize(a_width, a_height),
+                                                    a_filename ? *a_filename : wxString(),
+                                                    a_title ? *a_title : wxString());
+    }
+
+    EXPORT wxString* wxSVGGraphicsContext_GetSVGDocument(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxString(((wxSVGGraphicsContext*) pObject)->GetSVGDocument());
+    }
+
+    EXPORT int wxSVGGraphicsContext_Save(void* pObject)
+    {
+        if (!pObject)
+        {
+            return 0;
+        }
+        return ((wxSVGGraphicsContext*) pObject)->Save() ? 1 : 0;
+    }
+
+    EXPORT void wxSVGGraphicsContext_SetBitmapHandler(void* pObject, void* handler)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxSVGGraphicsContext*) pObject)->SetBitmapHandler((wxSVGBitmapHandler*) handler);
+    }
+
+    EXPORT void wxSVGGraphicsContext_Delete(void* pObject)
+    {
+        delete (wxSVGGraphicsContext*) pObject;
+    }
+
     // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
     EXPORT void wxSVGFileDC_EndAccessibleGroup(void* pObject)
     {
@@ -41,5 +416,4 @@ extern "C"
     {
         ((wxSVGFileDC*) pObject)->SetBitmapHandler((wxSVGBitmapHandler*) handler);
     }
-
 }

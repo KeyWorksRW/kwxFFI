@@ -171,8 +171,10 @@ bool UiIsKnownReason(std::string_view reason);
 
 const std::vector<std::string_view>& UiRequiredClasses();
 
-// The roles a backend must account for when it supports this class.  Empty when the class is
-// not one of the required classes.
+// The roles a backend must account for when it supports this class.  Every UiRequiredClasses()
+// entry has a list; a small number of classes outside that set (the menu tree, the text-like
+// controls whose value a form declares) carry one too, so their roles are published instead of
+// a constructor alone.  Empty for every other class.
 const std::vector<std::string_view>& UiRequiredRolesForClass(std::string_view wx_class);
 
 // How emit-ui decides which classes the descriptor describes.

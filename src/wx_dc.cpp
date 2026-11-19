@@ -589,12 +589,56 @@ extern "C"
 #endif
     }
 
-    EXPORT void* wxMetafileDC_Close(wxMetafileDC* self)
+    // wxMetafileDC() — the default constructor is what drawing.cpp:2836 uses for
+    // "Copy to clipboard". On MSW this build aliases wxMetafileDC to wxEnhMetaFileDC,
+    // whose filename parameter defaults to wxEmptyString (an in-memory metafile).
+    EXPORT void* wxMetafileDC_CreateDefault()
     {
 #if defined(__WXGTK__)
         return nullptr;
 #else
-        return (void*) self->Close();
+        return (void*) new wxMetafileDC();
+#endif
+    }
+
+    EXPORT void* wxMetafileDC_CreateWithExtent(wxString* filePath, int xext, int yext, int xorg,
+                                               int yorg)
+    {
+#if defined(__WXGTK__)
+        return nullptr;
+#elif defined(__WXOSX__)
+        wxString file;
+
+        if (filePath)
+            file = (char*) filePath;
+
+        return (void*) new wxMetafileDC(file, xext, yext);
+#elif defined(wxMETAFILE_IS_ENH)
+        // wxMetafileDC is wxEnhMetaFileDC in this build (wxUSE_WIN_METAFILES_ALWAYS off).
+        // Its sized ctor takes the picture size only: an enhanced metafile carries its
+        // origin in the metafile header, so xorg/yorg have no counterpart here.
+        wxString file;
+
+        if (filePath)
+            file = (char*) filePath;
+
+        return (void*) new wxMetafileDC(file, xext, yext);
+#else
+        wxString file;
+
+        if (filePath)
+            file = (char*) filePath;
+
+        return (void*) new wxMetafileDC(file, xext, yext, xorg, yorg);
+#endif
+    }
+
+    EXPORT wxMetafile* wxMetafileDC_Close(wxMetafileDC* self)
+    {
+#if defined(__WXGTK__)
+        return nullptr;
+#else
+        return self->Close();
 #endif
     }
 
@@ -646,11 +690,66 @@ extern "C"
 #endif
     }
 
+    // GetWidth/GetHeight/GetSize dereference the metafile, so callers check IsOk() first,
+    // exactly as samples/dnd/dnd.cpp does.
+    EXPORT int wxMetafile_GetWidth(wxMetafile* self)
+    {
+#if defined(__WXGTK__)
+        return 0;
+#else
+        return self->GetWidth();
+#endif
+    }
+
+    EXPORT int wxMetafile_GetHeight(wxMetafile* self)
+    {
+#if defined(__WXGTK__)
+        return 0;
+#else
+        return self->GetHeight();
+#endif
+    }
+
+    EXPORT wxSize* wxMetafile_GetSize(wxMetafile* self)
+    {
+#if defined(__WXGTK__)
+        return nullptr;
+#else
+        return new wxSize(self->GetSize());
+#endif
+    }
+
     EXPORT void wxMetafile_Delete(wxMetafile* self)
     {
 #if !defined(__WXGTK__)
         delete self;
 #endif
+    }
+
+    EXPORT void* wxMetafileDataObject_CreateDefault()
+    {
+        return (void*) new wxMetafileDataObject();
+    }
+
+    EXPORT void* wxMetafileDataObject_Create(wxMetafile* metafile)
+    {
+        return (void*) new wxMetafileDataObject(*metafile);
+    }
+
+    EXPORT void wxMetafileDataObject_Delete(void* self)
+    {
+        delete (wxMetafileDataObject*) self;
+    }
+
+    EXPORT wxMetafile* wxMetafileDataObject_GetMetafile(void* self)
+    {
+        // GetMetafile() returns by value, so the caller gets its own heap copy.
+        return new wxMetafile(((wxMetafileDataObject*) self)->GetMetafile());
+    }
+
+    EXPORT void wxMetafileDataObject_SetMetafile(void* self, wxMetafile* metafile)
+    {
+        ((wxMetafileDataObject*) self)->SetMetafile(*metafile);
     }
 
     EXPORT void wxDC_DrawLabel(wxDC* self, wxString* str, int x, int y, int width, int height,
@@ -985,5 +1084,105 @@ extern "C"
     EXPORT void wxMemoryDC_SelectObjectAsSource(void* pObject, void* bmp)
     {
         ((wxMemoryDC*) pObject)->SelectObjectAsSource(*(wxBitmap*) bmp);
+    }
+
+    // -------------------------------------------------------------------------
+    // DC state changers
+    //
+    // Create() saves the old value and applies the new one, Delete() restores the saved
+    // value. A changer must be deleted BEFORE the DC it was created with; the DC must
+    // outlive it.
+    // -------------------------------------------------------------------------
+
+    EXPORT void* wxDCPenChanger_Create(wxDC* dc, wxPen* pen)
+    {
+        return new wxDCPenChanger(*dc, *pen);
+    }
+
+    EXPORT void wxDCPenChanger_Set(wxDCPenChanger* self, wxPen* pen)
+    {
+        self->Set(*pen);
+    }
+
+    EXPORT void wxDCPenChanger_Delete(wxDCPenChanger* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxDCBrushChanger_Create(wxDC* dc, wxBrush* brush)
+    {
+        return new wxDCBrushChanger(*dc, *brush);
+    }
+
+    EXPORT void wxDCBrushChanger_Set(wxDCBrushChanger* self, wxBrush* brush)
+    {
+        self->Set(*brush);
+    }
+
+    EXPORT void wxDCBrushChanger_Delete(wxDCBrushChanger* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxDCFontChanger_Create(wxDC* dc, wxFont* font)
+    {
+        return new wxDCFontChanger(*dc, *font);
+    }
+
+    EXPORT void wxDCFontChanger_Set(wxDCFontChanger* self, wxFont* font)
+    {
+        self->Set(*font);
+    }
+
+    EXPORT void wxDCFontChanger_Delete(wxDCFontChanger* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxDCTextColourChanger_Create(wxDC* dc, wxColour* colour)
+    {
+        return new wxDCTextColourChanger(*dc, *colour);
+    }
+
+    EXPORT void wxDCTextColourChanger_Set(wxDCTextColourChanger* self, wxColour* colour)
+    {
+        self->Set(*colour);
+    }
+
+    EXPORT void wxDCTextColourChanger_Delete(wxDCTextColourChanger* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxDCTextBgColourChanger_Create(wxDC* dc, wxColour* colour)
+    {
+        // wxDCTextBgColourChanger derives its old colour from GetTextBackground().
+        return new wxDCTextBgColourChanger(*dc, *colour);
+    }
+
+    EXPORT void wxDCTextBgColourChanger_Set(wxDCTextBgColourChanger* self, wxColour* colour)
+    {
+        self->Set(*colour);
+    }
+
+    EXPORT void wxDCTextBgColourChanger_Delete(wxDCTextBgColourChanger* self)
+    {
+        delete self;
+    }
+
+    EXPORT void* wxDCTextBgModeChanger_Create(wxDC* dc, int mode)
+    {
+        // mode is a wxBRUSHSTYLE_* value (wxSOLID / wxTRANSPARENT).
+        return new wxDCTextBgModeChanger(*dc, mode);
+    }
+
+    EXPORT void wxDCTextBgModeChanger_Set(wxDCTextBgModeChanger* self, int mode)
+    {
+        self->Set(mode);
+    }
+
+    EXPORT void wxDCTextBgModeChanger_Delete(wxDCTextBgModeChanger* self)
+    {
+        delete self;
     }
 }

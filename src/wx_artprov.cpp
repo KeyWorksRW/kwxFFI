@@ -7,40 +7,115 @@
 extern "C"
 {
     typedef void* (*TCreateBmp)(void* pObject, void* id, void* clt, int width, int height);
+    // Uniform single-thunk form shared by every hook family. `data` is returned
+    // verbatim; the id and client strings are NUL-terminated UTF-8 buffers that live
+    // only for the duration of the call, and the size/result travel through the
+    // kwxArtProv_GetRequested* and kwxArtProv_SetCreateBitmapResult exports.
+    typedef void (*TCreateBmpData)(void* data, void* pId, void* pClient);
 }
 
 class kwxArtProv : public wxArtProvider
 {
 private:
-    void* kwxObject;
-    TCreateBmp cb;
+    void* m_object = nullptr;
+    TCreateBmp m_callback = nullptr;
+    TCreateBmpData m_callback_data = nullptr;
+    void* m_token = nullptr;
+    int m_requested_width = 0;
+    int m_requested_height = 0;
+    wxBitmap m_result;
+    bool m_published = false;
+    // True until Push/PushBack hands the helper to wxWidgets, which then owns it and
+    // deletes it on Pop()/Delete() -- deleting it again from Release() would double-free.
+    bool m_owned = true;
 
 protected:
-    virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client, const wxSize& size)
+    wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client, const wxSize& size) override
     {
-        if (kwxObject)
+        if (m_callback_data)
         {
-            void* res = cb(kwxObject, (void*) id.utf8_str().data(),
-                           (void*) client.utf8_str().data(), size.GetWidth(), size.GetHeight());
+            m_requested_width = size.GetWidth();
+            m_requested_height = size.GetHeight();
+            m_result = wxNullBitmap;
+            m_published = false;
 
-            if (res)
-                return (*((wxBitmap*) res));
-            else
-                return wxNullBitmap;
+            // Named buffers rather than .data() taken off two temporaries inside the
+            // call expression: a temporary dies at the end of the full expression, so
+            // the callback would receive dangling pointers.
+            wxScopedCharBuffer id_utf8 = id.utf8_str();
+            wxScopedCharBuffer client_utf8 = client.utf8_str();
+
+            m_callback_data(m_token, static_cast<void*>(id_utf8.data()),
+                            static_cast<void*>(client_utf8.data()));
+
+            if (m_published)
+            {
+                return m_result;
+            }
+            return wxNullBitmap;
         }
-        return wxNullBitmap;
+
+        if (m_object && m_callback)
+        {
+            void* result =
+                m_callback(m_object, (void*) id.utf8_str().data(), (void*) client.utf8_str().data(),
+                           size.GetWidth(), size.GetHeight());
+
+            if (result)
+            {
+                return *static_cast<wxBitmap*>(result);
+            }
+            return wxNullBitmap;
+        }
+
+        return wxArtProvider::CreateBitmap(id, client, size);
     }
 
 public:
     kwxArtProv(void* obj, void* clb)
     {
-        kwxObject = obj;
-        cb = (TCreateBmp) clb;
+        m_object = obj;
+        m_callback = (TCreateBmp) clb;
     };
+
+    void SetOnCreateBitmap(void* pFunction, void* data)
+    {
+        m_callback_data = (TCreateBmpData) pFunction;
+        m_token = data;
+    };
+
+    int GetRequestedWidth() const { return m_requested_width; };
+
+    int GetRequestedHeight() const { return m_requested_height; };
+
+    void SetResult(wxBitmap* bitmap)
+    {
+        if (bitmap)
+        {
+            m_result = *bitmap;
+            m_published = true;
+        }
+        else
+        {
+            m_result = wxNullBitmap;
+            m_published = false;
+        }
+    };
+
+    // Hands ownership of the helper to wxWidgets, so a later Release() only clears it.
+    void Detach() { m_owned = false; };
+
     void Release()
     {
-        kwxObject = nullptr;
-        cb = nullptr;
+        m_object = nullptr;
+        m_callback = nullptr;
+        m_callback_data = nullptr;
+        m_token = nullptr;
+
+        if (m_owned)
+        {
+            delete this;
+        }
     };
 };
 
@@ -53,8 +128,62 @@ extern "C"
 
     EXPORT void kwxArtProv_Release(kwxArtProv* self)
     {
+        if (!self)
+        {
+            return;
+        }
         self->Release();
-        delete self;
+    }
+
+    // Push adds to the TOP of the provider stack, PushBack to the BOTTOM. Both hand
+    // ownership of the helper to wxWidgets, so the helper is detached and a later
+    // kwxArtProv_Release only clears it instead of deleting it.
+    EXPORT void kwxArtProv_Push(kwxArtProv* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        wxArtProvider::Push(self);
+        self->Detach();
+    }
+
+    EXPORT void kwxArtProv_PushBack(kwxArtProv* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        wxArtProvider::PushBack(self);
+        self->Detach();
+    }
+
+    EXPORT void kwxArtProv_SetOnCreateBitmapWithData(kwxArtProv* self, void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnCreateBitmap(pFunction, data);
+    }
+
+    EXPORT int kwxArtProv_GetRequestedWidth(kwxArtProv* self)
+    {
+        return self ? self->GetRequestedWidth() : 0;
+    }
+
+    EXPORT int kwxArtProv_GetRequestedHeight(kwxArtProv* self)
+    {
+        return self ? self->GetRequestedHeight() : 0;
+    }
+
+    EXPORT void kwxArtProv_SetCreateBitmapResult(kwxArtProv* self, wxBitmap* bitmap)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetResult(bitmap);
     }
 
     EXPORT void PushProvider(wxArtProvider* provider)

@@ -7,9 +7,11 @@
 
 #include "kwx_helper_cmdline.h"
 
+#include <wx/cmdargs.h>
 #include <wx/cmdline.h>
 #include <wx/confbase.h>
 #include <wx/datetime.h>
+#include <wx/dvrenderers.h>
 #include <wx/fileconf.h>
 #include <wx/intl.h>
 #include <wx/numformatter.h>
@@ -17,6 +19,8 @@
 #include <wx/translation.h>
 #include <wx/uilocale.h>
 #include <wx/variant.h>
+
+#include <vector>
 
 // The wxWidgets time-zone enumeration is a plain int in the FFI.
 static wxDateTime::TimeZone ToTimeZone(int time_zone)
@@ -991,12 +995,54 @@ extern "C"
         self->AddParam(*description, static_cast<wxCmdLineParamType>(type), flags);
     }
 
+    namespace
+    {
+        // wxCmdLineParserData::SetArguments(int, char**) (wx src/common/cmdline.cpp:408)
+        // temporarily calls setlocale(LC_ALL, "") so it can convert the arguments through
+        // the current locale.  This wxWidgets build is wxUSE_UTF8_LOCALE_ONLY
+        // (build/_deps/wxwidgets-build/lib/clang_x64_lib/mswu/wx/setup.h:130-132), so that
+        // call raises a fatal "This program requires UTF-8 locale to run." error and ends
+        // the process whenever the system locale is not UTF-8 - which is the default on
+        // Windows - before a single argument is parsed.  The arguments the FFI receives are
+        // UTF-8 by contract, so no locale is needed: SetArguments(int, const
+        // wxCmdLineArgsArray&) (cmdline.cpp:447) only copies the strings that
+        // wxCmdLineArgsArray::Init() (wx/cmdargs.h:31) built.
+        void SetUtf8Arguments(wxCmdLineParser* parser, int argc, char** argv)
+        {
+            if (argc <= 0 || argv == nullptr)
+            {
+                return;
+            }
+
+            wxCmdLineArgsArray arguments;
+#if wxUSE_UNICODE_WCHAR
+            // wchar_t build: convert from UTF-8 explicitly, then store the wide strings.
+            std::vector<wxString> storage;
+            storage.reserve(static_cast<size_t>(argc));
+            for (int i = 0; i < argc; ++i)
+            {
+                storage.push_back(wxString::FromUTF8(argv[i] != nullptr ? argv[i] : ""));
+            }
+
+            std::vector<wchar_t*> wide;
+            wide.reserve(storage.size());
+            for (wxString& argument: storage)
+            {
+                wide.push_back(const_cast<wchar_t*>(argument.wc_str()));
+            }
+
+            arguments.Init(argc, wide.data());
+#else
+            // UTF-8 build: wxString(const char*) is a byte copy, so the array is used as-is.
+            arguments.Init(argc, argv);
+#endif
+            parser->SetCmdLine(argc, arguments);
+        }
+    }  // namespace
+
     EXPORT int wxCmdLineParser_Parse(wxCmdLineParser* self, int argc, void* argv)
     {
-        if (argc > 0 && argv != nullptr)
-        {
-            self->SetCmdLine(argc, static_cast<char**>(argv));
-        }
+        SetUtf8Arguments(self, argc, static_cast<char**>(argv));
         return self->Parse(false);
     }
 
@@ -1008,10 +1054,7 @@ extern "C"
 
     EXPORT int wxCmdLineParser_ParseArgs(wxCmdLineParser* self, int argc, void* argv)
     {
-        if (argc > 0 && argv != nullptr)
-        {
-            self->SetCmdLine(argc, static_cast<char**>(argv));
-        }
+        SetUtf8Arguments(self, argc, static_cast<char**>(argv));
         return self->Parse(true);
     }
 
@@ -1019,6 +1062,12 @@ extern "C"
     {
         self->SetCmdLine(*command_line);
         return self->Parse(true);
+    }
+
+    EXPORT int wxCmdLineParser_ParseArgv(wxCmdLineParser* self, int argc, char** argv)
+    {
+        SetUtf8Arguments(self, argc, argv);
+        return self->Parse(false);
     }
 
     EXPORT int wxCmdLineParser_Found(wxCmdLineParser* self, wxString* name)
@@ -1147,6 +1196,62 @@ extern "C"
     EXPORT wxVariant* wxVariant_CreateFromArrayString(wxArrayString* value, wxString* name)
     {
         return new wxVariant(*value, *name);
+    }
+
+    // wxDataViewIconText and wxDataViewCheckIconText are declared with
+    // wxDECLARE_VARIANT_OBJECT_EXPORTED, so "variant << value" builds their wxVariantData.
+    // A null icon is the empty bundle.
+    EXPORT wxVariant* wxVariant_CreateFromDataViewIconText(wxString* text, wxBitmapBundle* icon,
+                                                           wxString* name)
+    {
+        wxDataViewIconText value(text ? *text : wxString(), icon ? *icon : wxBitmapBundle());
+        wxVariant* variant = new wxVariant();
+        *variant << value;
+        if (name)
+        {
+            variant->SetName(*name);
+        }
+        return variant;
+    }
+
+    // checkedState is the integer a constant module exports for wxCheckBoxState:
+    // 0 = wxCHK_UNCHECKED, 1 = wxCHK_CHECKED, 2 = wxCHK_UNDETERMINED.  A null icon is the
+    // empty bundle.
+    EXPORT wxVariant* wxVariant_CreateFromDataViewCheckIconText(wxString* text,
+                                                                wxBitmapBundle* icon,
+                                                                int checkedState, wxString* name)
+    {
+        wxDataViewCheckIconText value(text ? *text : wxString(), icon ? *icon : wxBitmapBundle(),
+                                      static_cast<wxCheckBoxState>(checkedState));
+        wxVariant* variant = new wxVariant();
+        *variant << value;
+        if (name)
+        {
+            variant->SetName(*name);
+        }
+        return variant;
+    }
+
+    // The C++ operator<< asserts when the variant holds another type, so the IsType()
+    // check below is required, not defensive.
+    EXPORT int wxVariant_GetDataViewIconText(wxVariant* self, wxDataViewIconText* result)
+    {
+        if (!self || !result || !self->IsType("wxDataViewIconText"))
+        {
+            return 0;
+        }
+        *result << *self;
+        return 1;
+    }
+
+    EXPORT int wxVariant_GetDataViewCheckIconText(wxVariant* self, wxDataViewCheckIconText* result)
+    {
+        if (!self || !result || !self->IsType("wxDataViewCheckIconText"))
+        {
+            return 0;
+        }
+        *result << *self;
+        return 1;
     }
 
     EXPORT void wxVariant_SetName(wxVariant* self, wxString* name)

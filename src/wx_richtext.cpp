@@ -213,6 +213,34 @@ extern "C"
     }
 
     // ------------------------------------------------------------------
+    // wxRichTextParagraph
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextParagraph* wxRichTextParagraph_Create()
+    {
+        return new wxRichTextParagraph();
+    }
+
+    EXPORT void wxRichTextParagraph_Delete(wxRichTextParagraph* self)
+    {
+        delete self;
+    }
+
+    // ------------------------------------------------------------------
+    // wxRichTextPlainText
+    // ------------------------------------------------------------------
+
+    EXPORT wxRichTextPlainText* wxRichTextPlainText_Create(wxString* text)
+    {
+        return new wxRichTextPlainText(text ? *text : wxString());
+    }
+
+    EXPORT void wxRichTextPlainText_Delete(wxRichTextPlainText* self)
+    {
+        delete self;
+    }
+
+    // ------------------------------------------------------------------
     // wxRichTextParagraphLayoutBox
     // ------------------------------------------------------------------
 
@@ -1093,6 +1121,21 @@ extern "C"
         return !self->GetTextBoxAttr().IsDefault();
     }
 
+    EXPORT void wxRichTextAttr_SetBackgroundColour(wxRichTextAttr* self, wxColour* colour)
+    {
+        self->SetBackgroundColour(*colour);
+    }
+
+    EXPORT void wxRichTextAttr_SetParagraphSpacingAfter(wxRichTextAttr* self, int spacing)
+    {
+        self->SetParagraphSpacingAfter(spacing);
+    }
+
+    EXPORT void wxRichTextAttr_SetLineSpacing(wxRichTextAttr* self, int spacing)
+    {
+        self->SetLineSpacing(spacing);
+    }
+
     EXPORT void wxTextAttrDimension_Reset(wxTextAttrDimension* self)
     {
         self->Reset();
@@ -1640,9 +1683,10 @@ extern "C"
         return &((wxRichTextObject*) pObject)->GetProperties();
     }
 
-    EXPORT void* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(void* pObject, long position)
+    EXPORT wxRichTextObject* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(void* pObject,
+                                                                                  long position)
     {
-        return (void*) ((wxRichTextParagraphLayoutBox*) pObject)->GetLeafObjectAtPosition(position);
+        return ((wxRichTextParagraphLayoutBox*) pObject)->GetLeafObjectAtPosition(position);
     }
 
     // ------------------------------------------------------------------

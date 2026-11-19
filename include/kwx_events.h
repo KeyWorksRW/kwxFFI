@@ -30,6 +30,8 @@ int exp_wxEVT_AUI_PANE_BUTTON();
 int exp_wxEVT_AUI_PANE_CLOSE();
 int exp_wxEVT_AUI_PANE_MAXIMIZE();
 int exp_wxEVT_AUI_PANE_RESTORE();
+int exp_wxEVT_AUI_PANE_ACTIVATED();
+int exp_wxEVT_AUI_PANE_MINIMIZE();
 int exp_wxEVT_AUI_RENDER();
 int exp_wxEVT_AUI_FIND_MANAGER();
 int exp_wxEVT_CALENDAR_SEL_CHANGED();

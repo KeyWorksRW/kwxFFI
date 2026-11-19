@@ -15,9 +15,11 @@ TClassDefExtend(wxSizer, wxObject) TBool
     wxSizer_RemoveSizer(TSelf(wxSizer) pObject, TClass(wxSizer) sizer);
 TBool wxSizer_Remove(TSelf(wxSizer) pObject, int index);
 void wxSizer_DeleteWindows(TSelf(wxSizer) pObject);
-TClass(wxSize) wxSizer_ComputeFittingClientSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
-TClass(wxSize) wxSizer_ComputeFittingWindowSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
-TClass(wxSize) wxSizer_FitWithSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
+TClassOwned(wxSize)
+    wxSizer_ComputeFittingClientSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
+TClassOwned(wxSize)
+    wxSizer_ComputeFittingWindowSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
+TClassOwned(wxSize) wxSizer_FitWithSize(TSelf(wxSizer) pObject, TClass(wxWindow) window);
 int wxSizer_GetItemCount(TSelf(wxSizer) pObject);
 int wxSizer_GetDefaultBorder();
 TBool wxSizer_IsEmpty(TSelf(wxSizer) pObject);
@@ -61,7 +63,7 @@ int wxFlexGridSizer_GetColWidths(TSelf(wxFlexGridSizer) pObject, void* widths);
 /* wxGridBagSizer                                                            */
 /* ------------------------------------------------------------------------- */
 
-TClassDefExtend(wxGridBagSizer, wxGridSizer) TClass(wxSize)
+TClassDefExtend(wxGridBagSizer, wxGridSizer) TClassOwned(wxSize)
     wxGridBagSizer_GetCellSize(TSelf(wxGridBagSizer) pObject, int row, int col);
 TClass(wxSizerItem) wxGridBagSizer_FindItem(TSelf(wxGridBagSizer) pObject, TClass(wxWindow) window);
 TClass(wxSizerItem)
@@ -78,20 +80,20 @@ int wxDC_GetResolution(TSelf(wxDC) pObject);
 double wxDC_GetContentScaleFactor(TSelf(wxDC) pObject);
 int wxDC_FromDIP(TSelf(wxDC) pObject, int value);
 int wxDC_ToDIP(TSelf(wxDC) pObject, int value);
-TClass(wxSize) wxDC_FromDIPSize(TSelf(wxDC) pObject, TSize(width, height));
-TClass(wxSize) wxDC_ToDIPSize(TSelf(wxDC) pObject, TSize(width, height));
+TClassOwned(wxSize) wxDC_FromDIPSize(TSelf(wxDC) pObject, TSize(width, height));
+TClassOwned(wxSize) wxDC_ToDIPSize(TSelf(wxDC) pObject, TSize(width, height));
 void wxDC_SetLayoutDirection(TSelf(wxDC) pObject, int direction);
 int wxDC_GetLayoutDirection(TSelf(wxDC) pObject);
-TClass(wxSize) wxDC_GetTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
-TClass(wxSize) wxDC_GetMultiLineTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
+TClassOwned(wxSize) wxDC_GetTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
+TClassOwned(wxSize) wxDC_GetMultiLineTextExtentSize(TSelf(wxDC) pObject, TClass(wxString) string);
 TBool wxDC_GetPartialTextExtents(TSelf(wxDC) pObject, TClass(wxString) text, int count,
                                  TIntArrayOut widths);
-TClass(wxPoint) wxDC_DeviceToLogical(TSelf(wxDC) pObject, TPoint(x, y));
-TClass(wxPoint) wxDC_LogicalToDevice(TSelf(wxDC) pObject, TPoint(x, y));
-TClass(wxSize) wxDC_DeviceToLogicalRel(TSelf(wxDC) pObject, TSize(width, height));
-TClass(wxSize) wxDC_LogicalToDeviceRel(TSelf(wxDC) pObject, TSize(width, height));
-TClass(wxPoint) wxDC_GetLogicalOriginPoint(TSelf(wxDC) pObject);
-TClass(wxPoint) wxDC_GetDeviceOriginPoint(TSelf(wxDC) pObject);
+TClassOwned(wxPoint) wxDC_DeviceToLogical(TSelf(wxDC) pObject, TPoint(x, y));
+TClassOwned(wxPoint) wxDC_LogicalToDevice(TSelf(wxDC) pObject, TPoint(x, y));
+TClassOwned(wxSize) wxDC_DeviceToLogicalRel(TSelf(wxDC) pObject, TSize(width, height));
+TClassOwned(wxSize) wxDC_LogicalToDeviceRel(TSelf(wxDC) pObject, TSize(width, height));
+TClassOwned(wxPoint) wxDC_GetLogicalOriginPoint(TSelf(wxDC) pObject);
+TClassOwned(wxPoint) wxDC_GetDeviceOriginPoint(TSelf(wxDC) pObject);
 void wxDC_CopyAttributes(TSelf(wxDC) pObject, TClass(wxDC) dc);
 void* wxDC_GetHandle(TSelf(wxDC) pObject);
 void wxDC_DisableAutomaticBoundingBoxUpdates(TSelf(wxDC) pObject);
@@ -110,7 +112,7 @@ void wxDC_GradientFillLinear(TSelf(wxDC) pObject, TRect(x, y, width, height),
 TBool wxDC_StretchBlit(TSelf(wxDC) pObject, TRect(dstX, dstY, dstWidth, dstHeight),
                        TClass(wxDC) source, TRect(srcX, srcY, srcWidth, srcHeight), int rop,
                        TBool useMask, TPoint(maskX, maskY));
-TClass(wxBitmap) wxDC_GetAsBitmap(TSelf(wxDC) pObject, TRect(x, y, width, height), TBool useRect);
+TClassOwned(wxBitmap) wxDC_GetAsBitmap(TSelf(wxDC) pObject, TRect(x, y, width, height), TBool useRect);
 void wxDC_DrawSpline(TSelf(wxDC) pObject, TPoint(x1, y1), TPoint(x2, y2), TPoint(x3, y3));
 void wxDC_DrawSplinePoints(TSelf(wxDC) pObject, int count, void* x, void* y);
 TClass(wxGraphicsContext) wxDC_GetGraphicsContext(TSelf(wxDC) pObject);
@@ -125,25 +127,25 @@ TClassDefExtend(wxImage, wxObject) TBool
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 unsigned char wxImage_GetAlpha(TSelf(wxImage) pObject, int x, int y);
 void wxImage_Clear(TSelf(wxImage) pObject, int value);
-TClass(wxImage)
+TClassOwned(wxImage)
     wxImage_Size(TSelf(wxImage) pObject, TSize(width, height), TPoint(x, y), int r, int g, int b);
-TClass(wxImage) wxImage_ResampleNearest(TSelf(wxImage) pObject, TSize(width, height));
-TClass(wxImage) wxImage_ResampleBox(TSelf(wxImage) pObject, TSize(width, height));
-TClass(wxImage) wxImage_ResampleBilinear(TSelf(wxImage) pObject, TSize(width, height));
-TClass(wxImage) wxImage_ResampleBicubic(TSelf(wxImage) pObject, TSize(width, height));
-TClass(wxImage) wxImage_Blur(TSelf(wxImage) pObject, int radius);
-TClass(wxImage) wxImage_BlurHorizontal(TSelf(wxImage) pObject, int radius);
-TClass(wxImage) wxImage_BlurVertical(TSelf(wxImage) pObject, int radius);
-TClass(wxImage) wxImage_ShrinkBy(TSelf(wxImage) pObject, int xFactor, int yFactor);
+TClassOwned(wxImage) wxImage_ResampleNearest(TSelf(wxImage) pObject, TSize(width, height));
+TClassOwned(wxImage) wxImage_ResampleBox(TSelf(wxImage) pObject, TSize(width, height));
+TClassOwned(wxImage) wxImage_ResampleBilinear(TSelf(wxImage) pObject, TSize(width, height));
+TClassOwned(wxImage) wxImage_ResampleBicubic(TSelf(wxImage) pObject, TSize(width, height));
+TClassOwned(wxImage) wxImage_Blur(TSelf(wxImage) pObject, int radius);
+TClassOwned(wxImage) wxImage_BlurHorizontal(TSelf(wxImage) pObject, int radius);
+TClassOwned(wxImage) wxImage_BlurVertical(TSelf(wxImage) pObject, int radius);
+TClassOwned(wxImage) wxImage_ShrinkBy(TSelf(wxImage) pObject, int xFactor, int yFactor);
 void wxImage_Resize(TSelf(wxImage) pObject, TSize(width, height), TPoint(x, y), int r, int g,
                     int b);
-TClass(wxImage) wxImage_Rotate180(TSelf(wxImage) pObject);
-TClass(wxImage) wxImage_ConvertToGreyscale(TSelf(wxImage) pObject);
-TClass(wxImage) wxImage_ConvertToGreyscaleEx(TSelf(wxImage) pObject, double weightR, double weightG,
+TClassOwned(wxImage) wxImage_Rotate180(TSelf(wxImage) pObject);
+TClassOwned(wxImage) wxImage_ConvertToGreyscale(TSelf(wxImage) pObject);
+TClassOwned(wxImage) wxImage_ConvertToGreyscaleEx(TSelf(wxImage) pObject, double weightR, double weightG,
                                              double weightB);
-TClass(wxImage) wxImage_ConvertToMono(TSelf(wxImage) pObject, TColorRGB(r, g, b));
-TClass(wxImage) wxImage_ConvertToDisabled(TSelf(wxImage) pObject, TChar brightness);
-TClass(wxImage) wxImage_ChangeLightness(TSelf(wxImage) pObject, int alpha);
+TClassOwned(wxImage) wxImage_ConvertToMono(TSelf(wxImage) pObject, TColorRGB(r, g, b));
+TClassOwned(wxImage) wxImage_ConvertToDisabled(TSelf(wxImage) pObject, TChar brightness);
+TClassOwned(wxImage) wxImage_ChangeLightness(TSelf(wxImage) pObject, int alpha);
 void wxImage_SetRGBRect(TSelf(wxImage) pObject, TRect(x, y, width, height), TColorRGB(r, g, b));
 void wxImage_SetAlpha(TSelf(wxImage) pObject, TPoint(x, y), TChar alpha);
 TChar wxImage_GetAlphaPixel(TSelf(wxImage) pObject, TPoint(x, y));
@@ -167,7 +169,7 @@ TBool wxImage_LoadStreamMime(TSelf(wxImage) pObject, TClass(wxInputStream) strea
                              TClass(wxString) mimetype, int index);
 TBool wxImage_SaveStreamMime(TSelf(wxImage) pObject, TClass(wxOutputStream) stream,
                              TClass(wxString) mimetype);
-TClass(wxSize) wxImage_GetSize(TSelf(wxImage) pObject);
+TClassOwned(wxSize) wxImage_GetSize(TSelf(wxImage) pObject);
 void wxImage_SetDataRGBA(TSelf(wxImage) pObject, void* data);
 void* wxImage_GetAlphaData(TSelf(wxImage) pObject);
 TBool wxImage_HasAlpha(TSelf(wxImage) pObject);
@@ -177,7 +179,7 @@ void wxImage_ClearAlpha(TSelf(wxImage) pObject);
 TBool wxImage_IsTransparent(TSelf(wxImage) pObject, TPoint(x, y), TChar threshold);
 TBool wxImage_GetOrFindMaskColour(TSelf(wxImage) pObject, TCharOut r, TCharOut g, TCharOut b);
 TBool wxImage_HasPalette(TSelf(wxImage) pObject);
-TClass(wxPalette) wxImage_GetPalette(TSelf(wxImage) pObject);
+TClassOwned(wxPalette) wxImage_GetPalette(TSelf(wxImage) pObject);
 void wxImage_SetPalette(TSelf(wxImage) pObject, TClass(wxPalette) palette);
 void wxImage_RotateHue(TSelf(wxImage) pObject, double angle);
 void wxImage_ChangeSaturation(TSelf(wxImage) pObject, double factor);
@@ -200,30 +202,30 @@ void wxImage_InitStandardHandlers();
 
 TClassDefExtend(wxBitmap, wxGDIObject) TBool
     wxBitmap_Init(TSelf(wxBitmap) pObject, TSize(width, height), int depth);
-TClass(wxSize) wxBitmap_GetSize(TSelf(wxBitmap) pObject);
+TClassOwned(wxSize) wxBitmap_GetSize(TSelf(wxBitmap) pObject);
 void wxBitmap_SetScaleFactor(TSelf(wxBitmap) pObject, double scale);
 double wxBitmap_GetScaleFactor(TSelf(wxBitmap) pObject);
-TClass(wxSize) wxBitmap_GetDIPSize(TSelf(wxBitmap) pObject);
-TClass(wxSize) wxBitmap_GetLogicalSize(TSelf(wxBitmap) pObject);
+TClassOwned(wxSize) wxBitmap_GetDIPSize(TSelf(wxBitmap) pObject);
+TClassOwned(wxSize) wxBitmap_GetLogicalSize(TSelf(wxBitmap) pObject);
 double wxBitmap_GetLogicalWidth(TSelf(wxBitmap) pObject);
 double wxBitmap_GetLogicalHeight(TSelf(wxBitmap) pObject);
 TBool wxBitmap_CreateScaled(TSelf(wxBitmap) pObject, TSize(width, height), int depth, double scale);
-TClass(wxImage) wxBitmap_ConvertToImage(TSelf(wxBitmap) pObject);
-TClass(wxBitmap) wxBitmap_ConvertToDisabled(TSelf(wxBitmap) pObject, TChar brightness);
-TClass(wxPalette) wxBitmap_GetPalette(TSelf(wxBitmap) pObject);
+TClassOwned(wxImage) wxBitmap_ConvertToImage(TSelf(wxBitmap) pObject);
+TClassOwned(wxBitmap) wxBitmap_ConvertToDisabled(TSelf(wxBitmap) pObject, TChar brightness);
+TClassOwned(wxPalette) wxBitmap_GetPalette(TSelf(wxBitmap) pObject);
 void wxBitmap_SetPalette(TSelf(wxBitmap) pObject, TClass(wxPalette) palette);
 TBool wxBitmap_HasAlpha(TSelf(wxBitmap) pObject);
 TBool wxBitmap_UseAlpha(TSelf(wxBitmap) pObject, TBool use);
 void wxBitmap_ResetAlpha(TSelf(wxBitmap) pObject);
 TBool wxBitmap_CopyFromIcon(TSelf(wxBitmap) pObject, TClass(wxIcon) icon);
-TClass(wxBitmap) wxBitmap_NewFromPNGData(void* data, size_t size);
+TClassOwned(wxBitmap) wxBitmap_NewFromPNGData(void* data, size_t size);
 
 /* ------------------------------------------------------------------------- */
 /* wxFont                                                                    */
 /* ------------------------------------------------------------------------- */
 
 TClassDefExtend(wxFont, wxGDIObject) double wxFont_GetFractionalPointSize(TSelf(wxFont) pObject);
-TClass(wxSize) wxFont_GetPixelSize(TSelf(wxFont) pObject);
+TClassOwned(wxSize) wxFont_GetPixelSize(TSelf(wxFont) pObject);
 TBool wxFont_IsUsingSizeInPixels(TSelf(wxFont) pObject);
 int wxFont_GetNumericWeight(TSelf(wxFont) pObject);
 TBool wxFont_GetStrikethrough(TSelf(wxFont) pObject);
@@ -248,14 +250,14 @@ void wxFont_MakeStrikethrough(TSelf(wxFont) pObject);
 void wxFont_MakeLarger(TSelf(wxFont) pObject);
 void wxFont_MakeSmaller(TSelf(wxFont) pObject);
 void wxFont_Scale(TSelf(wxFont) pObject, float factor);
-TClass(wxFont) wxFont_Bold(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Italic(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Underlined(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Strikethrough(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Larger(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Smaller(TSelf(wxFont) pObject);
-TClass(wxFont) wxFont_Scaled(TSelf(wxFont) pObject, float factor);
-TClass(wxFont) wxFont_GetBaseFont(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Bold(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Italic(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Underlined(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Strikethrough(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Larger(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Smaller(TSelf(wxFont) pObject);
+TClassOwned(wxFont) wxFont_Scaled(TSelf(wxFont) pObject, float factor);
+TClassOwned(wxFont) wxFont_GetBaseFont(TSelf(wxFont) pObject);
 TBool wxFont_AddPrivateFont(TClass(wxString) filename);
 TBool wxFont_IsEqual(TSelf(wxFont) pObject, TClass(wxFont) font);
 
@@ -303,3 +305,41 @@ TClassDef(wxAcceleratorTable) TClass(wxAcceleratorTable)
 TBool wxAcceleratorTable_IsOk(TSelf(wxAcceleratorTable) pObject);
 TClass(wxAcceleratorEntry)
     wxAcceleratorTable_GetEntry(TSelf(wxAcceleratorTable) pObject, TClass(wxKeyEvent) event);
+
+/* ------------------------------------------------------------------------- */
+/* DC state changers                                                         */
+/* ------------------------------------------------------------------------- */
+
+/* DC state changers: Create() saves the old value and applies the new one,
+ * Delete() restores the saved value.  A changer must be deleted BEFORE the
+ * DC it was created with; the DC must outlive it. */
+
+TClassDef(wxDCPenChanger) TClass(wxDCPenChanger)
+    wxDCPenChanger_Create(TClass(wxDC) dc, TClass(wxPen) pen);
+void wxDCPenChanger_Set(TSelf(wxDCPenChanger) pObject, TClass(wxPen) pen);
+void wxDCPenChanger_Delete(TSelf(wxDCPenChanger) pObject);
+
+TClassDef(wxDCBrushChanger) TClass(wxDCBrushChanger)
+    wxDCBrushChanger_Create(TClass(wxDC) dc, TClass(wxBrush) brush);
+void wxDCBrushChanger_Set(TSelf(wxDCBrushChanger) pObject, TClass(wxBrush) brush);
+void wxDCBrushChanger_Delete(TSelf(wxDCBrushChanger) pObject);
+
+TClassDef(wxDCFontChanger) TClass(wxDCFontChanger)
+    wxDCFontChanger_Create(TClass(wxDC) dc, TClass(wxFont) font);
+void wxDCFontChanger_Set(TSelf(wxDCFontChanger) pObject, TClass(wxFont) font);
+void wxDCFontChanger_Delete(TSelf(wxDCFontChanger) pObject);
+
+TClassDef(wxDCTextColourChanger) TClass(wxDCTextColourChanger)
+    wxDCTextColourChanger_Create(TClass(wxDC) dc, TClass(wxColour) colour);
+void wxDCTextColourChanger_Set(TSelf(wxDCTextColourChanger) pObject, TClass(wxColour) colour);
+void wxDCTextColourChanger_Delete(TSelf(wxDCTextColourChanger) pObject);
+
+TClassDef(wxDCTextBgColourChanger) TClass(wxDCTextBgColourChanger)
+    wxDCTextBgColourChanger_Create(TClass(wxDC) dc, TClass(wxColour) colour);
+void wxDCTextBgColourChanger_Set(TSelf(wxDCTextBgColourChanger) pObject, TClass(wxColour) colour);
+void wxDCTextBgColourChanger_Delete(TSelf(wxDCTextBgColourChanger) pObject);
+
+TClassDef(wxDCTextBgModeChanger) TClass(wxDCTextBgModeChanger)
+    wxDCTextBgModeChanger_Create(TClass(wxDC) dc, int mode);
+void wxDCTextBgModeChanger_Set(TSelf(wxDCTextBgModeChanger) pObject, int mode);
+void wxDCTextBgModeChanger_Delete(TSelf(wxDCTextBgModeChanger) pObject);

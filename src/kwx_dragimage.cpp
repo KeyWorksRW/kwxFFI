@@ -12,14 +12,29 @@ extern "C"
         return new wxDragImage(*image, wxNullCursor);
     }
 
+    EXPORT wxDragImage* wxDragImage_CreateWithCursor(wxBitmap* image, wxCursor* cursor)
+    {
+        return new wxDragImage(*image, cursor ? *cursor : wxNullCursor);
+    }
+
     EXPORT wxDragImage* wxDragIcon(wxIcon* icon, int x, int y)
     {
         return new wxDragImage(*icon, wxNullCursor);
     }
 
+    EXPORT wxDragImage* wxDragIconWithCursor(wxIcon* icon, wxCursor* cursor)
+    {
+        return new wxDragImage(*icon, cursor ? *cursor : wxNullCursor);
+    }
+
     EXPORT wxDragImage* wxDragString(wxString* text, int x, int y)
     {
         return new wxDragImage(*text, wxNullCursor);
+    }
+
+    EXPORT wxDragImage* wxDragStringWithCursor(wxString* text, wxCursor* cursor)
+    {
+        return new wxDragImage(*text, cursor ? *cursor : wxNullCursor);
     }
 
     EXPORT wxDragImage* wxDragTreeItem(wxTreeCtrl* treeCtrl, wxTreeItemId* id)
@@ -42,9 +57,19 @@ extern "C"
         return new wxGenericDragImage(*icon, wxNullCursor);
     }
 
+    EXPORT wxGenericDragImage* wxGenericDragIconWithCursor(wxIcon* icon, wxCursor* cursor)
+    {
+        return new wxGenericDragImage(*icon, cursor ? *cursor : wxNullCursor);
+    }
+
     EXPORT wxGenericDragImage* wxGenericDragString(wxString* text)
     {
         return new wxGenericDragImage(*text, wxNullCursor);
+    }
+
+    EXPORT wxGenericDragImage* wxGenericDragStringWithCursor(wxString* text, wxCursor* cursor)
+    {
+        return new wxGenericDragImage(*text, cursor ? *cursor : wxNullCursor);
     }
 
     EXPORT wxGenericDragImage* wxGenericDragTreeItem(wxTreeCtrl* treeCtrl, wxTreeItemId* id)
@@ -67,6 +92,12 @@ extern "C"
                                                wxWindow* window, bool fullScreen, wxRect* rect)
     {
         return self->BeginDrag(wxPoint(x_pos, y_pos), window, fullScreen, rect);
+    }
+
+    EXPORT int wxDragImage_BeginDragFullScreenDefault(wxDragImage* self, int x_pos, int y_pos,
+                                                      wxWindow* window, bool fullScreen)
+    {
+        return self->BeginDrag(wxPoint(x_pos, y_pos), window, fullScreen, nullptr);
     }
 
     EXPORT int wxDragImage_BeginDrag(wxDragImage* self, int x, int y, wxWindow* window,

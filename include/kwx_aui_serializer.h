@@ -12,9 +12,12 @@
 //
 // The layout information structures cross the ABI as handles.  A callback
 // receives a borrowed handle that is valid only for the duration of that
-// callback.  The arrays a deserializer callback returns are owned by the
-// library: it copies them and then deletes them, so the callback must allocate
-// them with the matching *_Create function and must not retain them.
+// callback.  An array a deserializer callback returns is owned by the library:
+// it must be created with the matching *Array_Create function and must not be
+// retained by the callback, and the library frees it.  The items in that array
+// are NOT taken over: *_Array_Add copies the value, so the callback keeps
+// ownership of every item it created with the matching *_Create and must
+// delete it with the class's *_Delete after adding it.
 
 #include "kwx_def.h"
 #include "kwx_types.h"
@@ -26,7 +29,7 @@
 TClassDef(wxAuiPaneLayoutInfo) TClass(wxAuiPaneLayoutInfo)
     wxAuiPaneLayoutInfo_Create(TClass(wxString) name);
 void wxAuiPaneLayoutInfo_Delete(TSelf(wxAuiPaneLayoutInfo) pObject);
-TClass(wxString) wxAuiPaneLayoutInfo_GetName(TSelf(wxAuiPaneLayoutInfo) pObject);
+TClassOwned(wxString) wxAuiPaneLayoutInfo_GetName(TSelf(wxAuiPaneLayoutInfo) pObject);
 int wxAuiPaneLayoutInfo_GetDockDirection(TSelf(wxAuiPaneLayoutInfo) pObject);
 int wxAuiPaneLayoutInfo_GetDockLayer(TSelf(wxAuiPaneLayoutInfo) pObject);
 int wxAuiPaneLayoutInfo_GetDockRow(TSelf(wxAuiPaneLayoutInfo) pObject);

@@ -65,6 +65,83 @@ inline std::string CFuncName(const FunctionDecl& func)
     return func.class_name + "_" + func.method_name;
 }
 
+// True when a TString return hands back a buffer the callee does NOT own, so a binding must
+// read it and must never free it.  These accessors either return one of their own arguments
+// (wxFgets hands back `buffer`) or a pointer into memory owned by another object
+// (kwxUtf8Buffer_Data views the std::string the caller created with kwxUtf8Buffer_Create;
+// wxInputSinkEvent_LastInput views the event's internal buffer, wxInputSinkEvent::LastInput =
+// m_buffer.get()).  Passing any of them to wxCFree corrupts the heap.
+//
+// Extend this list -- and only this list -- when another accessor returns a borrowed buffer.
+//
+// Two predicates, two contracts:
+//   IsBareCStringReturn      -- owned bare C string: read, then wxCFree
+//   IsBorrowedCStringReturn  -- borrowed bare C string: read only, never free
+[[nodiscard]] inline bool IsBorrowedCStringReturn(const FunctionDecl& func)
+{
+    static constexpr std::string_view BORROWED_CSTRING_RETURNS[] = { "wxFgets",
+                                                                     "kwxUtf8Buffer_Data",
+                                                                     "wxInputSinkEvent_LastInput" };
+    // Free functions parsed from the constants header leave c_func_name empty, so the symbol
+    // has to come from CFuncName rather than read straight out of c_func_name.
+    const std::string c_name = CFuncName(func);
+    for (const std::string_view name: BORROWED_CSTRING_RETURNS)
+    {
+        if (c_name == name)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// A bare TString/TStringVoid return is a NUL-terminated UTF-8 C string that the C wrapper
+// strdup()s: the caller owns it and releases it with wxCFree (include/kwx_constants.h). It is
+// never a wxString* handle. A TClass/TClassRef/TSelf/TClassOwned return is an opaque object
+// pointer instead, including TClass(wxString).
+//
+// This predicate is OWNED ONLY: a borrowed return (IsBorrowedCStringReturn) is excluded,
+// because freeing it corrupts the heap.  Every backend must classify a string return through
+// these two predicates instead of re-deriving the conditions.
+[[nodiscard]] inline bool IsBareCStringReturn(const FunctionDecl& func)
+{
+    if (func.return_type != "TString" && func.return_type != "TStringVoid")
+    {
+        return false;
+    }
+    return func.return_macro != "TClass" && func.return_macro != "TClassRef" &&
+           func.return_macro != "TSelf" && func.return_macro != "TClassOwned" &&
+           !IsBorrowedCStringReturn(func);
+}
+
+// A TClass(wxString) return always hands back a heap-allocated copy: every string
+// accessor on the C surface is hand-written as `return new wxString(...)`, and the
+// go/rust/julia/fortran/lua emitters free that pointer unconditionally. TypeScript
+// must classify it the same way instead of treating the TClass marker as "borrowed".
+//
+// TClassOwned(wxString) reaches the emitters as TClass + returns_owned (class_parser.cpp),
+// so it is already owned; TClassRef and TSelf are genuinely borrowed and stay out of this
+// predicate.
+[[nodiscard]] inline bool IsOwnedWxStringReturn(const FunctionDecl& func)
+{
+    return func.return_macro == "TClass" && func.return_arg == "wxString";
+}
+
+// A parameter the C declaration spells `TClass(wxString)` / `TClassOwned(wxString)` and
+// that is not a pointer-to-pointer is an INPUT string: the idiomatic wrapper of every
+// backend converts the host's native string to a temporary it owns for the duration of the
+// call.  A trailing `*` (`TClass(wxString) *choices` in include/kwx_classes_sync.h:867) is an
+// array/out slot and is never converted.
+[[nodiscard]] inline bool IsWxStringInputParam(const Param& param)
+{
+    if ((param.macro_name != "TClass" && param.macro_name != "TClassOwned") ||
+        param.macro_arg != "wxString")
+    {
+        return false;
+    }
+    return param.raw_type.empty() || param.raw_type.back() != '*';
+}
+
 // A single scalar passed through a pointer, declared in kwx_types.h with one of the
 // scalar-pointer macros (TIntOut, TLongOut, TDoubleOut, ...).  `c_type` is the pointee type;
 // each backend maps it to its own scalar type.  `is_in_out` is true when the callee reads the

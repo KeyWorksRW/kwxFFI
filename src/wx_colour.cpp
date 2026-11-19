@@ -20,24 +20,27 @@ extern "C"
         return new wxColour(*name);
     }
 
+    // The stock colours are wxWidgets globals, so the caller-owned contract of
+    // the declaration (TClass(wxColour), released with wxColour_Delete) requires
+    // a copy.
     EXPORT void* wxColour_CreateFromStock(int id)
     {
         switch (id)
         {
-            case 0:
-                return (void*) wxBLACK;
-            case 1:
-                return (void*) wxWHITE;
-            case 2:
-                return (void*) wxRED;
-            case 3:
-                return (void*) wxBLUE;
-            case 4:
-                return (void*) wxGREEN;
-            case 5:
-                return (void*) wxCYAN;
-            case 6:
-                return (void*) wxLIGHT_GREY;
+            case kwxStockColour_Black:
+                return new wxColour(*wxBLACK);
+            case kwxStockColour_White:
+                return new wxColour(*wxWHITE);
+            case kwxStockColour_Red:
+                return new wxColour(*wxRED);
+            case kwxStockColour_Blue:
+                return new wxColour(*wxBLUE);
+            case kwxStockColour_Green:
+                return new wxColour(*wxGREEN);
+            case kwxStockColour_Cyan:
+                return new wxColour(*wxCYAN);
+            case kwxStockColour_LightGrey:
+                return new wxColour(*wxLIGHT_GREY);
         }
 
         return nullptr;
@@ -113,5 +116,50 @@ extern "C"
                                       unsigned char brightness)
     {
         wxColour::MakeDisabled(r, g, b, brightness);
+    }
+
+    // ---------------------------------------------------------------------------
+    // wxColourDatabase
+    // ---------------------------------------------------------------------------
+
+    EXPORT wxColourDatabase* wxColourDatabase_Get()
+    {
+        return wxTheColourDatabase;
+    }
+
+    EXPORT void wxColourDatabase_AddColour(wxColourDatabase* self, wxString* colourName,
+                                           wxColour* colour)
+    {
+        self->AddColour(*colourName, *colour);
+    }
+
+    EXPORT wxColour* wxColourDatabase_Find(wxColourDatabase* self, wxString* colourName)
+    {
+        return new wxColour(self->Find(*colourName));
+    }
+
+    EXPORT wxString* wxColourDatabase_FindName(wxColourDatabase* self, wxColour* colour)
+    {
+        return new wxString(self->FindName(*colour));
+    }
+
+    EXPORT int wxColourDatabase_GetNameCount(wxColourDatabase* self)
+    {
+        return static_cast<int>(self->GetAllNames().size());
+    }
+
+    EXPORT wxString* wxColourDatabase_GetNameAt(wxColourDatabase* self, int index)
+    {
+        const wxVector<wxString> names = self->GetAllNames();
+        if (index < 0 || static_cast<size_t>(index) >= names.size())
+        {
+            return nullptr;
+        }
+        return new wxString(names[static_cast<size_t>(index)]);
+    }
+
+    EXPORT void wxColourDatabase_UseScheme(wxColourDatabase* self, int scheme)
+    {
+        self->UseScheme(static_cast<wxColourDatabase::Scheme>(scheme));
     }
 }

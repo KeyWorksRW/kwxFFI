@@ -61,7 +61,7 @@ void wxRibbonToolBarEvent_SetBar(TSelf(wxRibbonToolBarEvent) pObject, TClass(wxR
 TClassDef(wxRibbonArtProvider) TClass(wxRibbonArtProvider)
     wxRibbonArtProvider_Clone(TSelf(wxRibbonArtProvider) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxColour) wxRibbonArtProvider_GetColor(TSelf(wxRibbonArtProvider) pObject, int id);
+TClassOwned(wxColour) wxRibbonArtProvider_GetColor(TSelf(wxRibbonArtProvider) pObject, int id);
 void wxRibbonArtProvider_GetColourScheme(TSelf(wxRibbonArtProvider) pObject, void* primary,
                                          void* secondary, void* tertiary);
 void wxRibbonArtProvider_SetColor(TSelf(wxRibbonArtProvider) pObject, int id,
@@ -70,8 +70,8 @@ void wxRibbonArtProvider_SetColourScheme(TSelf(wxRibbonArtProvider) pObject,
                                          TClass(wxColour) primary, TClass(wxColour) secondary,
                                          TClass(wxColour) tertiary);
 void wxRibbonArtProvider_Delete(TSelf(wxRibbonArtProvider) pObject);
-TClass(wxColour) wxRibbonArtProvider_GetColour(TSelf(wxRibbonArtProvider) pObject, int id);
-TClass(wxFont) wxRibbonArtProvider_GetFont(TSelf(wxRibbonArtProvider) pObject, int id);
+TClassOwned(wxColour) wxRibbonArtProvider_GetColour(TSelf(wxRibbonArtProvider) pObject, int id);
+TClassOwned(wxFont) wxRibbonArtProvider_GetFont(TSelf(wxRibbonArtProvider) pObject, int id);
 void wxRibbonArtProvider_SetColour(TSelf(wxRibbonArtProvider) pObject, int id,
                                    TClass(wxColour) colour);
 void wxRibbonArtProvider_SetFont(TSelf(wxRibbonArtProvider) pObject, int id, TClass(wxFont) font);
@@ -84,14 +84,17 @@ void wxRibbonControl_SetArtProvider(TSelf(wxRibbonControl) pObject,
                                     TClass(wxRibbonArtProvider) art);
 void wxRibbonControl_DismissKeyTips(TSelf(wxRibbonControl) pObject);
 TClass(wxRibbonBar) wxRibbonControl_GetAncestorRibbonBar(TSelf(wxRibbonControl) pObject);
-TClass(wxSize)
+TClassOwned(wxSize)
     wxRibbonControl_GetBestSizeForParentSize(TSelf(wxRibbonControl) pObject, TSize(width, height));
-TClass(wxSize) wxRibbonControl_GetNextLargerSize(TSelf(wxRibbonControl) pObject, int direction);
-TClass(wxSize) wxRibbonControl_GetNextLargerSize_Relative(TSelf(wxRibbonControl) pObject,
-                                                          int direction, TSize(width, height));
-TClass(wxSize) wxRibbonControl_GetNextSmallerSize(TSelf(wxRibbonControl) pObject, int direction);
-TClass(wxSize) wxRibbonControl_GetNextSmallerSize_Relative(TSelf(wxRibbonControl) pObject,
-                                                           int direction, TSize(width, height));
+TClassOwned(wxSize)
+    wxRibbonControl_GetNextLargerSize(TSelf(wxRibbonControl) pObject, int direction);
+TClassOwned(wxSize) wxRibbonControl_GetNextLargerSize_Relative(TSelf(wxRibbonControl) pObject,
+                                                               int direction, TSize(width, height));
+TClassOwned(wxSize)
+    wxRibbonControl_GetNextSmallerSize(TSelf(wxRibbonControl) pObject, int direction);
+TClassOwned(wxSize)
+    wxRibbonControl_GetNextSmallerSize_Relative(TSelf(wxRibbonControl) pObject, int direction,
+                                                TSize(width, height));
 TBool wxRibbonControl_IsSizingContinuous(TSelf(wxRibbonControl) pObject);
 TBool wxRibbonControl_Realize(TSelf(wxRibbonControl) pObject);
 TBool wxRibbonControl_Realise(TSelf(wxRibbonControl) pObject);

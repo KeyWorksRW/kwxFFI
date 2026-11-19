@@ -250,7 +250,7 @@ extern "C"
         return self->SetStyle(start, end, *style);
     }
 
-    EXPORT int wxRichTextCtrl_GetStyle(wxRichTextCtrl* self, long position, wxTextAttr* style)
+    EXPORT int wxRichTextCtrl_GetStyle(wxRichTextCtrl* self, long position, wxRichTextAttr* style)
     {
         return self->GetStyle(position, *style);
     }
@@ -1064,6 +1064,16 @@ extern "C"
     EXPORT long wxRichTextCtrl_GetAdjustedCaretPosition(wxRichTextCtrl* self, long caretPosition)
     {
         return self->GetAdjustedCaretPosition(caretPosition);
+    }
+
+    EXPORT long wxRichTextCtrl_GetCaretPosition(wxRichTextCtrl* self)
+    {
+        return self->GetCaretPosition();
+    }
+
+    EXPORT int wxRichTextCtrl_SetMargins(wxRichTextCtrl* self, int left, int top)
+    {
+        return self->SetMargins(left, top) ? 1 : 0;
     }
 
     EXPORT long wxRichTextCtrl_FindNextWordPosition(wxRichTextCtrl* self, int direction)

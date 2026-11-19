@@ -23,6 +23,11 @@ extern "C"
         return new wxGCDC(*dc);
     }
 
+    EXPORT wxGCDC* wxGCDC_CreateDefault()
+    {
+        return new wxGCDC();
+    }
+
     EXPORT wxGraphicsContext* wxGCDC_GetGraphicsContext(const wxGCDC* self)
     {
         return self->GetGraphicsContext();
@@ -118,6 +123,15 @@ extern "C"
                                              wxDouble x, wxDouble y, wxDouble width,
                                              wxDouble height)
     {
+        self->DrawBitmap(*bmp, x, y, width, height);
+    }
+
+    EXPORT void wxGraphicsContext_DrawGraphicsBitmap(wxGraphicsContext* self,
+                                                     const wxGraphicsBitmap* bmp, wxDouble x,
+                                                     wxDouble y, wxDouble width, wxDouble height)
+    {
+        if (!self || !bmp)
+            return;
         self->DrawBitmap(*bmp, x, y, width, height);
     }
 
@@ -542,6 +556,139 @@ extern "C"
             delete self;
     }
 
+    EXPORT void* wxGraphicsGradientStops_Create(wxColour* startColour, wxColour* endColour)
+    {
+        wxColour const start_colour = startColour ? *startColour : wxTransparentColour;
+        wxColour const end_colour = endColour ? *endColour : wxTransparentColour;
+        return new wxGraphicsGradientStops(start_colour, end_colour);
+    }
+
+    EXPORT void wxGraphicsGradientStops_Add(void* pObject, wxColour* colour, float pos)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsGradientStops*) pObject)->Add(colour ? *colour : wxColour(), pos);
+    }
+
+    EXPORT size_t wxGraphicsGradientStops_GetCount(void* pObject)
+    {
+        if (!pObject)
+        {
+            return 0;
+        }
+        return ((wxGraphicsGradientStops*) pObject)->GetCount();
+    }
+
+    EXPORT wxColour* wxGraphicsGradientStops_GetStartColour(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxColour(((wxGraphicsGradientStops*) pObject)->GetStartColour());
+    }
+
+    EXPORT void wxGraphicsGradientStops_SetStartColour(void* pObject, wxColour* colour)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsGradientStops*) pObject)->SetStartColour(colour ? *colour : wxColour());
+    }
+
+    EXPORT wxColour* wxGraphicsGradientStops_GetEndColour(void* pObject)
+    {
+        if (!pObject)
+        {
+            return nullptr;
+        }
+        return new wxColour(((wxGraphicsGradientStops*) pObject)->GetEndColour());
+    }
+
+    EXPORT void wxGraphicsGradientStops_SetEndColour(void* pObject, wxColour* colour)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsGradientStops*) pObject)->SetEndColour(colour ? *colour : wxColour());
+    }
+
+    EXPORT void wxGraphicsGradientStops_Delete(void* pObject)
+    {
+        delete (wxGraphicsGradientStops*) pObject;
+    }
+
+    EXPORT void* wxGraphicsPenInfo_Create(wxColour* colour, double width, int style)
+    {
+        return new wxGraphicsPenInfo(colour ? *colour : wxColour(), width,
+                                     static_cast<wxPenStyle>(style));
+    }
+
+    EXPORT void wxGraphicsPenInfo_Delete(void* pObject)
+    {
+        delete (wxGraphicsPenInfo*) pObject;
+    }
+
+    EXPORT void wxGraphicsPenInfo_SetWidth(void* pObject, double width)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsPenInfo*) pObject)->Width(width);
+    }
+
+    EXPORT void wxGraphicsPenInfo_SetLinearGradient(void* pObject, double x1, double y1, double x2,
+                                                    double y2, wxColour* c1, wxColour* c2)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsPenInfo*) pObject)
+            ->LinearGradient(x1, y1, x2, y2, c1 ? *c1 : wxColour(), c2 ? *c2 : wxColour());
+    }
+
+    EXPORT void wxGraphicsPenInfo_SetLinearGradientStops(void* pObject, double x1, double y1,
+                                                         double x2, double y2, void* stops)
+    {
+        if (!pObject || !stops)
+        {
+            return;
+        }
+        ((wxGraphicsPenInfo*) pObject)
+            ->LinearGradient(x1, y1, x2, y2, *(wxGraphicsGradientStops*) stops);
+    }
+
+    EXPORT void wxGraphicsPenInfo_SetRadialGradient(void* pObject, double startX, double startY,
+                                                    double endX, double endY, double radius,
+                                                    wxColour* oColor, wxColour* cColor)
+    {
+        if (!pObject)
+        {
+            return;
+        }
+        ((wxGraphicsPenInfo*) pObject)
+            ->RadialGradient(startX, startY, endX, endY, radius, oColor ? *oColor : wxColour(),
+                             cColor ? *cColor : wxColour());
+    }
+
+    EXPORT void wxGraphicsPenInfo_SetRadialGradientStops(void* pObject, double startX,
+                                                         double startY, double endX, double endY,
+                                                         double radius, void* stops)
+    {
+        if (!pObject || !stops)
+        {
+            return;
+        }
+        ((wxGraphicsPenInfo*) pObject)
+            ->RadialGradient(startX, startY, endX, endY, radius, *(wxGraphicsGradientStops*) stops);
+    }
+
     // We can't create wxGraphicsRenderer by this function.
     // Because wxGraphicsRenderer is a abstract class.
     //
@@ -561,6 +708,16 @@ extern "C"
         return self->GetDefaultRenderer();
     }
 
+    // GetCairoRenderer() is declared on every platform; it returns nullptr where
+    // cairo is not compiled in (wxUSE_CAIRO is 0 on MSW in this build), so a caller
+    // can use a null result as the "no Cairo backend" test the C++ sample expresses
+    // with #if wxUSE_CAIRO.
+    EXPORT wxGraphicsRenderer* wxGraphicsRenderer_GetCairoRenderer(wxGraphicsRenderer* self)
+    {
+        wxUnusedVar(self);
+        return wxGraphicsRenderer::GetCairoRenderer();
+    }
+
     EXPORT wxGraphicsContext* wxGraphicsRenderer_CreateContext(wxGraphicsRenderer* self,
                                                                const wxWindowDC* dc)
     {
@@ -571,6 +728,22 @@ extern "C"
                                                                          wxWindow* window)
     {
         return self->CreateContext(window);
+    }
+
+    EXPORT wxGraphicsContext* wxGraphicsRenderer_CreateContextFromMemory(wxGraphicsRenderer* self,
+                                                                         const wxMemoryDC* dc)
+    {
+        if (!self || !dc)
+            return nullptr;
+        return self->CreateContext(*dc);
+    }
+
+    EXPORT wxGraphicsContext*
+        wxGraphicsRenderer_CreateContextFromUnknownDC(wxGraphicsRenderer* self, const wxDC* dc)
+    {
+        if (!self || !dc)
+            return nullptr;
+        return self->CreateContextFromUnknownDC(*dc);
     }
 
     EXPORT wxGraphicsContext*
@@ -648,6 +821,11 @@ extern "C"
         return new wxGraphicsBitmap(value);
     }
 
+    EXPORT void wxGraphicsBitmap_Delete(wxGraphicsBitmap* self)
+    {
+        delete self;
+    }
+
     EXPORT void* wxGraphicsContext_CreateFont(void* pObject, void* font, void* col)
     {
         wxGraphicsFont value =
@@ -667,7 +845,8 @@ extern "C"
         wxGraphicsBrush value =
             ((wxGraphicsContext*) pObject)
                 ->CreateLinearGradientBrush(x1, y1, x2, y2, *(wxColour*) c1, *(wxColour*) c2,
-                                            *(wxGraphicsMatrix*) matrix);
+                                            matrix ? *(wxGraphicsMatrix*) matrix :
+                                                     wxNullGraphicsMatrix);
         return new wxGraphicsBrush(value);
     }
 
@@ -675,6 +854,51 @@ extern "C"
     {
         wxGraphicsPen value = ((wxGraphicsContext*) pObject)->CreatePen(*(wxPen*) pen);
         return new wxGraphicsPen(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreatePenFromInfo(void* pObject, void* info)
+    {
+        if (!pObject || !info)
+        {
+            return nullptr;
+        }
+        wxGraphicsPen const value =
+            ((wxGraphicsContext*) pObject)->CreatePen(*(wxGraphicsPenInfo*) info);
+        return new wxGraphicsPen(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateLinearGradientBrushFromStops(void* pObject, double x1,
+                                                                      double y1, double x2,
+                                                                      double y2, void* stops,
+                                                                      void* matrix)
+    {
+        if (!pObject || !stops)
+        {
+            return nullptr;
+        }
+        wxGraphicsBrush const value =
+            ((wxGraphicsContext*) pObject)
+                ->CreateLinearGradientBrush(x1, y1, x2, y2, *(wxGraphicsGradientStops*) stops,
+                                            matrix ? *(wxGraphicsMatrix*) matrix :
+                                                     wxNullGraphicsMatrix);
+        return new wxGraphicsBrush(value);
+    }
+
+    EXPORT void* wxGraphicsContext_CreateRadialGradientBrushFromStops(void* pObject, double startX,
+                                                                      double startY, double endX,
+                                                                      double endY, double radius,
+                                                                      void* stops, void* matrix)
+    {
+        if (!pObject || !stops)
+        {
+            return nullptr;
+        }
+        wxGraphicsBrush const value =
+            ((wxGraphicsContext*) pObject)
+                ->CreateRadialGradientBrush(
+                    startX, startY, endX, endY, radius, *(wxGraphicsGradientStops*) stops,
+                    matrix ? *(wxGraphicsMatrix*) matrix : wxNullGraphicsMatrix);
+        return new wxGraphicsBrush(value);
     }
 
     EXPORT void* wxGraphicsContext_CreateRadialGradientBrush(void* pObject, double startX,
@@ -685,8 +909,9 @@ extern "C"
     {
         wxGraphicsBrush value =
             ((wxGraphicsContext*) pObject)
-                ->CreateRadialGradientBrush(startX, startY, endX, endY, radius, *(wxColour*) oColor,
-                                            *(wxColour*) cColor, *(wxGraphicsMatrix*) matrix);
+                ->CreateRadialGradientBrush(
+                    startX, startY, endX, endY, radius, *(wxColour*) oColor, *(wxColour*) cColor,
+                    matrix ? *(wxGraphicsMatrix*) matrix : wxNullGraphicsMatrix);
         return new wxGraphicsBrush(value);
     }
 

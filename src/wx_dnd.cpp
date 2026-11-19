@@ -4,133 +4,266 @@
 #include "kwx_wrapper.h"
 
 #include <algorithm>
+#include <bit>
+#include <vector>
+
+// The uniform single-thunk form delivers an integer argument as (void*)(intptr_t)value.
+// std::bit_cast is the type-safe spelling of that bit pattern -- this codebase does not
+// use reinterpret_cast.
+static void* HookArg(intptr_t value)
+{
+    return std::bit_cast<void*>(value);
+}
 
 wxDragResult kwxTextDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_data.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_data.fn(m_drop_hook.on_data.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_data_func)
+    {
         return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxTextDropTarget::OnData(x, y, def);
+    }
+    return wxTextDropTarget::OnData(x, y, def);
 }
 
 bool kwxTextDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
+    if (m_drop_hook.on_drop.fn)
+    {
+        m_drop_hook.BeginBool(x, y);
+        m_drop_hook.on_drop.fn(m_drop_hook.on_drop.data, HookArg(x), HookArg(y));
+        return m_drop_hook.result != 0;
+    }
     if (on_drop_func)
+    {
         return (bool) on_drop_func(obj, (long) x, (long) y);
-    else
-        return wxTextDropTarget::OnDrop(x, y);
+    }
+    return wxTextDropTarget::OnDrop(x, y);
 }
 
 wxDragResult kwxTextDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_enter.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_enter.fn(m_drop_hook.on_enter.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_enter_func)
+    {
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxTextDropTarget::OnEnter(x, y, def);
+    }
+    return wxTextDropTarget::OnEnter(x, y, def);
 }
 
 wxDragResult kwxTextDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_drag_over.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_drag_over.fn(m_drop_hook.on_drag_over.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_drag_func)
+    {
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxTextDropTarget::OnDragOver(x, y, def);
+    }
+    return wxTextDropTarget::OnDragOver(x, y, def);
 }
 
 void kwxTextDropTarget::OnLeave()
 {
+    if (m_drop_hook.on_leave.fn)
+    {
+        // No coordinates of its own: republish the last drag position.
+        m_drop_hook.BeginBool(m_drop_hook.x, m_drop_hook.y);
+        m_drop_hook.on_leave.fn(m_drop_hook.on_leave.data, HookArg(m_drop_hook.x),
+                                HookArg(m_drop_hook.y));
+        return;
+    }
     if (on_leave_func)
+    {
         on_leave_func(obj);
-    else
-        wxTextDropTarget::OnLeave();
+        return;
+    }
+    wxTextDropTarget::OnLeave();
 }
 
 wxDragResult kwxFileDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_data.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_data.fn(m_drop_hook.on_data.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_data_func)
+    {
         return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxFileDropTarget::OnData(x, y, def);
+    }
+    return wxFileDropTarget::OnData(x, y, def);
 }
 
 bool kwxFileDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
+    if (m_drop_hook.on_drop.fn)
+    {
+        m_drop_hook.BeginBool(x, y);
+        m_drop_hook.on_drop.fn(m_drop_hook.on_drop.data, HookArg(x), HookArg(y));
+        return m_drop_hook.result != 0;
+    }
     if (on_drop_func)
+    {
         return (bool) on_drop_func(obj, (long) x, (long) y);
-    else
-        return wxFileDropTarget::OnDrop(x, y);
+    }
+    return wxFileDropTarget::OnDrop(x, y);
 }
 
 wxDragResult kwxFileDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_enter.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_enter.fn(m_drop_hook.on_enter.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_enter_func)
+    {
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxFileDropTarget::OnEnter(x, y, def);
+    }
+    return wxFileDropTarget::OnEnter(x, y, def);
 }
 
 wxDragResult kwxFileDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_drag_over.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_drag_over.fn(m_drop_hook.on_drag_over.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_drag_func)
+    {
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxFileDropTarget::OnDragOver(x, y, def);
+    }
+    return wxFileDropTarget::OnDragOver(x, y, def);
 }
 
 void kwxFileDropTarget::OnLeave()
 {
+    if (m_drop_hook.on_leave.fn)
+    {
+        // No coordinates of its own: republish the last drag position.
+        m_drop_hook.BeginBool(m_drop_hook.x, m_drop_hook.y);
+        m_drop_hook.on_leave.fn(m_drop_hook.on_leave.data, HookArg(m_drop_hook.x),
+                                HookArg(m_drop_hook.y));
+        return;
+    }
     if (on_leave_func)
+    {
         on_leave_func(obj);
-    else
-        wxFileDropTarget::OnLeave();
+        return;
+    }
+    wxFileDropTarget::OnLeave();
 }
 
 wxDragResult kwxDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
-    if (on_data_func)
-        return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
-    else
+    if (m_drop_hook.on_data.fn)
     {
-        GetData();
-        return def;
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_data.fn(m_drop_hook.on_data.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
     }
+    if (on_data_func)
+    {
+        return (wxDragResult) on_data_func(obj, (long) x, (long) y, (int) def);
+    }
+    GetData();
+    return def;
 }
 
 bool kwxDropTarget::OnDrop(wxCoord x, wxCoord y)
 {
+    if (m_drop_hook.on_drop.fn)
+    {
+        m_drop_hook.BeginBool(x, y);
+        m_drop_hook.on_drop.fn(m_drop_hook.on_drop.data, HookArg(x), HookArg(y));
+        return m_drop_hook.result != 0;
+    }
     if (on_drop_func)
+    {
         return (bool) on_drop_func(obj, (long) x, (long) y);
-    else
-        return wxDropTarget::OnDrop(x, y);
+    }
+    return wxDropTarget::OnDrop(x, y);
 }
 
 wxDragResult kwxDropTarget::OnEnter(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_enter.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_enter.fn(m_drop_hook.on_enter.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_enter_func)
+    {
         return (wxDragResult) on_enter_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxDropTarget::OnEnter(x, y, def);
+    }
+    return wxDropTarget::OnEnter(x, y, def);
 }
 
 wxDragResult kwxDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    if (m_drop_hook.on_drag_over.fn)
+    {
+        m_drop_hook.BeginDrag(x, y, (int) def);
+        m_drop_hook.on_drag_over.fn(m_drop_hook.on_drag_over.data, HookArg(x), HookArg(y));
+        return (wxDragResult) m_drop_hook.result;
+    }
     if (on_drag_func)
+    {
         return (wxDragResult) on_drag_func(obj, (long) x, (long) y, (int) def);
-    else
-        return wxDropTarget::OnDragOver(x, y, def);
+    }
+    return wxDropTarget::OnDragOver(x, y, def);
 }
 
 void kwxDropTarget::OnLeave()
 {
+    if (m_drop_hook.on_leave.fn)
+    {
+        // No coordinates of its own: republish the last drag position.
+        m_drop_hook.BeginBool(m_drop_hook.x, m_drop_hook.y);
+        m_drop_hook.on_leave.fn(m_drop_hook.on_leave.data, HookArg(m_drop_hook.x),
+                                HookArg(m_drop_hook.y));
+        return;
+    }
     if (on_leave_func)
+    {
         on_leave_func(obj);
-    else
-        wxDropTarget::OnLeave();
+        return;
+    }
+    wxDropTarget::OnLeave();
 }
 
 bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& filenames)
 {
-    bool result = false;
+    if (m_drop_hook.on_drop_files.fn)
+    {
+        m_drop_hook.BeginBool(x, y);
+        m_drop_hook.files = filenames;
+        m_drop_hook.on_drop_files.fn(m_drop_hook.on_drop_files.data, HookArg(x), HookArg(y));
+        return m_drop_hook.result != 0;
+    }
+    if (!func)
+    {
+        return false;  // no OnDropFiles hook installed: reject the drop
+    }
+
     std::vector<std::string> strings(filenames.GetCount());
     auto arr = std::make_unique<const char*[]>(filenames.GetCount());
 
@@ -140,13 +273,22 @@ bool kwxFileDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString& f
         arr[i] = strings[i].data();
     }
 
-    result = func(obj, (long) x, (long) y, (void*) arr.get(), (int) filenames.GetCount()) != 0;
-
-    return result;
+    return func(obj, (long) x, (long) y, (void*) arr.get(), (int) filenames.GetCount()) != 0;
 }
 
 bool kwxTextDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& text)
 {
+    if (m_drop_hook.on_drop_text.fn)
+    {
+        m_drop_hook.BeginBool(x, y);
+        m_drop_hook.text = text;
+        m_drop_hook.on_drop_text.fn(m_drop_hook.on_drop_text.data, HookArg(x), HookArg(y));
+        return m_drop_hook.result != 0;
+    }
+    if (!func)
+    {
+        return false;  // no OnDropText hook installed: reject the drop
+    }
     return func(obj, (long) x, (long) y, (void*) text.utf8_string().data()) != 0;
 }
 
@@ -215,6 +357,11 @@ extern "C"
         ((wxFileDataObject*) self)->AddFile(*files);
     }
 
+    EXPORT void wxFileDataObject_GetFilenamesArray(void* pObject, wxArrayString* filenames)
+    {
+        *filenames = ((wxFileDataObject*) pObject)->GetFilenames();
+    }
+
     EXPORT int FileDataObject_GetFilenames(void* self, void* list, int capacity)
     {
         wxArrayString files_array = ((wxFileDataObject*) self)->GetFilenames();
@@ -259,23 +406,33 @@ extern "C"
     EXPORT void* DropSource_Create(wxDataObject* data, wxWindow* win, void* copy, void* move,
                                    void* none)
     {
+        // A null cursor means "wxWidgets' default for that drag result", which is what
+        // the C++ default argument (an empty wxCursorBundle) does. The previous body
+        // dereferenced all three unconditionally, so wxDropSource(data, win) was
+        // inexpressible and passing null crashed.
 #if (wxCHECK_VERSION(2, 5, 0) && defined(__WXMAC__)) || defined(__WIN32__)
-        return (void*) new wxDropSource(*data, win, *((wxCursor*) copy), *((wxCursor*) move),
-                                        *((wxCursor*) none));
+        const wxCursorBundle copyBundle = copy ? *(wxCursor*) copy : wxCursorBundle();
+        const wxCursorBundle moveBundle = move ? *(wxCursor*) move : wxCursorBundle();
+        const wxCursorBundle noneBundle = none ? *(wxCursor*) none : wxCursorBundle();
+        return (void*) new wxDropSource(*data, win, copyBundle, moveBundle, noneBundle);
 #else
-        return (void*) new wxDropSource(*data, win, *((wxIcon*) copy), *((wxIcon*) move),
-                                        *((wxIcon*) none));
+        const wxIcon copyIcon = copy ? *(wxIcon*) copy : wxIcon();
+        const wxIcon moveIcon = move ? *(wxIcon*) move : wxIcon();
+        const wxIcon noneIcon = none ? *(wxIcon*) none : wxIcon();
+        return (void*) new wxDropSource(*data, win, copyIcon, moveIcon, noneIcon);
 #endif
+    }
+
+    // The C++ two-argument form wxDropSource(data, win): wxWidgets' default drag
+    // cursors. Prefer this over three null cursors.
+    EXPORT void* DropSource_CreateDefault(wxDataObject* data, wxWindow* win)
+    {
+        return (void*) new wxDropSource(*data, win);
     }
 
     EXPORT void DropSource_Delete(void* self)
     {
         delete (wxDropSource*) self;
-    }
-
-    EXPORT int DropSource_DoDragDrop(void* self, bool move)
-    {
-        return (int) ((wxDropSource*) self)->DoDragDrop(move);
     }
 
     EXPORT void* kwxDropTarget_Create(void* self)
@@ -363,9 +520,167 @@ extern "C"
         ((kwxDropTarget*) self)->SetOnLeave((DragZeroFunc) pFunction);
     }
 
-    EXPORT void wxDropTarget_GetData(void* self)
+    // ---- Uniform drop-hook family: one fixed native thunk per hook -------------
+    // ---- kwxDropTarget ----
+    EXPORT void kwxDropTarget_SetOnDataWithData(void* self, void* pFunction, void* data)
     {
-        ((wxDropTarget*) self)->GetData();
+        ((kwxDropTarget*) self)->SetOnDataWithData(pFunction, data);
+    }
+    EXPORT void kwxDropTarget_SetOnDropWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxDropTarget*) self)->SetOnDropWithData(pFunction, data);
+    }
+    EXPORT void kwxDropTarget_SetOnEnterWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxDropTarget*) self)->SetOnEnterWithData(pFunction, data);
+    }
+    EXPORT void kwxDropTarget_SetOnDragOverWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxDropTarget*) self)->SetOnDragOverWithData(pFunction, data);
+    }
+    EXPORT void kwxDropTarget_SetOnLeaveWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxDropTarget*) self)->SetOnLeaveWithData(pFunction, data);
+    }
+    EXPORT void kwxDropTarget_SetDataResult(void* self, int result)
+    {
+        ((kwxDropTarget*) self)->SetDataResult(result);
+    }
+    EXPORT void kwxDropTarget_SetDropResult(void* self, int result)
+    {
+        ((kwxDropTarget*) self)->SetDropResult(result);
+    }
+    EXPORT void kwxDropTarget_SetEnterResult(void* self, int result)
+    {
+        ((kwxDropTarget*) self)->SetEnterResult(result);
+    }
+    EXPORT void kwxDropTarget_SetDragOverResult(void* self, int result)
+    {
+        ((kwxDropTarget*) self)->SetDragOverResult(result);
+    }
+    EXPORT int kwxDropTarget_GetDropResult(void* self)
+    {
+        return ((kwxDropTarget*) self)->GetDropResult();
+    }
+
+    // ---- kwxTextDropTarget ----
+    EXPORT void kwxTextDropTarget_SetOnDataWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnDataWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetOnDropWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnDropWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetOnEnterWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnEnterWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetOnDragOverWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnDragOverWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetOnLeaveWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnLeaveWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetDataResult(void* self, int result)
+    {
+        ((kwxTextDropTarget*) self)->SetDataResult(result);
+    }
+    EXPORT void kwxTextDropTarget_SetDropResult(void* self, int result)
+    {
+        ((kwxTextDropTarget*) self)->SetDropResult(result);
+    }
+    EXPORT void kwxTextDropTarget_SetEnterResult(void* self, int result)
+    {
+        ((kwxTextDropTarget*) self)->SetEnterResult(result);
+    }
+    EXPORT void kwxTextDropTarget_SetDragOverResult(void* self, int result)
+    {
+        ((kwxTextDropTarget*) self)->SetDragOverResult(result);
+    }
+    EXPORT int kwxTextDropTarget_GetDropResult(void* self)
+    {
+        return ((kwxTextDropTarget*) self)->GetDropResult();
+    }
+    EXPORT void kwxTextDropTarget_SetOnDropTextWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxTextDropTarget*) self)->SetOnDropTextWithData(pFunction, data);
+    }
+    EXPORT void kwxTextDropTarget_SetDropTextResult(void* self, int result)
+    {
+        ((kwxTextDropTarget*) self)->SetDropTextResult(result);
+    }
+    EXPORT wxString* kwxTextDropTarget_GetDropText(void* self)
+    {
+        // Borrowed: the copy lives in the helper's hook state.
+        return const_cast<wxString*>(&((kwxTextDropTarget*) self)->GetDropText());
+    }
+
+    // ---- kwxFileDropTarget ----
+    EXPORT void kwxFileDropTarget_SetOnDataWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnDataWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetOnDropWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnDropWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetOnEnterWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnEnterWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetOnDragOverWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnDragOverWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetOnLeaveWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnLeaveWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetDataResult(void* self, int result)
+    {
+        ((kwxFileDropTarget*) self)->SetDataResult(result);
+    }
+    EXPORT void kwxFileDropTarget_SetDropResult(void* self, int result)
+    {
+        ((kwxFileDropTarget*) self)->SetDropResult(result);
+    }
+    EXPORT void kwxFileDropTarget_SetEnterResult(void* self, int result)
+    {
+        ((kwxFileDropTarget*) self)->SetEnterResult(result);
+    }
+    EXPORT void kwxFileDropTarget_SetDragOverResult(void* self, int result)
+    {
+        ((kwxFileDropTarget*) self)->SetDragOverResult(result);
+    }
+    EXPORT int kwxFileDropTarget_GetDropResult(void* self)
+    {
+        return ((kwxFileDropTarget*) self)->GetDropResult();
+    }
+    EXPORT void kwxFileDropTarget_SetOnDropFilesWithData(void* self, void* pFunction, void* data)
+    {
+        ((kwxFileDropTarget*) self)->SetOnDropFilesWithData(pFunction, data);
+    }
+    EXPORT void kwxFileDropTarget_SetDropFilesResult(void* self, int result)
+    {
+        ((kwxFileDropTarget*) self)->SetDropFilesResult(result);
+    }
+    EXPORT wxArrayString* kwxFileDropTarget_GetDropFiles(void* self)
+    {
+        // Borrowed: the copy lives in the helper's hook state.
+        return const_cast<wxArrayString*>(&((kwxFileDropTarget*) self)->GetDropFiles());
+    }
+
+    EXPORT int wxDropTarget_GetData(void* self)
+    {
+        return ((wxDropTarget*) self)->GetData() ? 1 : 0;
+    }
+
+    EXPORT wxDataObject* wxDropTarget_GetDataObject(void* self)
+    {
+        return ((wxDropTarget*) self)->GetDataObject();
     }
 
     EXPORT void wxDropTarget_SetDataObject(void* self, void* dataObject)
@@ -399,6 +714,117 @@ extern "C"
     EXPORT void wxDataObjectComposite_Add(void* self, void* dataObject, bool preferred)
     {
         ((wxDataObjectComposite*) self)->Add((wxDataObjectSimple*) dataObject, preferred);
+    }
+
+    // owned copy: wxDataFormat is returned by value
+    EXPORT wxDataFormat* wxDataObjectComposite_GetReceivedFormat(void* self)
+    {
+        return new wxDataFormat(((wxDataObjectComposite*) self)->GetReceivedFormat());
+    }
+
+    EXPORT void* wxURLDataObject_Create(wxString* url)
+    {
+        return (void*) new wxURLDataObject(*url);
+    }
+
+    EXPORT void* wxURLDataObject_CreateDefault()
+    {
+        return (void*) new wxURLDataObject();
+    }
+
+    EXPORT void wxURLDataObject_Delete(void* self)
+    {
+        delete (wxURLDataObject*) self;
+    }
+
+    EXPORT wxString* wxURLDataObject_GetURL(void* self)
+    {
+        return new wxString(((wxURLDataObject*) self)->GetURL());
+    }
+
+    EXPORT void wxURLDataObject_SetURL(void* self, wxString* url)
+    {
+        ((wxURLDataObject*) self)->SetURL(*url);
+    }
+
+    EXPORT void* wxVirtualFileDataObject_Create()
+    {
+        return (void*) new wxVirtualFileDataObject();
+    }
+
+    EXPORT void wxVirtualFileDataObject_Delete(void* self)
+    {
+        delete (wxVirtualFileDataObject*) self;
+    }
+
+    EXPORT int wxVirtualFileDataObject_GetCount(void* self)
+    {
+        return (int) ((wxVirtualFileDataObject*) self)->GetCount();
+    }
+
+    // owned copy: the C++ getter returns wxString by value
+    EXPORT wxString* wxVirtualFileDataObject_GetName(void* self, int index)
+    {
+        return new wxString(((wxVirtualFileDataObject*) self)->GetName((size_t) index));
+    }
+
+    EXPORT bool wxVirtualFileDataObject_IsDir(void* self, int index)
+    {
+        return ((wxVirtualFileDataObject*) self)->IsDir((size_t) index);
+    }
+
+    // wxFileOffset is wxLongLong == int64_t; wxInvalidOffset (-1) means "unknown"
+    EXPORT int64_t wxVirtualFileDataObject_GetSize(void* self, int index)
+    {
+        return (int64_t) ((wxVirtualFileDataObject*) self)->GetSize((size_t) index);
+    }
+
+    // owned copy; an invalid wxDateTime means "unknown"
+    EXPORT wxDateTime* wxVirtualFileDataObject_GetModificationTime(void* self, int index)
+    {
+        return new wxDateTime(
+            ((wxVirtualFileDataObject*) self)->GetModificationTime((size_t) index));
+    }
+
+    // The C++ signature is std::unique_ptr<wxInputStream>: release() hands ownership
+    // to the caller, who must wxInputStream_Delete() it. Null when unreadable.
+    EXPORT wxInputStream* wxVirtualFileDataObject_OpenStream(void* self, int index)
+    {
+        return ((wxVirtualFileDataObject*) self)->OpenStream((size_t) index).release();
+    }
+
+    EXPORT bool wxVirtualFileDataObject_SaveTo(void* self, int index, wxString* path)
+    {
+        return ((wxVirtualFileDataObject*) self)->SaveTo((size_t) index, *path);
+    }
+
+    // std::vector<wxString> cannot cross the C boundary, so the paths are copied
+    // into a caller-provided wxArrayString. Empty result == failure, per the header.
+    EXPORT bool wxVirtualFileDataObject_SaveAll(void* self, wxString* dir, wxArrayString* paths)
+    {
+        const std::vector<wxString> saved = ((wxVirtualFileDataObject*) self)->SaveAll(*dir);
+        paths->Clear();
+        for (const wxString& path: saved)
+        {
+            paths->Add(path);
+        }
+        return !saved.empty();
+    }
+
+    EXPORT bool wxVirtualFileDataObject_SaveAllToTempDir(void* self, wxArrayString* paths)
+    {
+        const std::vector<wxString> saved = ((wxVirtualFileDataObject*) self)->SaveAllToTempDir();
+        paths->Clear();
+        for (const wxString& path: saved)
+        {
+            paths->Add(path);
+        }
+        return !saved.empty();
+    }
+
+    EXPORT bool wxVirtualFileDataObject_DeleteAllTempFiles(void* self)
+    {
+        return ((wxVirtualFileDataObject*) self)->DeleteAllTempFiles();
     }
 
     EXPORT void* wxDataObjectSimple_Create(wxDataFormat* format)

@@ -3,6 +3,138 @@
 
 #include "kwx_wrapper.h"
 
+#include <string>
+#include <vector>
+
+// Returns the normalised XPM lines, empty when there is nothing to decode.
+static std::vector<std::string> NormaliseXpmLines(const char* xpm)
+{
+    if (xpm == nullptr || *xpm == '\0')
+    {
+        return {};
+    }
+
+    // Pass one: drop /* ... */ comments. Quote tracking keeps a comment marker that appears
+    // inside a quoted XPM line from being taken for a comment. An unterminated comment ends the
+    // scan -- continuing would read past the end of the buffer.
+    const std::string source(xpm);
+    std::string uncommented;
+    uncommented.reserve(source.size());
+    bool in_double_quote = false;
+    bool in_single_quote = false;
+    for (size_t i = 0; i < source.size(); ++i)
+    {
+        const char current = source[i];
+        if (current == '"' && !in_single_quote)
+        {
+            in_double_quote = !in_double_quote;
+            uncommented.push_back(current);
+            continue;
+        }
+        if (current == '\'' && !in_double_quote)
+        {
+            in_single_quote = !in_single_quote;
+            uncommented.push_back(current);
+            continue;
+        }
+        if (!in_double_quote && !in_single_quote && current == '/' && (i + 1) < source.size() &&
+            source[i + 1] == '*')
+        {
+            const size_t comment_end = source.find("*/", i + 2);
+            if (comment_end == std::string::npos)
+            {
+                break;
+            }
+            i = comment_end + 1;
+            continue;
+        }
+        uncommented.push_back(current);
+    }
+
+    // Pass two: keep only the bytes between quotes, one normalised line per quoted run, so the
+    // /* XPM */ header, the declaration, the commas and the trailing `};` all drop out.
+    std::string normalised;
+    bool saw_quoted_run = false;
+    for (size_t i = 0; i < uncommented.size(); ++i)
+    {
+        if (uncommented[i] != '"')
+        {
+            continue;
+        }
+        saw_quoted_run = true;
+        for (++i; i < uncommented.size(); ++i)
+        {
+            const char current = uncommented[i];
+            if (current == '\\' && (i + 1) < uncommented.size() && uncommented[i + 1] == '"')
+            {
+                normalised.push_back('"');
+                ++i;
+                continue;
+            }
+            if (current == '"')
+            {
+                break;
+            }
+            normalised.push_back(current);
+        }
+        normalised.push_back('\n');
+    }
+
+    // No quoted run means the caller passed the stripped lines a compiled C array literal turns
+    // into; keep them verbatim so this stays a superset of wxIcon_FromXPM.
+    if (!saw_quoted_run)
+    {
+        normalised = uncommented;
+    }
+
+    if (normalised.empty())
+    {
+        return {};
+    }
+
+    // Line storage holds the buffers the XPM decoder reads; the caller keeps it alive for the
+    // duration of the constructor call.
+    std::vector<std::string> line_storage;
+    size_t line_start = 0;
+    while (line_start < normalised.size())
+    {
+        size_t line_end = normalised.find('\n', line_start);
+        if (line_end == std::string::npos)
+        {
+            line_end = normalised.size();
+        }
+
+        std::string line = normalised.substr(line_start, line_end - line_start);
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.pop_back();
+        }
+        line_storage.push_back(line);
+
+        if (line_end == normalised.size())
+        {
+            break;
+        }
+        line_start = line_end + 1;
+    }
+
+    return line_storage;
+}
+
+// Returns the NUL-terminated array of pointers into `lines` that the XPM decoder reads.
+static std::vector<const char*> XpmLinePointers(const std::vector<std::string>& lines)
+{
+    std::vector<const char*> pointers;
+    pointers.reserve(lines.size() + 1);
+    for (const std::string& line: lines)
+    {
+        pointers.push_back(line.c_str());
+    }
+    pointers.push_back(nullptr);
+
+    return pointers;
+}
+
 extern "C"
 {
     EXPORT void* wxIcon_CreateDefault()
@@ -27,6 +159,50 @@ extern "C"
     EXPORT void* wxIcon_FromXPM(void* data)
     {
         return (void*) new wxIcon((const char*) data);
+    }
+
+    // Accepts either the raw text of a .xpm file (an optional /* XPM */ comment, the
+    // `static char *x[] = { ... };` declaration, quoted lines and commas) or the already-stripped
+    // lines such a literal compiles to. Both forms are normalised the way wxXPMDecoder::ReadFile
+    // normalises a file: /* */ comments and everything outside the quoted runs are dropped, and
+    // each quoted run becomes one XPM line.
+    EXPORT void* wxIcon_CreateFromXPMString(const char* xpm)
+    {
+        const std::vector<std::string> lines = NormaliseXpmLines(xpm);
+        if (lines.empty())
+        {
+            return nullptr;
+        }
+
+        const std::vector<const char*> pointers = XpmLinePointers(lines);
+        return new wxIcon(pointers.data());
+    }
+    // Declared in the wxBitmap block of kwx_classes.h. Implemented here, next to the icon
+    // form, because both share the same .xpm text normaliser.
+    EXPORT void* wxBitmap_CreateFromXPMString(const char* xpm)
+    {
+        const std::vector<std::string> lines = NormaliseXpmLines(xpm);
+        if (lines.empty())
+        {
+            return nullptr;
+        }
+
+        const std::vector<const char*> pointers = XpmLinePointers(lines);
+        return new wxBitmap((const char* const*) pointers.data());
+    }
+
+    // Declared in the wxCursor block of kwx_classes.h. Implemented here, next to the
+    // icon and bitmap forms, because all three share the same .xpm text normaliser.
+    EXPORT void* Cursor_CreateFromXPMString(const char* xpm)
+    {
+        const std::vector<std::string> lines = NormaliseXpmLines(xpm);
+        if (lines.empty())
+        {
+            return nullptr;
+        }
+
+        const std::vector<const char*> pointers = XpmLinePointers(lines);
+        return new wxCursor(pointers.data());
     }
 
     EXPORT void* wxIcon_CreateLoad(wxString* name, long type, int width, int height)

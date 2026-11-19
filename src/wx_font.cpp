@@ -88,13 +88,13 @@ extern "C"
     {
         switch (id)
         {
-            case 0:
+            case kwxStockFont_Italic:
                 return (void*) new wxFont(*wxITALIC_FONT);
-            case 1:
+            case kwxStockFont_Normal:
                 return (void*) new wxFont(*wxNORMAL_FONT);
-            case 2:
+            case kwxStockFont_Small:
                 return (void*) new wxFont(*wxSMALL_FONT);
-            case 3:
+            case kwxStockFont_Swiss:
                 return (void*) new wxFont(*wxSWISS_FONT);
         }
 

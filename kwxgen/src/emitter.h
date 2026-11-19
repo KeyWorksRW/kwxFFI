@@ -64,7 +64,7 @@ public:
     // Verify existing generated files in dir match the current FFI model.
     virtual VerifyResult Verify(const ParsedFFI& ffi, const std::filesystem::path& dir) = 0;
 
-    // Short name of the language backend (e.g., "go", "luajit").
+    // Short name of the language backend (e.g., "go", "lua").
     virtual std::string_view Name() const = 0;
 
     // Report which classes, methods and symbols this backend wraps.  The default report is

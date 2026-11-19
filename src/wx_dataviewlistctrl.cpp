@@ -239,4 +239,86 @@ extern "C"
     {
         return self->InsertColumn(pos, column, *variantType);
     }
+
+    // --- wxDataViewListStore ---
+    // The store pointer is owned by the wxDataViewListCtrl that created it; the
+    // `values` parameter is the wxVector<wxVariant>* from wxVariantVector_Create().
+
+    EXPORT void wxDataViewListStore_PrependColumn(wxDataViewListStore* self, wxString* variant_type)
+    {
+        self->PrependColumn(*variant_type);
+    }
+
+    EXPORT void wxDataViewListStore_AppendColumn(wxDataViewListStore* self, wxString* variant_type)
+    {
+        self->AppendColumn(*variant_type);
+    }
+
+    EXPORT void wxDataViewListStore_InsertColumn(wxDataViewListStore* self, unsigned int pos,
+                                                 wxString* variant_type)
+    {
+        self->InsertColumn(pos, *variant_type);
+    }
+
+    EXPORT void wxDataViewListStore_AppendItem(wxDataViewListStore* self, void* values,
+                                               uintptr_t data)
+    {
+        self->AppendItem(*static_cast<wxVector<wxVariant>*>(values), data);
+    }
+
+    EXPORT void wxDataViewListStore_PrependItem(wxDataViewListStore* self, void* values,
+                                                uintptr_t data)
+    {
+        self->PrependItem(*static_cast<wxVector<wxVariant>*>(values), data);
+    }
+
+    EXPORT void wxDataViewListStore_InsertItem(wxDataViewListStore* self, unsigned int row,
+                                               void* values, uintptr_t data)
+    {
+        self->InsertItem(row, *static_cast<wxVector<wxVariant>*>(values), data);
+    }
+
+    EXPORT void wxDataViewListStore_DeleteItem(wxDataViewListStore* self, unsigned int pos)
+    {
+        self->DeleteItem(pos);
+    }
+
+    EXPORT void wxDataViewListStore_DeleteAllItems(wxDataViewListStore* self)
+    {
+        self->DeleteAllItems();
+    }
+
+    EXPORT void wxDataViewListStore_ClearColumns(wxDataViewListStore* self)
+    {
+        self->ClearColumns();
+    }
+
+    EXPORT unsigned int wxDataViewListStore_GetItemCount(wxDataViewListStore* self)
+    {
+        return self->GetItemCount();
+    }
+
+    EXPORT void wxDataViewListStore_SetItemData(wxDataViewListStore* self, wxDataViewItem* item,
+                                                uintptr_t data)
+    {
+        self->SetItemData(*item, data);
+    }
+
+    EXPORT uintptr_t wxDataViewListStore_GetItemData(wxDataViewListStore* self,
+                                                     wxDataViewItem* item)
+    {
+        return self->GetItemData(*item);
+    }
+
+    EXPORT void wxDataViewListStore_GetValueByRow(wxDataViewListStore* self, wxVariant* value,
+                                                  unsigned int row, unsigned int col)
+    {
+        self->GetValueByRow(*value, row, col);
+    }
+
+    EXPORT int wxDataViewListStore_SetValueByRow(wxDataViewListStore* self, wxVariant* value,
+                                                 unsigned int row, unsigned int col)
+    {
+        return self->SetValueByRow(*value, row, col);
+    }
 }

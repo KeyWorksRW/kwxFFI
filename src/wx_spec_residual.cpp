@@ -6,6 +6,7 @@
 #include <wx/affinematrix2d.h>
 #include <wx/dataobj.h>
 #include <wx/dateevt.h>
+#include <wx/dcgraph.h>
 #include <wx/editlbox.h>
 #include <wx/help.h>
 #include <wx/hyperlink.h>
@@ -296,6 +297,13 @@ extern "C"
     EXPORT long wxTextUrlEvent_GetURLEnd(wxTextUrlEvent* self)
     {
         return self->GetURLEnd();
+    }
+
+    EXPORT wxString* wxTextUrlEvent_GetString(wxTextUrlEvent* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetString();
+        return result;
     }
 
     EXPORT wxThreadEvent* wxThreadEvent_Create(int event_type, int id)
@@ -685,6 +693,57 @@ extern "C"
     }
 
     // ---------------------------------------------------------------------------
+    // wxOverlay
+    // ---------------------------------------------------------------------------
+
+    EXPORT wxOverlay* wxOverlay_Create()
+    {
+        return new wxOverlay();
+    }
+
+    EXPORT void wxOverlay_Delete(wxOverlay* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxOverlay_Reset(wxOverlay* self)
+    {
+        self->Reset();
+    }
+
+    EXPORT void wxOverlay_SetOpacity(wxOverlay* self, int alpha)
+    {
+        self->SetOpacity(alpha);
+    }
+
+    // ---------------------------------------------------------------------------
+    // wxOverlayDC
+    // ---------------------------------------------------------------------------
+
+    EXPORT wxOverlayDC* wxOverlayDC_Create(wxOverlay* overlay, wxWindow* win)
+    {
+        return new wxOverlayDC(*overlay, win);
+    }
+
+    EXPORT wxOverlayDC* wxOverlayDC_CreateWithRect(wxOverlay* overlay, wxWindow* win, int x, int y,
+                                                   int width, int height)
+    {
+        return new wxOverlayDC(*overlay, win, wxRect(x, y, width, height));
+    }
+
+    // wxGCDC(const wxWindowDC&) accepts the overlay DC through its wxClientDC base --
+    // exactly what the C++ sample does with `wxGCDC gdc(dc)` where dc is a wxOverlayDC.
+    EXPORT wxGCDC* wxOverlayDC_CreateGCDC(wxOverlayDC* self)
+    {
+        return new wxGCDC(*self);
+    }
+
+    EXPORT void wxOverlayDC_Delete(wxOverlayDC* self)
+    {
+        delete self;
+    }
+
+    // ---------------------------------------------------------------------------
     // wxAffineMatrix2D
     // ---------------------------------------------------------------------------
 
@@ -783,6 +842,18 @@ extern "C"
     {
         return new wxBitmapBundle(
             wxArtProvider::GetBitmapBundle(*id, *client, wxSize(width, height)));
+    }
+
+    EXPORT wxBitmapBundle* wxArtProvider_GetBitmapBundleDefault(wxString* id)
+    {
+        return new wxBitmapBundle(wxArtProvider::GetBitmapBundle(*id));
+    }
+
+    EXPORT char* wxArtProvider_MakeClientId(char* id)
+    {
+        const wxString base = id ? wxString::FromUTF8(id) : wxString();
+        const wxString client_id = wxART_MAKE_CLIENT_ID_FROM_STR(base);
+        return strdup(client_id.utf8_string().data());
     }
 
     EXPORT wxIcon* wxArtProvider_GetIcon(wxString* id, wxString* client, int width, int height)

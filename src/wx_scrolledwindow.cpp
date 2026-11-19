@@ -141,4 +141,25 @@ extern "C"
     {
         self->GetViewStartPixels(x, y);
     }
+
+    // wxWidgets 3.3.2 autoscroll region control (wxScrollHelper, wx/scrolwin.h).
+    EXPORT void wxScrolledWindow_EnableAutoScrollInside(wxScrolledWindow* self, int insideWidth)
+    {
+        self->EnableAutoScrollInside(insideWidth);
+    }
+
+    EXPORT void wxScrolledWindow_DisableAutoScrollOutside(wxScrolledWindow* self)
+    {
+        self->DisableAutoScrollOutside();
+    }
+
+    EXPORT void wxScrolledWindow_EnableAutoscrollWithoutCapture(wxScrolledWindow* self)
+    {
+        self->EnableAutoscrollWithoutCapture();
+    }
+
+    EXPORT void wxScrolledWindow_DisableAutoscrollWithoutCapture(wxScrolledWindow* self)
+    {
+        self->DisableAutoscrollWithoutCapture();
+    }
 }

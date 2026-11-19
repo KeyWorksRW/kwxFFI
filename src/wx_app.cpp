@@ -94,6 +94,31 @@ extern "C"
         static_cast<kwxApp*>(self)->SetOnCreateTraits(pFunction);
     }
 
+    EXPORT void wxApp_SetOnOnFatalException(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnFatalException(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnUnhandledException(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnUnhandledException(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnStoreCurrentException(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnStoreCurrentException(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnExceptionInMainLoop(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnOnExceptionInMainLoop(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnRethrowStoredException(wxApp* self, void* pFunction)
+    {
+        static_cast<kwxApp*>(self)->SetOnRethrowStoredException(pFunction);
+    }
+
 #else  // !KWX_HAVE_APP_HOOK
 
     // wxApp only exists in a GUI build.  The declarations stay visible to kwxgen
@@ -137,6 +162,36 @@ extern "C"
     }
 
     EXPORT void wxApp_SetOnCreateTraits(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnFatalException(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnUnhandledException(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnStoreCurrentException(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnOnExceptionInMainLoop(wxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void wxApp_SetOnRethrowStoredException(wxApp* self, void* pFunction)
     {
         wxUnusedVar(self);
         wxUnusedVar(pFunction);
