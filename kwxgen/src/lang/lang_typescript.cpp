@@ -336,10 +336,11 @@ struct ConstTableEntry
 // Each returned entry is one visible TypeScript parameter (or a hidden self receiver).
 struct WrapParam
 {
-    std::string name;      // TypeScript parameter name (empty when is_self is true)
-    std::string ts_type;   // TypeScript type annotation (e.g., "number", "boolean")
-    std::string ffi_expr;  // Expression to pass to the FFI call (e.g., "flag ? 1 : 0")
-    bool is_self = false;  // True → not visible in TS signature; ffi_expr is "this._ptr"
+    std::string name;       // TypeScript parameter name (empty when is_self is true)
+    std::string ts_type;    // TypeScript type annotation (e.g., "number", "boolean")
+    std::string ffi_expr;   // Expression to pass to the FFI call (e.g., "flag ? 1 : 0")
+    bool is_self = false;   // True → not visible in TS signature; ffi_expr is "this._ptr"
+    std::string temp_name;  // Non-empty → the wxString temporary local for this parameter
 };
 
 [[nodiscard]] static std::vector<WrapParam> BuildWrapParams(const Param& param)
@@ -359,6 +360,24 @@ struct WrapParam
         const std::string pname =
             TsEscapeName(param.param_name.empty() ? "flag" : param.param_name);
         result.push_back({ pname, "boolean", pname + " ? 1 : 0", false });
+        return result;
+    }
+
+    // TClass(wxString)/TClassOwned(wxString) input → accept a JS string or an existing
+    // wxString pointer.  The emitting site turns the union into a scoped temporary named
+    // from temp_name (WxStringTempName); ffi_expr stays the visible name only because the
+    // raw name is never a valid argument for this kind (FfiArgumentKind::wxstring builds
+    // the argument expression instead).
+    if (IsWxStringInputParam(param))
+    {
+        const std::string pname =
+            TsEscapeName(param.param_name.empty() ? "text" : param.param_name);
+        WrapParam wrap_param;
+        wrap_param.name = pname;
+        wrap_param.ts_type = "string | Pointer";
+        wrap_param.ffi_expr = pname;
+        wrap_param.temp_name = "__s";  // prefix; the emitter appends the visible index
+        result.push_back(wrap_param);
         return result;
     }
 
@@ -394,6 +413,17 @@ struct WrapParam
 {
     return func.return_macro == "TClass" && !func.return_arg.empty() &&
            wrapped_classes.contains(func.return_arg);
+}
+
+// The owning decision for a wrapped-class return, shared by WrapReturnType and
+// EmitWrapReturn.  TClass(wxString) is a heap copy even though the declaration carries the
+// borrowed TClass marker (IsOwnedWxStringReturn), so the wrapper must be constructed owning
+// and its Delete()/[Symbol.dispose] must actually release the string.  This never changes a
+// generated signature: owning and borrowed annotate the same `ReturnedClass | null`, and a
+// free function's raw Pointer shape is decided separately by func.returns_owned alone.
+[[nodiscard]] static bool IsOwningWrappedReturn(const FunctionDecl& func)
+{
+    return func.returns_owned || IsOwnedWxStringReturn(func);
 }
 
 // Wrapper class returns that must stay a raw Pointer in one owner's generated code, keyed
@@ -440,12 +470,14 @@ static bool s_uses_class_registry = false;
         {
             return EffectiveFactoryClass(func, class_name, wrapped_classes) + " | null";
         }
-        // Non-factory TClass(SomeClass) returns a wrapper; the wrapper owns the pointer
-        // only when the declaration used TClassOwned.  TSelf/TClassRef keep the raw
-        // Pointer contract.
-        // A free or static function has no enclosing class, so an unowned TClass
-        // return stays a raw Pointer.  Marking the declaration TClassOwned opts it
-        // into a wrapper that owns (and can release) the allocation.
+        // Non-factory TClass(SomeClass) returns a wrapper.  Whether that wrapper owns the
+        // pointer is decided in EmitWrapReturn (IsOwningWrappedReturn) and does not affect
+        // this annotation: owning and borrowed are both `ReturnedClass | null`.
+        // TSelf/TClassRef keep the raw Pointer contract.
+        // A free or static function has no enclosing class, so an unowned TClass return
+        // stays a raw Pointer; only TClassOwned opts a free function into a wrapper.  This
+        // term must stay func.returns_owned -- substituting the owning decision here would
+        // change the signature of every free function returning TClass(wxString).
         // A wrapper whose value import would close a module cycle stays typed, but it is
         // constructed through the runtime class registry instead of by value import, so
         // the generated module graph never gains that edge and cannot throw a TDZ
@@ -524,7 +556,8 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     }
 
     // Non-factory TClass(SomeClass) result: the header marks a caller-owned result
-    // with TClassOwned, so only genuinely borrowed pointers get the non-owning
+    // with TClassOwned, and a TClass(wxString) result is always a copy the callee handed
+    // over (IsOwnedWxStringReturn), so only genuinely borrowed pointers get the non-owning
     // wrapper.  A free or static function (class_name empty) wraps only when the
     // declaration is TClassOwned; otherwise its raw Pointer contract is unchanged.
     // WrapReturnType applied the same decision, so the emitted annotation and this body
@@ -534,7 +567,7 @@ static void EmitWrapReturn(std::ostream& output, const FunctionDecl& func,
     {
         output << indent << "const rawPtr = " << call_expr << ";\n";
         output << indent << "if (rawPtr === null) return null;\n";
-        const std::string_view borrowed_suffix = func.returns_owned ? "" : ", true";
+        const std::string_view borrowed_suffix = IsOwningWrappedReturn(func) ? "" : ", true";
         if (IsDeniedWrappedReturn(class_name, func.return_arg))
         {
             s_registry_return_types.insert(func.return_arg);
@@ -909,14 +942,50 @@ enum class FfiArgumentKind
 {
     self,
     boolean,
+    wxstring,
     plain,
 };
 
 struct FfiArgument
 {
     FfiArgumentKind kind = FfiArgumentKind::plain;
-    std::string ts_type;  // visible type; empty for the hidden receiver
+    std::string ts_type;    // visible type; empty for the hidden receiver
+    std::string temp_name;  // wxstring only: the __sN local holding the converted temporary
 };
+
+// The local holding one wxString temporary, numbered from zero in creation order so a
+// two-argument method reads __s0/__s1.  Block scope makes the names reusable across the
+// exclusive branches of an overload set.
+[[nodiscard]] static std::string WxStringTempName(const size_t temp_index)
+{
+    return "__s" + std::to_string(temp_index);
+}
+
+// Classify one visible parameter as a C-call argument.  temp_index is how many wxString
+// temporaries the emitted body has created so far; a wxString input takes the next name
+// (__s0, __s1, …), so the numbering is dense and starts at zero per body.
+[[nodiscard]] static FfiArgument MakeFfiArgument(const WrapParam& wrap_param,
+                                                 const size_t temp_index)
+{
+    FfiArgument argument;
+    argument.ts_type = wrap_param.ts_type;
+    if (wrap_param.is_self)
+    {
+        argument.kind = FfiArgumentKind::self;
+        return argument;
+    }
+    if (!wrap_param.temp_name.empty())
+    {
+        argument.kind = FfiArgumentKind::wxstring;
+        argument.temp_name = WxStringTempName(temp_index);
+        return argument;
+    }
+    if (wrap_param.ts_type == "boolean")
+    {
+        argument.kind = FfiArgumentKind::boolean;
+    }
+    return argument;
+}
 
 // One overload emitted for a member: its visible parameters, the C-call arguments, and
 // where its body comes from.
@@ -1495,10 +1564,134 @@ static void EmitDisposedGuard(std::ostream& output, const std::string& return_ty
             return "this._ptr";
         case FfiArgumentKind::boolean:
             return impl_name + " ? 1 : 0";
+        case FfiArgumentKind::wxstring:
+            // The converted temporary owns the pointer; the caller's raw pointer is the
+            // fallback.  Never routed through CastArgument: casting the union type would
+            // hand the runtime a JS string, which it marshals to a char*.
+            return argument.temp_name + " ? " + argument.temp_name + ".ptr : (" + impl_name +
+                   " as Pointer)";
         case FfiArgumentKind::plain:
             return CastArgument(impl_name, impl_type, impl_optional, argument.ts_type);
     }
     return impl_name;
+}
+
+// One emitted C call: the expression plus the wxString temporaries it borrows.
+struct EmittedCall
+{
+    std::string expr;                       // lib.symbols.Foo(a, __s0, …)
+    std::vector<std::string> declarations;  // let __sN: … | null = null; — outside the try
+    std::vector<std::string> prologue;      // if (typeof x === "string") __sN = …; — inside the try
+    std::vector<std::string> cleanup;       // __sN?.Delete(); — last created released first
+};
+
+// The single place that turns classified arguments into the C-call text and collects its
+// temporaries.  Every wrapper shape (single method, merged branch, module-scope function)
+// goes through here, so the argument expression and the prologue/cleanup cannot drift.
+[[nodiscard]] static EmittedCall BuildCallExpression(const std::string& c_func_name,
+                                                     const std::vector<FfiArgument>& ffi_arguments,
+                                                     const std::vector<std::string>& impl_names,
+                                                     const std::vector<std::string>& impl_types,
+                                                     const std::vector<bool>& impl_optional)
+{
+    EmittedCall call;
+    call.expr = "lib.symbols." + c_func_name + "(";
+    size_t visible_index = 0;
+    bool call_first = true;
+    for (const FfiArgument& argument: ffi_arguments)
+    {
+        if (!call_first)
+        {
+            call.expr += ", ";
+        }
+        call_first = false;
+        if (argument.kind == FfiArgumentKind::self)
+        {
+            call.expr += "this._ptr";
+            continue;
+        }
+        const std::string& impl_name = impl_names[visible_index];
+        call.expr += BuildFfiArgumentExpr(argument, impl_name, impl_types[visible_index],
+                                          impl_optional[visible_index]);
+        if (argument.kind == FfiArgumentKind::wxstring)
+        {
+            // The temporaries are declared null outside the try and assigned only inside it:
+            // a throw from a later createWxString() must not leak an earlier temporary.
+            call.declarations.push_back("let " + argument.temp_name +
+                                        ": ReturnType<typeof createWxString> | null = null;");
+            call.prologue.push_back("if (typeof " + impl_name + " === \"string\") " +
+                                    argument.temp_name + " = createWxString(" + impl_name + ");");
+            // Released in reverse creation order (LIFO).
+            call.cleanup.insert(call.cleanup.begin(), argument.temp_name + "?.Delete();");
+        }
+        ++visible_index;
+    }
+    call.expr += ")";
+    return call;
+}
+
+// The same call for a module-scope function, whose visible parameters are the C-call
+// arguments in order (no receiver, no implementation-name remapping).
+[[nodiscard]] static EmittedCall BuildWrapParamCall(const std::string& c_func_name,
+                                                    const std::vector<WrapParam>& wrap_params)
+{
+    std::vector<FfiArgument> ffi_arguments;
+    std::vector<std::string> impl_names;
+    std::vector<std::string> impl_types;
+    std::vector<bool> impl_optional;
+    size_t temp_count = 0;
+    for (const WrapParam& wrap_param: wrap_params)
+    {
+        const FfiArgument argument = MakeFfiArgument(wrap_param, temp_count);
+        if (argument.kind == FfiArgumentKind::wxstring)
+        {
+            ++temp_count;
+        }
+        ffi_arguments.push_back(argument);
+        if (wrap_param.is_self)
+        {
+            continue;
+        }
+        impl_names.push_back(wrap_param.name);
+        impl_types.push_back(wrap_param.ts_type);
+        impl_optional.push_back(false);
+    }
+    return BuildCallExpression(c_func_name, ffi_arguments, impl_names, impl_types, impl_optional);
+}
+
+// Emit a wrapper body: the call, with every wxString temporary it borrows released on every
+// exit path.  createWxString throws when the factory returns null, so straight-line cleanup
+// would leak the temporaries created before the failing one.  With no temporary the body is
+// byte-identical to the straight-line body emitted before this helper existed.  The caller
+// emits the disposed guard first, so an early return never allocates a temporary.
+static void EmitCallBody(std::ostream& output, const FunctionDecl& func,
+                         const std::string& method_owner, const EmittedCall& call,
+                         const std::unordered_set<std::string>& wrapped_classes,
+                         std::string_view indent)
+{
+    if (call.prologue.empty())
+    {
+        EmitWrapReturn(output, func, method_owner, call.expr, wrapped_classes, indent);
+        return;
+    }
+
+    const std::string inner_indent = std::string(indent) + "  ";
+    for (const std::string& line: call.declarations)
+    {
+        output << indent << line << "\n";
+    }
+    output << indent << "try {\n";
+    for (const std::string& line: call.prologue)
+    {
+        output << inner_indent << line << "\n";
+    }
+    EmitWrapReturn(output, func, method_owner, call.expr, wrapped_classes, inner_indent);
+    output << indent << "} finally {\n";
+    for (const std::string& line: call.cleanup)
+    {
+        output << inner_indent << line << "\n";
+    }
+    output << indent << "}\n";
 }
 
 static void EmitSingleOverload(std::ostream& output, const std::string& declared_name,
@@ -1524,28 +1717,18 @@ static void EmitSingleOverload(std::ostream& output, const std::string& declared
         EmitDisposedGuard(output, overload.return_type);
     }
 
-    std::string call = "lib.symbols." + CFuncName(*overload.func) + "(";
-    size_t visible_index = 0;
-    bool call_first = true;
-    for (const auto& argument: overload.ffi_arguments)
+    std::vector<std::string> impl_names;
+    std::vector<std::string> impl_types;
+    for (const WrapParam& wpar: overload.params)
     {
-        if (!call_first)
-        {
-            call += ", ";
-        }
-        call_first = false;
-        if (argument.kind == FfiArgumentKind::self)
-        {
-            call += "this._ptr";
-            continue;
-        }
-        const WrapParam& wpar = overload.params[visible_index];
-        call += BuildFfiArgumentExpr(argument, wpar.name, wpar.ts_type, false);
-        ++visible_index;
+        impl_names.push_back(wpar.name);
+        impl_types.push_back(wpar.ts_type);
     }
-    call += ")";
+    const std::vector<bool> impl_optional(overload.params.size(), false);
 
-    EmitWrapReturn(output, *overload.func, method_owner, call, wrapped_classes);
+    const EmittedCall call = BuildCallExpression(CFuncName(*overload.func), overload.ffi_arguments,
+                                                 impl_names, impl_types, impl_optional);
+    EmitCallBody(output, *overload.func, method_owner, call, wrapped_classes, "    ");
     output << "  }\n\n";
 }
 
@@ -1586,28 +1769,9 @@ static void EmitMergedBranch(std::ostream& output, const EmittedOverload& overlo
         EmitDisposedGuard(output, overload.return_type);
     }
 
-    std::string call = "lib.symbols." + CFuncName(*overload.func) + "(";
-    size_t visible_index = 0;
-    bool call_first = true;
-    for (const auto& argument: overload.ffi_arguments)
-    {
-        if (!call_first)
-        {
-            call += ", ";
-        }
-        call_first = false;
-        if (argument.kind == FfiArgumentKind::self)
-        {
-            call += "this._ptr";
-            continue;
-        }
-        call += BuildFfiArgumentExpr(argument, impl_names[visible_index], impl_types[visible_index],
-                                     impl_optional[visible_index]);
-        ++visible_index;
-    }
-    call += ")";
-
-    EmitWrapReturn(output, *overload.func, method_owner, call, wrapped_classes, "      ");
+    const EmittedCall call = BuildCallExpression(CFuncName(*overload.func), overload.ffi_arguments,
+                                                 impl_names, impl_types, impl_optional);
+    EmitCallBody(output, *overload.func, method_owner, call, wrapped_classes, "      ");
 }
 
 // True when this overload must run before an unguarded same-arity overload because it has
@@ -1670,6 +1834,26 @@ static void EmitMergedBranch(std::ostream& output, const EmittedOverload& overlo
         }
     }
     return order;
+}
+// Split a TypeScript type on its ` | ` separators.  The merged implementation signature
+// unions the per-overload parameter types, so a member another overload already contributed
+// (`Pointer` in `string | Pointer`) must not be repeated.
+[[nodiscard]] static std::vector<std::string> SplitUnionMembers(const std::string& ts_type)
+{
+    static constexpr std::string_view UNION_SEPARATOR { " | " };
+    std::vector<std::string> members;
+    std::string_view rest { ts_type };
+    while (true)
+    {
+        const size_t split_at = rest.find(UNION_SEPARATOR);
+        if (split_at == std::string_view::npos)
+        {
+            members.emplace_back(rest);
+            return members;
+        }
+        members.emplace_back(rest.substr(0, split_at));
+        rest.remove_prefix(split_at + UNION_SEPARATOR.size());
+    }
 }
 
 [[nodiscard]] static std::string
@@ -1735,7 +1919,8 @@ static void EmitOverloadSet(std::ostream& output, const std::string& declared_na
     }
 
     // Implementation signature: the union of all parameter types, with optional
-    // parameters where an overload is shorter.
+    // parameters where an overload is shorter.  Deduped per union member, keeping the order
+    // of first appearance.
     size_t arity = 0;
     for (const auto& overload: overloads)
     {
@@ -1753,9 +1938,12 @@ static void EmitOverloadSet(std::ostream& output, const std::string& declared_na
             if (idx < overload.params.size())
             {
                 const WrapParam& wpar = overload.params[idx];
-                if (std::ranges::find(types, wpar.ts_type) == types.end())
+                for (const std::string& member: SplitUnionMembers(wpar.ts_type))
                 {
-                    types.push_back(wpar.ts_type);
+                    if (std::ranges::find(types, member) == types.end())
+                    {
+                        types.push_back(member);
+                    }
                 }
                 if (impl_names[idx].empty())
                 {
@@ -1878,6 +2066,7 @@ static std::string EmitInstanceMethod(std::ostream& output, const AncestorMember
     own_overload.return_type = WrapReturnType(func, method_owner, wrapped_classes);
     own_overload.func = &func;
 
+    size_t temp_count = 0;
     for (size_t pidx = 0; pidx < func.params.size(); ++pidx)
     {
         const Param& param = func.params[pidx];
@@ -1894,10 +2083,13 @@ static std::string EmitInstanceMethod(std::ostream& output, const AncestorMember
                 own_overload.ffi_arguments.push_back({ FfiArgumentKind::self, "" });
                 continue;
             }
+            const FfiArgument argument = MakeFfiArgument(wpar, temp_count);
+            if (argument.kind == FfiArgumentKind::wxstring)
+            {
+                ++temp_count;
+            }
+            own_overload.ffi_arguments.push_back(argument);
             own_overload.params.push_back(wpar);
-            own_overload.ffi_arguments.push_back(
-                { wpar.ts_type == "boolean" ? FfiArgumentKind::boolean : FfiArgumentKind::plain,
-                  wpar.ts_type });
         }
     }
 
@@ -2219,6 +2411,17 @@ constexpr std::string_view kTsEventHandlerType =
     if (role == "set_value")
     {
         return { "SetValue" };
+    }
+    // A container append.  wxMenu takes the pre-built item (which carries the separator and
+    // check kinds itself); a class without AppendItem falls back to its own Append.
+    if (role == "append")
+    {
+        return { "AppendItem", "Append" };
+    }
+    // The id form of a menu append: wxMenu::AppendById, the shape all six ports prove.
+    if (role == "append_by_id")
+    {
+        return { "AppendById" };
     }
     if (role == "set_size")
     {
@@ -2760,6 +2963,26 @@ UiDescriptor TypeScriptEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) c
                 descriptor.unsupported.push_back(UiUnsupported {
                     .class_name = class_name, .role = "ctor", .reason = "no_naming" });
                 continue;
+            }
+
+            // A class with a role contract outside UiRequiredClasses() (the menu tree) publishes
+            // that role here; every other generic class keeps its constructor-only entry.
+            for (const std::string_view optional_role_view: UiRequiredRolesForClass(class_name))
+            {
+                const std::string role(optional_role_view);
+                if (role == "ctor")
+                {
+                    continue;
+                }
+                std::string reason;
+                UiCallable callable = TsUiRoleCallable(context, class_name, role, reason);
+                if (callable.symbol.empty())
+                {
+                    descriptor.unsupported.push_back(
+                        UiUnsupported { .class_name = class_name, .role = role, .reason = reason });
+                    continue;
+                }
+                generic_info.roles[role] = std::move(callable);
             }
 
             descriptor.classes.emplace(class_name, std::move(generic_info));
@@ -3389,6 +3612,56 @@ export function readAndDeleteWxString(wxStrPtr: Pointer): string
     lib.symbols.wxString_Delete(wxStrPtr);
     return result;
 }
+
+// --- Helper: borrow a wxString for one call; released on every exit path ---
+// WARNING: the pointer is valid only inside fn. Do not store it.
+export function withWxString<T>(text: string, fn: (ptr: Pointer) => T): T
+{
+    const ws = createWxString(text);
+    try
+    {
+        return fn(ws.ptr);
+    }
+    finally
+    {
+        ws.Delete();
+    }
+}
+
+// --- Helper: borrow several wxStrings for one call; released in reverse order ---
+export function withWxStrings<T>(texts: readonly string[], fn: (ptrs: Pointer[]) => T): T
+{
+    const owned: wxString[] = [];
+    try
+    {
+        for (const text of texts)
+        {
+            owned.push(createWxString(text));
+        }
+        return fn(owned.map((ws) => ws.ptr));
+    }
+    finally
+    {
+        for (let i = owned.length - 1; i >= 0; --i)
+        {
+            owned[i].Delete();
+        }
+    }
+}
+
+// --- Helper: read a wxArrayString* into a JS string array ---
+// Every element wxArrayString_Item returns is a heap copy, so each is consumed.
+export function readWxStringArray(ptr: Pointer): string[]
+{
+    if (!ptr) return [];
+    const count = lib.symbols.wxArrayString_GetCount(ptr);
+    const result: string[] = [];
+    for (let i = 0; i < count; ++i)
+    {
+        result.push(readAndDeleteWxString(lib.symbols.wxArrayString_Item(ptr, i)));
+    }
+    return result;
+}
 )TS";
 
     // Derive the wxString UTF8 factory wrapper name (falls back to the first factory).
@@ -3510,7 +3783,15 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
                 continue;  // duplicate name
             }
             const bool is_ptr = cnst.return_type.contains('*');
-            if (is_ptr)
+            if (cnst.return_type == "wxString*")
+            {
+                // The accessor allocates a wxString the caller owns; readAndDeleteWxString
+                // reads it and releases the allocation.
+                body << "export const " << TsEscapeName(cnst.constant_name)
+                     << ": string = readAndDeleteWxString(lib.symbols." << cnst.export_name
+                     << "() as Pointer);\n";
+            }
+            else if (is_ptr)
             {
                 body << "export const " << TsEscapeName(cnst.constant_name)
                      << ": Pointer = lib.symbols." << cnst.export_name << "() as Pointer;\n";
@@ -3527,6 +3808,14 @@ void TypeScriptEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& 
 
     const std::string body_str = body.str();
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (body_str.find("readAndDeleteWxString") != std::string::npos)
+    {
+        output << "import { readAndDeleteWxString } from \"./kwx_helpers_gen.ts\";\n";
+    }
+    if (body_str.find("createWxString(") != std::string::npos)
+    {
+        output << "import { createWxString } from \"./kwx_helpers_gen.ts\";\n";
+    }
     output << "import { arrayBufferView";
     if (body_str.find("Pointer") != std::string::npos)
     {
@@ -3698,20 +3987,8 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
             first = false;
         }
         body << "): " << ret_type << " {\n";
-        std::string call = "lib.symbols." + func_name + "(";
-        bool call_first = true;
-        for (const auto& wpar: wrap_params)
-        {
-            if (!call_first)
-            {
-                call += ", ";
-            }
-            call += wpar.ffi_expr;
-            call_first = false;
-        }
-        call += ")";
-
-        EmitWrapReturn(body, func, "", call, wrapped_classes);
+        const EmittedCall call = BuildWrapParamCall(func_name, wrap_params);
+        EmitCallBody(body, func, "", call, wrapped_classes, "    ");
 
         body << "}\n\n";
         ++func_count;
@@ -3770,20 +4047,8 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
             }
             body << "): " << ret_type << " {\n";
 
-            std::string call = "lib.symbols." + func_name + "(";
-            bool call_first = true;
-            for (const auto& wpar: wrap_params)
-            {
-                if (!call_first)
-                {
-                    call += ", ";
-                }
-                call += wpar.ffi_expr;
-                call_first = false;
-            }
-            call += ")";
-
-            EmitWrapReturn(body, func, "", call, wrapped_classes);
+            const EmittedCall call = BuildWrapParamCall(func_name, wrap_params);
+            EmitCallBody(body, func, "", call, wrapped_classes, "    ");
 
             body << "}\n\n";
             ++func_count;
@@ -3792,6 +4057,10 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 
     const std::string body_str = body.str();
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (body_str.find("createWxString(") != std::string::npos)
+    {
+        output << "import { createWxString } from \"./kwx_helpers_gen.ts\";\n";
+    }
     if (body_str.find("Pointer") != std::string::npos)
     {
         output << "import { Pointer } from \"kwx/platform\";\n";
@@ -4051,20 +4320,8 @@ void TypeScriptEmitter::EmitClassFile(
         }
         body << "): " << ret_type << " {\n";
 
-        std::string call = "lib.symbols." + func_name + "(";
-        bool call_first = true;
-        for (const auto& wpar: wrap_params)
-        {
-            if (!call_first)
-            {
-                call += ", ";
-            }
-            call += wpar.ffi_expr;
-            call_first = false;
-        }
-        call += ")";
-
-        EmitWrapReturn(body, func, cls.name, call, wrapped_classes);
+        const EmittedCall call = BuildWrapParamCall(func_name, wrap_params);
+        EmitCallBody(body, func, cls.name, call, wrapped_classes, "    ");
 
         body << "}\n";
     }
@@ -4090,6 +4347,10 @@ void TypeScriptEmitter::EmitClassFile(
     else
     {
         output << "import { registerClass } from \"./kwx_class_registry_gen.ts\";\n";
+    }
+    if (body_str.find("createWxString(") != std::string::npos)
+    {
+        output << "import { createWxString } from \"./kwx_helpers_gen.ts\";\n";
     }
     if (body_str.find("Pointer") != std::string::npos)
     {

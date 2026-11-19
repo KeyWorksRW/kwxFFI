@@ -373,6 +373,17 @@ static bool LoadConfigFile(Args& args)
     return true;
 }
 
+// LuaJIT's emitter identifies itself as "lua" - that is the id every command compares
+// against (`FindEmitter`, `GeneratedSuffixes`, the emit-ui descriptor check) - so fold the
+// descriptive "luajit" spelling onto the canonical name before dispatch.
+static void NormalizeLanguageName(Args& args)
+{
+    if (args.lang == "luajit")
+    {
+        args.lang = "lua";
+    }
+}
+
 // -------------------------------------------------------------------------
 // Emitter registry
 // -------------------------------------------------------------------------
@@ -424,12 +435,9 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
     {
         return { ".jl" };
     }
-    if (lang == "luajit")
-    {
-        return { ".lua" };
-    }
-    // The LuaJIT emitter's Name() is "lua", so `verify --lang lua` reaches this function
-    // with "lua" and must not fall through to the Go suffix below.
+    // The LuaJIT emitter's Name() is "lua" (main() maps the "luajit" alias onto it), so
+    // `verify --lang lua` reaches this function with "lua" and must not fall through to
+    // the Go suffix below.
     if (lang == "lua")
     {
         return { ".lua" };
@@ -959,6 +967,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    NormalizeLanguageName(args);
+
     if (args.command == CMD_PARSE)
     {
         if (args.headers_dir.empty() || args.defs_file.empty())
@@ -1472,8 +1482,9 @@ int main(int argc, char* argv[])
             std::println("  {}", profile_name);
         }
         std::println("\nDefault profile per language:");
+        // These must match LanguageEmitter::Name() exactly - they are the ids `--lang` accepts.
         static constexpr std::array<std::string_view, 6> LANGS { "fortran", "go",   "julia",
-                                                                 "luajit",  "rust", "typescript" };
+                                                                 "lua",     "rust", "typescript" };
         for (const std::string_view lang: LANGS)
         {
             std::println("  {:<11} {}", lang, DefaultProfileForLanguage(lang));

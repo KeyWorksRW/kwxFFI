@@ -73,6 +73,11 @@ extern "C"
         self->SetData(*data);
     }
 
+    EXPORT wxStringClientData* wxStringClientData_FromClientData(wxClientData* data)
+    {
+        return dynamic_cast<wxStringClientData*>(data);
+    }
+
     EXPORT void* wxTreeItemData_Create()
     {
         return new wxTreeItemData();

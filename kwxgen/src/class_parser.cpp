@@ -436,6 +436,29 @@ static size_t ExtractClassDef(const std::string& line, std::string& class_name,
     return remainder.empty();
 }
 
+// A class-def line may carry the first declaration's return type on the same physical line:
+//     TClassDefExtend(wxTextValidator, wxValidator) TClass(wxTextValidator)
+//         wxTextValidator_Create(int style, void* val);
+// Such a line is not complete on its own -- the declaration that gives it meaning follows.
+// When a comment (or blank) line separates the two, the comment is stripped to an empty line
+// before BuildLogicalLines runs, and flushing the half a class def there leaves the declaration
+// without a return type: it falls back to `int`, and every backend then emits a pointer-returning
+// constructor as a 32-bit integer.  Only this exact shape defers the flush; every other pending
+// statement (a complete declaration, a bare class def, or a foreign block opener such as
+// `extern "C" {`) still flushes exactly as before.
+[[nodiscard]] static bool IsClassDefAwaitingDeclaration(const std::string& line)
+{
+    std::string class_name;
+    std::string parent_name;
+    const size_t after_classdef = ExtractClassDef(line, class_name, parent_name);
+    if (after_classdef == std::string::npos)
+    {
+        return false;
+    }
+    const std::string remainder = Trim(line.substr(after_classdef));
+    return !remainder.empty() && remainder.back() != ';';
+}
+
 // Walk the parent hierarchy to check if a class derives from a target class.
 [[nodiscard]] static bool
     DerivesFrom(const std::string& class_name, const std::string& target,
@@ -527,8 +550,9 @@ static std::vector<std::string> BuildLogicalLines(const std::vector<std::string>
         // Skip preprocessor directives and empty lines
         if (stripped.empty())
         {
-            // Empty line: flush any pending standalone class def
-            if (!buffer.empty() && ParensBalanced(buffer))
+            // Flush a pending statement, except a class-def line that is still waiting for the
+            // declaration carrying its return type (see IsClassDefAwaitingDeclaration).
+            if (!buffer.empty() && ParensBalanced(buffer) && !IsClassDefAwaitingDeclaration(buffer))
             {
                 FlushBuffer();
             }

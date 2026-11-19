@@ -11,6 +11,11 @@ extern "C"
         return new wxCaret(window, width, height);
     }
 
+    EXPORT void wxCaret_Delete(wxCaret* self)
+    {
+        delete self;
+    }
+
     EXPORT int wxCaret_IsOk(wxCaret* self)
     {
         return self->IsOk();

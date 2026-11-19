@@ -20,30 +20,33 @@ extern "C"
         return new wxBrush(*col, (wxBrushStyle) style);
     }
 
+    // The stock brushes are wxWidgets globals, so the caller-owned contract of
+    // the declaration (TClass(wxBrush), released with wxBrush_Delete) requires a
+    // copy.
     EXPORT void* wxBrush_CreateFromStock(int id)
     {
         switch (id)
         {
-            case 0:
-                return (void*) wxBLUE_BRUSH;
-            case 1:
-                return (void*) wxGREEN_BRUSH;
-            case 2:
-                return (void*) wxWHITE_BRUSH;
-            case 3:
-                return (void*) wxBLACK_BRUSH;
-            case 4:
-                return (void*) wxGREY_BRUSH;
-            case 5:
-                return (void*) wxMEDIUM_GREY_BRUSH;
-            case 6:
-                return (void*) wxLIGHT_GREY_BRUSH;
-            case 7:
-                return (void*) wxTRANSPARENT_BRUSH;
-            case 8:
-                return (void*) wxCYAN_BRUSH;
-            case 9:
-                return (void*) wxRED_BRUSH;
+            case kwxStockBrush_Blue:
+                return new wxBrush(*wxBLUE_BRUSH);
+            case kwxStockBrush_Green:
+                return new wxBrush(*wxGREEN_BRUSH);
+            case kwxStockBrush_White:
+                return new wxBrush(*wxWHITE_BRUSH);
+            case kwxStockBrush_Black:
+                return new wxBrush(*wxBLACK_BRUSH);
+            case kwxStockBrush_Grey:
+                return new wxBrush(*wxGREY_BRUSH);
+            case kwxStockBrush_MediumGrey:
+                return new wxBrush(*wxMEDIUM_GREY_BRUSH);
+            case kwxStockBrush_LightGrey:
+                return new wxBrush(*wxLIGHT_GREY_BRUSH);
+            case kwxStockBrush_Transparent:
+                return new wxBrush(*wxTRANSPARENT_BRUSH);
+            case kwxStockBrush_Cyan:
+                return new wxBrush(*wxCYAN_BRUSH);
+            case kwxStockBrush_Red:
+                return new wxBrush(*wxRED_BRUSH);
         }
 
         return nullptr;

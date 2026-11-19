@@ -180,9 +180,9 @@ TClass(wxString) wxLocale_GetLanguageCanonicalName(int language);
 // (wxLayoutDirection, wxMeasurementSystem, wxCurrencySymbolPosition).
 TClassDef(wxUILocale) TClass(wxUILocale) wxUILocale_CreateFromTag(TClass(wxString) tag);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxUILocale) wxUILocale_FromTag(TClass(wxString) tag);
+TClassOwned(wxUILocale) wxUILocale_FromTag(TClass(wxString) tag);
 void* wxUILocale_GetLanguageInfo(int lang);
-TClass(wxUILocale) wxUILocale_GetCurrent();
+TClassOwned(wxUILocale) wxUILocale_GetCurrent();
 void wxUILocale_Delete(TSelf(wxUILocale) pObject);
 TBool wxUILocale_UseLocaleName(TClass(wxString) locale_name);
 TBool wxUILocale_IsSupported(TSelf(wxUILocale) pObject);
@@ -220,7 +220,7 @@ TClass(wxTranslations) wxTranslations_Get();
 void wxTranslations_Set(TClass(wxTranslations) translations);
 void wxTranslations_SetLanguage(TSelf(wxTranslations) pObject, int language);
 void wxTranslations_SetLanguageName(TSelf(wxTranslations) pObject, TClass(wxString) language);
-TClass(wxArrayString)
+TClassOwned(wxArrayString)
     wxTranslations_GetAvailableTranslations(TSelf(wxTranslations) pObject, TClass(wxString) domain);
 TClass(wxString) wxTranslations_GetBestAvailableTranslation(TSelf(wxTranslations) pObject,
                                                             TClass(wxString) domain);
@@ -310,10 +310,16 @@ void wxFileConfig_DisableAutoSave(TSelf(wxFileConfig) pObject);
 // kwxCmdLineDesc helper (`include/kwx_helper_cmdline.h`) owns the wxCmdLineEntryDesc table for
 // SetDesc(); see that header for the lifetime rules.
 //
-// Parse() takes the raw argc/argv pair a process received; the wrapper casts argv to char**
-// and passes it to wxCmdLineParser::SetCmdLine() before parsing. It returns 0 on success, -1
-// when a help option was found and the usage message was shown, and a positive value on a
-// syntax error. ParseString() does the same for a single command-line string.
+// Parse() takes the raw argc/argv pair a process received; the wrapper copies each UTF-8
+// argument into a wxString and hands the array to wxCmdLineParser::SetCmdLine(int, const
+// wxCmdLineArgsArray&), which never touches the C locale.  Do not reach for
+// SetCmdLine(int, char**): it switches to the system locale, and a wxUSE_UTF8_LOCALE_ONLY
+// build ends the process with "This program requires UTF-8 locale to run." when that locale
+// is not UTF-8.  Parse() returns 0 on success, -1 when a help option was found and the usage
+// message was shown, and a positive value on a syntax error.  ParseString() does the same for
+// a single command-line string.
+// ParseArgv() takes the same arguments as an already-split string array and is what a
+// ParseString() caller should switch to when its language can supply one.
 //
 // Usage() and GetUsageString() render the usage block.  GetUsageString() returns a new
 // wxString the caller must delete, so a port can capture the text and print it through its own
@@ -350,10 +356,26 @@ int wxCmdLineParser_Parse(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
 int wxCmdLineParser_ParseString(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
 int wxCmdLineParser_ParseArgs(TSelf(wxCmdLineParser) pObject, int argc, void* argv);
 int wxCmdLineParser_ParseStringArgs(TSelf(wxCmdLineParser) pObject, TClass(wxString) command_line);
+
+// ParseArgv() is Parse() for a command line a binding has already split into
+// strings. Element 0 must be the program name, exactly like the argv a C main()
+// receives: the usage synopsis prints wxFileName(argv[0]).GetName(). The array
+// is copied without touching the C locale, so it works on any system locale, and
+// that plus the absence of re-quoting is why it is preferred over ParseString():
+// element boundaries, embedded quote characters and a trailing backslash after a
+// space survive exactly, where a single command-line string has to be re-quoted
+// by the binding and cannot round-trip through ConvertStringToArgs(). Return
+// codes and output match Parse(): 0 on success, -1 when a help option was found,
+// positive on a syntax error, and nothing is written to the active
+// wxMessageOutput (call Usage()).
+int wxCmdLineParser_ParseArgv(TSelf(wxCmdLineParser) pObject, TArrayString(argc, argv));
 TBool wxCmdLineParser_Found(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 int wxCmdLineParser_GetParamCount(TSelf(wxCmdLineParser) pObject);
-TClass(wxString) wxCmdLineParser_GetParam(TSelf(wxCmdLineParser) pObject, int index);
-TClass(wxString)
+// Both accessors build a new wxString (see src/wx_date_locale_extra.cpp): the caller owns
+// it.  GetOptionValue returns null when the option was not given, which every backend maps
+// to its "absent" value.
+TClassOwned(wxString) wxCmdLineParser_GetParam(TSelf(wxCmdLineParser) pObject, int index);
+TClassOwned(wxString)
     wxCmdLineParser_GetOptionValue(TSelf(wxCmdLineParser) pObject, TClass(wxString) name);
 long wxCmdLineParser_GetOptionLong(TSelf(wxCmdLineParser) pObject, TClass(wxString) name,
                                    long default_value);
@@ -392,6 +414,23 @@ TClass(wxVariant) wxVariant_CreateFromVoidPtr(void* value, TClass(wxString) name
 TClass(wxVariant) wxVariant_CreateFromObject(TClass(wxObject) value, TClass(wxString) name);
 TClass(wxVariant)
     wxVariant_CreateFromArrayString(TClass(wxArrayString) value, TClass(wxString) name);
+// The two wxDataViewIconText value classes: wxDataViewIconTextRenderer and
+// wxDataViewCheckIconTextRenderer only display a variant built from them.  checkedState is
+// 0 = wxCHK_UNCHECKED, 1 = wxCHK_CHECKED, 2 = wxCHK_UNDETERMINED; a null icon is the empty
+// bundle.
+TClass(wxVariant)
+    wxVariant_CreateFromDataViewIconText(TClass(wxString) text, TClass(wxBitmapBundle) icon,
+                                         TClass(wxString) name);
+TClass(wxVariant)
+    wxVariant_CreateFromDataViewCheckIconText(TClass(wxString) text, TClass(wxBitmapBundle) icon,
+                                              int checkedState, TClass(wxString) name);
+// The reverse of the two factories: copy the variant's value into a value object the
+// caller owns.  Returns false when the variant holds another type — the C++ operator<<
+// asserts on a type mismatch, so the check is not optional.  The receiver is TSelf, so
+// this is an instance method like the other wxVariant accessors.
+TBool wxVariant_GetDataViewIconText(TSelf(wxVariant) pObject, TClass(wxDataViewIconText) result);
+TBool wxVariant_GetDataViewCheckIconText(TSelf(wxVariant) pObject,
+                                         TClass(wxDataViewCheckIconText) result);
 void wxVariant_SetName(TSelf(wxVariant) pObject, TClass(wxString) name);
 TClass(wxString) wxVariant_GetName(TSelf(wxVariant) pObject);
 TBool wxVariant_IsNull(TSelf(wxVariant) pObject);
@@ -409,7 +448,7 @@ void wxVariant_SetArrayString(TSelf(wxVariant) pObject, TClass(wxArrayString) va
 TChar wxVariant_GetChar(TSelf(wxVariant) pObject);
 void* wxVariant_GetVoidPtr(TSelf(wxVariant) pObject);
 TClass(wxObject) wxVariant_GetWxObjectPtr(TSelf(wxVariant) pObject);
-TClass(wxArrayString) wxVariant_GetArrayString(TSelf(wxVariant) pObject);
+TClassOwned(wxArrayString) wxVariant_GetArrayString(TSelf(wxVariant) pObject);
 int wxVariant_GetCount(TSelf(wxVariant) pObject);
 void wxVariant_NullList(TSelf(wxVariant) pObject);
 void wxVariant_Append(TSelf(wxVariant) pObject, TClass(wxVariant) value);
@@ -421,7 +460,7 @@ TBool wxVariant_ConvertToDouble(TSelf(wxVariant) pObject, TDoubleOut value);
 TBool wxVariant_ConvertToBool(TSelf(wxVariant) pObject, TIntOut value);
 // wxVariant list element access: a new copy of element `index`, which the caller
 // owns.  Returns null when index is out of range.
-TClass(wxVariant) wxVariant_Item(TSelf(wxVariant) pObject, size_t index);
+TClassOwned(wxVariant) wxVariant_Item(TSelf(wxVariant) pObject, size_t index);
 // Extracts the wxFont held by a "wxFont" variant; null for any other type.  The
 // caller owns the returned wxFont.
-TClass(wxFont) wxVariant_GetFont(TSelf(wxVariant) pObject);
+TClassOwned(wxFont) wxVariant_GetFont(TSelf(wxVariant) pObject);

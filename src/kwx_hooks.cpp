@@ -7,6 +7,12 @@
 
 #include "kwx_wrapper.h"
 
+// The wxDataView renderer classes (wxDataViewRenderer, wxDataViewCustomRenderer) live in
+// wx/dvrenderers.h; kwx_wrapper.h pulls in wx/dataview.h, which does not include it in
+// every configuration.
+#include <wx/dvrenderers.h>
+
+#include <cstdint>
 #include <unordered_set>
 
 // The class definitions live in include/kwx_helper_hooks.h; that header now
@@ -195,6 +201,11 @@ kwxApp::kwxApp(void* pObject) : wxApp()
     m_get_class_info_func = nullptr;
     m_on_assert_failure_func = nullptr;
     m_create_traits_func = nullptr;
+    m_on_fatal_exception_func = nullptr;
+    m_on_unhandled_exception_func = nullptr;
+    m_store_current_exception_func = nullptr;
+    m_on_exception_in_main_loop_func = nullptr;
+    m_rethrow_stored_exception_func = nullptr;
 }
 
 bool kwxApp::OnCmdLineParsed(wxCmdLineParser& parser)
@@ -270,6 +281,57 @@ wxAppTraits* kwxApp::CreateTraits()
     return static_cast<wxAppTraits*>(m_create_traits_func(m_object));
 }
 
+// wxApp owns the same five exception hooks as wxAppConsole.  They exist on the
+// wxApp helper so a port never has to reach them through the wxAppConsole
+// base-name aliases, which cannot be applied to a wxApp object.
+void kwxApp::OnFatalException()
+{
+    if (!m_on_fatal_exception_func)
+    {
+        wxApp::OnFatalException();
+        return;
+    }
+    m_on_fatal_exception_func(m_object);
+}
+
+void kwxApp::OnUnhandledException()
+{
+    if (!m_on_unhandled_exception_func)
+    {
+        wxApp::OnUnhandledException();
+        return;
+    }
+    m_on_unhandled_exception_func(m_object);
+}
+
+bool kwxApp::OnExceptionInMainLoop()
+{
+    if (!m_on_exception_in_main_loop_func)
+    {
+        return wxApp::OnExceptionInMainLoop();
+    }
+    return m_on_exception_in_main_loop_func(m_object) != 0;
+}
+
+bool kwxApp::StoreCurrentException()
+{
+    if (!m_store_current_exception_func)
+    {
+        return wxApp::StoreCurrentException();
+    }
+    return m_store_current_exception_func(m_object) != 0;
+}
+
+void kwxApp::RethrowStoredException()
+{
+    if (!m_rethrow_stored_exception_func)
+    {
+        wxApp::RethrowStoredException();
+        return;
+    }
+    m_rethrow_stored_exception_func(m_object);
+}
+
 #endif  // KWX_HAVE_APP_HOOK
 
 // ---------------------------------------------------------------------------
@@ -289,6 +351,38 @@ wxClassInfo* kwxObject::GetClassInfo() const
         return wxObject::GetClassInfo();
     }
     return static_cast<wxClassInfo*>(m_get_class_info_func(m_object));
+}
+
+// ---------------------------------------------------------------------------
+// wxDebugReportUpload
+//
+// The wxWidgets debugrpt sample derives from wxDebugReportUpload only to log the
+// reply curl got back from the server.  The helper publishes that reply through a
+// callback and lets the callback decide the return value of OnServerReply(): the
+// hook answers with SetOnServerReplyResult() while it runs.
+// ---------------------------------------------------------------------------
+
+kwxDebugReportUpload::kwxDebugReportUpload(void* pObject, const wxString& url,
+                                           const wxString& input, const wxString& action) :
+    wxDebugReportUpload(url, input, action)
+{
+    m_object = pObject;
+    m_on_server_reply_func = nullptr;
+    m_server_reply_result = true;
+}
+
+bool kwxDebugReportUpload::OnServerReply(const wxArrayString& reply)
+{
+    if (!m_on_server_reply_func)
+    {
+        return m_server_reply_result;
+    }
+
+    // The answer is per reply: reset it before every call so a callback that
+    // publishes nothing keeps the report.
+    m_server_reply_result = true;
+    m_on_server_reply_func(m_object, const_cast<wxArrayString*>(&reply));
+    return m_server_reply_result;
 }
 
 // ---------------------------------------------------------------------------
@@ -363,6 +457,179 @@ void kwxPanel::ScrollWindow(int dx, int dy, const wxRect* rect)
         return;
     }
     m_scroll_window_func(m_object, dx, dy, (void*) rect);
+}
+
+// ---------------------------------------------------------------------------
+// kwxDialog
+// ---------------------------------------------------------------------------
+
+kwxDialog::kwxDialog(void* pObject, wxWindow* parent, wxWindowID id, const wxString& title,
+                     const wxPoint& pos, const wxSize& size, long style) :
+    wxDialog(parent, id, title, pos, size, style)
+{
+    m_object = pObject;
+    m_transfer_data_from_window_func = nullptr;
+    m_transfer_data_to_window_func = nullptr;
+}
+
+bool kwxDialog::TransferDataFromWindow()
+{
+    if (!m_transfer_data_from_window_func)
+    {
+        return wxDialog::TransferDataFromWindow();
+    }
+    return m_transfer_data_from_window_func(m_object) != 0;
+}
+
+bool kwxDialog::TransferDataToWindow()
+{
+    if (!m_transfer_data_to_window_func)
+    {
+        return wxDialog::TransferDataToWindow();
+    }
+    return m_transfer_data_to_window_func(m_object) != 0;
+}
+
+// ---------------------------------------------------------------------------
+// kwxFrame
+//
+// Mirrors MyFrame::ProcessEvent in wxSamples/src/richtext/richtext.cpp:1325-1363:
+// the frame forwards a command event to the focused window's handler and reports
+// it handled when that handler consumed it, otherwise it defers to
+// wxFrame::ProcessEvent.  A callback that publishes no result therefore means
+// "not handled" -- never "handled" -- so an update-UI event still reaches the
+// frame's own handlers.
+//
+// TryBefore is hooked separately for the sample's "forward frame menu/update-UI
+// events to the child canvas first" pattern, and the base implementation is always
+// chained.
+// ---------------------------------------------------------------------------
+
+// Uniform single-thunk hook ABI, identical to the typedef src/kwx_richtext_hooks.cpp
+// declares for its hooks: the first argument is the per-hook token, the next two are
+// the hook arguments, and unused positions are null.
+typedef void (*kwxHookFunc)(void* data, void* arg1, void* arg2);
+
+class kwxFrame : public wxFrame
+{
+private:
+    void* m_object;
+    kwxAppEventFunc m_process_event_func;
+
+    kwxHookFunc m_process_event_hook;
+    void* m_process_event_hook_data;
+
+    bool m_result_bool;
+    bool m_has_result;
+
+    kwxAppEventFunc m_try_before_func;
+    kwxHookFunc m_try_before_hook;
+    void* m_try_before_hook_data;
+
+    bool m_try_before_result;
+    bool m_has_try_before_result;
+
+public:
+    kwxFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
+             const wxSize& size, long style);
+
+    void SetCallbackObject(void* object) { m_object = object; }
+    void* GetCallbackObject() const { return m_object; }
+
+    void SetOnProcessEvent(void* pFunction) { m_process_event_func = (kwxAppEventFunc) pFunction; }
+    void SetOnProcessEventWithData(void* pFunction, void* data)
+    {
+        m_process_event_hook = (kwxHookFunc) pFunction;
+        m_process_event_hook_data = data;
+    }
+
+    void SetProcessEventResult(bool result)
+    {
+        m_result_bool = result;
+        m_has_result = true;
+    }
+
+    void SetOnTryBefore(void* pFunction) { m_try_before_func = (kwxAppEventFunc) pFunction; }
+    void SetOnTryBeforeWithData(void* pFunction, void* data)
+    {
+        m_try_before_hook = (kwxHookFunc) pFunction;
+        m_try_before_hook_data = data;
+    }
+
+    void SetTryBeforeResult(bool result)
+    {
+        m_try_before_result = result;
+        m_has_try_before_result = true;
+    }
+
+    bool ProcessEvent(wxEvent& event) override;
+
+protected:
+    bool TryBefore(wxEvent& event) override;
+};
+
+kwxFrame::kwxFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
+                   const wxSize& size, long style) : wxFrame(parent, id, title, pos, size, style)
+{
+    m_object = nullptr;
+    m_process_event_func = nullptr;
+    m_process_event_hook = nullptr;
+    m_process_event_hook_data = nullptr;
+    m_result_bool = false;
+    m_has_result = false;
+    m_try_before_func = nullptr;
+    m_try_before_hook = nullptr;
+    m_try_before_hook_data = nullptr;
+    m_try_before_result = false;
+    m_has_try_before_result = false;
+}
+
+bool kwxFrame::ProcessEvent(wxEvent& event)
+{
+    if (m_process_event_hook)
+    {
+        // The answer is per event: clear the previous one before every call so a
+        // callback that publishes nothing always falls through.
+        m_result_bool = false;
+        m_has_result = false;
+        m_process_event_hook(m_process_event_hook_data, &event, nullptr);
+        if (m_has_result && m_result_bool)
+        {
+            return true;
+        }
+        return wxFrame::ProcessEvent(event);
+    }
+    if (m_process_event_func)
+    {
+        return m_process_event_func(m_object, &event) != 0;
+    }
+    return wxFrame::ProcessEvent(event);
+}
+
+bool kwxFrame::TryBefore(wxEvent& event)
+{
+    if (m_try_before_hook)
+    {
+        // Per event: clear the previous answer so a callback that publishes nothing
+        // always falls through to wxFrame::TryBefore().
+        m_try_before_result = false;
+        m_has_try_before_result = false;
+        m_try_before_hook(m_try_before_hook_data, &event, nullptr);
+        if (m_has_try_before_result && m_try_before_result)
+        {
+            return true;
+        }
+    }
+    else if (m_try_before_func)
+    {
+        if (m_try_before_func(m_object, &event) != 0)
+        {
+            return true;
+        }
+    }
+
+    // Qualified call: a plain virtual call would re-enter this override.
+    return wxFrame::TryBefore(event);
 }
 
 // ---------------------------------------------------------------------------
@@ -1096,6 +1363,94 @@ bool kwxWizardPage::TransferDataToWindow()
 }
 
 // ---------------------------------------------------------------------------
+// wxWizardPageSimple
+//
+// Same bodies as kwxWizardPage, except that an unset hook falls through to the
+// wxWizardPageSimple implementation instead of a neutral value: the base already
+// answers from the prev/next pointers, which is what keeps SetNext()/SetPrev()/
+// Chain() meaningful on a page that overrides nothing.
+// ---------------------------------------------------------------------------
+
+kwxWizardPageSimple::kwxWizardPageSimple(void* pObject, wxWizard* parent, wxWizardPage* prev,
+                                         wxWizardPage* next, const wxBitmapBundle& bitmap) :
+    wxWizardPageSimple(parent, prev, next, bitmap)
+{
+    m_object = pObject;
+    m_get_next_func = nullptr;
+    m_get_prev_func = nullptr;
+    m_transfer_data_from_window_func = nullptr;
+    m_transfer_data_to_window_func = nullptr;
+    m_get_next_out_func = nullptr;
+    m_get_prev_out_func = nullptr;
+    m_transfer_data_from_window_out_func = nullptr;
+    m_transfer_data_to_window_out_func = nullptr;
+}
+
+wxWizardPage* kwxWizardPageSimple::GetNext() const
+{
+    if (m_get_next_out_func)
+    {
+        void* page = nullptr;
+        m_get_next_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
+    if (!m_get_next_func)
+    {
+        return wxWizardPageSimple::GetNext();
+    }
+    return (wxWizardPage*) m_get_next_func(m_object);
+}
+
+wxWizardPage* kwxWizardPageSimple::GetPrev() const
+{
+    if (m_get_prev_out_func)
+    {
+        void* page = nullptr;
+        m_get_prev_out_func(m_object, &page);
+        return static_cast<wxWizardPage*>(page);
+    }
+
+    if (!m_get_prev_func)
+    {
+        return wxWizardPageSimple::GetPrev();
+    }
+    return (wxWizardPage*) m_get_prev_func(m_object);
+}
+
+bool kwxWizardPageSimple::TransferDataFromWindow()
+{
+    if (m_transfer_data_from_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_from_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_from_window_func)
+    {
+        return wxWizardPageSimple::TransferDataFromWindow();
+    }
+    return m_transfer_data_from_window_func(m_object) != 0;
+}
+
+bool kwxWizardPageSimple::TransferDataToWindow()
+{
+    if (m_transfer_data_to_window_out_func)
+    {
+        int result = 1;
+        m_transfer_data_to_window_out_func(m_object, &result);
+        return result != 0;
+    }
+
+    if (!m_transfer_data_to_window_func)
+    {
+        return wxWizardPageSimple::TransferDataToWindow();
+    }
+    return m_transfer_data_to_window_func(m_object) != 0;
+}
+
+// ---------------------------------------------------------------------------
 // wxPopupTransientWindow
 // ---------------------------------------------------------------------------
 
@@ -1148,6 +1503,65 @@ void kwxPopupTransientWindow::OnDismiss()
 }
 
 // ---------------------------------------------------------------------------
+// kwxDocTemplate
+//
+// The base class can only create through a wxClassInfo, so both creation hooks are
+// taken here and the object the hook published is returned.  Never fall back to the
+// base: with null class info it returns null anyway.
+// ---------------------------------------------------------------------------
+
+kwxDocTemplate::kwxDocTemplate(void* pObject, wxDocManager* manager, const wxString& descr,
+                               const wxString& filter, const wxString& dir, const wxString& ext,
+                               const wxString& docTypeName, const wxString& viewTypeName,
+                               long flags) :
+    wxDocTemplate(manager, descr, filter, dir, ext, docTypeName, viewTypeName, nullptr, nullptr,
+                  flags)
+{
+    m_object = pObject;
+    m_create_document_func = nullptr;
+    m_create_view_func = nullptr;
+    m_created_document = nullptr;
+    m_created_view = nullptr;
+    m_initing_document = nullptr;
+}
+
+// Records the document for the DoCreateView() hook, which receives no argument.  The
+// base implementation is what calls the document's OnCreate(), so it must run.
+bool kwxDocTemplate::InitDocument(wxDocument* doc, const wxString& path, long flags)
+{
+    m_initing_document = doc;
+    const bool created = wxDocTemplate::InitDocument(doc, path, flags);
+    m_initing_document = nullptr;
+    return created;
+}
+
+wxDocument* kwxDocTemplate::DoCreateDocument()
+{
+    if (!m_create_document_func)
+    {
+        return nullptr;
+    }
+    m_created_document = nullptr;
+    m_create_document_func(m_object, this);
+    wxDocument* const doc = m_created_document;
+    m_created_document = nullptr;
+    return doc;
+}
+
+wxView* kwxDocTemplate::DoCreateView()
+{
+    if (!m_create_view_func)
+    {
+        return nullptr;
+    }
+    m_created_view = nullptr;
+    m_create_view_func(m_object, this, m_initing_document);
+    wxView* const view = m_created_view;
+    m_created_view = nullptr;
+    return view;
+}
+
+// ---------------------------------------------------------------------------
 // wxDocument
 //
 // LoadObject() and SaveObject() are deliberately not overridden: their
@@ -1156,7 +1570,7 @@ void kwxPopupTransientWindow::OnDismiss()
 // register of .private/port/fix_worklist.md.
 // ---------------------------------------------------------------------------
 
-kwxDocument::kwxDocument(void* pObject) : wxDocument()
+kwxDocument::kwxDocument(void* pObject, wxDocument* parent) : wxDocument(parent)
 {
     m_object = pObject;
     m_do_open_document_func = nullptr;
@@ -1166,10 +1580,30 @@ kwxDocument::kwxDocument(void* pObject) : wxDocument()
     m_modify_func = nullptr;
     m_on_create_func = nullptr;
     m_on_open_document_func = nullptr;
+    m_do_open_document_hook = nullptr;
+    m_do_open_document_hook_data = nullptr;
+    m_do_save_document_hook = nullptr;
+    m_do_save_document_hook_data = nullptr;
+    m_is_modified_hook = nullptr;
+    m_is_modified_hook_data = nullptr;
+    m_modify_hook = nullptr;
+    m_modify_hook_data = nullptr;
+    m_on_create_hook = nullptr;
+    m_on_create_hook_data = nullptr;
+    m_on_open_document_hook = nullptr;
+    m_on_open_document_hook_data = nullptr;
+    m_published = false;
+    m_result_bool = false;
 }
 
 bool kwxDocument::DoOpenDocument(const wxString& file)
 {
+    if (m_do_open_document_hook)
+    {
+        m_published = false;
+        m_do_open_document_hook(m_do_open_document_hook_data, (void*) &file, nullptr);
+        return m_published ? m_result_bool : wxDocument::DoOpenDocument(file);
+    }
     if (!m_do_open_document_func)
     {
         return wxDocument::DoOpenDocument(file);
@@ -1179,6 +1613,12 @@ bool kwxDocument::DoOpenDocument(const wxString& file)
 
 bool kwxDocument::DoSaveDocument(const wxString& file)
 {
+    if (m_do_save_document_hook)
+    {
+        m_published = false;
+        m_do_save_document_hook(m_do_save_document_hook_data, (void*) &file, nullptr);
+        return m_published ? m_result_bool : wxDocument::DoSaveDocument(file);
+    }
     if (!m_do_save_document_func)
     {
         return wxDocument::DoSaveDocument(file);
@@ -1197,6 +1637,12 @@ wxClassInfo* kwxDocument::GetClassInfo() const
 
 bool kwxDocument::IsModified() const
 {
+    if (m_is_modified_hook)
+    {
+        m_published = false;
+        m_is_modified_hook(m_is_modified_hook_data, nullptr, nullptr);
+        return m_published ? m_result_bool : wxDocument::IsModified();
+    }
     if (!m_is_modified_func)
     {
         return wxDocument::IsModified();
@@ -1206,6 +1652,12 @@ bool kwxDocument::IsModified() const
 
 void kwxDocument::Modify(bool modified)
 {
+    if (m_modify_hook)
+    {
+        m_published = false;
+        m_modify_hook(m_modify_hook_data, (void*) (intptr_t) (modified ? 1 : 0), nullptr);
+        return;
+    }
     if (!m_modify_func)
     {
         wxDocument::Modify(modified);
@@ -1216,6 +1668,12 @@ void kwxDocument::Modify(bool modified)
 
 bool kwxDocument::OnCreate(const wxString& path, long flags)
 {
+    if (m_on_create_hook)
+    {
+        m_published = false;
+        m_on_create_hook(m_on_create_hook_data, (void*) &path, (void*) (intptr_t) flags);
+        return m_published ? m_result_bool : wxDocument::OnCreate(path, flags);
+    }
     if (!m_on_create_func)
     {
         return wxDocument::OnCreate(path, flags);
@@ -1225,6 +1683,12 @@ bool kwxDocument::OnCreate(const wxString& path, long flags)
 
 bool kwxDocument::OnOpenDocument(const wxString& filename)
 {
+    if (m_on_open_document_hook)
+    {
+        m_published = false;
+        m_on_open_document_hook(m_on_open_document_hook_data, (void*) &filename, nullptr);
+        return m_published ? m_result_bool : wxDocument::OnOpenDocument(filename);
+    }
     if (!m_on_open_document_func)
     {
         return wxDocument::OnOpenDocument(filename);
@@ -1243,6 +1707,12 @@ kwxView::kwxView(void* pObject) : wxView()
     m_on_close_func = nullptr;
     m_on_create_func = nullptr;
     m_on_update_func = nullptr;
+    m_on_create_hook = nullptr;
+    m_on_create_hook_data = nullptr;
+    m_on_close_hook = nullptr;
+    m_on_close_hook_data = nullptr;
+    m_published = false;
+    m_result_bool = false;
 }
 
 void kwxView::OnDraw(wxDC* dc)
@@ -1256,6 +1726,12 @@ void kwxView::OnDraw(wxDC* dc)
 
 bool kwxView::OnClose(bool deleteWindow)
 {
+    if (m_on_close_hook)
+    {
+        m_published = false;
+        m_on_close_hook(m_on_close_hook_data, (void*) (intptr_t) (deleteWindow ? 1 : 0), nullptr);
+        return m_published ? m_result_bool : wxView::OnClose(deleteWindow);
+    }
     if (!m_on_close_func)
     {
         return wxView::OnClose(deleteWindow);
@@ -1265,6 +1741,12 @@ bool kwxView::OnClose(bool deleteWindow)
 
 bool kwxView::OnCreate(wxDocument* document, long flags)
 {
+    if (m_on_create_hook)
+    {
+        m_published = false;
+        m_on_create_hook(m_on_create_hook_data, document, (void*) (intptr_t) flags);
+        return m_published ? m_result_bool : wxView::OnCreate(document, flags);
+    }
     if (!m_on_create_func)
     {
         return wxView::OnCreate(document, flags);
@@ -1347,6 +1829,551 @@ bool kwxHtmlTagHandler::HandleTag(const wxHtmlTag& tag)
 }
 
 // ---------------------------------------------------------------------------
+// wxDataViewModel / wxDataViewCustomRenderer
+// ---------------------------------------------------------------------------
+
+// wxWidgets marks the renderer's Activate()/LeftClick() deprecated (ActivateCell()
+// replaces both) but a port may still implement them, so their override definitions
+// below -- and their delegated base calls -- have the deprecation warning suppressed,
+// exactly as the matching declarations in include/kwx_helper_hooks.h do.
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4996)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+kwxDataViewModel::kwxDataViewModel(void* pObject) : wxDataViewModel()
+{
+    m_object = pObject;
+    m_get_value_hook = nullptr;
+    m_get_value_hook_data = nullptr;
+    m_set_value_hook = nullptr;
+    m_set_value_hook_data = nullptr;
+    m_get_parent_hook = nullptr;
+    m_get_parent_hook_data = nullptr;
+    m_is_container_hook = nullptr;
+    m_is_container_hook_data = nullptr;
+    m_get_children_hook = nullptr;
+    m_get_children_hook_data = nullptr;
+    m_has_value_hook = nullptr;
+    m_has_value_hook_data = nullptr;
+    m_is_enabled_hook = nullptr;
+    m_is_enabled_hook_data = nullptr;
+    m_has_container_columns_hook = nullptr;
+    m_has_container_columns_hook_data = nullptr;
+    m_compare_hook = nullptr;
+    m_compare_hook_data = nullptr;
+    m_has_default_compare_hook = nullptr;
+    m_has_default_compare_hook_data = nullptr;
+    m_resort_hook = nullptr;
+    m_resort_hook_data = nullptr;
+    m_get_attr_hook = nullptr;
+    m_get_attr_hook_data = nullptr;
+    m_published = false;
+    m_pending_column = 0;
+    m_pending_ascending = false;
+    m_result_variant = wxVariant();
+    m_result_item = wxDataViewItem();
+    m_result_bool = false;
+    m_result_int = 0;
+    m_result_uint = 0;
+    m_result_attr = wxDataViewItemAttr();
+    m_children_target = nullptr;
+}
+
+// Clears everything the previous hook call published, so a callback that publishes
+// nothing falls through to the neutral default of the hook it was called from.
+void kwxDataViewModel::ResetInFlight() const
+{
+    m_published = false;
+    m_pending_column = 0;
+    m_pending_ascending = false;
+    m_result_variant = wxVariant();
+    m_result_item = wxDataViewItem();
+    m_result_bool = false;
+    m_result_int = 0;
+    m_result_uint = 0;
+    m_result_attr = wxDataViewItemAttr();
+}
+
+void kwxDataViewModel::GetValue(wxVariant& variant, const wxDataViewItem& item,
+                                unsigned int col) const
+{
+    if (!m_get_value_hook)
+    {
+        // No callback: leave the variant untouched, which is what an empty cell is.
+        return;
+    }
+
+    ResetInFlight();
+    m_pending_column = col;
+    m_get_value_hook(m_get_value_hook_data, const_cast<wxDataViewItem*>(&item), &variant);
+
+    if (m_published)
+    {
+        variant = m_result_variant;
+    }
+}
+
+bool kwxDataViewModel::SetValue(const wxVariant& variant, const wxDataViewItem& item,
+                                unsigned int col)
+{
+    if (!m_set_value_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_pending_column = col;
+    m_set_value_hook(m_set_value_hook_data, const_cast<wxDataViewItem*>(&item),
+                     const_cast<wxVariant*>(&variant));
+    return m_published ? m_result_bool : false;
+}
+
+wxDataViewItem kwxDataViewModel::GetParent(const wxDataViewItem& item) const
+{
+    if (!m_get_parent_hook)
+    {
+        return wxDataViewItem();
+    }
+
+    ResetInFlight();
+    m_get_parent_hook(m_get_parent_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    return m_published ? m_result_item : wxDataViewItem();
+}
+
+bool kwxDataViewModel::IsContainer(const wxDataViewItem& item) const
+{
+    if (!m_is_container_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_is_container_hook(m_is_container_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+unsigned int kwxDataViewModel::GetChildren(const wxDataViewItem& item,
+                                           wxDataViewItemArray& children) const
+{
+    if (!m_get_children_hook)
+    {
+        return 0;
+    }
+
+    ResetInFlight();
+    m_children_target = &children;
+    m_get_children_hook(m_get_children_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    m_children_target = nullptr;
+
+    // AddChildResult() appends without publishing a count, so a callback may answer the
+    // hook purely by appending children; only an explicit count overrides the array size.
+    if (m_published)
+    {
+        return m_result_uint;
+    }
+    return static_cast<unsigned int>(children.GetCount());
+}
+
+bool kwxDataViewModel::HasValue(const wxDataViewItem& item, unsigned int col) const
+{
+    if (!m_has_value_hook)
+    {
+        return true;
+    }
+
+    ResetInFlight();
+    m_pending_column = col;
+    m_has_value_hook(m_has_value_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    return m_published ? m_result_bool : true;
+}
+
+bool kwxDataViewModel::IsEnabled(const wxDataViewItem& item, unsigned int col) const
+{
+    if (!m_is_enabled_hook)
+    {
+        return true;
+    }
+
+    ResetInFlight();
+    m_pending_column = col;
+    m_is_enabled_hook(m_is_enabled_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    return m_published ? m_result_bool : true;
+}
+
+// No callback falls through to the base implementation, which reports "no attributes" and
+// leaves the attribute untouched; a callback that publishes nothing does the same.
+bool kwxDataViewModel::GetAttr(const wxDataViewItem& item, unsigned int col,
+                               wxDataViewItemAttr& attr) const
+{
+    if (!m_get_attr_hook)
+    {
+        return wxDataViewModel::GetAttr(item, col, attr);
+    }
+
+    ResetInFlight();
+    m_pending_column = col;
+    m_get_attr_hook(m_get_attr_hook_data, const_cast<wxDataViewItem*>(&item), nullptr);
+    if (!m_published)
+    {
+        return wxDataViewModel::GetAttr(item, col, attr);
+    }
+    if (m_result_bool)
+    {
+        attr = m_result_attr;
+    }
+    return m_result_bool;
+}
+
+bool kwxDataViewModel::HasContainerColumns(const wxDataViewItem& item) const
+{
+    if (!m_has_container_columns_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_has_container_columns_hook(m_has_container_columns_hook_data,
+                                 const_cast<wxDataViewItem*>(&item), nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+int kwxDataViewModel::Compare(const wxDataViewItem& item1, const wxDataViewItem& item2,
+                              unsigned int column, bool ascending) const
+{
+    if (!m_compare_hook)
+    {
+        return 0;
+    }
+
+    ResetInFlight();
+    m_pending_column = column;
+    m_pending_ascending = ascending;
+    m_compare_hook(m_compare_hook_data, const_cast<wxDataViewItem*>(&item1),
+                   const_cast<wxDataViewItem*>(&item2));
+    return m_published ? m_result_int : 0;
+}
+
+bool kwxDataViewModel::HasDefaultCompare() const
+{
+    if (!m_has_default_compare_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_has_default_compare_hook(m_has_default_compare_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+void kwxDataViewModel::Resort()
+{
+    if (!m_resort_hook)
+    {
+        wxDataViewModel::Resort();
+        return;
+    }
+
+    ResetInFlight();
+    m_resort_hook(m_resort_hook_data, nullptr, nullptr);
+}
+
+kwxDataViewCustomRenderer::kwxDataViewCustomRenderer(void* pObject, const wxString& variantType,
+                                                     wxDataViewCellMode mode, int align) :
+    wxDataViewCustomRenderer(variantType, mode, align)
+{
+    m_object = pObject;
+    m_render_hook = nullptr;
+    m_render_hook_data = nullptr;
+    m_get_size_hook = nullptr;
+    m_get_size_hook_data = nullptr;
+    m_set_value_hook = nullptr;
+    m_set_value_hook_data = nullptr;
+    m_get_value_hook = nullptr;
+    m_get_value_hook_data = nullptr;
+    m_activate_cell_hook = nullptr;
+    m_activate_cell_hook_data = nullptr;
+    m_activate_hook = nullptr;
+    m_activate_hook_data = nullptr;
+    m_left_click_hook = nullptr;
+    m_left_click_hook_data = nullptr;
+    m_start_drag_hook = nullptr;
+    m_start_drag_hook_data = nullptr;
+    m_create_editor_ctrl_hook = nullptr;
+    m_create_editor_ctrl_hook_data = nullptr;
+    m_get_value_from_editor_ctrl_hook = nullptr;
+    m_get_value_from_editor_ctrl_hook_data = nullptr;
+    m_validate_hook = nullptr;
+    m_validate_hook_data = nullptr;
+    m_has_editor_ctrl_hook = nullptr;
+    m_has_editor_ctrl_hook_data = nullptr;
+    m_accessible_description_hook = nullptr;
+    m_accessible_description_hook_data = nullptr;
+    m_published = false;
+    m_render_rect = wxRect();
+    m_render_state = 0;
+    m_render_dc = nullptr;
+    m_pending_column = 0;
+    m_editor_rect = wxRect();
+    m_editor_parent = nullptr;
+    m_editor_ctrl = nullptr;
+    m_current_value = wxVariant();
+    m_result_bool = false;
+    m_result_size = wxSize(0, 0);
+    m_result_variant = wxVariant();
+    m_result_window = nullptr;
+    m_mouse_event = nullptr;
+    m_pending_cursor = wxPoint(0, 0);
+    m_cursor_valid = false;
+    m_has_editor_value = false;
+}
+
+void kwxDataViewCustomRenderer::ResetInFlight() const
+{
+    m_published = false;
+    m_result_bool = false;
+    m_result_size = wxSize(0, 0);
+    m_result_variant = wxVariant();
+    m_result_window = nullptr;
+    m_mouse_event = nullptr;
+    m_pending_cursor = wxPoint(0, 0);
+    m_cursor_valid = false;
+    m_has_editor_value = false;
+    m_accessible_description.clear();
+}
+
+bool kwxDataViewCustomRenderer::Render(wxRect cell, wxDC* draw_dc, int state)
+{
+    if (!m_render_hook)
+    {
+        // Nothing to draw: an unset Render callback paints nothing and reports failure so
+        // the caller does not treat the cell as rendered.
+        return false;
+    }
+
+    ResetInFlight();
+    m_render_rect = cell;
+    m_render_state = state;
+    m_render_dc = draw_dc;
+    m_render_hook(m_render_hook_data, draw_dc, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+wxSize kwxDataViewCustomRenderer::GetSize() const
+{
+    if (!m_get_size_hook)
+    {
+        return wxSize(0, 0);
+    }
+
+    ResetInFlight();
+    m_get_size_hook(m_get_size_hook_data, nullptr, nullptr);
+    return m_published ? m_result_size : wxSize(0, 0);
+}
+
+bool kwxDataViewCustomRenderer::SetValue(const wxVariant& value)
+{
+    // Keep the value even without a callback: Render() and GetValue() read it back.
+    m_current_value = value;
+
+    if (!m_set_value_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_set_value_hook(m_set_value_hook_data, const_cast<wxVariant*>(&value), nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+bool kwxDataViewCustomRenderer::GetValue(wxVariant& value) const
+{
+    if (!m_get_value_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_get_value_hook(m_get_value_hook_data, &value, nullptr);
+
+    // Publishing a value is the success signal for this hook.
+    if (m_published)
+    {
+        value = m_result_variant;
+        m_current_value = m_result_variant;
+    }
+    return m_published;
+}
+
+bool kwxDataViewCustomRenderer::ActivateCell(const wxRect& cell,
+                                             [[maybe_unused]] wxDataViewModel* model,
+                                             [[maybe_unused]] const wxDataViewItem& item,
+                                             unsigned int col, const wxMouseEvent* mouseEvent)
+{
+    if (!m_activate_cell_hook)
+    {
+        return wxDataViewCustomRenderer::ActivateCell(cell, model, item, col, mouseEvent);
+    }
+
+    ResetInFlight();
+    m_render_rect = cell;
+    m_pending_column = col;
+    // Read from the callback with GetActivateCellMouseEvent; it dies with this call.
+    m_mouse_event = mouseEvent;
+    m_activate_cell_hook(m_activate_cell_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+bool kwxDataViewCustomRenderer::Activate(wxRect cell, [[maybe_unused]] wxDataViewModel* model,
+                                         [[maybe_unused]] const wxDataViewItem& item,
+                                         unsigned int col)
+{
+    if (!m_activate_hook)
+    {
+        return wxDataViewCustomRenderer::Activate(cell, model, item, col);
+    }
+
+    ResetInFlight();
+    m_render_rect = cell;
+    m_pending_column = col;
+    m_activate_hook(m_activate_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+bool kwxDataViewCustomRenderer::LeftClick(wxPoint cursor, wxRect cell,
+                                          [[maybe_unused]] wxDataViewModel* model,
+                                          [[maybe_unused]] const wxDataViewItem& item,
+                                          unsigned int col)
+{
+    if (!m_left_click_hook)
+    {
+        return wxDataViewCustomRenderer::LeftClick(cursor, cell, model, item, col);
+    }
+
+    ResetInFlight();
+    m_render_rect = cell;
+    m_pending_column = col;
+    m_pending_cursor = cursor;
+    m_cursor_valid = true;
+    m_left_click_hook(m_left_click_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+bool kwxDataViewCustomRenderer::StartDrag(const wxPoint& cursor, const wxRect& cell,
+                                          [[maybe_unused]] wxDataViewModel* model,
+                                          [[maybe_unused]] const wxDataViewItem& item,
+                                          unsigned int col)
+{
+    if (!m_start_drag_hook)
+    {
+        return wxDataViewCustomRenderer::StartDrag(cursor, cell, model, item, col);
+    }
+
+    ResetInFlight();
+    m_render_rect = cell;
+    m_pending_column = col;
+    m_pending_cursor = cursor;
+    m_cursor_valid = true;
+    m_start_drag_hook(m_start_drag_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+wxWindow* kwxDataViewCustomRenderer::CreateEditorCtrl(wxWindow* parent, wxRect labelRect,
+                                                      const wxVariant& value)
+{
+    if (!m_create_editor_ctrl_hook)
+    {
+        return wxDataViewCustomRenderer::CreateEditorCtrl(parent, labelRect, value);
+    }
+
+    ResetInFlight();
+    m_editor_rect = labelRect;
+    m_editor_parent = parent;
+    m_create_editor_ctrl_hook(m_create_editor_ctrl_hook_data, parent,
+                              const_cast<wxVariant*>(&value));
+    m_editor_ctrl = m_published ? m_result_window : nullptr;
+    return m_editor_ctrl;
+}
+
+bool kwxDataViewCustomRenderer::GetValueFromEditorCtrl(wxWindow* editor, wxVariant& value)
+{
+    if (!m_get_value_from_editor_ctrl_hook)
+    {
+        return wxDataViewCustomRenderer::GetValueFromEditorCtrl(editor, value);
+    }
+
+    ResetInFlight();
+    m_editor_ctrl = editor;
+    m_get_value_from_editor_ctrl_hook(m_get_value_from_editor_ctrl_hook_data, editor, nullptr);
+    if (m_has_editor_value)
+    {
+        value = m_result_variant;
+    }
+    // Publishing an edited value alone is success; the boolean only matters when the
+    // callback publishes it.
+    return m_published ? m_result_bool : m_has_editor_value;
+}
+
+bool kwxDataViewCustomRenderer::Validate(wxVariant& value)
+{
+    if (!m_validate_hook)
+    {
+        return wxDataViewCustomRenderer::Validate(value);
+    }
+
+    ResetInFlight();
+    m_validate_hook(m_validate_hook_data, &value, nullptr);
+    return m_published ? m_result_bool : true;
+}
+
+bool kwxDataViewCustomRenderer::HasEditorCtrl() const
+{
+    if (!m_has_editor_ctrl_hook)
+    {
+        return false;
+    }
+
+    ResetInFlight();
+    m_has_editor_ctrl_hook(m_has_editor_ctrl_hook_data, nullptr, nullptr);
+    return m_published ? m_result_bool : false;
+}
+
+#if wxUSE_ACCESSIBILITY
+wxString kwxDataViewCustomRenderer::GetAccessibleDescription() const
+{
+    if (!m_accessible_description_hook)
+    {
+        // No callback: the base implementation, which stringifies the current value.
+        return wxDataViewCustomRenderer::GetAccessibleDescription();
+    }
+
+    ResetInFlight();
+    m_accessible_description_hook(m_accessible_description_hook_data, nullptr, nullptr);
+    return m_published ? m_accessible_description :
+                         wxDataViewCustomRenderer::GetAccessibleDescription();
+}
+#endif
+
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
+
+// wxDataViewRendererBase declares IsHighlighted() protected, and no renderer class makes
+// it public again.  This shim re-declares that one member as public and adds neither data
+// nor overrides, so the static_cast below reaches the real virtual through the object's own
+// vtable.
+class kwxRendererHighlightAccess : public wxDataViewRenderer
+{
+public:
+    using wxDataViewRenderer::IsHighlighted;
+};
+
+// ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
 
@@ -1426,66 +2453,107 @@ extern "C"
 
     // wxAppConsole aliases: the portability matrix resolves an override row to
     // both the kwx<Base>_ and the <Base>_ spelling, so the same setter is
-    // exported under the base name.  The receiver is the same helper object.
+    // exported under the base name.
+    //
+    // These aliases are only valid on the matching helper object.  A wxApp is not
+    // a kwxAppConsole, so the checked cast below does nothing when the receiver is
+    // the wrong helper -- the unchecked cast it replaces wrote the callback pointer
+    // into unrelated memory, which crashed the process during shutdown.
 
     EXPORT void wxAppConsole_SetOnOnCmdLineParsed(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnCmdLineParsed(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnCmdLineParsed(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnInitCmdLine(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnInitCmdLine(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnInitCmdLine(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnExit(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnExit(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnExit(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnRun(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnRun(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnRun(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnAssertFailure(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnAssertFailure(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnAssertFailure(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnEventLoopEnter(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnEventLoopEnter(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnEventLoopEnter(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnExceptionInMainLoop(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnExceptionInMainLoop(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnExceptionInMainLoop(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnFatalException(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnFatalException(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnFatalException(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnOnUnhandledException(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnOnUnhandledException(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnOnUnhandledException(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnStoreCurrentException(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnStoreCurrentException(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnStoreCurrentException(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnRethrowStoredException(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnRethrowStoredException(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnRethrowStoredException(pFunction);
+        }
     }
 
     EXPORT void wxAppConsole_SetOnCreateTraits(wxAppConsole* self, void* pFunction)
     {
-        static_cast<kwxAppConsole*>(self)->SetOnCreateTraits(pFunction);
+        if (kwxAppConsole* helper = dynamic_cast<kwxAppConsole*>(self))
+        {
+            helper->SetOnCreateTraits(pFunction);
+        }
     }
 
     EXPORT wxString* wxAppConsole_GetAppName(wxAppConsole* self)
@@ -1582,6 +2650,31 @@ extern "C"
         self->SetOnCreateTraits(pFunction);
     }
 
+    EXPORT void kwxApp_SetOnOnFatalException(kwxApp* self, void* pFunction)
+    {
+        self->SetOnOnFatalException(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnOnUnhandledException(kwxApp* self, void* pFunction)
+    {
+        self->SetOnOnUnhandledException(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnStoreCurrentException(kwxApp* self, void* pFunction)
+    {
+        self->SetOnStoreCurrentException(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnOnExceptionInMainLoop(kwxApp* self, void* pFunction)
+    {
+        self->SetOnOnExceptionInMainLoop(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnRethrowStoredException(kwxApp* self, void* pFunction)
+    {
+        self->SetOnRethrowStoredException(pFunction);
+    }
+
 #else  // !KWX_HAVE_APP_HOOK
 
     // wxApp only exists in a GUI build, where kwxApp is a real class.  The
@@ -1642,6 +2735,36 @@ extern "C"
         wxUnusedVar(pFunction);
     }
 
+    EXPORT void kwxApp_SetOnOnFatalException(kwxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnOnUnhandledException(kwxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnStoreCurrentException(kwxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnOnExceptionInMainLoop(kwxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
+    EXPORT void kwxApp_SetOnRethrowStoredException(kwxApp* self, void* pFunction)
+    {
+        wxUnusedVar(self);
+        wxUnusedVar(pFunction);
+    }
+
 #endif  // KWX_HAVE_APP_HOOK
 
     // kwxObject ---------------------------------------------------------------
@@ -1664,6 +2787,29 @@ extern "C"
     EXPORT void wxObject_SetOnGetClassInfo(wxObject* self, void* pFunction)
     {
         static_cast<kwxObject*>(self)->SetOnGetClassInfo(pFunction);
+    }
+
+    // kwxDebugReportUpload ----------------------------------------------------
+
+    EXPORT void* kwxDebugReportUpload_Create(void* pObject, wxString* url, wxString* input,
+                                             wxString* action)
+    {
+        return (void*) new kwxDebugReportUpload(pObject, *url, *input, *action);
+    }
+
+    EXPORT void kwxDebugReportUpload_Delete(kwxDebugReportUpload* self)
+    {
+        delete self;
+    }
+
+    EXPORT void kwxDebugReportUpload_SetOnOnServerReply(kwxDebugReportUpload* self, void* pFunction)
+    {
+        self->SetOnOnServerReply(pFunction);
+    }
+
+    EXPORT void kwxDebugReportUpload_SetOnServerReplyResult(kwxDebugReportUpload* self, int result)
+    {
+        self->SetOnServerReplyResult(result != 0);
     }
 
     // kwxEvtHandler -----------------------------------------------------------
@@ -1736,6 +2882,95 @@ extern "C"
     EXPORT void wxPanel_SetOnScrollWindow(wxPanel* self, void* pFunction)
     {
         static_cast<kwxPanel*>(self)->SetOnScrollWindow(pFunction);
+    }
+
+    // kwxDialog ---------------------------------------------------------------
+
+    EXPORT wxDialog* kwxDialog_Create(void* pObject, wxWindow* parent, int id, wxString* title,
+                                      int x, int y, int width, int height, long style)
+    {
+        if (!title)
+            return nullptr;
+        return new kwxDialog(pObject, parent, id, *title, wxPoint(x, y), wxSize(width, height),
+                             style);
+    }
+
+    EXPORT void kwxDialog_SetOnTransferDataFromWindow(kwxDialog* self, void* pFunction)
+    {
+        self->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void kwxDialog_SetOnTransferDataToWindow(kwxDialog* self, void* pFunction)
+    {
+        self->SetOnTransferDataToWindow(pFunction);
+    }
+
+    // Qualified calls: a plain virtual call would re-enter the hook.
+    EXPORT int kwxDialogOnTransferDataFromWindowBase(kwxDialog* self)
+    {
+        if (!self)
+            return 0;
+        return self->wxDialog::TransferDataFromWindow();
+    }
+
+    EXPORT int kwxDialogOnTransferDataToWindowBase(kwxDialog* self)
+    {
+        if (!self)
+            return 0;
+        return self->wxDialog::TransferDataToWindow();
+    }
+
+    // kwxFrame ----------------------------------------------------------------
+
+    EXPORT void* kwxFrame_Create(wxWindow* parent, int id, wxString* title, int x, int y, int width,
+                                 int height, long style)
+    {
+        return new kwxFrame(parent, id, *title, wxPoint(x, y), wxSize(width, height), style);
+    }
+
+    EXPORT void kwxFrame_Delete(kwxFrame* self)
+    {
+        delete self;
+    }
+
+    EXPORT void kwxFrame_SetCallbackObject(kwxFrame* self, void* object)
+    {
+        self->SetCallbackObject(object);
+    }
+
+    EXPORT void* kwxFrame_GetCallbackObject(kwxFrame* self)
+    {
+        return self->GetCallbackObject();
+    }
+
+    EXPORT void kwxFrame_SetOnProcessEvent(kwxFrame* self, void* pFunction)
+    {
+        self->SetOnProcessEvent(pFunction);
+    }
+
+    EXPORT void kwxFrame_SetOnProcessEventWithData(kwxFrame* self, void* pFunction, void* data)
+    {
+        self->SetOnProcessEventWithData(pFunction, data);
+    }
+
+    EXPORT void kwxFrame_SetProcessEventResult(kwxFrame* self, int result)
+    {
+        self->SetProcessEventResult(result != 0);
+    }
+
+    EXPORT void kwxFrame_SetOnTryBefore(kwxFrame* self, void* pFunction)
+    {
+        self->SetOnTryBefore(pFunction);
+    }
+
+    EXPORT void kwxFrame_SetOnTryBeforeWithData(kwxFrame* self, void* pFunction, void* data)
+    {
+        self->SetOnTryBeforeWithData(pFunction, data);
+    }
+
+    EXPORT void kwxFrame_SetTryBeforeResult(kwxFrame* self, int result)
+    {
+        self->SetTryBeforeResult(result != 0);
     }
 
     // kwxVarHScrollHelper -----------------------------------------------------
@@ -2329,6 +3564,36 @@ extern "C"
         static_cast<kwxHtmlTagsModule*>(self)->SetOnFillHandlersTable(pFunction);
     }
 
+    // kwxDocTemplate ---------------------------------------------------------
+
+    EXPORT void* kwxDocTemplate_Create(void* pObject, wxDocManager* manager, wxString* descr,
+                                       wxString* filter, wxString* dir, wxString* ext,
+                                       wxString* docTypeName, wxString* viewTypeName, long flags)
+    {
+        return (void*) new kwxDocTemplate(pObject, manager, *descr, *filter, *dir, *ext,
+                                          *docTypeName, *viewTypeName, flags);
+    }
+
+    EXPORT void kwxDocTemplate_SetOnCreateDocument(kwxDocTemplate* self, void* pFunction)
+    {
+        self->SetOnCreateDocument(pFunction);
+    }
+
+    EXPORT void kwxDocTemplate_SetOnCreateView(kwxDocTemplate* self, void* pFunction)
+    {
+        self->SetOnCreateView(pFunction);
+    }
+
+    EXPORT void kwxDocTemplate_SetCreatedDocument(kwxDocTemplate* self, wxDocument* doc)
+    {
+        self->SetCreatedDocument(doc);
+    }
+
+    EXPORT void kwxDocTemplate_SetCreatedView(kwxDocTemplate* self, wxView* view)
+    {
+        self->SetCreatedView(view);
+    }
+
     // kwxDocument ------------------------------------------------------------
 
     EXPORT void* kwxDocument_Create(void* pObject)
@@ -2376,6 +3641,95 @@ extern "C"
         self->SetOnOnOpenDocument(pFunction);
     }
 
+    // The uniform WithData hooks.  Installed means it wins over the typed callback;
+    // publishing nothing falls back to the base implementation.
+
+    EXPORT void kwxDocument_SetOnDoOpenDocumentWithData(kwxDocument* self, void* pFunction,
+                                                        void* data)
+    {
+        self->SetOnDoOpenDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetDoOpenDocumentResult(kwxDocument* self, int result)
+    {
+        self->SetDoOpenDocumentResult(result != 0);
+    }
+
+    EXPORT void kwxDocument_SetOnDoSaveDocumentWithData(kwxDocument* self, void* pFunction,
+                                                        void* data)
+    {
+        self->SetOnDoSaveDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetDoSaveDocumentResult(kwxDocument* self, int result)
+    {
+        self->SetDoSaveDocumentResult(result != 0);
+    }
+
+    EXPORT void kwxDocument_SetOnIsModifiedWithData(kwxDocument* self, void* pFunction, void* data)
+    {
+        self->SetOnIsModifiedWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetIsModifiedResult(kwxDocument* self, int result)
+    {
+        self->SetIsModifiedResult(result != 0);
+    }
+
+    EXPORT void kwxDocument_SetOnModifyWithData(kwxDocument* self, void* pFunction, void* data)
+    {
+        self->SetOnModifyWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetOnOnCreateWithData(kwxDocument* self, void* pFunction, void* data)
+    {
+        self->SetOnOnCreateWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetOnCreateResult(kwxDocument* self, int result)
+    {
+        self->SetOnCreateResult(result != 0);
+    }
+
+    EXPORT void kwxDocument_SetOnOnOpenDocumentWithData(kwxDocument* self, void* pFunction,
+                                                        void* data)
+    {
+        self->SetOnOnOpenDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void kwxDocument_SetOnOpenDocumentResult(kwxDocument* self, int result)
+    {
+        self->SetOnOpenDocumentResult(result != 0);
+    }
+
+    // Chaining exports: qualified calls, because a plain virtual call would re-enter
+    // the override above and recurse.
+
+    EXPORT int kwxDocument_OnCreateBase(kwxDocument* self, wxString* path, long flags)
+    {
+        return self->wxDocument::OnCreate(*path, flags);
+    }
+
+    EXPORT int kwxDocument_OnOpenDocumentBase(kwxDocument* self, wxString* filename)
+    {
+        return self->wxDocument::OnOpenDocument(*filename);
+    }
+
+    EXPORT int kwxDocument_IsModifiedBase(kwxDocument* self)
+    {
+        return self->wxDocument::IsModified();
+    }
+
+    EXPORT void kwxDocument_ModifyBase(kwxDocument* self, int modified)
+    {
+        self->wxDocument::Modify(modified != 0);
+    }
+
+    EXPORT void* kwxDocument_CreateWithParent(void* pObject, wxDocument* parent)
+    {
+        return (void*) new kwxDocument(pObject, parent);
+    }
+
     // wxDocument aliases: the portability matrix also resolves an ovh row to the
     // <Base>_ spelling.  The receiver is the same helper object.
 
@@ -2414,6 +3768,89 @@ extern "C"
         static_cast<kwxDocument*>(self)->SetOnOnOpenDocument(pFunction);
     }
 
+    EXPORT void wxDocument_SetOnDoOpenDocumentWithData(wxDocument* self, void* pFunction,
+                                                       void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnDoOpenDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetDoOpenDocumentResult(wxDocument* self, int result)
+    {
+        static_cast<kwxDocument*>(self)->SetDoOpenDocumentResult(result != 0);
+    }
+
+    EXPORT void wxDocument_SetOnDoSaveDocumentWithData(wxDocument* self, void* pFunction,
+                                                       void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnDoSaveDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetDoSaveDocumentResult(wxDocument* self, int result)
+    {
+        static_cast<kwxDocument*>(self)->SetDoSaveDocumentResult(result != 0);
+    }
+
+    EXPORT void wxDocument_SetOnIsModifiedWithData(wxDocument* self, void* pFunction, void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnIsModifiedWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetIsModifiedResult(wxDocument* self, int result)
+    {
+        static_cast<kwxDocument*>(self)->SetIsModifiedResult(result != 0);
+    }
+
+    EXPORT void wxDocument_SetOnModifyWithData(wxDocument* self, void* pFunction, void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnModifyWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetOnOnCreateWithData(wxDocument* self, void* pFunction, void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnOnCreateWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetOnCreateResult(wxDocument* self, int result)
+    {
+        static_cast<kwxDocument*>(self)->SetOnCreateResult(result != 0);
+    }
+
+    EXPORT void wxDocument_SetOnOnOpenDocumentWithData(wxDocument* self, void* pFunction,
+                                                       void* data)
+    {
+        static_cast<kwxDocument*>(self)->SetOnOnOpenDocumentWithData(pFunction, data);
+    }
+
+    EXPORT void wxDocument_SetOnOpenDocumentResult(wxDocument* self, int result)
+    {
+        static_cast<kwxDocument*>(self)->SetOnOpenDocumentResult(result != 0);
+    }
+
+    EXPORT int wxDocument_OnCreateBase(wxDocument* self, wxString* path, long flags)
+    {
+        return self->wxDocument::OnCreate(*path, flags);
+    }
+
+    EXPORT int wxDocument_OnOpenDocumentBase(wxDocument* self, wxString* filename)
+    {
+        return self->wxDocument::OnOpenDocument(*filename);
+    }
+
+    EXPORT int wxDocument_IsModifiedBase(wxDocument* self)
+    {
+        return self->wxDocument::IsModified();
+    }
+
+    EXPORT void wxDocument_ModifyBase(wxDocument* self, int modified)
+    {
+        self->wxDocument::Modify(modified != 0);
+    }
+
+    EXPORT void* wxDocument_CreateWithParent(void* pObject, wxDocument* parent)
+    {
+        return (void*) new kwxDocument(pObject, parent);
+    }
+
     // kwxView ----------------------------------------------------------------
 
     EXPORT void* kwxView_Create(void* pObject)
@@ -2446,6 +3883,32 @@ extern "C"
         self->SetOnOnUpdate(pFunction);
     }
 
+    EXPORT void kwxView_SetOnOnCreateWithData(kwxView* self, void* pFunction, void* data)
+    {
+        self->SetOnOnCreateWithData(pFunction, data);
+    }
+
+    EXPORT void kwxView_SetOnCreateResult(kwxView* self, int result)
+    {
+        self->SetOnCreateResult(result != 0);
+    }
+
+    EXPORT void kwxView_SetOnOnCloseWithData(kwxView* self, void* pFunction, void* data)
+    {
+        self->SetOnOnCloseWithData(pFunction, data);
+    }
+
+    EXPORT void kwxView_SetOnCloseResult(kwxView* self, int result)
+    {
+        self->SetOnCloseResult(result != 0);
+    }
+
+    // Qualified call: a plain virtual call would re-enter the override and recurse.
+    EXPORT int kwxView_OnCloseBase(void* pObject, int deleteWindow)
+    {
+        return ((kwxView*) pObject)->wxView::OnClose(deleteWindow != 0);
+    }
+
     EXPORT void wxView_SetOnOnDraw(wxView* self, void* pFunction)
     {
         static_cast<kwxView*>(self)->SetOnOnDraw(pFunction);
@@ -2464,6 +3927,26 @@ extern "C"
     EXPORT void wxView_SetOnOnUpdate(wxView* self, void* pFunction)
     {
         static_cast<kwxView*>(self)->SetOnOnUpdate(pFunction);
+    }
+
+    EXPORT void wxView_SetOnOnCreateWithData(wxView* self, void* pFunction, void* data)
+    {
+        static_cast<kwxView*>(self)->SetOnOnCreateWithData(pFunction, data);
+    }
+
+    EXPORT void wxView_SetOnCreateResult(wxView* self, int result)
+    {
+        static_cast<kwxView*>(self)->SetOnCreateResult(result != 0);
+    }
+
+    EXPORT void wxView_SetOnOnCloseWithData(wxView* self, void* pFunction, void* data)
+    {
+        static_cast<kwxView*>(self)->SetOnOnCloseWithData(pFunction, data);
+    }
+
+    EXPORT void wxView_SetOnCloseResult(wxView* self, int result)
+    {
+        static_cast<kwxView*>(self)->SetOnCloseResult(result != 0);
     }
 
     // kwxFileSystemHandler ---------------------------------------------------
@@ -2757,6 +4240,68 @@ extern "C"
         static_cast<kwxWizardPage*>(self)->SetOnTransferDataToWindowOut(pFunction);
     }
 
+    // kwxWizardPageSimple ----------------------------------------------------
+
+    EXPORT void* kwxWizardPageSimple_Create(void* pObject, wxWizard* parent, wxWizardPage* prev,
+                                            wxWizardPage* next, wxBitmapBundle* bitmap)
+    {
+        wxBitmapBundle bmp;
+        if (bitmap)
+        {
+            bmp = *bitmap;
+        }
+        return (void*) new kwxWizardPageSimple(pObject, parent, prev, next, bmp);
+    }
+
+    EXPORT void kwxWizardPageSimple_Delete(kwxWizardPageSimple* self)
+    {
+        delete self;
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnGetNext(kwxWizardPageSimple* self, void* pFunction)
+    {
+        self->SetOnGetNext(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnGetPrev(kwxWizardPageSimple* self, void* pFunction)
+    {
+        self->SetOnGetPrev(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnTransferDataFromWindow(kwxWizardPageSimple* self,
+                                                                void* pFunction)
+    {
+        self->SetOnTransferDataFromWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnTransferDataToWindow(kwxWizardPageSimple* self,
+                                                              void* pFunction)
+    {
+        self->SetOnTransferDataToWindow(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnGetNextOut(kwxWizardPageSimple* self, void* pFunction)
+    {
+        self->SetOnGetNextOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnGetPrevOut(kwxWizardPageSimple* self, void* pFunction)
+    {
+        self->SetOnGetPrevOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnTransferDataFromWindowOut(kwxWizardPageSimple* self,
+                                                                   void* pFunction)
+    {
+        self->SetOnTransferDataFromWindowOut(pFunction);
+    }
+
+    EXPORT void kwxWizardPageSimple_SetOnTransferDataToWindowOut(kwxWizardPageSimple* self,
+                                                                 void* pFunction)
+    {
+        self->SetOnTransferDataToWindowOut(pFunction);
+    }
+
     // kwxPopupTransientWindow ------------------------------------------------
 
     EXPORT void* kwxPopupTransientWindow_Create(void* pObject, wxWindow* parent, int style)
@@ -2838,5 +4383,1726 @@ extern "C"
     EXPORT void wxPopupTransientWindow_SetOnOnDismiss(wxPopupTransientWindow* self, void* pFunction)
     {
         static_cast<kwxPopupTransientWindow*>(self)->SetOnOnDismiss(pFunction);
+    }
+
+    // kwxDataViewModel -------------------------------------------------------
+
+    // The returned model is reference counted like every wxDataViewModel: release it with
+    // wxDataViewModel_DecRef, never with delete.
+    EXPORT wxDataViewModel* wxDataViewModel_CreateDefault(void* pObject)
+    {
+        return new kwxDataViewModel(pObject);
+    }
+
+    EXPORT void wxDataViewModel_SetOnGetValueWithData(wxDataViewModel* self, void* pFunction,
+                                                      void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnGetValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnSetValueWithData(wxDataViewModel* self, void* pFunction,
+                                                      void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnSetValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnGetParentWithData(wxDataViewModel* self, void* pFunction,
+                                                       void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnGetParentWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnIsContainerWithData(wxDataViewModel* self, void* pFunction,
+                                                         void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnIsContainerWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnGetChildrenWithData(wxDataViewModel* self, void* pFunction,
+                                                         void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnGetChildrenWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnHasValueWithData(wxDataViewModel* self, void* pFunction,
+                                                      void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnHasValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnIsEnabledWithData(wxDataViewModel* self, void* pFunction,
+                                                       void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnIsEnabledWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnHasContainerColumnsWithData(wxDataViewModel* self,
+                                                                 void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnHasContainerColumnsWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnCompareWithData(wxDataViewModel* self, void* pFunction,
+                                                     void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnCompareWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnHasDefaultCompareWithData(wxDataViewModel* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnHasDefaultCompareWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnResortWithData(wxDataViewModel* self, void* pFunction,
+                                                    void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnResortWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewModel_SetOnGetAttrWithData(wxDataViewModel* self, void* pFunction,
+                                                     void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetOnGetAttrWithData(pFunction, data);
+    }
+
+    EXPORT unsigned int wxDataViewModel_GetPendingColumn(wxDataViewModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<kwxDataViewModel*>(self)->GetPendingColumn();
+    }
+
+    EXPORT int wxDataViewModel_GetPendingAscending(wxDataViewModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<kwxDataViewModel*>(self)->GetPendingAscending() ? 1 : 0;
+    }
+
+    EXPORT void wxDataViewModel_SetGetValueResult(wxDataViewModel* self, wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetGetValueResult(*value);
+    }
+
+    EXPORT void wxDataViewModel_SetSetValueResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetSetValueResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetGetParentResult(wxDataViewModel* self, wxDataViewItem* parent)
+    {
+        if (!self || !parent)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetGetParentResult(*parent);
+    }
+
+    EXPORT void wxDataViewModel_SetIsContainerResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetIsContainerResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetGetChildrenCountResult(wxDataViewModel* self, unsigned int count)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetGetChildrenCountResult(count);
+    }
+
+    EXPORT void wxDataViewModel_AddChildResult(wxDataViewModel* self, wxDataViewItem* item)
+    {
+        if (!self || !item)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->AddChildResult(*item);
+    }
+
+    EXPORT void wxDataViewModel_SetHasValueResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetHasValueResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetIsEnabledResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetIsEnabledResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetHasContainerColumnsResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetHasContainerColumnsResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetCompareResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetCompareResult(result);
+    }
+
+    EXPORT void wxDataViewModel_SetHasDefaultCompareResult(wxDataViewModel* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetHasDefaultCompareResult(result != 0);
+    }
+
+    EXPORT void wxDataViewModel_SetGetAttrResult(wxDataViewModel* self, wxDataViewItemAttr* attr)
+    {
+        if (!self || !attr)
+        {
+            return;
+        }
+        static_cast<kwxDataViewModel*>(self)->SetGetAttrResult(*attr);
+    }
+
+    // kwxDataViewVirtualListModel --------------------------------------------
+
+    // Both row models are reference counted like every wxDataViewModel: release them with
+    // wxDataViewModel_DecRef, never with delete.
+    EXPORT kwxDataViewVirtualListModel* wxDataViewVirtualListModel_Create(void* pObject,
+                                                                          unsigned int initialSize)
+    {
+        return new kwxDataViewVirtualListModel(pObject, initialSize);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetOnGetValueByRowWithData(kwxDataViewVirtualListModel* self,
+                                                              void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetValueByRowWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetOnSetValueByRowWithData(kwxDataViewVirtualListModel* self,
+                                                              void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnSetValueByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetOnGetRowWithData(kwxDataViewVirtualListModel* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetOnGetCountWithData(kwxDataViewVirtualListModel* self,
+                                                                 void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetCountWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetOnGetAttrByRowWithData(kwxDataViewVirtualListModel* self,
+                                                             void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetAttrByRowWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetOnIsEnabledByRowWithData(kwxDataViewVirtualListModel* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnIsEnabledByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetOnCompareWithData(kwxDataViewVirtualListModel* self,
+                                                                void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnCompareWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetOnHasDefaultCompareWithData(kwxDataViewVirtualListModel* self,
+                                                                  void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnHasDefaultCompareWithData(pFunction, data);
+    }
+
+    EXPORT unsigned int
+        wxDataViewVirtualListModel_GetPendingColumn(kwxDataViewVirtualListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingColumn();
+    }
+
+    EXPORT unsigned int wxDataViewVirtualListModel_GetPendingRow(kwxDataViewVirtualListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingRow();
+    }
+
+    EXPORT int wxDataViewVirtualListModel_GetPendingAscending(kwxDataViewVirtualListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingAscending() ? 1 : 0;
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetGetValueByRowResult(kwxDataViewVirtualListModel* self,
+                                                                  wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return;
+        }
+        self->SetGetValueByRowResult(*value);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetSetValueByRowResult(kwxDataViewVirtualListModel* self,
+                                                                  int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetSetValueByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetGetRowResult(kwxDataViewVirtualListModel* self,
+                                                           unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetRowResult(row);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetGetCountResult(kwxDataViewVirtualListModel* self,
+                                                             unsigned int count)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetCountResult(count);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetGetAttrByRowResult(kwxDataViewVirtualListModel* self,
+                                                                 int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetAttrByRowResult(result != 0);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetIsEnabledByRowResult(kwxDataViewVirtualListModel* self,
+                                                           int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetIsEnabledByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetCompareResult(kwxDataViewVirtualListModel* self,
+                                                            int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetCompareResult(result);
+    }
+
+    EXPORT void
+        wxDataViewVirtualListModel_SetHasDefaultCompareResult(kwxDataViewVirtualListModel* self,
+                                                              int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetHasDefaultCompareResult(result != 0);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_SetGetAttrByRowAttr(kwxDataViewVirtualListModel* self,
+                                                               wxDataViewItemAttr* attr)
+    {
+        if (!self || !attr)
+        {
+            return;
+        }
+        self->SetGetAttrByRowAttr(*attr);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowPrepended(kwxDataViewVirtualListModel* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowPrepended();
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowInserted(kwxDataViewVirtualListModel* self,
+                                                       unsigned int before)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowInserted(before);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowAppended(kwxDataViewVirtualListModel* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowAppended();
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowDeleted(kwxDataViewVirtualListModel* self,
+                                                      unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowDeleted(row);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowsDeleted(kwxDataViewVirtualListModel* self,
+                                                       wxArrayInt* rows)
+    {
+        if (rows)
+        {
+            self->RowsDeleted(*rows);
+        }
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowChanged(kwxDataViewVirtualListModel* self,
+                                                      unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowChanged(row);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_RowValueChanged(kwxDataViewVirtualListModel* self,
+                                                           unsigned int row, unsigned int col)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowValueChanged(row, col);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_Reset(kwxDataViewVirtualListModel* self,
+                                                 unsigned int newSize)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->Reset(newSize);
+    }
+
+    EXPORT void wxDataViewVirtualListModel_GetItem(kwxDataViewVirtualListModel* self,
+                                                   unsigned int row, wxDataViewItem* result)
+    {
+        if (!self || !result)
+        {
+            return;
+        }
+        *result = self->GetItem(row);
+    }
+
+    // kwxDataViewIndexListModel ----------------------------------------------
+
+    EXPORT kwxDataViewIndexListModel* wxDataViewIndexListModel_Create(void* pObject,
+                                                                      unsigned int initialSize)
+    {
+        return new kwxDataViewIndexListModel(pObject, initialSize);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnGetValueByRowWithData(kwxDataViewIndexListModel* self,
+                                                                    void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetValueByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnSetValueByRowWithData(kwxDataViewIndexListModel* self,
+                                                                    void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnSetValueByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnGetRowWithData(kwxDataViewIndexListModel* self,
+                                                             void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnGetCountWithData(kwxDataViewIndexListModel* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetCountWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnGetAttrByRowWithData(kwxDataViewIndexListModel* self,
+                                                                   void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetAttrByRowWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewIndexListModel_SetOnIsEnabledByRowWithData(kwxDataViewIndexListModel* self,
+                                                             void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnIsEnabledByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetOnCompareWithData(kwxDataViewIndexListModel* self,
+                                                              void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnCompareWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewIndexListModel_SetOnHasDefaultCompareWithData(kwxDataViewIndexListModel* self,
+                                                                void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnHasDefaultCompareWithData(pFunction, data);
+    }
+
+    EXPORT unsigned int wxDataViewIndexListModel_GetPendingColumn(kwxDataViewIndexListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingColumn();
+    }
+
+    EXPORT unsigned int wxDataViewIndexListModel_GetPendingRow(kwxDataViewIndexListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingRow();
+    }
+
+    EXPORT int wxDataViewIndexListModel_GetPendingAscending(kwxDataViewIndexListModel* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingAscending() ? 1 : 0;
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetGetValueByRowResult(kwxDataViewIndexListModel* self,
+                                                                wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return;
+        }
+        self->SetGetValueByRowResult(*value);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetSetValueByRowResult(kwxDataViewIndexListModel* self,
+                                                                int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetSetValueByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetGetRowResult(kwxDataViewIndexListModel* self,
+                                                         unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetRowResult(row);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetGetCountResult(kwxDataViewIndexListModel* self,
+                                                           unsigned int count)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetCountResult(count);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetGetAttrByRowResult(kwxDataViewIndexListModel* self,
+                                                               int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetAttrByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetGetAttrByRowAttr(kwxDataViewIndexListModel* self,
+                                                             wxDataViewItemAttr* attr)
+    {
+        if (!self || !attr)
+        {
+            return;
+        }
+        self->SetGetAttrByRowAttr(*attr);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetIsEnabledByRowResult(kwxDataViewIndexListModel* self,
+                                                                 int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetIsEnabledByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetCompareResult(kwxDataViewIndexListModel* self,
+                                                          int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetCompareResult(result);
+    }
+
+    EXPORT void wxDataViewIndexListModel_SetHasDefaultCompareResult(kwxDataViewIndexListModel* self,
+                                                                    int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetHasDefaultCompareResult(result != 0);
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowPrepended(kwxDataViewIndexListModel* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowPrepended();
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowInserted(kwxDataViewIndexListModel* self,
+                                                     unsigned int before)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowInserted(before);
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowAppended(kwxDataViewIndexListModel* self)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowAppended();
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowDeleted(kwxDataViewIndexListModel* self,
+                                                    unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowDeleted(row);
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowsDeleted(kwxDataViewIndexListModel* self,
+                                                     wxArrayInt* rows)
+    {
+        if (rows)
+        {
+            self->RowsDeleted(*rows);
+        }
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowChanged(kwxDataViewIndexListModel* self,
+                                                    unsigned int row)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowChanged(row);
+    }
+
+    EXPORT void wxDataViewIndexListModel_RowValueChanged(kwxDataViewIndexListModel* self,
+                                                         unsigned int row, unsigned int col)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->RowValueChanged(row, col);
+    }
+
+    EXPORT void wxDataViewIndexListModel_Reset(kwxDataViewIndexListModel* self,
+                                               unsigned int newSize)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->Reset(newSize);
+    }
+
+    EXPORT void wxDataViewIndexListModel_GetItem(kwxDataViewIndexListModel* self, unsigned int row,
+                                                 wxDataViewItem* result)
+    {
+        if (!self || !result)
+        {
+            return;
+        }
+        *result = self->GetItem(row);
+    }
+
+    // kwxDataViewListStore ---------------------------------------------------
+
+    // The returned store is the scripted subclass; with no hook installed it behaves
+    // exactly like a plain wxDataViewListStore.  It is reference counted like every
+    // wxDataViewModel: release it with wxDataViewModel_DecRef, never with delete.
+    EXPORT wxDataViewListStore* wxDataViewListStore_Create(void* pObject)
+    {
+        return new kwxDataViewListStore(pObject);
+    }
+
+    EXPORT void wxDataViewListStore_SetOnHasValueWithData(wxDataViewListStore* self,
+                                                          void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetOnHasValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewListStore_SetOnIsEnabledByRowWithData(wxDataViewListStore* self,
+                                                                void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetOnIsEnabledByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewListStore_SetOnGetAttrByRowWithData(wxDataViewListStore* self,
+                                                              void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetOnGetAttrByRowWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewListStore_SetHasValueResult(wxDataViewListStore* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetHasValueResult(result != 0);
+    }
+
+    EXPORT void wxDataViewListStore_SetIsEnabledByRowResult(wxDataViewListStore* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetIsEnabledByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewListStore_SetGetAttrByRowResult(wxDataViewListStore* self, int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetGetAttrByRowResult(result != 0);
+    }
+
+    EXPORT void wxDataViewListStore_SetGetAttrByRowAttr(wxDataViewListStore* self,
+                                                        wxDataViewItemAttr* attr)
+    {
+        if (!self || !attr)
+        {
+            return;
+        }
+        static_cast<kwxDataViewListStore*>(self)->SetGetAttrByRowAttr(*attr);
+    }
+
+    EXPORT unsigned int wxDataViewListStore_GetPendingRow(wxDataViewListStore* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<kwxDataViewListStore*>(self)->GetPendingRow();
+    }
+
+    EXPORT unsigned int wxDataViewListStore_GetPendingColumn(wxDataViewListStore* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<kwxDataViewListStore*>(self)->GetPendingColumn();
+    }
+
+    // Both of these are virtual, so the scripted override is reached through the base
+    // pointer; they answer from the store's own storage when no hook is installed.
+    EXPORT int wxDataViewListStore_IsEnabledByRow(wxDataViewListStore* self, unsigned int row,
+                                                  unsigned int col)
+    {
+        if (!self)
+        {
+            return 1;
+        }
+        return self->IsEnabledByRow(row, col) ? 1 : 0;
+    }
+
+    EXPORT int wxDataViewListStore_GetAttrByRow(wxDataViewListStore* self, unsigned int row,
+                                                unsigned int col, wxDataViewItemAttr* attr)
+    {
+        if (!self || !attr)
+        {
+            return 0;
+        }
+        return self->GetAttrByRow(row, col, *attr) ? 1 : 0;
+    }
+
+    // wxDataViewRenderer -----------------------------------------------------
+
+    // These accessors work on any renderer, including the standard ones wxWidgets creates;
+    // the hook setters below apply to the kwxDataViewCustomRenderer helper only.
+    EXPORT void wxDataViewRenderer_SetMode(wxDataViewRenderer* self, int mode)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetMode(static_cast<wxDataViewCellMode>(mode));
+    }
+
+    EXPORT int wxDataViewRenderer_GetMode(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<int>(self->GetMode());
+    }
+
+    EXPORT void wxDataViewRenderer_SetAlignment(wxDataViewRenderer* self, int align)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetAlignment(align);
+    }
+
+    EXPORT int wxDataViewRenderer_GetAlignment(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetAlignment();
+    }
+
+    EXPORT void wxDataViewRenderer_EnableEllipsize(wxDataViewRenderer* self, int mode)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->EnableEllipsize(static_cast<wxEllipsizeMode>(mode));
+    }
+
+    EXPORT int wxDataViewRenderer_GetEllipsizeMode(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<int>(self->GetEllipsizeMode());
+    }
+
+    // The variant type the renderer expects -- wx 3.3's replacement for the deprecated
+    // wxDataViewModel::GetColumnType().
+    EXPORT wxString* wxDataViewRenderer_GetVariantType(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return new wxString(self->GetVariantType());
+    }
+
+    EXPORT int wxDataViewRenderer_GetValue(wxDataViewRenderer* self, wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return 0;
+        }
+
+        wxVariant current;
+        if (!self->GetValue(current))
+        {
+            return 0;
+        }
+        *value = current;
+        return 1;
+    }
+
+    EXPORT int wxDataViewRenderer_SetValue(wxDataViewRenderer* self, wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return 0;
+        }
+        return self->SetValue(*value) ? 1 : 0;
+    }
+
+    EXPORT void wxDataViewRenderer_SetEnabled(wxDataViewRenderer* self, int enabled)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetEnabled(enabled != 0);
+    }
+
+    EXPORT int wxDataViewRenderer_IsHighlighted(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return static_cast<kwxRendererHighlightAccess*>(self)->IsHighlighted() ? 1 : 0;
+    }
+
+    EXPORT wxString* wxDataViewRenderer_GetAccessibleDescription(wxDataViewRenderer* self)
+    {
+        if (!self)
+        {
+            return new wxString();
+        }
+#if wxUSE_ACCESSIBILITY
+        return new wxString(self->GetAccessibleDescription());
+#else
+        return new wxString();
+#endif
+    }
+
+    // kwxDataViewCustomRenderer ----------------------------------------------
+
+    EXPORT kwxDataViewCustomRenderer* wxDataViewCustomRenderer_Create(char* variantType, int mode,
+                                                                      int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) : wxString("string");
+        return new kwxDataViewCustomRenderer(nullptr, type, static_cast<wxDataViewCellMode>(mode),
+                                             align);
+    }
+
+    // Standard renderers -----------------------------------------------------
+    //
+    // These create real wxWidgets renderers and derive from wxDataViewRenderer or
+    // wxDataViewCustomRenderer; the column they are handed to owns them.  Each
+    // ..._CreateDefault passes the C++ defaults of its class.
+
+    EXPORT wxDataViewTextRenderer* wxDataViewTextRenderer_CreateDefault()
+    {
+        return new wxDataViewTextRenderer();
+    }
+
+    EXPORT wxDataViewTextRenderer* wxDataViewTextRenderer_Create(char* variantType, int mode,
+                                                                 int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewTextRenderer::GetDefaultType();
+        return new wxDataViewTextRenderer(type, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+#if wxUSE_MARKUP
+    EXPORT void wxDataViewTextRenderer_EnableMarkup(wxDataViewTextRenderer* self, int enable)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->EnableMarkup(enable != 0);
+    }
+#else
+    // wxWidgets built without markup support: the call is inert.
+    EXPORT void wxDataViewTextRenderer_EnableMarkup([[maybe_unused]] wxDataViewTextRenderer* self,
+                                                    [[maybe_unused]] int enable)
+    {
+    }
+#endif
+
+    EXPORT wxDataViewToggleRenderer* wxDataViewToggleRenderer_CreateDefault()
+    {
+        return new wxDataViewToggleRenderer();
+    }
+
+    EXPORT wxDataViewToggleRenderer* wxDataViewToggleRenderer_Create(char* variantType, int mode,
+                                                                     int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewToggleRenderer::GetDefaultType();
+        return new wxDataViewToggleRenderer(type, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    // ShowAsRadio() takes no argument in C++: TBool true turns the radio look on and false
+    // cannot turn it back off.
+    EXPORT void wxDataViewToggleRenderer_ShowAsRadio(wxDataViewToggleRenderer* self, int radio)
+    {
+        if (!self || radio == 0)
+        {
+            return;
+        }
+        self->ShowAsRadio();
+    }
+
+    EXPORT wxDataViewBitmapRenderer* wxDataViewBitmapRenderer_CreateDefault()
+    {
+        return new wxDataViewBitmapRenderer();
+    }
+
+    EXPORT wxDataViewBitmapRenderer* wxDataViewBitmapRenderer_Create(char* variantType, int mode,
+                                                                     int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewBitmapRenderer::GetDefaultType();
+        return new wxDataViewBitmapRenderer(type, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    EXPORT wxDataViewProgressRenderer*
+        wxDataViewProgressRenderer_Create(wxString* label, char* variantType, int mode, int align)
+    {
+        const wxString caption = label ? *label : wxString();
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewProgressRenderer::GetDefaultType();
+        return new wxDataViewProgressRenderer(caption, type, static_cast<wxDataViewCellMode>(mode),
+                                              align);
+    }
+
+    EXPORT wxDataViewIconTextRenderer* wxDataViewIconTextRenderer_CreateDefault()
+    {
+        return new wxDataViewIconTextRenderer();
+    }
+
+    EXPORT wxDataViewIconTextRenderer* wxDataViewIconTextRenderer_Create(char* variantType,
+                                                                         int mode, int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewIconTextRenderer::GetDefaultType();
+        return new wxDataViewIconTextRenderer(type, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    EXPORT wxDataViewSpinRenderer* wxDataViewSpinRenderer_Create(int min, int max, int mode,
+                                                                 int align)
+    {
+        return new wxDataViewSpinRenderer(min, max, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    EXPORT wxDataViewChoiceRenderer* wxDataViewChoiceRenderer_Create(wxArrayString* choices,
+                                                                     int mode, int align)
+    {
+        const wxArrayString values = choices ? *choices : wxArrayString();
+        return new wxDataViewChoiceRenderer(values, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    // The index is not range checked by wxWidgets; a port passes a valid one.
+    EXPORT wxString* wxDataViewChoiceRenderer_GetChoice(wxDataViewChoiceRenderer* self, int index)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return new wxString(self->GetChoice(static_cast<size_t>(index)));
+    }
+
+    // Borrowed: the renderer's own choice list.
+    EXPORT wxArrayString* wxDataViewChoiceRenderer_GetChoices(wxDataViewChoiceRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxArrayString*>(&self->GetChoices());
+    }
+
+    EXPORT wxDataViewChoiceByIndexRenderer*
+        wxDataViewChoiceByIndexRenderer_Create(wxArrayString* choices, int mode, int align)
+    {
+        const wxArrayString values = choices ? *choices : wxArrayString();
+        return new wxDataViewChoiceByIndexRenderer(values, static_cast<wxDataViewCellMode>(mode),
+                                                   align);
+    }
+
+    // When wxUSE_DATEPICKCTRL is 0 wxDataViewDateRenderer is a typedef of the text renderer,
+    // which has the same constructor shape, so this body compiles either way.
+    EXPORT wxDataViewDateRenderer* wxDataViewDateRenderer_Create(char* variantType, int mode,
+                                                                 int align)
+    {
+        const wxString type = variantType ? wxString::FromUTF8(variantType) :
+                                            wxDataViewDateRenderer::GetDefaultType();
+        return new wxDataViewDateRenderer(type, static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    EXPORT wxDataViewCheckIconTextRenderer* wxDataViewCheckIconTextRenderer_CreateDefault()
+    {
+        return new wxDataViewCheckIconTextRenderer();
+    }
+
+    EXPORT wxDataViewCheckIconTextRenderer* wxDataViewCheckIconTextRenderer_Create(int mode,
+                                                                                   int align)
+    {
+        return new wxDataViewCheckIconTextRenderer(static_cast<wxDataViewCellMode>(mode), align);
+    }
+
+    EXPORT void
+        wxDataViewCheckIconTextRenderer_Allow3rdStateForUser(wxDataViewCheckIconTextRenderer* self,
+                                                             int allow)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->Allow3rdStateForUser(allow != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnRenderWithData(kwxDataViewCustomRenderer* self,
+                                                             void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnRenderWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnGetSizeWithData(kwxDataViewCustomRenderer* self,
+                                                              void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetSizeWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnSetValueWithData(kwxDataViewCustomRenderer* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnSetValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnGetValueWithData(kwxDataViewCustomRenderer* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetValueWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnActivateCellWithData(kwxDataViewCustomRenderer* self,
+                                                                   void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnActivateCellWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnActivateWithData(kwxDataViewCustomRenderer* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnActivateWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnLeftClickWithData(kwxDataViewCustomRenderer* self,
+                                                                void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnLeftClickWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnStartDragWithData(kwxDataViewCustomRenderer* self,
+                                                                void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnStartDragWithData(pFunction, data);
+    }
+
+    EXPORT void
+        wxDataViewCustomRenderer_SetOnCreateEditorCtrlWithData(kwxDataViewCustomRenderer* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnCreateEditorCtrlWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnGetValueFromEditorCtrlWithData(
+        kwxDataViewCustomRenderer* self, void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetValueFromEditorCtrlWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnValidateWithData(kwxDataViewCustomRenderer* self,
+                                                               void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnValidateWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnHasEditorCtrlWithData(kwxDataViewCustomRenderer* self,
+                                                                    void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnHasEditorCtrlWithData(pFunction, data);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetOnGetAccessibleDescriptionWithData(
+        kwxDataViewCustomRenderer* self, void* pFunction, void* data)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetOnGetAccessibleDescriptionWithData(pFunction, data);
+    }
+
+    EXPORT wxDC* wxDataViewCustomRenderer_GetRenderDC(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return self->GetRenderDC();
+    }
+
+    EXPORT void wxDataViewCustomRenderer_GetRenderRect(kwxDataViewCustomRenderer* self, int* x,
+                                                       int* y, int* width, int* height)
+    {
+        if (!self)
+        {
+            return;
+        }
+
+        const wxRect rect = self->GetRenderRect();
+        if (x)
+        {
+            *x = rect.GetX();
+        }
+        if (y)
+        {
+            *y = rect.GetY();
+        }
+        if (width)
+        {
+            *width = rect.GetWidth();
+        }
+        if (height)
+        {
+            *height = rect.GetHeight();
+        }
+    }
+
+    EXPORT int wxDataViewCustomRenderer_GetRenderState(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetRenderState();
+    }
+
+    // Returns a new wxVariant the caller must free.
+    EXPORT wxVariant* wxDataViewCustomRenderer_GetCurrentValue(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return new wxVariant(self->GetCurrentValue());
+    }
+
+    EXPORT wxRect* wxDataViewCustomRenderer_GetEditorRect(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return new wxRect(self->GetEditorRect());
+    }
+
+    EXPORT wxWindow* wxDataViewCustomRenderer_GetEditorParent(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return self->GetEditorParent();
+    }
+
+    EXPORT wxWindow* wxDataViewCustomRenderer_GetEditorCtrl(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return self->GetEditorCtrl();
+    }
+
+    EXPORT unsigned int wxDataViewCustomRenderer_GetPendingColumn(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingColumn();
+    }
+
+    // Borrowed: the event belongs to wxWidgets and outlives only the ActivateCell callback
+    // that received it.
+    EXPORT wxMouseEvent*
+        wxDataViewCustomRenderer_GetActivateCellMouseEvent(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxMouseEvent*>(self->GetActivateCellMouseEvent());
+    }
+
+    EXPORT int wxDataViewCustomRenderer_GetPendingCursorX(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingCursorX();
+    }
+
+    EXPORT int wxDataViewCustomRenderer_GetPendingCursorY(kwxDataViewCustomRenderer* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->GetPendingCursorY();
+    }
+
+    // RenderText()/GetTextExtent() receive their text as a UTF-8 buffer: the declaration in
+    // include/kwx_hook_exports.h spells parameter A as TString (== char*), so it is converted
+    // with wxString::FromUTF8 here and must never be taken as a wxString*.
+    EXPORT void wxDataViewCustomRenderer_RenderText(kwxDataViewCustomRenderer* self,
+                                                    const char* text, int xoffset, int cell_x,
+                                                    int cell_y, int cell_width, int cell_height,
+                                                    wxDC* dc, int state)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->CallRenderText(text ? wxString::FromUTF8(text) : wxString(), xoffset,
+                             wxRect(cell_x, cell_y, cell_width, cell_height), dc, state);
+    }
+
+    // Both out-parameters are optional; the caller passes int[1] buffers.
+    EXPORT void wxDataViewCustomRenderer_GetTextExtent(kwxDataViewCustomRenderer* self,
+                                                       const char* text, int* width, int* height)
+    {
+        if (!self)
+        {
+            return;
+        }
+        const wxSize size = self->CallGetTextExtent(text ? wxString::FromUTF8(text) : wxString());
+        if (width)
+        {
+            *width = size.x;
+        }
+        if (height)
+        {
+            *height = size.y;
+        }
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetRenderResult(kwxDataViewCustomRenderer* self,
+                                                         int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetRenderResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetGetSizeResult(kwxDataViewCustomRenderer* self,
+                                                          int width, int height)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetSizeResult(wxSize(width, height));
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetGetValueResult(kwxDataViewCustomRenderer* self,
+                                                           wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return;
+        }
+        self->SetGetValueResult(*value);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetSetValueResult(kwxDataViewCustomRenderer* self,
+                                                           int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetSetValueResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetActivateCellResult(kwxDataViewCustomRenderer* self,
+                                                               int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetActivateCellResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetActivateResult(kwxDataViewCustomRenderer* self,
+                                                           int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetActivateResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetLeftClickResult(kwxDataViewCustomRenderer* self,
+                                                            int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetLeftClickResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetStartDragResult(kwxDataViewCustomRenderer* self,
+                                                            int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetStartDragResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetCreateEditorCtrlResult(kwxDataViewCustomRenderer* self,
+                                                                   wxWindow* editor)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetCreateEditorCtrlResult(editor);
+    }
+
+    EXPORT void
+        wxDataViewCustomRenderer_SetGetValueFromEditorCtrlResult(kwxDataViewCustomRenderer* self,
+                                                                 int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetGetValueFromEditorCtrlResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetValidateResult(kwxDataViewCustomRenderer* self,
+                                                           int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetValidateResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetHasEditorCtrlResult(kwxDataViewCustomRenderer* self,
+                                                                int result)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetHasEditorCtrlResult(result != 0);
+    }
+
+    EXPORT void wxDataViewCustomRenderer_SetAccessibleDescription(kwxDataViewCustomRenderer* self,
+                                                                  wxString* description)
+    {
+        if (!self)
+        {
+            return;
+        }
+        self->SetAccessibleDescription(description ? *description : wxString());
+    }
+
+    EXPORT void
+        wxDataViewCustomRenderer_SetGetValueFromEditorCtrlValue(kwxDataViewCustomRenderer* self,
+                                                                wxVariant* value)
+    {
+        if (!self || !value)
+        {
+            return;
+        }
+        self->SetGetValueFromEditorCtrlValue(*value);
+    }
+
+    // wxDataViewColumn -------------------------------------------------------
+
+    // The column takes ownership of the renderer, so the caller must not delete it after
+    // this call.  align is a wxALIGN_* value or wxDVR_DEFAULT_ALIGNMENT; flags is a
+    // combination of wxDATAVIEW_COL_*.
+    EXPORT wxDataViewColumn* wxDataViewColumn_CreateWithRenderer(wxString* title,
+                                                                 wxDataViewRenderer* renderer,
+                                                                 unsigned int modelColumn,
+                                                                 int width, int align, int flags)
+    {
+        if (!renderer)
+        {
+            return nullptr;
+        }
+
+        const wxString label = title ? *title : wxString();
+        return new wxDataViewColumn(label, renderer, modelColumn, width,
+                                    static_cast<wxAlignment>(align), flags);
     }
 }

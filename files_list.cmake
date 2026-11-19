@@ -68,6 +68,7 @@ set( FFI_SRC_FILES
     src/wx_credentialdlg.cpp
     src/wx_ctxhelp.cpp
     src/wx_cursor.cpp
+    src/wx_custom_background.cpp
     src/wx_dataformat.cpp
     src/wx_dataviewctrl.cpp
     src/wx_dataviewlistctrl.cpp
@@ -75,6 +76,7 @@ set( FFI_SRC_FILES
     src/wx_date_locale_extra.cpp
     src/wx_datetime.cpp
     src/wx_dc.cpp
+    src/wx_debugreport.cpp
     src/wx_dcsvg.cpp
     src/wx_dialog.cpp
 
@@ -138,6 +140,7 @@ set( FFI_SRC_FILES
     src/wx_messagedialog.cpp
     src/wx_mime.cpp
     src/wx_miniframe.cpp
+    src/wx_msaa.cpp
     src/wx_nativewindow.cpp
     src/wx_net_extra.cpp
     src/wx_notebook.cpp
@@ -242,7 +245,9 @@ set( FFI_HDR_FILES
     include/kwx_classes.h
     include/kwx_classes_sync.h
     include/kwx_core_extra.h
+    include/kwx_custom_background.h
     include/kwx_date_locale_extra.h
+    include/kwx_debugreport.h
     include/kwx_dialogs_extra.h
     include/kwx_file_stream_extra.h
     include/kwx_html.h
@@ -258,6 +263,7 @@ set( FFI_HDR_FILES
     include/kwx_methods_gdi.h
     include/kwx_process.h
     include/kwx_platform_aliases.h
+    include/kwx_msaa.h
     include/kwx_msw_aliases.h
     include/kwx_net_extra.h
     include/kwx_log.h

@@ -2,7 +2,10 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/checkbox.h>
+#include <wx/dynarray.h>
 #include <wx/valgen.h>
+#include <wx/valnum.h>
 
 // wxGenericValidator stores a bool*, but the FFI transfers TBool (an int). This
 // adapter keeps the caller's int-backed flag in sync in both directions.
@@ -51,6 +54,56 @@ extern "C"
     EXPORT void* wxValidator_Create()
     {
         return (void*) new wxValidator();
+    }
+
+    // wxFloatingPointValidator<T> is a template. These entry points expose the
+    // wxNumValidatorBase / wxFloatingPointValidatorBase / wxPrivate::wxNumValidator
+    // surface for T == double, which is what the factory constructs. The receiver is
+    // always the pointer a factory returned; nothing else is a valid argument.
+    EXPORT void* wxMakeFloatingPointValidatorWithPrecision(int precision, double* value, int style)
+    {
+        return static_cast<void*>(new wxFloatingPointValidator<double>(precision, value, style));
+    }
+
+    EXPORT void wxFloatingPointValidator_SetPrecision(void* validator, int precision)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetPrecision(
+            static_cast<unsigned>(precision));
+    }
+
+    EXPORT void wxFloatingPointValidator_SetFactor(void* validator, double factor)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetFactor(factor);
+    }
+
+    EXPORT void wxFloatingPointValidator_SetStyle(void* validator, int style)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetStyle(style);
+    }
+
+    EXPORT void wxFloatingPointValidator_SetMin(void* validator, double min)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetMin(min);
+    }
+
+    EXPORT double wxFloatingPointValidator_GetMin(void* validator)
+    {
+        return static_cast<wxFloatingPointValidator<double>*>(validator)->GetMin();
+    }
+
+    EXPORT void wxFloatingPointValidator_SetMax(void* validator, double max)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetMax(max);
+    }
+
+    EXPORT double wxFloatingPointValidator_GetMax(void* validator)
+    {
+        return static_cast<wxFloatingPointValidator<double>*>(validator)->GetMax();
+    }
+
+    EXPORT void wxFloatingPointValidator_SetRange(void* validator, double min, double max)
+    {
+        static_cast<wxFloatingPointValidator<double>*>(validator)->SetRange(min, max);
     }
 
     EXPORT void wxValidator_Delete(wxValidator* self)
@@ -241,9 +294,46 @@ extern "C"
         return new kwxGenericValidatorBool(value);
     }
 
-    EXPORT void* wxGenericValidator_CreateString(wxString* value)
+    // All of these retain the caller's pointer; see the comment on the class block in
+    // include/kwx_classes.h.
+    EXPORT void* wxGenericValidator_CreateString(void* value)
     {
-        return new wxGenericValidator(value);
+        return new wxGenericValidator((wxString*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateArrayInt(void* value)
+    {
+        return new wxGenericValidator((wxArrayInt*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateDateTime(void* value)
+    {
+        return new wxGenericValidator((wxDateTime*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateFileName(void* value)
+    {
+        return new wxGenericValidator((wxFileName*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateFloat(void* value)
+    {
+        return new wxGenericValidator((float*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateDouble(void* value)
+    {
+        return new wxGenericValidator((double*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateColour(void* value)
+    {
+        return new wxGenericValidator((wxColour*) value);
+    }
+
+    EXPORT void* wxGenericValidator_CreateCheckBoxState(void* value)
+    {
+        return new wxGenericValidator((wxCheckBoxState*) value);
     }
 
     EXPORT void wxGenericValidator_Delete(wxGenericValidator* pObject)

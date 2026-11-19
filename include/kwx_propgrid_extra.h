@@ -27,7 +27,7 @@ int wxPGMultiButton_GetCount(TSelf(wxPGMultiButton) pObject);
 void wxPGMultiButton_Add(TSelf(wxPGMultiButton) pObject, TClass(wxString) label, int id);
 void wxPGMultiButton_AddBitmap(TSelf(wxPGMultiButton) pObject, TClass(wxBitmapBundle) bitmap,
                                int id);
-TClass(wxSize) wxPGMultiButton_GetPrimarySize(TSelf(wxPGMultiButton) pObject);
+TClassOwned(wxSize) wxPGMultiButton_GetPrimarySize(TSelf(wxPGMultiButton) pObject);
 void wxPGMultiButton_Finalize(TSelf(wxPGMultiButton) pObject, TClass(wxPropertyGrid) propgrid,
                               TPoint(x, y));
 
@@ -48,10 +48,10 @@ void wxPGCell_SetFgCol(TSelf(wxPGCell) pObject, TClass(wxColour) colour);
 void wxPGCell_SetBgCol(TSelf(wxPGCell) pObject, TClass(wxColour) colour);
 void wxPGCell_SetFont(TSelf(wxPGCell) pObject, TClass(wxFont) font);
 TClass(wxString) wxPGCell_GetText(TSelf(wxPGCell) pObject);
-TClass(wxBitmapBundle) wxPGCell_GetBitmap(TSelf(wxPGCell) pObject);
-TClass(wxColour) wxPGCell_GetFgCol(TSelf(wxPGCell) pObject);
-TClass(wxColour) wxPGCell_GetBgCol(TSelf(wxPGCell) pObject);
-TClass(wxFont) wxPGCell_GetFont(TSelf(wxPGCell) pObject);
+TClassOwned(wxBitmapBundle) wxPGCell_GetBitmap(TSelf(wxPGCell) pObject);
+TClassOwned(wxColour) wxPGCell_GetFgCol(TSelf(wxPGCell) pObject);
+TClassOwned(wxColour) wxPGCell_GetBgCol(TSelf(wxPGCell) pObject);
+TClassOwned(wxFont) wxPGCell_GetFont(TSelf(wxPGCell) pObject);
 
 // ---------------------------------------------------------------------------
 // wxNumericPropertyValidator
@@ -75,7 +75,7 @@ TClassDefExtend(wxPGArrayEditorDialog, wxDialog)
                                               TClass(wxVariant) value);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxPGArrayEditorDialog_Init(TSelf(wxPGArrayEditorDialog) pObject);
-TClass(wxVariant) wxPGArrayEditorDialog_GetDialogValue(TSelf(wxPGArrayEditorDialog) pObject);
+TClassOwned(wxVariant) wxPGArrayEditorDialog_GetDialogValue(TSelf(wxPGArrayEditorDialog) pObject);
 void wxPGArrayEditorDialog_EnableCustomNewAction(TSelf(wxPGArrayEditorDialog) pObject);
 void wxPGArrayEditorDialog_SetNewButtonText(TSelf(wxPGArrayEditorDialog) pObject,
                                             TClass(wxString) text);
@@ -93,7 +93,7 @@ void wxPGValidationInfo_SetFailureBehavior(TSelf(wxPGValidationInfo) pObject, in
 TClass(wxString) wxPGValidationInfo_GetFailureMessage(TSelf(wxPGValidationInfo) pObject);
 void wxPGValidationInfo_SetFailureMessage(TSelf(wxPGValidationInfo) pObject,
                                           TClass(wxString) message);
-TClass(wxVariant) wxPGValidationInfo_GetValue(TSelf(wxPGValidationInfo) pObject);
+TClassOwned(wxVariant) wxPGValidationInfo_GetValue(TSelf(wxPGValidationInfo) pObject);
 
 // ---------------------------------------------------------------------------
 // wxPropertyGridPageState
@@ -210,7 +210,7 @@ void wxPropertyGridInterface_RefreshGrid(TSelf(wxPropertyGridInterface) pObject,
                                          TClass(wxPropertyGridPageState) state);
 void wxPropertyGridInterface_RefreshProperty(TSelf(wxPropertyGridInterface) pObject,
                                              TClass(wxPGProperty) property);
-TClass(wxVariant) wxPropertyGridInterface_GetPropertyValue(TSelf(wxPropertyGridInterface) pObject,
+TClassOwned(wxVariant) wxPropertyGridInterface_GetPropertyValue(TSelf(wxPropertyGridInterface) pObject,
                                                            TClass(wxPGProperty) id);
 TClass(wxString)
     wxPropertyGridInterface_GetPropertyValueAsString(TSelf(wxPropertyGridInterface) pObject,
@@ -290,7 +290,7 @@ void wxPropertyGridInterface_EndAddChildren(TSelf(wxPropertyGridInterface) pObje
                                             TClass(wxPGProperty) id);
 TBool wxPropertyGridInterface_ChangePropertyValue(TSelf(wxPropertyGridInterface) pObject,
                                                   TClass(wxPGProperty) id, TClass(wxVariant) value);
-TClass(wxVariant)
+TClassOwned(wxVariant)
     wxPropertyGridInterface_GetPropertyAttribute(TSelf(wxPropertyGridInterface) pObject,
                                                  TClass(wxPGProperty) id,
                                                  TClass(wxString) attrName);
@@ -308,7 +308,7 @@ TClass(wxValidator)
 void wxPropertyGridInterface_SetPropertyValidator(TSelf(wxPropertyGridInterface) pObject,
                                                   TClass(wxPGProperty) id,
                                                   TClass(wxValidator) validator);
-TClass(wxVariant)
+TClassOwned(wxVariant)
     wxPropertyGridInterface_GetPropertyValues(TSelf(wxPropertyGridInterface) pObject,
                                               TClass(wxString) listname,
                                               TClass(wxPGProperty) baseparent, int flags);
@@ -323,10 +323,10 @@ void wxPropertyGridInterface_SetPropertyTextColour(TSelf(wxPropertyGridInterface
                                                    int flags);
 void wxPropertyGridInterface_SetPropertyColoursToDefault(TSelf(wxPropertyGridInterface) pObject,
                                                          TClass(wxPGProperty) id, int flags);
-TClass(wxColour)
+TClassOwned(wxColour)
     wxPropertyGridInterface_GetPropertyBackgroundColour(TSelf(wxPropertyGridInterface) pObject,
                                                         TClass(wxPGProperty) id);
-TClass(wxColour)
+TClassOwned(wxColour)
     wxPropertyGridInterface_GetPropertyTextColour(TSelf(wxPropertyGridInterface) pObject,
                                                   TClass(wxPGProperty) id);
 TBool wxPropertyGridInterface_SetPropertyMaxLength(TSelf(wxPropertyGridInterface) pObject,
@@ -338,13 +338,13 @@ unsigned long wxPropertyGridInterface_GetPropertyValueAsULong(TSelf(wxPropertyGr
                                                               TClass(wxPGProperty) id);
 TInt64 wxPropertyGridInterface_GetPropertyValueAsLongLong(TSelf(wxPropertyGridInterface) pObject,
                                                           TClass(wxPGProperty) id);
-TClass(wxArrayString)
+TClassOwned(wxArrayString)
     wxPropertyGridInterface_GetPropertyValueAsArrayString(TSelf(wxPropertyGridInterface) pObject,
                                                           TClass(wxPGProperty) id);
-TClass(wxArrayInt)
+TClassOwned(wxArrayInt)
     wxPropertyGridInterface_GetPropertyValueAsArrayInt(TSelf(wxPropertyGridInterface) pObject,
                                                        TClass(wxPGProperty) id);
-TClass(wxDateTime)
+TClassOwned(wxDateTime)
     wxPropertyGridInterface_GetPropertyValueAsDateTime(TSelf(wxPropertyGridInterface) pObject,
                                                        TClass(wxPGProperty) id);
 TClass(wxPGEditor) wxPropertyGridInterface_GetEditorByName(TClass(wxString) name);
@@ -359,8 +359,8 @@ void wxPropertyGridInterface_SetBoolChoices(TClass(wxString) trueChoice,
 TClassDefExtend(wxPropertyGrid,
                 wxControl) int wxPropertyGrid_GetColumnCount(TSelf(wxPropertyGrid) pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxPoint) wxPropertyGrid_GetGoodEditorDialogPosition(TSelf(wxPropertyGrid) pObject, void* p,
-                                                           TClass(wxSize) sz);
+TClassOwned(wxPoint) wxPropertyGrid_GetGoodEditorDialogPosition(TSelf(wxPropertyGrid) pObject,
+                                                                void* p, TClass(wxSize) sz);
 void* wxPropertyGrid_RegisterEditorClass(void* editor, TBool noDefCheck);
 int wxPropertyGrid_GetRowHeight(TSelf(wxPropertyGrid) pObject);
 int wxPropertyGrid_GetFontHeight(TSelf(wxPropertyGrid) pObject);
@@ -377,26 +377,26 @@ TClass(wxTextCtrl) wxPropertyGrid_GetEditorTextCtrl(TSelf(wxPropertyGrid) pObjec
 TClass(wxWindow) wxPropertyGrid_GetEditorControl(TSelf(wxPropertyGrid) pObject);
 TClass(wxWindow) wxPropertyGrid_GetEditorControlSecondary(TSelf(wxPropertyGrid) pObject);
 TClass(wxTextCtrl) wxPropertyGrid_GetLabelEditor(TSelf(wxPropertyGrid) pObject);
-TClass(wxPGValidationInfo) wxPropertyGrid_GetValidationInfo(TSelf(wxPropertyGrid) pObject);
-TClass(wxSize) wxPropertyGrid_GetImageSize(TSelf(wxPropertyGrid) pObject,
-                                           TClass(wxPGProperty) property, int item);
-TClass(wxRect) wxPropertyGrid_GetImageRect(TSelf(wxPropertyGrid) pObject,
-                                           TClass(wxPGProperty) property, int item);
-TClass(wxRect)
+TClassOwned(wxPGValidationInfo) wxPropertyGrid_GetValidationInfo(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxSize) wxPropertyGrid_GetImageSize(TSelf(wxPropertyGrid) pObject,
+                                                TClass(wxPGProperty) property, int item);
+TClassOwned(wxRect) wxPropertyGrid_GetImageRect(TSelf(wxPropertyGrid) pObject,
+                                                TClass(wxPGProperty) property, int item);
+TClassOwned(wxRect)
     wxPropertyGrid_GetPropertyRect(TSelf(wxPropertyGrid) pObject, TClass(wxPGProperty) first,
                                    TClass(wxPGProperty) last);
-TClass(wxSize) wxPropertyGrid_FitColumns(TSelf(wxPropertyGrid) pObject);
-TClass(wxFont) wxPropertyGrid_GetCaptionFont(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetCaptionBackgroundColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetCaptionForegroundColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetCellBackgroundColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetCellDisabledTextColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetCellTextColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetEmptySpaceColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetLineColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetMarginColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetSelectionBackgroundColour(TSelf(wxPropertyGrid) pObject);
-TClass(wxColour) wxPropertyGrid_GetSelectionForegroundColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxSize) wxPropertyGrid_FitColumns(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxFont) wxPropertyGrid_GetCaptionFont(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetCaptionBackgroundColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetCaptionForegroundColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetCellBackgroundColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetCellDisabledTextColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetCellTextColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetEmptySpaceColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetLineColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetMarginColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetSelectionBackgroundColour(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxColour) wxPropertyGrid_GetSelectionForegroundColour(TSelf(wxPropertyGrid) pObject);
 void wxPropertyGrid_SetCaptionBackgroundColour(TSelf(wxPropertyGrid) pObject,
                                                TClass(wxColour) colour);
 void wxPropertyGrid_SetCaptionTextColour(TSelf(wxPropertyGrid) pObject, TClass(wxColour) colour);
@@ -410,9 +410,9 @@ void wxPropertyGrid_SetMarginColour(TSelf(wxPropertyGrid) pObject, TClass(wxColo
 void wxPropertyGrid_SetSelectionBackgroundColour(TSelf(wxPropertyGrid) pObject,
                                                  TClass(wxColour) colour);
 void wxPropertyGrid_SetSelectionTextColour(TSelf(wxPropertyGrid) pObject, TClass(wxColour) colour);
-TClass(wxPGCell) wxPropertyGrid_GetPropertyDefaultCell(TSelf(wxPropertyGrid) pObject);
-TClass(wxPGCell) wxPropertyGrid_GetCategoryDefaultCell(TSelf(wxPropertyGrid) pObject);
-TClass(wxPGCell) wxPropertyGrid_GetUnspecifiedValueAppearance(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxPGCell) wxPropertyGrid_GetPropertyDefaultCell(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxPGCell) wxPropertyGrid_GetCategoryDefaultCell(TSelf(wxPropertyGrid) pObject);
+TClassOwned(wxPGCell) wxPropertyGrid_GetUnspecifiedValueAppearance(TSelf(wxPropertyGrid) pObject);
 void wxPropertyGrid_SetUnspecifiedValueAppearance(TSelf(wxPropertyGrid) pObject,
                                                   TClass(wxPGCell) cell);
 void wxPropertyGrid_SetColumnCount(TSelf(wxPropertyGrid) pObject, int column_count);
@@ -455,7 +455,7 @@ TBool wxPropertyGrid_SetFont(TSelf(wxPropertyGrid) pObject, TClass(wxFont) font)
 // wxPropertyGridPage (extends TClassDefExtend(wxPropertyGridPage, wxEvtHandler))
 // ---------------------------------------------------------------------------
 
-TClassDefExtend(wxPropertyGridPage, wxEvtHandler) TClass(wxSize)
+TClassDefExtend(wxPropertyGridPage, wxEvtHandler) TClassOwned(wxSize)
     wxPropertyGridPage_FitColumns(TSelf(wxPropertyGridPage) pObject);
 TClass(wxPropertyGridPageState) wxPropertyGridPage_GetStatePtr(TSelf(wxPropertyGridPage) pObject);
 int wxPropertyGridPage_GetToolId(TSelf(wxPropertyGridPage) pObject);
@@ -564,12 +564,12 @@ void wxColourPropertyValue_Init(TSelf(wxColourPropertyValue) pObject, unsigned i
                                 TClass(wxColour) colour);
 unsigned int wxColourPropertyValue_GetType(TSelf(wxColourPropertyValue) pObject);
 void wxColourPropertyValue_SetType(TSelf(wxColourPropertyValue) pObject, unsigned int type);
-TClass(wxColour) wxColourPropertyValue_GetColour(TSelf(wxColourPropertyValue) pObject);
+TClassOwned(wxColour) wxColourPropertyValue_GetColour(TSelf(wxColourPropertyValue) pObject);
 void wxColourPropertyValue_SetColour(TSelf(wxColourPropertyValue) pObject, TClass(wxColour) colour);
 
 // Extracts a wxColourPropertyValue from a variant of that type; returns null for
 // any other variant type.
-TClass(wxColourPropertyValue) wxVariant_GetColourPropertyValue(TClass(wxVariant) variant);
+TClassOwned(wxColourPropertyValue) wxVariant_GetColourPropertyValue(TClass(wxVariant) variant);
 
 // ---------------------------------------------------------------------------
 // wxPropertyGridXmlHandler (wx/xrc/xh_propgrid.h)
@@ -624,7 +624,7 @@ int wxPGChoiceEntry_GetValue(TSelf(wxPGChoiceEntry) pObject);
 // GetChoices() returns a new copy the caller must delete.  SetChoices() returns
 // 0 when choices is null.
 TBool wxPGProperty_SetChoices(TSelf(wxPGProperty) pObject, TClass(wxPGChoices) choices);
-TClass(wxPGChoices) wxPGProperty_GetChoices(TSelf(wxPGProperty) pObject);
+TClassOwned(wxPGChoices) wxPGProperty_GetChoices(TSelf(wxPGProperty) pObject);
 
 TClass(wxEnumProperty)
     wxEnumProperty_CreateWithChoices(TClass(wxString) label, TClass(wxString) name,
@@ -654,8 +654,8 @@ TClassDefExtend(wxSystemColourProperty, wxEnumProperty) TClass(wxSystemColourPro
     wxSystemColourProperty_Create(TClass(wxString) label, TClass(wxString) name,
                                   TClass(wxColourPropertyValue) value);
 void wxSystemColourProperty_Delete(TSelf(wxSystemColourProperty) pObject);
-TClass(wxColourPropertyValue) wxSystemColourProperty_GetVal(TSelf(wxSystemColourProperty) pObject);
-TClass(wxColour) wxSystemColourProperty_GetColour(TSelf(wxSystemColourProperty) pObject, int index);
+TClassOwned(wxColourPropertyValue) wxSystemColourProperty_GetVal(TSelf(wxSystemColourProperty) pObject);
+TClassOwned(wxColour) wxSystemColourProperty_GetColour(TSelf(wxSystemColourProperty) pObject, int index);
 int wxSystemColourProperty_ColToInd(TSelf(wxSystemColourProperty) pObject, TClass(wxColour) colour);
 
 TClassDefExtend(wxCursorProperty, wxEnumProperty) TClass(wxCursorProperty)

@@ -9,7 +9,7 @@
 TClassDef(kwxHtmlEvent) TClass(wxString) kwxHtmlEvent_GetHref(TSelf(kwxHtmlEvent) pObject);
 void* kwxHtmlEvent_GetHtmlCell(TSelf(kwxHtmlEvent) pObject);
 TClass(wxString) kwxHtmlEvent_GetHtmlCellId(TSelf(kwxHtmlEvent) pObject);
-TClass(wxPoint) kwxHtmlEvent_GetLogicalPosition(TSelf(kwxHtmlEvent) pObject);
+TClassOwned(wxPoint) kwxHtmlEvent_GetLogicalPosition(TSelf(kwxHtmlEvent) pObject);
 void* kwxHtmlEvent_GetMouseEvent(TSelf(kwxHtmlEvent) pObject);
 TClass(wxString) kwxHtmlEvent_GetTarget(TSelf(kwxHtmlEvent) pObject);
 
@@ -105,11 +105,11 @@ void* wxComboCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) value
 void wxComboCtrl_Cut(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_Dismiss(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_EnablePopupAnimation(TSelf(wxComboCtrl) pObject, TBool enable);
-TClass(wxBitmap) wxComboCtrl_GetBitmapDisabled(TSelf(wxComboCtrl) pObject);
-TClass(wxBitmap) wxComboCtrl_GetBitmapHover(TSelf(wxComboCtrl) pObject);
-TClass(wxBitmap) wxComboCtrl_GetBitmapNormal(TSelf(wxComboCtrl) pObject);
-TClass(wxBitmap) wxComboCtrl_GetBitmapPressed(TSelf(wxComboCtrl) pObject);
-TClass(wxSize) wxComboCtrl_GetButtonSize(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxBitmap) wxComboCtrl_GetBitmapDisabled(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxBitmap) wxComboCtrl_GetBitmapHover(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxBitmap) wxComboCtrl_GetBitmapNormal(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxBitmap) wxComboCtrl_GetBitmapPressed(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxSize) wxComboCtrl_GetButtonSize(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetCustomPaintWidth(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetFeatures();
 TClass(wxString) wxComboCtrl_GetHint(TSelf(wxComboCtrl) pObject);
@@ -120,7 +120,7 @@ TClass(wxComboPopup) wxComboCtrl_GetPopupControl(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_GetPopupWindow(TSelf(wxComboCtrl) pObject);
 int wxComboCtrl_GetPopupWindowState(TSelf(wxComboCtrl) pObject);
 void* wxComboCtrl_GetTextCtrl(TSelf(wxComboCtrl) pObject);
-TClass(wxRect) wxComboCtrl_GetTextRect(TSelf(wxComboCtrl) pObject);
+TClassOwned(wxRect) wxComboCtrl_GetTextRect(TSelf(wxComboCtrl) pObject);
 TClass(wxString) wxComboCtrl_GetValue(TSelf(wxComboCtrl) pObject);
 void wxComboCtrl_HidePopup(TSelf(wxComboCtrl) pObject, TBool generateEvent);
 TBool wxComboCtrl_IsEditable(TSelf(wxComboCtrl) pObject);
@@ -202,7 +202,7 @@ TBool wxDisplay_ChangeMode(TSelf(wxDisplay) pObject, TClass(wxVideoMode) mode);
 // whole array from one call instead of querying it per index.
 TClassOwned(wxArrayVideoModes) wxDisplay_GetModes(TSelf(wxDisplay) pObject);
 int wxDisplay_GetDepth(TSelf(wxDisplay) pObject);
-TClass(wxSize) wxDisplay_GetRawPPI(TSelf(wxDisplay) pObject);
+TClassOwned(wxSize) wxDisplay_GetRawPPI(TSelf(wxDisplay) pObject);
 void wxDisplay_ResetMode(TSelf(wxDisplay) pObject);
 void* wxDisplay_CreateFromWindow(TClass(wxWindow) win);
 void wxDisplay_Delete(TSelf(wxDisplay) pObject);
@@ -224,7 +224,18 @@ TClassDef(wxDragImage) TBool
 TBool wxDragImage_BeginDragFullScreen(TSelf(wxDragImage) pObject, int x_pos, int y_pos,
                                       TClass(wxWindow) window, TBool fullScreen,
                                       TClass(wxRect) rect);
+// The C++ overload `BeginDrag(hotspot, window, fullScreen, wxRect* rect = nullptr)`.  `rect`
+// bounds the drag on the generic implementation (GTK/macOS/Qt), where a zero-sized wxRect
+// makes BeginDrag size its backing bitmap 0x0 and clip the whole drag away; a port that has no
+// bounding rectangle must call this rather than pass an empty wxRect.  MSW ignores the
+// rectangle either way.
+TBool wxDragImage_BeginDragFullScreenDefault(TSelf(wxDragImage) pObject, int x_pos, int y_pos,
+                                             TClass(wxWindow) window, TBool fullScreen);
+// `x` and `y` are accepted for source compatibility only and are ignored: neither wxDragImage
+// constructor takes a hotspot (BeginDrag supplies it).  The cursor is copied, so the caller
+// may delete its wxCursor as soon as this returns.
 TClass(wxDragImage) wxDragImage_Create(TClass(wxBitmap) image, int x, int y);
+TClass(wxDragImage) wxDragImage_CreateWithCursor(TClass(wxBitmap) image, TClass(wxCursor) cursor);
 void wxDragImage_Delete(TSelf(wxDragImage) pObject);
 TBool wxDragImage_EndDrag(TSelf(wxDragImage) pObject);
 TBool wxDragImage_Hide(TSelf(wxDragImage) pObject);
@@ -262,8 +273,15 @@ TClassDefExtend(wxStringOutputStream, wxOutputStream) TClass(wxStringOutputStrea
 void wxStringOutputStream_Delete(TSelf(wxStringOutputStream) self);
 TClass(wxString) wxStringOutputStream_GetString(TSelf(wxStringOutputStream) self);
 
+// wxStringInputStream wraps a wxString copy: parsing layout XML from text that the caller
+// already holds needs no file or byte buffer.  The stream owns its copy of the string, so
+// the argument may be released as soon as Create() returns.
+TClassDefExtend(wxStringInputStream, wxInputStream) TClass(wxStringInputStream)
+    wxStringInputStream_Create(TClass(wxString) str);
+void wxStringInputStream_Delete(TSelf(wxStringInputStream) self);
+
 TClassDef(wxFrame) void wxFrame_Centre(TSelf(wxFrame) pObject, int orientation);
-TClass(wxIcon) wxFrame_GetIcon(TSelf(wxFrame) pObject);
+TClassOwned(wxIcon) wxFrame_GetIcon(TSelf(wxFrame) pObject);
 TClass(wxString) wxFrame_GetTitle(TSelf(wxFrame) pObject);
 TBool wxFrame_Iconize(TSelf(wxFrame) pObject);
 TBool wxFrame_IsFullScreen(TSelf(wxFrame) pObject);
@@ -278,6 +296,11 @@ TBool wxFrame_ShowFullScreen(TSelf(wxFrame) pObject, TBool show, int style);
 TClassDefExtend(wxGCDC, wxDC) TClass(wxGCDC) wxGCDC_Create(TClass(wxWindowDC) dc);
 TClass(wxGCDC) wxGCDC_CreateFromMemory(TClass(wxMemoryDC) dc);
 TClass(wxGCDC) wxGCDC_CreateFromPrinter(TClass(wxPrinterDC) dc);
+// wxGCDC() — the default constructor. Pair it with wxGCDC_SetGraphicsContext to put a
+// *chosen* renderer's context into the DC (drawing.cpp:2157-2191); SetGraphicsContext
+// deletes the context the DC already held and owns the new one from then on, so the
+// caller must not delete the wxGraphicsContext afterwards.
+TClass(wxGCDC) wxGCDC_CreateDefault();
 void wxGCDC_Delete(TSelf(wxGCDC) pObject);
 TClass(wxGraphicsContext) wxGCDC_GetGraphicsContext(TSelf(wxGCDC) pObject);
 void wxGCDC_SetGraphicsContext(TSelf(wxGCDC) pObject, TClass(wxGraphicsContext) gc);
@@ -313,7 +336,7 @@ TClassDef(wxGenericDragImage) TClass(wxGenericDragImage)
     wxGenericDragImage_Create(TClass(wxCursor) cursor);
 TBool wxGenericDragImage_DoDrawImage(TSelf(wxGenericDragImage) pObject, TClass(wxDC) dc, int x,
                                      int y);
-TClass(wxRect)
+TClassOwned(wxRect)
     wxGenericDragImage_GetImageRect(TSelf(wxGenericDragImage) pObject, int x_pos, int y_pos);
 TBool wxGenericDragImage_UpdateBackingFromWindow(TSelf(wxGenericDragImage) pObject,
                                                  TClass(wxDC) windowDC, TClass(wxMemoryDC) destDC,
@@ -356,6 +379,16 @@ TClass(wxGraphicsBrush)
                                                 TClass(wxGraphicsMatrix) matrix);
 TClass(wxGraphicsPen)
     wxGraphicsContext_CreatePen(TSelf(wxGraphicsContext) pObject, TClass(wxPen) pen);
+TClass(wxGraphicsPen) wxGraphicsContext_CreatePenFromInfo(TSelf(wxGraphicsContext) pObject,
+                                                          TClass(wxGraphicsPenInfo) info);
+TClass(wxGraphicsBrush)
+    wxGraphicsContext_CreateLinearGradientBrushFromStops(TSelf(wxGraphicsContext) pObject,
+                                                         double x1, double y1, double x2, double y2,
+                                                         TClass(wxGraphicsGradientStops) stops,
+                                                         TClass(wxGraphicsMatrix) matrix);
+TClass(wxGraphicsBrush) wxGraphicsContext_CreateRadialGradientBrushFromStops(
+    TSelf(wxGraphicsContext) pObject, double startX, double startY, double endX, double endY,
+    double radius, TClass(wxGraphicsGradientStops) stops, TClass(wxGraphicsMatrix) matrix);
 TClass(wxGraphicsBrush)
     wxGraphicsContext_CreateRadialGradientBrush(TSelf(wxGraphicsContext) pObject, double startX,
                                                 double startY, double endX, double endY,
@@ -366,7 +399,7 @@ TClass(wxGraphicsBitmap) wxGraphicsContext_CreateSubBitmap(TSelf(wxGraphicsConte
                                                            TClass(wxGraphicsBitmap) bitmap,
                                                            double x, double y, double w, double h);
 void wxGraphicsContext_EndLayer(TSelf(wxGraphicsContext) pObject);
-TClass(wxSize) wxGraphicsContext_FromDIP(TSelf(wxGraphicsContext) pObject, TClass(wxSize) sz);
+TClassOwned(wxSize) wxGraphicsContext_FromDIP(TSelf(wxGraphicsContext) pObject, TClass(wxSize) sz);
 TBool wxGraphicsContext_SetAntialiasMode(TSelf(wxGraphicsContext) pObject, int antialias);
 TBool wxGraphicsContext_SetCompositionMode(TSelf(wxGraphicsContext) pObject, int op);
 void wxGraphicsContext_ClipByRectangle(TSelf(wxGraphicsContext) pObject, double x, double y,
@@ -387,6 +420,11 @@ TClass(wxGraphicsPath) wxGraphicsContext_CreatePath(TSelf(wxGraphicsContext) pOb
 void wxGraphicsContext_Delete(TSelf(wxGraphicsContext) pObject);
 void wxGraphicsContext_DrawBitmap(TSelf(wxGraphicsContext) pObject, TClass(wxBitmap) bmp, double x,
                                   double y, double width, double height);
+// The wxGraphicsBitmap overload of DrawBitmap, and the only way to draw what
+// wxGraphicsContext_CreateBitmap / _CreateSubBitmap return (drawing.cpp:1423,1427).
+void wxGraphicsContext_DrawGraphicsBitmap(TSelf(wxGraphicsContext) pObject,
+                                          TClass(wxGraphicsBitmap) bmp, double x, double y,
+                                          double width, double height);
 void wxGraphicsContext_DrawEllipse(TSelf(wxGraphicsContext) pObject, double x, double y,
                                    double width, double height);
 void wxGraphicsContext_DrawIcon(TSelf(wxGraphicsContext) pObject, TClass(wxIcon) icon, double x,
@@ -467,10 +505,13 @@ TClass(wxGraphicsRenderer) wxGraphicsObject_GetRenderer(TSelf(wxGraphicsObject) 
 TBool wxGraphicsObject_IsNull(TSelf(wxGraphicsObject) pObject);
 
 TClassDefExtend(wxGraphicsBitmap, wxGraphicsObject)
+    // The factories that produce one (wxGraphicsContext_CreateBitmap / _CreateSubBitmap /
+    // _CreateBitmapFromImage) allocate a new wxGraphicsBitmap, so the caller owns it.
+    void wxGraphicsBitmap_Delete(TSelf(wxGraphicsBitmap) pObject);
 
-    TClassDef(wxGraphicsPath) void wxGraphicsPath_AddArc(TSelf(wxGraphicsPath) pObject, double x,
-                                                         double y, double r, double startAngle,
-                                                         double endAngle, TBool clockwise);
+TClassDef(wxGraphicsPath) void wxGraphicsPath_AddArc(TSelf(wxGraphicsPath) pObject, double x,
+                                                     double y, double r, double startAngle,
+                                                     double endAngle, TBool clockwise);
 void wxGraphicsPath_AddArcToPoint(TSelf(wxGraphicsPath) pObject, double x1, double y1, double x2,
                                   double y2, double r);
 void wxGraphicsPath_AddCircle(TSelf(wxGraphicsPath) pObject, double x, double y, double r);
@@ -500,11 +541,57 @@ void wxGraphicsPath_UnGetNativePath(TSelf(wxGraphicsPath) pObject, void* nativeP
 TClassDef(wxGraphicsPen) TClass(wxGraphicsPen) wxGraphicsPen_Create();
 void wxGraphicsPen_Delete(TSelf(wxGraphicsPen) pObject);
 
+TClassDef(wxGraphicsGradientStops) TClass(wxGraphicsGradientStops)
+    wxGraphicsGradientStops_Create(TClass(wxColour) startColour, TClass(wxColour) endColour);
+void wxGraphicsGradientStops_Add(TSelf(wxGraphicsGradientStops) pObject, TClass(wxColour) colour,
+                                 float pos);
+size_t wxGraphicsGradientStops_GetCount(TSelf(wxGraphicsGradientStops) pObject);
+TClassOwned(wxColour)
+    wxGraphicsGradientStops_GetStartColour(TSelf(wxGraphicsGradientStops) pObject);
+void wxGraphicsGradientStops_SetStartColour(TSelf(wxGraphicsGradientStops) pObject,
+                                            TClass(wxColour) colour);
+TClassOwned(wxColour) wxGraphicsGradientStops_GetEndColour(TSelf(wxGraphicsGradientStops) pObject);
+void wxGraphicsGradientStops_SetEndColour(TSelf(wxGraphicsGradientStops) pObject,
+                                          TClass(wxColour) colour);
+void wxGraphicsGradientStops_Delete(TSelf(wxGraphicsGradientStops) pObject);
+
+TClassDef(wxGraphicsPenInfo) TClass(wxGraphicsPenInfo)
+    wxGraphicsPenInfo_Create(TClass(wxColour) colour, double width, int style);
+void wxGraphicsPenInfo_Delete(TSelf(wxGraphicsPenInfo) pObject);
+void wxGraphicsPenInfo_SetWidth(TSelf(wxGraphicsPenInfo) pObject, double width);
+void wxGraphicsPenInfo_SetLinearGradient(TSelf(wxGraphicsPenInfo) pObject, double x1, double y1,
+                                         double x2, double y2, TClass(wxColour) c1,
+                                         TClass(wxColour) c2);
+void wxGraphicsPenInfo_SetLinearGradientStops(TSelf(wxGraphicsPenInfo) pObject, double x1,
+                                              double y1, double x2, double y2,
+                                              TClass(wxGraphicsGradientStops) stops);
+void wxGraphicsPenInfo_SetRadialGradient(TSelf(wxGraphicsPenInfo) pObject, double startX,
+                                         double startY, double endX, double endY, double radius,
+                                         TClass(wxColour) oColor, TClass(wxColour) cColor);
+void wxGraphicsPenInfo_SetRadialGradientStops(TSelf(wxGraphicsPenInfo) pObject, double startX,
+                                              double startY, double endX, double endY,
+                                              double radius, TClass(wxGraphicsGradientStops) stops);
+
 TClassDefExtend(wxGraphicsRenderer, wxObject) TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContext(TSelf(wxGraphicsRenderer) pObject, TClass(wxWindowDC) dc);
 TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContextFromWindow(TSelf(wxGraphicsRenderer) pObject,
                                                TClass(wxWindow) window);
+// wxGraphicsRenderer::CreateContext(const wxMemoryDC&) — drawing.cpp:2168, and the route
+// for a chosen renderer with a memory or buffered DC. Takes ownership of nothing; the
+// returned context is caller-owned and is normally handed to wxGCDC_SetGraphicsContext.
+TClass(wxGraphicsContext)
+    wxGraphicsRenderer_CreateContextFromMemory(TSelf(wxGraphicsRenderer) pObject,
+                                               TClass(wxMemoryDC) dc);
+// wxGraphicsRenderer::CreateContextFromUnknownDC — the DC-type-dispatching route, and
+// the only way a *chosen* renderer can drive a metafile, printer or SVG DC: wx 3.3
+// declares no CreateContext(const wxMetafileDC&) overload (on MSW wxMetafileDC IS
+// wxEnhMetaFileDC, which the enh-metafile overload handles). Returns null for a DC
+// type this renderer cannot drive. Caller-owned; normally handed to
+// wxGCDC_SetGraphicsContext, which takes ownership.
+TClass(wxGraphicsContext)
+    wxGraphicsRenderer_CreateContextFromUnknownDC(TSelf(wxGraphicsRenderer) pObject,
+                                                  TClass(wxDC) dc);
 TClass(wxGraphicsContext)
     wxGraphicsRenderer_CreateContextFromNativeContext(TSelf(wxGraphicsRenderer) pObject,
                                                       void* context);
@@ -513,6 +600,7 @@ TClass(wxGraphicsContext)
                                                      void* window);
 TClass(wxGraphicsPath) wxGraphicsRenderer_CreatePath(TSelf(wxGraphicsRenderer) pObject);
 void wxGraphicsRenderer_Delete(TSelf(wxGraphicsRenderer) pObject);
+TClass(wxGraphicsRenderer) wxGraphicsRenderer_GetCairoRenderer(TSelf(wxGraphicsRenderer) pObject);
 TClass(wxGraphicsRenderer) wxGraphicsRenderer_GetDefaultRenderer(TSelf(wxGraphicsRenderer) pObject);
 TClass(wxGraphicsRenderer)
     wxGraphicsRenderer_GetDirect2DRenderer(TSelf(wxGraphicsRenderer) pObject);
@@ -626,11 +714,11 @@ TBool wxHVScrolledWindow_ScrollToRowColumn(TSelf(wxHVScrolledWindow) pObject, si
 TClassDefExtend(wxHyperlinkCtrl, wxControl) TClass(wxHyperlinkCtrl)
     wxHyperlinkCtrl_Create(TClass(wxWindow) parent, int id, TClass(wxString) label,
                            TClass(wxString) url, int x, int y, int width, int height, int style);
-TClass(wxColour) wxHyperlinkCtrl_GetHoverColour(TSelf(wxHyperlinkCtrl) pObject);
-TClass(wxColour) wxHyperlinkCtrl_GetNormalColour(TSelf(wxHyperlinkCtrl) pObject);
+TClassOwned(wxColour) wxHyperlinkCtrl_GetHoverColour(TSelf(wxHyperlinkCtrl) pObject);
+TClassOwned(wxColour) wxHyperlinkCtrl_GetNormalColour(TSelf(wxHyperlinkCtrl) pObject);
 TClass(wxString) wxHyperlinkCtrl_GetURL(TSelf(wxHyperlinkCtrl) pObject);
 TBool wxHyperlinkCtrl_GetVisited(TSelf(wxHyperlinkCtrl) pObject);
-TClass(wxColour) wxHyperlinkCtrl_GetVisitedColour(TSelf(wxHyperlinkCtrl) pObject);
+TClassOwned(wxColour) wxHyperlinkCtrl_GetVisitedColour(TSelf(wxHyperlinkCtrl) pObject);
 void wxHyperlinkCtrl_SetHoverColour(TSelf(wxHyperlinkCtrl) pObject, TClass(wxColour) colour);
 void wxHyperlinkCtrl_SetNormalColour(TSelf(wxHyperlinkCtrl) pObject, TClass(wxColour) colour);
 void wxHyperlinkCtrl_SetURL(TSelf(wxHyperlinkCtrl) pObject, TClass(wxString) url);
@@ -669,7 +757,7 @@ TClassDef(wxListCtrl) void wxListCtrl_AssignImageList(TSelf(wxListCtrl) pObject,
                                                       TClass(wxImageList) images, int which);
 void wxListCtrl_GetColumn2(TSelf(wxListCtrl) pObject, int col, TClass(wxListItem) item);
 void wxListCtrl_GetItem2(TSelf(wxListCtrl) pObject, TClass(wxListItem) info);
-TClass(wxPoint) wxListCtrl_GetItemPosition2(TSelf(wxListCtrl) pObject, int item);
+TClassOwned(wxPoint) wxListCtrl_GetItemPosition2(TSelf(wxListCtrl) pObject, int item);
 void wxListCtrl_RefreshItems(TSelf(wxListCtrl) pObject, long from, long toPos);
 TBool wxListCtrl_SortItems2(TSelf(wxListCtrl) pObject, TClass(wxClosure) closure);
 
@@ -683,7 +771,7 @@ TClassDef(wxMediaCtrl) TClass(wxMediaCtrl)
 int wxMediaCtrl_GetDownloadProgress(TSelf(wxMediaCtrl) pObject);
 int wxMediaCtrl_GetDownloadTotal(TSelf(wxMediaCtrl) pObject);
 void wxMediaCtrl_Delete(TSelf(wxMediaCtrl) pObject);
-TClass(wxSize) wxMediaCtrl_GetBestSize(TSelf(wxMediaCtrl) pObject);
+TClassOwned(wxSize) wxMediaCtrl_GetBestSize(TSelf(wxMediaCtrl) pObject);
 double wxMediaCtrl_GetPlaybackRate(TSelf(wxMediaCtrl) pObject);
 int wxMediaCtrl_GetState(TSelf(wxMediaCtrl) pObject);
 double wxMediaCtrl_GetVolume(TSelf(wxMediaCtrl) pObject);
@@ -756,6 +844,10 @@ TClass(wxClassInfo) wxObject_GetClassInfo(TSelf(wxObject) pObject);
 TClass(wxClosure) wxObject_GetClientClosure(TSelf(wxObject) pObject);
 TBool wxObject_IsKindOf(TSelf(wxObject) pObject, TClass(wxClassInfo) classInfo);
 TBool wxObject_IsScrolledWindow(TSelf(wxObject) pObject);
+// Runtime class test by name.  wxObject_IsKindOf takes a wxClassInfo*, which a binding
+// cannot obtain from a class name; this mirrors wxEvent_IsOfClass so every backend can
+// perform wxDynamicCast-style checks (e.g. "wxRichTextImage", "wxRichTextTable").
+TBool wxObject_IsOfClass(TSelf(wxObject) pObject, TString className);
 void wxObject_SetClientClosure(TSelf(wxObject) pObject, TClass(wxClosure) closure);
 // Phase 5: alias for kwxObject_SetOnGetClassInfo
 // (include/kwx_helper_hooks.h).  Declared here because wxObject already owns
@@ -825,8 +917,9 @@ TClassDef(wxPrintout) void* wxPrintout_GetDC(void* pObject);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 void wxPrintout_FitThisSizeToPageMargins(TSelf(wxPrintout) pObject, TClass(wxSize) imageSize,
                                          TClass(wxPageSetupDialogData) pageSetupData);
-TClass(wxRect) wxPrintout_GetLogicalPageMarginsRect(TSelf(wxPrintout) pObject,
-                                                    TClass(wxPageSetupDialogData) pageSetupData);
+TClassOwned(wxRect)
+    wxPrintout_GetLogicalPageMarginsRect(TSelf(wxPrintout) pObject,
+                                         TClass(wxPageSetupDialogData) pageSetupData);
 void wxPrintout_MapScreenSizeToPage(TSelf(wxPrintout) pObject);
 void wxPrintout_OffsetLogicalOrigin(TSelf(wxPrintout) pObject, int xoff, int yoff);
 void wxPrintout_GetPageSizeMM(void* pObject, TSizeOut(width, height));
@@ -868,20 +961,20 @@ void wxGenericProgressDialog_Delete(TSelf(wxGenericProgressDialog) pObject);
 
 TClassDef(wxRect) void* wxRect_Create(int x, int y, int width, int height);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-TClass(wxRect) wxRect_CentreIn(TSelf(wxRect) pObject, TClass(wxRect) r, int dir);
+TClassOwned(wxRect) wxRect_CentreIn(TSelf(wxRect) pObject, TClass(wxRect) r, int dir);
 TBool wxRect_Contains(TSelf(wxRect) pObject, int x, int y);
-TClass(wxRect) wxRect_Deflate(TSelf(wxRect) pObject, int dx, int dy);
+TClassOwned(wxRect) wxRect_Deflate(TSelf(wxRect) pObject, int dx, int dy);
 int wxRect_GetBottom(TSelf(wxRect) pObject);
-TClass(wxPoint) wxRect_GetBottomLeft(TSelf(wxRect) pObject);
+TClassOwned(wxPoint) wxRect_GetBottomLeft(TSelf(wxRect) pObject);
 int wxRect_GetLeft(TSelf(wxRect) pObject);
-TClass(wxPoint) wxRect_GetLeftTop(TSelf(wxRect) pObject);
-TClass(wxPoint) wxRect_GetPosition(TSelf(wxRect) pObject);
+TClassOwned(wxPoint) wxRect_GetLeftTop(TSelf(wxRect) pObject);
+TClassOwned(wxPoint) wxRect_GetPosition(TSelf(wxRect) pObject);
 int wxRect_GetRight(TSelf(wxRect) pObject);
-TClass(wxSize) wxRect_GetSize(TSelf(wxRect) pObject);
+TClassOwned(wxSize) wxRect_GetSize(TSelf(wxRect) pObject);
 int wxRect_GetTop(TSelf(wxRect) pObject);
-TClass(wxPoint) wxRect_GetTopLeft(TSelf(wxRect) pObject);
-TClass(wxPoint) wxRect_GetTopRight(TSelf(wxRect) pObject);
-TClass(wxRect) wxRect_Inflate(TSelf(wxRect) pObject, int dx, int dy);
+TClassOwned(wxPoint) wxRect_GetTopLeft(TSelf(wxRect) pObject);
+TClassOwned(wxPoint) wxRect_GetTopRight(TSelf(wxRect) pObject);
+TClassOwned(wxRect) wxRect_Inflate(TSelf(wxRect) pObject, int dx, int dy);
 void wxRect_Offset(TSelf(wxRect) pObject, int dx, int dy);
 void wxRect_SetLeft(TSelf(wxRect) pObject, int left);
 void wxRect_SetPosition(TSelf(wxRect) pObject, TClass(wxPoint) p);
@@ -993,8 +1086,10 @@ void wxStyledTextCtrl_SetMultipleSelection(TSelf(wxStyledTextCtrl) pObject,
                                            TBool multipleSelection);
 void wxStyledTextCtrl_SetTechnology(TSelf(wxStyledTextCtrl) pObject, int technology);
 void wxStyledTextCtrl_SetWrapVisualFlags(TSelf(wxStyledTextCtrl) pObject, int wrapVisualFlags);
-TClass(wxColour) wxStyledTextCtrl_StyleGetBackground(TSelf(wxStyledTextCtrl) pObject, int style);
-TClass(wxColour) wxStyledTextCtrl_StyleGetForeground(TSelf(wxStyledTextCtrl) pObject, int style);
+TClassOwned(wxColour)
+    wxStyledTextCtrl_StyleGetBackground(TSelf(wxStyledTextCtrl) pObject, int style);
+TClassOwned(wxColour)
+    wxStyledTextCtrl_StyleGetForeground(TSelf(wxStyledTextCtrl) pObject, int style);
 int wxStyledTextCtrl_StyleGetSizeFractional(TSelf(wxStyledTextCtrl) pObject, int style);
 void wxStyledTextCtrl_StyleSetSizeFractional(TSelf(wxStyledTextCtrl) pObject, int style,
                                              int sizeHundredthPoints);
@@ -1559,10 +1654,10 @@ TBool wxVScrolledWindow_ScrollRows(TSelf(wxVScrolledWindow) pObject, int rows);
 TBool wxVScrolledWindow_ScrollToRow(TSelf(wxVScrolledWindow) pObject, size_t row);
 void wxVScrolledWindow_SetRowCount(TSelf(wxVScrolledWindow) pObject, size_t rowCount);
 
-TClassDef(wxWindow) TClass(wxPoint)
+TClassDef(wxWindow) TClassOwned(wxPoint)
     wxWindow_ConvertDialogToPixelsEx(TSelf(wxWindow) pObject, int x, int y);
-TClass(wxPoint) wxWindow_ConvertPixelsToDialogEx(TSelf(wxWindow) pObject, int x, int y);
-TClass(wxPoint) wxWindow_ScreenToClient2(TSelf(wxWindow) pObject, int x, int y);
+TClassOwned(wxPoint) wxWindow_ConvertPixelsToDialogEx(TSelf(wxWindow) pObject, int x, int y);
+TClassOwned(wxPoint) wxWindow_ScreenToClient2(TSelf(wxWindow) pObject, int x, int y);
 
 TClassDef(wxWindowDisabler) void* wxWindowDisabler_Create(TClass(wxWindow) winToSkip);
 void wxWindowDisabler_Delete(TSelf(wxWindowDisabler) pObject);
@@ -1581,7 +1676,7 @@ void kwxBell();
 TClassOwned(wxBitmap) kwxBitmapFromBase64(TBytesIn base64, size_t len);
 void kwxEndBusyCursor();
 void kwxFree(void* pObject);
-TClass(wxPoint) kwxGetMousePosition();
+TClassOwned(wxPoint) kwxGetMousePosition();
 int kwxGetPixelRGB(void* buffer, int width, int x, int y);
 int kwxGetPixelRGBA(void* buffer, int width, int x, int y);
 void kwxInitPixelsRGB(void* buffer, int width, int height, int rgb);
@@ -1598,16 +1693,27 @@ void kwxSetPixelRowRGBA(void* buffer, int width, int x, int y, unsigned int rgba
 // by the caller (release it with kwxFree).
 // Returns nullptr on decode failure, or when the payload is not an SVG document.
 TString kwxSvgStringFromBase64(TBytesIn base64, size_t len);
-TClass(wxColour) kwxSystemSettingsGetColour(int systemColour);
+TClassOwned(wxColour) kwxSystemSettingsGetColour(int systemColour);
 void kwxWakeUpIdle();
 void wxAboutBox(TClass(wxAboutDialogInfo) info, TClass(wxWindow) parent);
-TClass(wxDragImage) wxDragIcon(TClass(wxIcon) icon, int x, int y);
-TClass(wxDragImage) wxDragListItem(TClass(wxListCtrl) listCtrl, long id);
-TClass(wxDragImage) wxDragString(TClass(wxString) text, int x, int y);
-TClass(wxDragImage) wxDragTreeItem(TClass(wxTreeCtrl) treeCtrl, TClass(wxTreeItemId) id);
+// The wxDragImage constructors take an optional cursor (default wxNullCursor); the plain forms
+// pin it to wxNullCursor, so a port that needs the C++ cursor must use the WithCursor form.
+// The cursor is copied and may be deleted immediately after the call; a null cursor means
+// wxNullCursor.  `x`/`y` on the plain forms exist for source compatibility only and are
+// ignored — the hotspot is supplied to BeginDrag.
+TClassOwned(wxDragImage) wxDragIcon(TClass(wxIcon) icon, int x, int y);
+TClassOwned(wxDragImage) wxDragIconWithCursor(TClass(wxIcon) icon, TClass(wxCursor) cursor);
+TClassOwned(wxDragImage) wxDragListItem(TClass(wxListCtrl) listCtrl, long id);
+TClassOwned(wxDragImage) wxDragString(TClass(wxString) text, int x, int y);
+TClassOwned(wxDragImage) wxDragStringWithCursor(TClass(wxString) text, TClass(wxCursor) cursor);
+TClassOwned(wxDragImage) wxDragTreeItem(TClass(wxTreeCtrl) treeCtrl, TClass(wxTreeItemId) id);
 TClass(wxGenericDragImage) wxGenericDragIcon(TClass(wxIcon) icon);
+TClass(wxGenericDragImage)
+    wxGenericDragIconWithCursor(TClass(wxIcon) icon, TClass(wxCursor) cursor);
 TClass(wxGenericDragImage) wxGenericDragListItem(TClass(wxListCtrl) listCtrl, long id);
 TClass(wxGenericDragImage) wxGenericDragString(TClass(wxString) text);
+TClass(wxGenericDragImage)
+    wxGenericDragStringWithCursor(TClass(wxString) text, TClass(wxCursor) cursor);
 TClass(wxGenericDragImage)
     wxGenericDragTreeItem(TClass(wxTreeCtrl) treeCtrl, TClass(wxTreeItemId) id);
 TClass(wxString) wxGetApplicationDir();

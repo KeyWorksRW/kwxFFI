@@ -153,6 +153,23 @@ extern "C"
         return result;
     }
 
+    EXPORT void wxGenericFileDialog_SetDirectory(wxGenericFileDialog* self, wxString* dir)
+    {
+        self->SetDirectory(*dir);
+    }
+
+    EXPORT wxString* wxGenericFileDialog_GetMessage(wxGenericFileDialog* self)
+    {
+        wxString* result = new wxString();
+        *result = self->GetMessage();
+        return result;
+    }
+
+    EXPORT void wxGenericFileDialog_SetMessage(wxGenericFileDialog* self, wxString* message)
+    {
+        self->SetMessage(*message);
+    }
+
     EXPORT void wxGenericFileDialog_SetPath(wxGenericFileDialog* self, wxString* path)
     {
         self->SetPath(*path);
@@ -195,6 +212,11 @@ extern "C"
     EXPORT int wxGenericFileDialog_SetCustomizeHook(wxGenericFileDialog* self, void* customizeHook)
     {
         return self->SetCustomizeHook(*(wxFileDialogCustomizeHook*) customizeHook);
+    }
+
+    EXPORT wxString* wxGenericFileDialog_GetCurrentlySelectedFilename(wxGenericFileDialog* self)
+    {
+        return new wxString(self->GetCurrentlySelectedFilename());
     }
 
     EXPORT void wxGenericFileDialog_Delete(wxGenericFileDialog* self)

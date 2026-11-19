@@ -665,6 +665,8 @@ const std::vector<std::string_view>& UiRoleVocabulary()
         "set_bitmap",
         "create_statusbar",
         "set_menubar",
+        "append",
+        "append_by_id",
         "show_modal",
         "end_modal",
         "set_escape_id",
@@ -776,7 +778,34 @@ const std::vector<std::string_view>& UiRequiredRolesForClass(std::string_view wx
         "ctor", "proportion", "expand",  "border",  "left",   "right",
         "top",  "bottom",     "align_h", "align_v", "delete",
     };
+    // Classes outside UiRequiredClasses() that still carry a role contract: the form's menu
+    // tree and the text-like controls whose value a form declares.  A generic class publishes
+    // only its constructor, so without an entry here the emitter has no role to resolve.
+    static const std::vector<std::string_view> MENU_BAR_ROLES {
+        "ctor", "append",
+    };
+    static const std::vector<std::string_view> MENU_ROLES {
+        "ctor", "append", "append_by_id",
+    };
+    // The value a form declares on a text-like control.  wxSearchCtrl inherits SetValue from
+    // wxTextCtrl, so the role resolves through the ancestor chain.
+    static const std::vector<std::string_view> SET_VALUE_ROLES {
+        "ctor", "set_value",
+    };
 
+    if (wx_class == "wxMenuBar")
+    {
+        return MENU_BAR_ROLES;
+    }
+    if (wx_class == "wxMenu")
+    {
+        return MENU_ROLES;
+    }
+    if (wx_class == "wxRichTextCtrl" || wx_class == "wxSearchCtrl" ||
+        wx_class == "wxSpinCtrlDouble")
+    {
+        return SET_VALUE_ROLES;
+    }
     if (wx_class == "wxFrame")
     {
         return FRAME_ROLES;

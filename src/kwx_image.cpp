@@ -108,6 +108,14 @@ extern "C"
         return new wxBitmapBundle(wxBitmapBundle::FromBitmap(bmp));
     }
 
+    // The C API cannot express the C++ default `const wxBitmapBundle& icon = wxBitmapBundle()`,
+    // so consumers that have no icon pass this empty (valid, IsOk() == false) bundle instead of
+    // NULL.
+    EXPORT wxBitmapBundle* wxBitmapBundle_CreateDefault()
+    {
+        return new wxBitmapBundle();
+    }
+
     EXPORT wxBitmapBundle* wxBitmapBundle_CreateFromBase64(const unsigned char* base64, size_t len,
                                                            int bitmap_type)
     {

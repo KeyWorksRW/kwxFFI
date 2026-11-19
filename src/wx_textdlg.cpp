@@ -17,6 +17,16 @@ extern "C"
                                      wxPoint(x, y), wxSize(sz_w, sz_h));
     }
 
+    // wxPasswordEntryDialog masks the text entry.  It takes no size argument; see the comment in
+    // include/kwx_classes.h.
+    EXPORT void* wxPasswordEntryDialog_Create(wxWindow* parent, wxString* message,
+                                              wxString* caption, wxString* defaultValue, long style,
+                                              int x, int y)
+    {
+        return new wxPasswordEntryDialog(parent, *message, *caption, *defaultValue, style,
+                                         wxPoint(x, y));
+    }
+
     EXPORT wxString* wxTextEntryDialog_GetValue(wxTextEntryDialog* self)
     {
         wxString* result = new wxString();
@@ -34,5 +44,4 @@ extern "C"
     {
         ((wxTextEntryDialog*) pObject)->SetHint(*(wxString*) hint);
     }
-
 }

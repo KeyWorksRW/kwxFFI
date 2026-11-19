@@ -22,8 +22,8 @@ void wxWindow_CentreOnParent(TSelf(wxWindow) pObject, int dir);
 TClass(wxWindow) wxWindow_FindWindowById(long winid, void* parent);
 TClass(wxWindow) wxWindow_FindWindowByName(TClass(wxString) name, void* parent);
 TClass(wxSizer) wxWindow_GetContainingSizer(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetMinSizeFromKnownDirection(TSelf(wxWindow) pObject, int direction,
-                                                     int size, int availableOtherDir);
+TClassOwned(wxSize) wxWindow_GetMinSizeFromKnownDirection(TSelf(wxWindow) pObject, int direction,
+                                                          int size, int availableOtherDir);
 TBool wxWindow_IsTransparentBackgroundSupported(TSelf(wxWindow) pObject, void* reason);
 void wxWindow_PostSizeEvent(TSelf(wxWindow) pObject);
 void wxWindow_UnreserveControlId(int id, int count);
@@ -33,10 +33,11 @@ int wxWindow_GetLayoutDirection(TSelf(wxWindow) pObject);
 void wxWindow_SetLayoutDirection(TSelf(wxWindow) pObject, int direction);
 void wxWindow_SetPosition(TSelf(wxWindow) pObject, TPoint(x, y));
 void wxWindow_GetScreenPosition(TSelf(wxWindow) pObject, TPointOut(x, y));
-TClass(wxRect) wxWindow_GetScreenRect(TSelf(wxWindow) pObject);
+TClassOwned(wxRect) wxWindow_GetScreenRect(TSelf(wxWindow) pObject);
 void wxWindow_GetClientAreaOrigin(TSelf(wxWindow) pObject, TPointOut(x, y));
-TClass(wxRect) wxWindow_GetClientRect(TSelf(wxWindow) pObject);
+TClassOwned(wxRect) wxWindow_GetClientRect(TSelf(wxWindow) pObject);
 void wxWindow_ClientToWindowSize(TSelf(wxWindow) pObject, TSizeOut(width, height));
+void wxWindow_SetSizeWH(TSelf(wxWindow) pObject, TSize(width, height));
 void wxWindow_WindowToClientSize(TSelf(wxWindow) pObject, TSizeOut(width, height));
 int wxWindow_GetBestHeight(TSelf(wxWindow) pObject, int width);
 int wxWindow_GetBestWidth(TSelf(wxWindow) pObject, int height);
@@ -44,16 +45,16 @@ void wxWindow_InvalidateBestSize(TSelf(wxWindow) pObject);
 void wxWindow_CacheBestSize(TSelf(wxWindow) pObject, TSize(width, height));
 TBool wxWindow_SetInitialSize(TSelf(wxWindow) pObject, TSize(width, height));
 void wxWindow_Centre(TSelf(wxWindow) pObject, int direction);
-TClass(wxSize) wxWindow_GetMinSize(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetMaxSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetMinSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetMaxSize(TSelf(wxWindow) pObject);
 void wxWindow_SetMinClientSize(TSelf(wxWindow) pObject, TSize(width, height));
 void wxWindow_SetMaxClientSize(TSelf(wxWindow) pObject, TSize(width, height));
-TClass(wxSize) wxWindow_GetMinClientSize(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetMaxClientSize(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetBestVirtualSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetMinClientSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetMaxClientSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetBestVirtualSize(TSelf(wxWindow) pObject);
 double wxWindow_GetContentScaleFactor(TSelf(wxWindow) pObject);
 double wxWindow_GetDPIScaleFactor(TSelf(wxWindow) pObject);
-TClass(wxSize) wxWindow_GetWindowBorderSize(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetWindowBorderSize(TSelf(wxWindow) pObject);
 void wxWindow_SendSizeEvent(TSelf(wxWindow) pObject, int flags);
 void wxWindow_SendSizeEventToParent(TSelf(wxWindow) pObject, int flags);
 TBool wxWindow_ShowWithEffect(TSelf(wxWindow) pObject, int effect, int timeout);
@@ -94,15 +95,25 @@ TBool wxWindow_HandleWindowEvent(TSelf(wxWindow) pObject, TClass(wxEvent) event)
 TClass(wxAcceleratorTable) wxWindow_GetAcceleratorTable(TSelf(wxWindow) pObject);
 TBool wxWindow_RegisterHotKey(TSelf(wxWindow) pObject, int hotkeyId, int modifiers, int keycode);
 TBool wxWindow_UnregisterHotKey(TSelf(wxWindow) pObject, int hotkeyId);
-TClass(wxSize) wxWindow_GetDPI(TSelf(wxWindow) pObject);
+TClassOwned(wxSize) wxWindow_GetDPI(TSelf(wxWindow) pObject);
 int wxWindow_FromDIP(TSelf(wxWindow) pObject, int value);
 int wxWindow_ToDIP(TSelf(wxWindow) pObject, int value);
+// The scalar FromDIP/ToDIP forms above cannot scale a size, so every port multiplied its own
+// scalars.  The two-argument static overload is the only way to scale a size before the window
+// exists (wxWidgets treats a null window as "use the primary display"), which is what a frame
+// constructor needs for its initial size.  Both return a heap wxSize the caller owns.
+TClassOwned(wxSize) wxWindow_FromDIPSize(TSelf(wxWindow) pObject, TSize(width, height));
+TClassOwned(wxSize) wxWindow_FromDIPSizeForWindow(TSize(width, height), TClass(wxWindow) window);
+// The no-window form: `wxWindow::FromDIP(size, nullptr)` scales against the primary display's
+// DPI, which is what a frame constructor needs for its initial size.  rust and fortran cannot
+// express a null TClass(wxWindow), so this export is their path to the same behaviour.
+TClassOwned(wxSize) wxWindow_FromDIPSizeDefault(TSize(width, height));
 TBool wxWindow_HasCapture(TSelf(wxWindow) pObject);
 TBool wxWindow_EnableTouchEvents(TSelf(wxWindow) pObject, int eventsMask);
 TBool wxWindow_IsFrozen(TSelf(wxWindow) pObject);
 void wxWindow_SetDoubleBuffered(TSelf(wxWindow) pObject, TBool on);
 TBool wxWindow_IsDoubleBuffered(TSelf(wxWindow) pObject);
-TClass(wxRect) wxWindow_GetUpdateClientRect(TSelf(wxWindow) pObject);
+TClassOwned(wxRect) wxWindow_GetUpdateClientRect(TSelf(wxWindow) pObject);
 void wxWindow_SetOwnBackgroundColour(TSelf(wxWindow) pObject, TClass(wxColour) colour);
 TBool wxWindow_UseBgCol(TSelf(wxWindow) pObject);
 TBool wxWindow_UseBackgroundColour(TSelf(wxWindow) pObject);
@@ -117,7 +128,7 @@ void wxWindow_SetOwnFont(TSelf(wxWindow) pObject, TClass(wxFont) font);
 void wxWindow_EnableInputMethod(TSelf(wxWindow) pObject, TBool enable);
 TBool wxWindow_IsInputMethodEnabled(TSelf(wxWindow) pObject);
 void wxWindow_UpdateInputMethodCursorRect(TSelf(wxWindow) pObject, TRect(x, y, width, height));
-TClass(wxRect) wxWindow_GetInputMethodCursorRect(TSelf(wxWindow) pObject);
+TClassOwned(wxRect) wxWindow_GetInputMethodCursorRect(TSelf(wxWindow) pObject);
 int wxWindow_HitTest(TSelf(wxWindow) pObject, TPoint(x, y));
 int wxWindow_GetBorder(TSelf(wxWindow) pObject, long flags);
 TBool wxWindow_HasMultiplePages(TSelf(wxWindow) pObject);
@@ -140,7 +151,7 @@ void wxWindow_DragAcceptFiles(TSelf(wxWindow) pObject, TBool accept);
 void wxWindow_SetContainingSizer(TSelf(wxWindow) pObject, TClass(wxSizer) sizer);
 TBool wxWindow_SetTransparent(TSelf(wxWindow) pObject, TUInt8 alpha);
 TBool wxWindow_CanSetTransparent(TSelf(wxWindow) pObject);
-TClass(wxPalette) wxWindow_GetPalette(TSelf(wxWindow) pObject);
+TClassOwned(wxPalette) wxWindow_GetPalette(TSelf(wxWindow) pObject);
 void wxWindow_SetPalette(TSelf(wxWindow) pObject, TClass(wxPalette) palette);
 TBool wxWindow_HasCustomPalette(TSelf(wxWindow) pObject);
 void wxWindow_InheritAttributes(TSelf(wxWindow) pObject);
@@ -171,7 +182,7 @@ TBool wxControl_ShouldInheritColours(TSelf(wxControl) pObject);
 /* wxTextCtrl                                                                */
 /* ------------------------------------------------------------------------- */
 
-TClassDefExtend(wxTextCtrl, wxControl) TClass(wxPoint)
+TClassDefExtend(wxTextCtrl, wxControl) TClassOwned(wxPoint)
     wxTextCtrl_PositionToCoords(TSelf(wxTextCtrl) pObject, long pos);
 int wxTextCtrl_HitTest(TSelf(wxTextCtrl) pObject, TPoint(x, y), TLongOut pos);
 int wxTextCtrl_HitTestColumnRow(TSelf(wxTextCtrl) pObject, TPoint(x, y), TLongOut column,
@@ -229,7 +240,7 @@ TClass(wxWindow) wxDialog_GetContentWindow(TSelf(wxDialog) pObject);
 /* wxFrame                                                                   */
 /* ------------------------------------------------------------------------- */
 
-TClassDefExtend(wxFrame, wxTopLevelWindow) TClass(wxPoint)
+TClassDefExtend(wxFrame, wxTopLevelWindow) TClassOwned(wxPoint)
     wxFrame_GetClientAreaOriginPoint(TSelf(wxFrame) pObject);
 void wxFrame_SetWindowModality(TSelf(wxFrame) pObject, int modality);
 TBool wxFrame_ProcessCommandItem(TSelf(wxFrame) pObject, TClass(wxMenuItem) item);
@@ -246,4 +257,4 @@ TClass(wxIconBundle) wxTopLevelWindow_GetIcons(TSelf(wxTopLevelWindow) pObject);
 TBool wxTopLevelWindow_EnableFullScreenView(TSelf(wxTopLevelWindow) pObject, TBool enable,
                                             long style);
 int wxTopLevelWindow_GetContentProtection(TSelf(wxTopLevelWindow) pObject);
-TClass(wxSize) wxTopLevelWindow_GetDefaultSize();
+TClassOwned(wxSize) wxTopLevelWindow_GetDefaultSize();

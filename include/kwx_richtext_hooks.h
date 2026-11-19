@@ -8,17 +8,28 @@
 // wxRichTextFieldTypeStandard whose field type is defined by the caller, and a
 // wxRichTextDrawingHandler that supplies virtual attributes and virtual text.
 //
-// The callback ABI matches include/kwx_propgrid_hooks.h: every callback is
-// void (*)(void* pObject, ...), receives the foreign object first, and takes at
-// most two further arguments.  A callback that must produce a value calls the
-// matching Set*Result function on the same object before it returns; a callback
-// that returns without publishing keeps the base-class behaviour.  An unset
-// callback keeps the base-class behaviour too.
+// Two callback families are declared below.
 //
-// "At most two further arguments" is what lets a runtime whose native thunk is
-// void (*)(void*, void*, void*) install every hook: a callback that returned a
-// value would answer from an undefined return register, and a fourth argument
-// could not be delivered at all.
+// The plain SetOn… family keeps a per-hook C signature.  Every such callback
+// returns void, receives the object-level callback token first — the value given
+// to kwxRichTextCtrl_SetCallbackObject, or the pObject passed to the field-type
+// and drawing-handler constructors — and takes at most two further arguments.
+//
+// The …WithData family is the uniform single-thunk form.  Its callback type is
+//
+//     void (*)(void* data, void* arg1, void* arg2)
+//
+// where data is the per-hook token passed to that same …WithData setter and
+// arg1/arg2 are the hook arguments; an unused position is NULL.  The token — not
+// the object-level callback token — identifies the hook, so a runtime with
+// exactly one native 3-argument thunk installs every hook by handing each
+// …WithData setter that one thunk plus a distinct token.  A …WithData setter
+// takes precedence over the plain setter for the same hook.
+//
+// Both families publish results the same way: a callback that must produce a
+// value calls the matching Set*Result function on the same object before it
+// returns, and a callback that publishes nothing keeps the base-class
+// behaviour.  An unset callback keeps the base-class behaviour too.
 //
 // Argument order per callback, after pObject:
 //
@@ -35,6 +46,24 @@
 //   GetVirtualSubobjectAttributesCount (obj)
 //   HasVirtualText                     (obj)
 //   GetVirtualText                     (obj)
+//
+// In the …WithData family those same arguments arrive as arg1 and arg2; an
+// unused position is NULL.  CanInsertContent delivers the long position as
+// (void*)(intptr_t)position:
+//
+//   PrepareContent                     (&container, NULL)
+//   CanDeleteRange                     (&container, &range)
+//   CanInsertContent                   (&container, (void*)(intptr_t)position)
+//   CanEditProperties                  (obj, NULL)
+//   EditProperties                     (obj, parent)
+//   GetPropertiesMenuLabel             (obj, NULL)
+//   UpdateField                        (buffer, obj)
+//   IsTopLevel                         (obj, NULL)
+//   HasVirtualAttributes               (obj, NULL)
+//   GetVirtualAttributes               (&attr, obj)
+//   GetVirtualSubobjectAttributesCount (obj, NULL)
+//   HasVirtualText                     (obj, NULL)
+//   GetVirtualText                     (obj, NULL)
 //
 // container is a wxRichTextParagraphLayoutBox*, field a wxRichTextField*, parent
 // a wxWindow*, buffer a wxRichTextBuffer*, obj a wxRichTextObject* (or a
@@ -78,8 +107,33 @@ void kwxRichTextCtrl_Delete(TSelf(kwxRichTextCtrl) pObject);
 void kwxRichTextCtrl_SetOnPrepareContent(TSelf(kwxRichTextCtrl) pObject, void* pFunction);
 void kwxRichTextCtrl_SetOnCanDeleteRange(TSelf(kwxRichTextCtrl) pObject, void* pFunction);
 void kwxRichTextCtrl_SetOnCanInsertContent(TSelf(kwxRichTextCtrl) pObject, void* pFunction);
+
+// Uniform single-thunk variants; the third argument is the per-hook token.
+void kwxRichTextCtrl_SetOnPrepareContentWithData(TSelf(kwxRichTextCtrl) pObject, void* pFunction,
+                                                 void* data);
+void kwxRichTextCtrl_SetOnCanDeleteRangeWithData(TSelf(kwxRichTextCtrl) pObject, void* pFunction,
+                                                 void* data);
+void kwxRichTextCtrl_SetOnCanInsertContentWithData(TSelf(kwxRichTextCtrl) pObject, void* pFunction,
+                                                   void* data);
+
 void kwxRichTextCtrl_SetCanDeleteRangeResult(TSelf(kwxRichTextCtrl) pObject, TBool result);
 void kwxRichTextCtrl_SetCanInsertContentResult(TSelf(kwxRichTextCtrl) pObject, TBool result);
+
+// The foreign object handed to every callback. kwxRichTextCtrl_Create leaves it null;
+// call this once so the callbacks can identify the control they belong to.
+void kwxRichTextCtrl_SetCallbackObject(TSelf(kwxRichTextCtrl) pObject, void* object);
+void* kwxRichTextCtrl_GetCallbackObject(TSelf(kwxRichTextCtrl) pObject);
+
+// Locked-content state, mirroring MyRichTextCtrl in wxSamples/src/richtext/richtext.cpp.
+// BeginLock increments the lock id and marks the control locked. While locked,
+// PrepareContent tags every child object of every paragraph in the container with the
+// long property "Lock" = current id (richtext.cpp:2152-2175); EndLock clears the flag.
+// CanDeleteRange / CanInsertContent can then test the property on the leaf objects.
+void kwxRichTextCtrl_SetLockId(TSelf(kwxRichTextCtrl) pObject, long id);
+long kwxRichTextCtrl_GetLockId(TSelf(kwxRichTextCtrl) pObject);
+void kwxRichTextCtrl_BeginLock(TSelf(kwxRichTextCtrl) pObject);
+void kwxRichTextCtrl_EndLock(TSelf(kwxRichTextCtrl) pObject);
+TBool kwxRichTextCtrl_IsLocked(TSelf(kwxRichTextCtrl) pObject);
 
 // ---------------------------------------------------------------------------
 // kwxRichTextFieldTypeStandard — wxRichTextFieldTypeStandard with callback overrides.
@@ -91,6 +145,9 @@ TClassDefExtend(kwxRichTextFieldTypeStandard, wxRichTextFieldTypeStandard)
     TClass(kwxRichTextFieldTypeStandard)
         kwxRichTextFieldTypeStandard_Create(void* pObject, TClass(wxString) name,
                                             TClass(wxString) label, int displayStyle);
+TClass(kwxRichTextFieldTypeStandard)
+    kwxRichTextFieldTypeStandard_CreateWithBitmap(void* pObject, TClass(wxString) name,
+                                                  TClass(wxBitmap) bitmap, int displayStyle);
 void kwxRichTextFieldTypeStandard_Delete(TSelf(kwxRichTextFieldTypeStandard) pObject);
 void kwxRichTextFieldTypeStandard_SetOnCanEditProperties(TSelf(kwxRichTextFieldTypeStandard)
                                                              pObject,
@@ -118,6 +175,22 @@ void kwxRichTextFieldTypeStandard_SetOnUpdateField(TSelf(kwxRichTextFieldTypeSta
 void kwxRichTextFieldTypeStandard_SetOnIsTopLevel(TSelf(kwxRichTextFieldTypeStandard) pObject,
                                                   void* pFunction);
 
+// Uniform single-thunk variants; the third argument is the per-hook token.
+void kwxRichTextFieldTypeStandard_SetOnCanEditPropertiesWithData(TSelf(kwxRichTextFieldTypeStandard)
+                                                                     pObject,
+                                                                 void* pFunction, void* data);
+void kwxRichTextFieldTypeStandard_SetOnEditPropertiesWithData(TSelf(kwxRichTextFieldTypeStandard)
+                                                                  pObject,
+                                                              void* pFunction, void* data);
+void kwxRichTextFieldTypeStandard_SetOnGetPropertiesMenuLabelWithData(
+    TSelf(kwxRichTextFieldTypeStandard) pObject, void* pFunction, void* data);
+void kwxRichTextFieldTypeStandard_SetOnUpdateFieldWithData(TSelf(kwxRichTextFieldTypeStandard)
+                                                               pObject,
+                                                           void* pFunction, void* data);
+void kwxRichTextFieldTypeStandard_SetOnIsTopLevelWithData(TSelf(kwxRichTextFieldTypeStandard)
+                                                              pObject,
+                                                          void* pFunction, void* data);
+
 // ---------------------------------------------------------------------------
 // kwxRichTextDrawingHandler — wxRichTextDrawingHandler with callback overrides.
 // Pass the object to wxRichTextBuffer_AddDrawingHandler, which takes ownership.
@@ -137,6 +210,20 @@ void kwxRichTextDrawingHandler_SetOnHasVirtualText(TSelf(kwxRichTextDrawingHandl
                                                    void* pFunction);
 void kwxRichTextDrawingHandler_SetOnGetVirtualText(TSelf(kwxRichTextDrawingHandler) pObject,
                                                    void* pFunction);
+
+// Uniform single-thunk variants; the third argument is the per-hook token.
+void kwxRichTextDrawingHandler_SetOnHasVirtualAttributesWithData(TSelf(kwxRichTextDrawingHandler)
+                                                                     pObject,
+                                                                 void* pFunction, void* data);
+void kwxRichTextDrawingHandler_SetOnGetVirtualAttributesWithData(TSelf(kwxRichTextDrawingHandler)
+                                                                     pObject,
+                                                                 void* pFunction, void* data);
+void kwxRichTextDrawingHandler_SetOnGetVirtualSubobjectAttributesCountWithData(
+    TSelf(kwxRichTextDrawingHandler) pObject, void* pFunction, void* data);
+void kwxRichTextDrawingHandler_SetOnHasVirtualTextWithData(TSelf(kwxRichTextDrawingHandler) pObject,
+                                                           void* pFunction, void* data);
+void kwxRichTextDrawingHandler_SetOnGetVirtualTextWithData(TSelf(kwxRichTextDrawingHandler) pObject,
+                                                           void* pFunction, void* data);
 void kwxRichTextDrawingHandler_SetVirtualTextResult(TSelf(kwxRichTextDrawingHandler) pObject,
                                                     TClass(wxString) text);
 void kwxRichTextDrawingHandler_SetHasVirtualAttributesResult(TSelf(kwxRichTextDrawingHandler)

@@ -705,6 +705,8 @@ extern "C"
         return static_cast<int>(self->size());
     }
 
+    // The declaration (TClass(wxAuiPaneLayoutInfo)) gives the caller ownership,
+    // and _Add copies the value, so the caller still has to delete the item.
     EXPORT void wxAuiPaneLayoutInfoArray_Add(wxAuiPaneLayoutInfoArray* self,
                                              wxAuiPaneLayoutInfo* item)
     {
@@ -732,6 +734,8 @@ extern "C"
         return static_cast<int>(self->size());
     }
 
+    // The declaration (TClass(wxAuiTabLayoutInfo)) gives the caller ownership,
+    // and _Add copies the value, so the caller still has to delete the item.
     EXPORT void wxAuiTabLayoutInfoArray_Add(wxAuiTabLayoutInfoArray* self, wxAuiTabLayoutInfo* item)
     {
         self->push_back(*item);

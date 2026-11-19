@@ -188,6 +188,11 @@ extern "C"
     typedef int (*DragTwoFunc)(void* pObject, long x, long y);
     typedef int (*DragThreeFunc)(void* pObject, long x, long y, int def);
 
+    // Uniform three-argument hook shape. The TypeScript runtime owns exactly one
+    // thunk of this form, so every hook a scripted subclass must install is
+    // republished in this shape. Integers travel as (void*)(intptr_t)value.
+    typedef void (*DragWithDataFunc)(void* data, void* arg1, void* arg2);
+
     typedef void* (*TGetText)(void* pObject, void* text);
 
     typedef int (*DataGetDataSize)(void* pObject);
@@ -281,6 +286,43 @@ public:
     void* data;
 };
 
+// Bookkeeping shared by kwxDropTarget, kwxTextDropTarget and kwxFileDropTarget for
+// the uniform …WithData hook form. One instance per helper object; there is one
+// data token per hook, and `result` is what the Set<Hook>Result exports publish.
+struct kwxDropHook
+{
+    DragWithDataFunc fn = nullptr;
+    void* data = nullptr;
+};
+
+struct kwxDropHookState
+{
+    kwxDropHook on_data, on_drop, on_enter, on_drag_over, on_leave, on_drop_text, on_drop_files;
+    int result = 0;  // published by Set<Hook>Result
+    int x = 0, y = 0, def = 0;
+
+    wxString text;        // in-flight copy for GetDropText
+    wxArrayString files;  // in-flight copy for GetDropFiles
+
+    // Drag-result hooks default to the incoming wxDragResult so a hook that
+    // publishes nothing behaves like the base class.
+    void BeginDrag(int pos_x, int pos_y, int drag_def)
+    {
+        x = pos_x;
+        y = pos_y;
+        def = drag_def;
+        result = drag_def;
+    }
+
+    // bool-returning hooks default to "not handled".
+    void BeginBool(int pos_x, int pos_y)
+    {
+        x = pos_x;
+        y = pos_y;
+        result = 0;
+    }
+};
+
 class kwxDropTarget : public wxDropTarget
 {
 private:
@@ -290,6 +332,7 @@ private:
     DragThreeFunc on_drag_func;
     DragZeroFunc on_leave_func;
     void* obj;
+    kwxDropHookState m_drop_hook;
 
 public:
     kwxDropTarget(void* pObject) : wxDropTarget()
@@ -312,6 +355,40 @@ public:
     void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
     void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
     void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
+
+    // Uniform …WithData hook form (see kwxDropHookState above).
+    void SetOnDataWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_data.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_data.data = data;
+    }
+    void SetOnDropWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drop.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drop.data = data;
+    }
+    void SetOnEnterWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_enter.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_enter.data = data;
+    }
+    void SetOnDragOverWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drag_over.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drag_over.data = data;
+    }
+    void SetOnLeaveWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_leave.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_leave.data = data;
+    }
+
+    void SetDataResult(int result) { m_drop_hook.result = result; }
+    void SetDropResult(int result) { m_drop_hook.result = result; }
+    void SetEnterResult(int result) { m_drop_hook.result = result; }
+    void SetDragOverResult(int result) { m_drop_hook.result = result; }
+
+    int GetDropResult() const { return m_drop_hook.def; }
 };
 
 class kwxDragDataObject : public wxDataObjectSimple
@@ -347,6 +424,7 @@ private:
     DragZeroFunc on_leave_func;
     TextDropFunc func;
     void* obj;
+    kwxDropHookState m_drop_hook;
 
 public:
     kwxTextDropTarget(void* pObject, TextDropFunc pFunction) : wxTextDropTarget()
@@ -373,6 +451,47 @@ public:
     void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
     void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
     void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
+
+    // Uniform …WithData hook form (see kwxDropHookState above).
+    void SetOnDataWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_data.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_data.data = data;
+    }
+    void SetOnDropWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drop.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drop.data = data;
+    }
+    void SetOnEnterWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_enter.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_enter.data = data;
+    }
+    void SetOnDragOverWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drag_over.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drag_over.data = data;
+    }
+    void SetOnLeaveWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_leave.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_leave.data = data;
+    }
+    void SetOnDropTextWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drop_text.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drop_text.data = data;
+    }
+
+    void SetDataResult(int result) { m_drop_hook.result = result; }
+    void SetDropResult(int result) { m_drop_hook.result = result; }
+    void SetEnterResult(int result) { m_drop_hook.result = result; }
+    void SetDragOverResult(int result) { m_drop_hook.result = result; }
+    void SetDropTextResult(int result) { m_drop_hook.result = result; }
+
+    int GetDropResult() const { return m_drop_hook.def; }
+    const wxString& GetDropText() const { return m_drop_hook.text; }
 };
 
 class kwxFileDropTarget : public wxFileDropTarget
@@ -385,6 +504,7 @@ private:
     DragZeroFunc on_leave_func;
     FileDropFunc func;
     void* obj;
+    kwxDropHookState m_drop_hook;
 
 public:
     kwxFileDropTarget(void* pObject, FileDropFunc pFunction) : wxFileDropTarget()
@@ -411,6 +531,47 @@ public:
     void SetOnEnter(DragThreeFunc pFunction) { on_enter_func = pFunction; };
     void SetOnDragOver(DragThreeFunc pFunction) { on_drag_func = pFunction; };
     void SetOnLeave(DragZeroFunc pFunction) { on_leave_func = pFunction; };
+
+    // Uniform …WithData hook form (see kwxDropHookState above).
+    void SetOnDataWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_data.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_data.data = data;
+    }
+    void SetOnDropWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drop.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drop.data = data;
+    }
+    void SetOnEnterWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_enter.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_enter.data = data;
+    }
+    void SetOnDragOverWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drag_over.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drag_over.data = data;
+    }
+    void SetOnLeaveWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_leave.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_leave.data = data;
+    }
+    void SetOnDropFilesWithData(void* pFunction, void* data)
+    {
+        m_drop_hook.on_drop_files.fn = (DragWithDataFunc) pFunction;
+        m_drop_hook.on_drop_files.data = data;
+    }
+
+    void SetDataResult(int result) { m_drop_hook.result = result; }
+    void SetDropResult(int result) { m_drop_hook.result = result; }
+    void SetEnterResult(int result) { m_drop_hook.result = result; }
+    void SetDragOverResult(int result) { m_drop_hook.result = result; }
+    void SetDropFilesResult(int result) { m_drop_hook.result = result; }
+
+    int GetDropResult() const { return m_drop_hook.def; }
+    const wxArrayString& GetDropFiles() const { return m_drop_hook.files; }
 };
 
 class kwxTextValidator : public wxTextValidator
@@ -734,3 +895,55 @@ public:
 #include "kwx_helper_eventfilter.h"
 #include "kwx_helper_filedlgcustomize.h"
 #include "kwx_helper_thread.h"
+
+// Stock-object ids.  wxPen_CreateFromStock, wxBrush_CreateFromStock,
+// wxColour_CreateFromStock and wxFont_CreateFromStock all take one of these
+// values, and src/kwx_defs.cpp exports each of them as a *_STOCK_* constant so
+// a binding can name the value instead of hard-coding an integer.  One
+// definition here keeps the switches and the exported ids from drifting apart.
+enum kwxStockPenId
+{
+    kwxStockPen_Red = 0,
+    kwxStockPen_Cyan,
+    kwxStockPen_Green,
+    kwxStockPen_Black,
+    kwxStockPen_White,
+    kwxStockPen_Transparent,
+    kwxStockPen_BlackDashed,
+    kwxStockPen_Grey,
+    kwxStockPen_MediumGrey,
+    kwxStockPen_LightGrey,
+};
+
+enum kwxStockBrushId
+{
+    kwxStockBrush_Blue = 0,
+    kwxStockBrush_Green,
+    kwxStockBrush_White,
+    kwxStockBrush_Black,
+    kwxStockBrush_Grey,
+    kwxStockBrush_MediumGrey,
+    kwxStockBrush_LightGrey,
+    kwxStockBrush_Transparent,
+    kwxStockBrush_Cyan,
+    kwxStockBrush_Red,
+};
+
+enum kwxStockColourId
+{
+    kwxStockColour_Black = 0,
+    kwxStockColour_White,
+    kwxStockColour_Red,
+    kwxStockColour_Blue,
+    kwxStockColour_Green,
+    kwxStockColour_Cyan,
+    kwxStockColour_LightGrey,
+};
+
+enum kwxStockFontId
+{
+    kwxStockFont_Italic = 0,
+    kwxStockFont_Normal,
+    kwxStockFont_Small,
+    kwxStockFont_Swiss,
+};

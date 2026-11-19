@@ -116,6 +116,11 @@ TArrayLen wxGenericFileDialog_GetPaths(TSelf(wxGenericFileDialog) pObject,
 TArrayLen wxGenericFileDialog_GetFilenames(TSelf(wxGenericFileDialog) pObject,
                                            TArrayStringOutVoid paths, int capacity);
 TClass(wxString) wxGenericFileDialog_GetDirectory(TSelf(wxGenericFileDialog) pObject);
+// wxFileDialogBase::SetDirectory/GetMessage/SetMessage are invisible to the parser on this class
+// (the base class is not declared); expose them here like GetCurrentlySelectedFilename below.
+void wxGenericFileDialog_SetDirectory(TSelf(wxGenericFileDialog) pObject, TClass(wxString) dir);
+TClass(wxString) wxGenericFileDialog_GetMessage(TSelf(wxGenericFileDialog) pObject);
+void wxGenericFileDialog_SetMessage(TSelf(wxGenericFileDialog) pObject, TClass(wxString) message);
 TClass(wxString) wxGenericFileDialog_GetFilename(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetFilename(TSelf(wxGenericFileDialog) pObject, TClass(wxString) name);
 TClass(wxString) wxGenericFileDialog_GetWildcard(TSelf(wxGenericFileDialog) pObject);
@@ -124,6 +129,11 @@ int wxGenericFileDialog_GetFilterIndex(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_SetFilterIndex(TSelf(wxGenericFileDialog) pObject, int filterIndex);
 TBool wxGenericFileDialog_SetCustomizeHook(TSelf(wxGenericFileDialog) pObject,
                                            TClass(wxFileDialogCustomizeHook) customizeHook);
+// wxFileDialogBase::GetCurrentlySelectedFilename() is exported only for wxFileDialog
+// (include/kwx_classes.h), but a customize hook receives either dialog type; expose the
+// inherited base method on the generic dialog too.
+TClass(wxString)
+    wxGenericFileDialog_GetCurrentlySelectedFilename(TSelf(wxGenericFileDialog) pObject);
 void wxGenericFileDialog_Delete(TSelf(wxGenericFileDialog) pObject);
 
 TClassDefExtend(wxGenericFontDialog, wxDialog) TClass(wxGenericFontDialog)
@@ -164,6 +174,7 @@ void wxNumValidator_SetMax(TSelf(wxNumValidator) pObject, long max_value);
 void wxNumValidator_SetMaxDouble(TSelf(wxNumValidator) pObject, double max_value);
 void wxNumValidator_SetMin(TSelf(wxNumValidator) pObject, long min_value);
 void wxNumValidator_SetMinDouble(TSelf(wxNumValidator) pObject, double min_value);
+void wxNumValidator_SetPrecision(TSelf(wxNumValidator) pObject, int precision);
 void wxNumValidator_SetRange(TSelf(wxNumValidator) pObject, long min_value, long max_value);
 void wxNumValidator_SetRangeDouble(TSelf(wxNumValidator) pObject, double min_value,
                                    double max_value);
@@ -235,14 +246,14 @@ TClassDefExtend(wxRearrangeDialog, wxDialog) TClass(wxRearrangeDialog)
     wxRearrangeDialog_Create(TClass(wxWindow) parent, TClass(wxString) message,
                              TClass(wxString) title, TClass(wxArrayInt) order,
                              TClass(wxArrayString) items, TPoint(x, y));
-TClass(wxArrayInt) wxRearrangeDialog_GetOrder(TSelf(wxRearrangeDialog) pObject);
+TClassOwned(wxArrayInt) wxRearrangeDialog_GetOrder(TSelf(wxRearrangeDialog) pObject);
 TClass(wxRearrangeList) wxRearrangeDialog_GetList(TSelf(wxRearrangeDialog) pObject);
 void wxRearrangeDialog_AddExtraControls(TSelf(wxRearrangeDialog) pObject, TClass(wxWindow) win);
 void wxRearrangeDialog_Delete(TSelf(wxRearrangeDialog) pObject);
 
 TClassDefExtend(wxColourDialogEvent, wxCommandEvent) TClass(wxColourDialogEvent)
     wxColourDialogEvent_Create(int id, TClass(wxColourDialog) dialog, TClass(wxColour) colour);
-TClass(wxColour) wxColourDialogEvent_GetColour(TSelf(wxColourDialogEvent) pObject);
+TClassOwned(wxColour) wxColourDialogEvent_GetColour(TSelf(wxColourDialogEvent) pObject);
 TClass(wxColourDialog) wxColourDialogEvent_GetDialog(TSelf(wxColourDialogEvent) pObject);
 void wxColourDialogEvent_Delete(TSelf(wxColourDialogEvent) pObject);
 void wxColourDialog_Delete(TSelf(wxColourDialog) pObject);

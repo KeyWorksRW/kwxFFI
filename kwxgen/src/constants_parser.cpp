@@ -128,6 +128,15 @@
     decl.return_type = return_type_str;
     std::ignore = ParseMacroType(return_type_str, decl.return_macro, decl.return_arg);
 
+    // TClassOwned(tp) is the caller-owns-the-result spelling of TClass(tp).  Reduce it to
+    // TClass so every backend sees the same return contract as the class parser's
+    // declarations (class_parser.cpp); returns_owned records the lifetime difference.
+    if (decl.return_macro == "TClassOwned")
+    {
+        decl.return_macro = "TClass";
+        decl.returns_owned = true;
+    }
+
     // Extract parameter string
     std::string param_str = line.substr(func_paren_open + 1, paren_close - func_paren_open - 1);
     // Trim

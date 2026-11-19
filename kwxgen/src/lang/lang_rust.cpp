@@ -181,6 +181,10 @@ static void EmitFunctionExternDecl(std::ostream& out, const FunctionDecl& func)
     {
         return "i64";
     }
+    if (func.return_type == "TInt64" || func.return_type == "int64_t")
+    {
+        return "i64";
+    }
     if (func.return_type == "unsigned" || func.return_type == "unsigned int")
     {
         return "u32";
@@ -717,6 +721,11 @@ struct RustConvertContext
             safe_param.safe_type = "i32";
             safe_param.ffi_expr = safe_param.name + " as c_long";
         }
+        else if (raw_type == "TInt64" || raw_type == "int64_t")
+        {
+            safe_param.safe_type = "i64";
+            safe_param.ffi_expr = safe_param.name;
+        }
         else if (raw_type == "unsigned" || raw_type == "unsigned int")
         {
             safe_param.safe_type = "u32";
@@ -796,6 +805,8 @@ struct SafeReturn
         none,
         scalar,
         string,
+        cstring,
+        borrowed_cstring,
         class_ptr
     };
 
@@ -831,7 +842,27 @@ struct RustReturnContext
     const bool is_class_return =
         method.return_macro == "TClass" || method.return_macro == "TClassRef";
 
-    if ((is_class_return && method.return_arg == "wxString") || method.return_type == "TString")
+    // A bare TString/TStringVoid return is a strdup'ed C string the caller frees with wxCFree,
+    // never a wxString handle (see IsBareCStringReturn).  The borrowed accessors are the
+    // exception: their buffer belongs to another object (see IsBorrowedCStringReturn), so it is
+    // copied and never freed.
+    if (IsBareCStringReturn(method))
+    {
+        result.kind = SafeReturn::Kind::cstring;
+        result.type = string_type;
+        context.support_imports.insert("take_cstring");
+        return result;
+    }
+
+    if (IsBorrowedCStringReturn(method))
+    {
+        result.kind = SafeReturn::Kind::borrowed_cstring;
+        result.type = string_type;
+        context.support_imports.insert("borrow_cstring");
+        return result;
+    }
+
+    if (is_class_return && method.return_arg == "wxString")
     {
         result.kind = SafeReturn::Kind::string;
         result.type = string_type;
@@ -1572,8 +1603,23 @@ void RustEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& srcDir
     }
 
     WriteGeneratedHeader(out);
+
+    // A wxString*-valued constant returns an allocation the caller owns, so it needs the
+    // support helper that copies the string out and releases it.
+    const bool uses_take_string =
+        std::ranges::any_of(ffi.constants,
+                            [](const ConstantDecl& constant)
+                            {
+                                return constant.return_type == "wxString*";
+                            });
+
     out << "use std::os::raw::c_void;\n\n";
-    out << "use crate::sys;\n\n";
+    out << "use crate::sys;\n";
+    if (uses_take_string)
+    {
+        out << "use crate::support::take_string;\n";
+    }
+    out << "\n";
 
     std::vector<ConstantDecl> sorted = ffi.constants;
     std::ranges::sort(sorted, {}, &ConstantDecl::export_name);
@@ -1586,6 +1632,18 @@ void RustEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& srcDir
     {
         if (!emitted_names.insert(cnst.constant_name).second)
         {
+            continue;
+        }
+
+        if (cnst.return_type == "wxString*")
+        {
+            // The accessor allocates a wxString the caller owns; take_string copies it into a
+            // Rust String and releases the allocation, matching every other wxString* wrapper.
+            out << "#[inline]\n";
+            out << "pub fn " << cnst.constant_name << "() -> String {\n";
+            out << "    take_string(unsafe { sys::" << cnst.export_name << "() })\n";
+            out << "}\n\n";
+            ++fallback_count;
             continue;
         }
 
@@ -1715,6 +1773,14 @@ void RustEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& sr
         if (ret.kind == SafeReturn::Kind::none)
         {
             body << "    unsafe { " << call << " }\n";
+        }
+        else if (ret.kind == SafeReturn::Kind::cstring)
+        {
+            body << "    take_cstring(unsafe { " << call << " })\n";
+        }
+        else if (ret.kind == SafeReturn::Kind::borrowed_cstring)
+        {
+            body << "    borrow_cstring(unsafe { " << call << " })\n";
         }
         else if (ret.kind == SafeReturn::Kind::string)
         {
@@ -2289,6 +2355,14 @@ static void EmitMethodWrappers(std::ostream& out, const ClassInfo& cls, const st
             {
                 body << "        unsafe { " << call << " }\n";
             }
+            else if (ret.kind == SafeReturn::Kind::cstring)
+            {
+                body << "        take_cstring(unsafe { " << call << " })\n";
+            }
+            else if (ret.kind == SafeReturn::Kind::borrowed_cstring)
+            {
+                body << "        borrow_cstring(unsafe { " << call << " })\n";
+            }
             else if (ret.kind == SafeReturn::Kind::string)
             {
                 body << "        take_string(unsafe { " << call << " })\n";
@@ -2512,12 +2586,66 @@ void RustEmitter::GenerateSupport(const fs::path& srcDir)
     out << "        }\n";
     out << "        return String::new();\n";
     out << "    }\n";
-    out << "    let mut buffer = vec![0u8; len as usize];\n";
+    out << "    // wxString_GetString() writes len bytes plus a terminating NUL, so the\n";
+    out << "    // buffer is one byte larger than the reported byte count.\n";
+    out << "    let mut buffer = vec![0u8; len as usize + 1];\n";
     out << "    unsafe {\n";
     out << "        sys::wxString_GetString(ptr, buffer.as_mut_ptr() as *mut c_char);\n";
     out << "        sys::wxString_Delete(ptr);\n";
     out << "    }\n";
-    out << "    String::from_utf8_lossy(&buffer).into_owned()\n";
+    out << "    String::from_utf8_lossy(&buffer[..len as usize]).into_owned()\n";
+    out << "}\n\n";
+
+    out << "/// Copies a strdup'ed UTF-8 C string returned by the FFI into a Rust String and "
+           "frees\n";
+    out << "/// it with the library allocator.\n";
+    out << "pub fn take_cstring(ptr: *mut c_void) -> String {\n";
+    out << "    if ptr.is_null() {\n";
+    out << "        return String::new();\n";
+    out << "    }\n";
+    out << "    let text = unsafe {\n";
+    out << "        std::ffi::CStr::from_ptr(ptr as *const std::ffi::c_char)\n";
+    out << "            .to_string_lossy()\n";
+    out << "            .into_owned()\n";
+    out << "    };\n";
+    out << "    unsafe {\n";
+    out << "        sys::wxCFree(ptr);\n";
+    out << "    }\n";
+    out << "    text\n";
+    out << "}\n\n";
+
+    out << "/// Copies a borrowed UTF-8 C string returned by the FFI into a Rust String WITHOUT\n";
+    out << "/// freeing it. The buffer is owned by another object, or is one of the call's own\n";
+    out << "/// arguments, so it must never be passed to wxCFree.\n";
+    out << "pub fn borrow_cstring(ptr: *mut c_void) -> String {\n";
+    out << "    if ptr.is_null() {\n";
+    out << "        return String::new();\n";
+    out << "    }\n";
+    out << "    unsafe {\n";
+    out << "        std::ffi::CStr::from_ptr(ptr as *const std::ffi::c_char)\n";
+    out << "            .to_string_lossy()\n";
+    out << "            .into_owned()\n";
+    out << "    }\n";
+    out << "}\n\n";
+
+    out << "/// Copies a borrowed wxString into a Rust String WITHOUT taking ownership.\n";
+    out << "/// Use this for the `const wxString*` a callback receives as an argument: the\n";
+    out << "/// callee owns that string, so it must never be passed to wxString_Delete.\n";
+    out << "pub fn borrow_string(ptr: *mut c_void) -> String {\n";
+    out << "    if ptr.is_null() {\n";
+    out << "        return String::new();\n";
+    out << "    }\n";
+    out << "    let len = unsafe { sys::wxString_GetString(ptr, std::ptr::null_mut()) };\n";
+    out << "    if len <= 0 {\n";
+    out << "        return String::new();\n";
+    out << "    }\n";
+    out << "    // wxString_GetString() writes len bytes plus a terminating NUL, so the\n";
+    out << "    // buffer is one byte larger than the reported byte count.\n";
+    out << "    let mut buffer = vec![0u8; len as usize + 1];\n";
+    out << "    unsafe {\n";
+    out << "        sys::wxString_GetString(ptr, buffer.as_mut_ptr() as *mut c_char);\n";
+    out << "    }\n";
+    out << "    String::from_utf8_lossy(&buffer[..len as usize]).into_owned()\n";
     out << "}\n\n";
 
     out << "#[derive(Copy, Clone, Default)]\n";
@@ -2928,6 +3056,27 @@ static constexpr std::string_view RUST_POINTER_ACCESSOR { "as_ptr" };
         callable.returns = UiHandleType(method->return_arg);
     }
     return callable;
+}
+
+// The wxWidgets method that satisfies a role for a class outside UiRequiredClasses().  A
+// container append takes the pre-built item (which carries the separator and check kinds
+// itself); a class without AppendItem falls back to its own Append.  `append_by_id` is the id
+// form every port proves.
+[[nodiscard]] static std::vector<std::string_view> RustUiOptionalRoleMethods(std::string_view role)
+{
+    if (role == "append")
+    {
+        return { "AppendItem", "Append" };
+    }
+    if (role == "append_by_id")
+    {
+        return { "AppendById" };
+    }
+    if (role == "set_value")
+    {
+        return { "SetValue" };
+    }
+    return {};
 }
 
 // The constructor EmitMethodWrappers turns into `new`: the class's own method named Create().
@@ -3390,6 +3539,34 @@ UiDescriptor RustEmitter::BuildUiDescriptor(const ParsedFFI& ffi) const
         // exactly as describe_class sets it for a required class.
         class_info.idiom = ctor.idiom;
         class_info.ctor = std::move(ctor);
+        // A class with a role contract outside UiRequiredClasses() (the menu tree) publishes that
+        // role here; every other generic class keeps its constructor-only entry.
+        for (const std::string_view optional_role_view: UiRequiredRolesForClass(class_name))
+        {
+            const std::string role(optional_role_view);
+            if (role == "ctor")
+            {
+                continue;
+            }
+            UiCallable role_callable;
+            for (const std::string_view method_name: RustUiOptionalRoleMethods(role))
+            {
+                role_callable = DescribeRole(ffi, class_name, std::string(method_name));
+                if (!role_callable.symbol.empty())
+                {
+                    break;
+                }
+            }
+            if (role_callable.symbol.empty())
+            {
+                descriptor.unsupported.push_back(
+                    { .class_name = class_name,
+                      .role = role,
+                      .reason = role_callable.reason.value_or("no_method") });
+                continue;
+            }
+            class_info.roles[role] = std::move(role_callable);
+        }
         descriptor.classes.emplace(class_name, std::move(class_info));
     }
 

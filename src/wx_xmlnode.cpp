@@ -1,4 +1,5 @@
 #include "kwx_wrapper.h"
+#include <wx/wfstream.h>
 
 extern "C"
 {
@@ -183,5 +184,58 @@ extern "C"
     EXPORT void wxXmlNode_SetNoConversion(wxXmlNode* self, bool no_conversion)
     {
         self->SetNoConversion(no_conversion);
+    }
+
+    // ---- wxXmlDocument: the class is declared in include/kwx_regex_xml_extra.h, these are
+    // ---- the explicit file forms plus the stream forms the layout round trip needs.
+    EXPORT int wxXmlDocument_LoadFile(wxXmlDocument* self, wxString* filename, int flags)
+    {
+        if (filename == nullptr)
+        {
+            return 0;
+        }
+        return self->Load(*filename, flags);
+    }
+
+    EXPORT int wxXmlDocument_LoadStream(wxXmlDocument* self, wxInputStream* stream, int flags)
+    {
+        if (stream == nullptr)
+        {
+            return 0;
+        }
+        return self->Load(*stream, flags);
+    }
+
+    EXPORT int wxXmlDocument_SaveFile(wxXmlDocument* self, wxString* filename, int indentstep)
+    {
+        if (filename == nullptr)
+        {
+            return 0;
+        }
+        return self->Save(*filename, indentstep);
+    }
+
+    EXPORT int wxXmlDocument_SaveStream(wxXmlDocument* self, wxOutputStream* stream, int indentstep)
+    {
+        if (stream == nullptr)
+        {
+            return 0;
+        }
+        return self->Save(*stream, indentstep);
+    }
+
+    // ---- wxStringInputStream (declared in include/kwx_classes_sync.h) ----
+    EXPORT wxStringInputStream* wxStringInputStream_Create(wxString* str)
+    {
+        if (str == nullptr)
+        {
+            return new wxStringInputStream(wxString());
+        }
+        return new wxStringInputStream(*str);
+    }
+
+    EXPORT void wxStringInputStream_Delete(wxStringInputStream* self)
+    {
+        delete self;
     }
 }

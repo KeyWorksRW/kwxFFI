@@ -85,6 +85,36 @@ void kwxThread::OnExit()
     }
 }
 
+// ---------------------------------------------------------------------------
+// kwxDynamicLibraryList
+//
+// wxDynamicLibrary::ListLoaded() returns its entries by value in a wxBaseArray, which
+// cannot cross the C boundary. The helper owns that array for its whole lifetime and
+// lends each entry out, so an entry pointer stays valid until the helper is deleted.
+// ---------------------------------------------------------------------------
+
+class kwxDynamicLibraryList
+{
+private:
+    wxDynamicLibraryDetailsArray m_array;
+
+public:
+    kwxDynamicLibraryList() : m_array(wxDynamicLibrary::ListLoaded()) {}
+
+    size_t GetCount() const { return m_array.GetCount(); }
+
+    wxDynamicLibraryDetails* GetDetails(size_t index)
+    {
+        if (index >= m_array.GetCount())
+        {
+            return nullptr;
+        }
+        // The array is never modified after construction, so the address stays valid
+        // for as long as this object lives.
+        return &m_array[index];
+    }
+};
+
 extern "C"
 {
     // -----------------------------------------------------------------------
@@ -271,6 +301,69 @@ extern "C"
     EXPORT wxString* wxDynamicLibrary_GetName(wxDynamicLibrary* self)
     {
         return new wxString(LookupLibraryName(self));
+    }
+
+    // -----------------------------------------------------------------------
+    // wxDynamicLibraryDetails
+    // -----------------------------------------------------------------------
+
+    EXPORT wxString* wxDynamicLibraryDetails_GetName(wxDynamicLibraryDetails* self)
+    {
+        return new wxString(self->GetName());
+    }
+
+    EXPORT wxString* wxDynamicLibraryDetails_GetPath(wxDynamicLibraryDetails* self)
+    {
+        return new wxString(self->GetPath());
+    }
+
+    EXPORT wxString* wxDynamicLibraryDetails_GetVersion(wxDynamicLibraryDetails* self)
+    {
+        return new wxString(self->GetVersion());
+    }
+
+    EXPORT void* wxDynamicLibraryDetails_GetAddress(wxDynamicLibraryDetails* self)
+    {
+        // wxWidgets reports the address and the length together; each getter reads both
+        // and returns its own half. A null result means the platform does not report
+        // the mapping.
+        void* address = nullptr;
+        size_t length = 0;
+        std::ignore = self->GetAddress(&address, &length);
+        return address;
+    }
+
+    EXPORT size_t wxDynamicLibraryDetails_GetLength(wxDynamicLibraryDetails* self)
+    {
+        void* address = nullptr;
+        size_t length = 0;
+        std::ignore = self->GetAddress(&address, &length);
+        return length;
+    }
+
+    // -----------------------------------------------------------------------
+    // kwxDynamicLibraryList
+    // -----------------------------------------------------------------------
+
+    EXPORT kwxDynamicLibraryList* kwxDynamicLibraryList_Create()
+    {
+        return new kwxDynamicLibraryList();
+    }
+
+    EXPORT void kwxDynamicLibraryList_Delete(kwxDynamicLibraryList* self)
+    {
+        delete self;
+    }
+
+    EXPORT size_t kwxDynamicLibraryList_GetCount(kwxDynamicLibraryList* self)
+    {
+        return self->GetCount();
+    }
+
+    EXPORT wxDynamicLibraryDetails* kwxDynamicLibraryList_GetDetails(kwxDynamicLibraryList* self,
+                                                                     size_t index)
+    {
+        return self->GetDetails(index);
     }
 
     // -----------------------------------------------------------------------

@@ -29,6 +29,13 @@ void wxRichTextAttr_Copy(TSelf(wxRichTextAttr) self, TClass(wxRichTextAttr) attr
 TClass(wxTextBoxAttr) wxRichTextAttr_GetTextBoxAttr(TSelf(wxRichTextAttr) self);
 void wxRichTextAttr_SetTextBoxAttr(TSelf(wxRichTextAttr) self, TClass(wxTextBoxAttr) attr);
 TBool wxRichTextAttr_HasTextBoxAttr(TSelf(wxRichTextAttr) self);
+// wxRichTextAttr derives from wxTextAttr in C++, but the binding models it as a
+// standalone class, so the inherited colour accessors are otherwise unreachable.
+void wxRichTextAttr_SetBackgroundColour(TSelf(wxRichTextAttr) self, TClass(wxColour) colour);
+// wxRichTextAttr derives from wxTextAttr in C++; these inherited paragraph setters are
+// declared only for wxTextAttr, which the standalone wxRichTextAttr model cannot reach.
+void wxRichTextAttr_SetParagraphSpacingAfter(TSelf(wxRichTextAttr) self, int spacing);
+void wxRichTextAttr_SetLineSpacing(TSelf(wxRichTextAttr) self, int spacing);
 
 // ---- wxRichTextProperties ----
 TClass(wxRichTextProperties) wxRichTextProperties_Create();
@@ -188,14 +195,29 @@ TBool wxRichTextCompositeObject_RemoveChild(TSelf(wxRichTextCompositeObject) sel
 TBool wxRichTextCompositeObject_DeleteChildren(TSelf(wxRichTextCompositeObject) self);
 void wxRichTextCompositeObject_Delete(TSelf(wxRichTextCompositeObject) self);
 
+// wxRichTextParagraph / wxRichTextPlainText are the node types a composite
+// wxRichTextFieldType rebuilds in UpdateField (wxSamples/src/richtext/richtext.cpp:126-130).
+// A composite parent owns the children appended to it: do not Delete a child after
+// AppendChild.
+TClassDefExtend(wxRichTextParagraph, wxRichTextCompositeObject)
+
+    TClass(wxRichTextParagraph) wxRichTextParagraph_Create();
+void wxRichTextParagraph_Delete(TSelf(wxRichTextParagraph) self);
+
+TClassDefExtend(wxRichTextPlainText, wxRichTextObject)
+
+    TClass(wxRichTextPlainText) wxRichTextPlainText_Create(TClass(wxString) text);
+void wxRichTextPlainText_Delete(TSelf(wxRichTextPlainText) self);
+
 TClassDefExtend(wxRichTextParagraphLayoutBox, wxRichTextCompositeObject)
 
     TClass(wxRichTextParagraphLayoutBox)
         wxRichTextParagraphLayoutBox_Create(TClass(wxRichTextObject) parent);
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
-void* wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(TSelf(wxRichTextParagraphLayoutBox)
-                                                               pObject,
-                                                           long position);
+TClass(wxRichTextObject)
+    wxRichTextParagraphLayoutBox_GetLeafObjectAtPosition(TSelf(wxRichTextParagraphLayoutBox)
+                                                             pObject,
+                                                         long position);
 void wxRichTextParagraphLayoutBox_Delete(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_Clear(TSelf(wxRichTextParagraphLayoutBox) self);
 void wxRichTextParagraphLayoutBox_Reset(TSelf(wxRichTextParagraphLayoutBox) self);
@@ -521,7 +543,7 @@ TClassDefExtend(wxRichTextCtrl, wxControl)
 // ---- Phase 3: methods on already-wrapped classes (.private/port/fix_worklist.json) ----
 TBool wxRichTextCtrl_BeginSuppressUndo(TSelf(wxRichTextCtrl) pObject);
 TBool wxRichTextCtrl_EndSuppressUndo(TSelf(wxRichTextCtrl) pObject);
-void* wxRichTextCtrl_GetCommandProcessor(TSelf(wxRichTextCtrl) pObject);
+TClass(wxCommandProcessor) wxRichTextCtrl_GetCommandProcessor(TSelf(wxRichTextCtrl) pObject);
 TClass(wxRichTextField)
     wxRichTextCtrl_WriteField(TSelf(wxRichTextCtrl) pObject, TClass(wxString) fieldType,
                               TClass(wxRichTextProperties) properties,
@@ -654,6 +676,12 @@ int wxRichTextCtrl_HitTest(TSelf(wxRichTextCtrl) self, TPoint(x, y), TLongOut po
 void wxRichTextCtrl_SetCaretPosition(TSelf(wxRichTextCtrl) self, long position,
                                      TBool showAtLineStart);
 long wxRichTextCtrl_GetAdjustedCaretPosition(TSelf(wxRichTextCtrl) self, long caretPosition);
+long wxRichTextCtrl_GetCaretPosition(TSelf(wxRichTextCtrl) self);
+// wxTextEntryBase::SetMargins is not reachable through wxTextEntry_SetMargins:
+// wxRichTextCtrl derives wxControl -> wxTextCtrlIface -> wxTextEntryBase, which is a
+// different class, so passing a wxRichTextCtrl where a wxTextEntry is declared would
+// need a downcast the binding cannot perform.
+TBool wxRichTextCtrl_SetMargins(TSelf(wxRichTextCtrl) self, int left, int top);
 long wxRichTextCtrl_FindNextWordPosition(TSelf(wxRichTextCtrl) self, int direction);
 TBool wxRichTextCtrl_IsPositionVisible(TSelf(wxRichTextCtrl) self, long position);
 long wxRichTextCtrl_GetFirstVisiblePosition(TSelf(wxRichTextCtrl) self);

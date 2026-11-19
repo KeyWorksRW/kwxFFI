@@ -2,6 +2,7 @@
 // Licensed under Apache 2.0. This file is not subject to copyright.
 
 #include "kwx_wrapper.h"
+#include <wx/cursor.h>
 
 extern "C"
 {
@@ -23,5 +24,52 @@ extern "C"
 #else
         return new wxCursor(*name, bm_type, width, height);
 #endif
+    }
+
+    // ---------------------------------------------------------------------------
+    // wxCursorBundle
+    // ---------------------------------------------------------------------------
+
+    EXPORT wxCursorBundle* wxCursorBundle_Create(wxBitmapBundle* bitmaps, int hotSpotX,
+                                                 int hotSpotY)
+    {
+        return new wxCursorBundle(*bitmaps, wxPoint(hotSpotX, hotSpotY));
+    }
+
+    EXPORT wxCursorBundle* wxCursorBundle_CreateDefault()
+    {
+        return new wxCursorBundle();
+    }
+
+    EXPORT void wxCursorBundle_Delete(wxCursorBundle* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxCursorBundle_Clear(wxCursorBundle* self)
+    {
+        self->Clear();
+    }
+
+    EXPORT int wxCursorBundle_IsOk(wxCursorBundle* self)
+    {
+        return self->IsOk();
+    }
+
+    EXPORT wxCursor* wxCursorBundle_GetCursorFor(wxCursorBundle* self, wxWindow* window)
+    {
+        return new wxCursor(self->GetCursorFor(window));
+    }
+
+    EXPORT wxCursor* wxCursorBundle_GetCursorForMainWindow(wxCursorBundle* self)
+    {
+        return new wxCursor(self->GetCursorForMainWindow());
+    }
+
+    // Lives here rather than in src/wx_window.cpp because wxCursorBundle is owned by
+    // the header this translation unit already includes.
+    EXPORT void wxWindow_SetCursorBundle(wxWindow* self, wxCursorBundle* bundle)
+    {
+        self->SetCursorBundle(*bundle);
     }
 }

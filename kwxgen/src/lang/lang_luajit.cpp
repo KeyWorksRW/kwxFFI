@@ -102,18 +102,11 @@ static std::string LuaClassFileName(const std::string& class_name)
     return return_type.empty() || return_type == "void";
 }
 
-// True if the return is a string type that needs wxString->Lua conversion.
+// True if the return is an allocated wxString* handle that needs wxString->Lua conversion.
+// A bare TString return is a strdup'ed C string instead; see IsBareCStringReturn.
 [[nodiscard]] static bool IsStringReturn(const FunctionDecl& func)
 {
-    if (func.return_type == "TString" || func.return_type == "TStringOut")
-    {
-        return true;
-    }
-    if (func.return_macro == "TClass" && func.return_arg == "wxString")
-    {
-        return true;
-    }
-    return false;
+    return func.return_macro == "TClass" && func.return_arg == "wxString";
 }
 
 // True if the return is a boolean type.
@@ -128,6 +121,14 @@ static std::string LuaReturnExpr(const FunctionDecl& func, const std::string& ca
     if (IsBoolReturn(func))
     {
         return "_H.to_bool(" + call + ")";
+    }
+    if (IsBareCStringReturn(func))
+    {
+        return "_H.cstr_to_str(" + call + ")";
+    }
+    if (IsBorrowedCStringReturn(func))
+    {
+        return "_H.borrow_cstr(" + call + ")";
     }
     if (IsStringReturn(func))
     {
@@ -265,8 +266,9 @@ static std::vector<LuaIdiomParam> ConvertToLuaIdiomParams(const Param& param, bo
         return result;
     }
 
-    // TClass(wxString) -> String input: create wxString, pass, free.
-    if (param.macro_name == "TClass" && param.macro_arg == "wxString")
+    // wxString input parameter (TClass/TClassOwned, never a pointer — see IsWxStringInputParam):
+    // create a temporary wxString, pass it, then free it immediately after the call.
+    if (IsWxStringInputParam(param))
     {
         const std::string name = LuaEscapeName(param.param_name.empty() ? "str" : param.param_name);
         const std::string ws_var = "_ws_" + name;
@@ -820,18 +822,13 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
 
     writer << "]]\n";
 
-    // Idiomatic table: scalar constants plus wxString-returning accessors.  A wxString
-    // accessor hands back a newly allocated wxString, so its value is converted to a Lua
-    // string and released.  Any other pointer-returning accessor would expose a raw pointer
-    // (const wxPen*), so those keep their cdef declaration without an idiomatic entry.
-    std::vector<ConstantDecl> table_constants;
-    for (const auto& constant: ffi_data.constants)
-    {
-        if (!constant.return_type.contains('*') || constant.return_type.contains("wxString"))
-        {
-            table_constants.push_back(constant);
-        }
-    }
+    // Idiomatic table: every constant accessor.  A wxString-returning accessor hands back a
+    // newly allocated wxString, so its value is converted to a Lua string and released.  Any
+    // other pointer-returning accessor is a borrowed stock wxWidgets object (const wxColour*,
+    // const wxBrush*, const wxPen*, const wxFont*, const wxCursor*) or the app/clipboard
+    // singleton, so the raw void* it hands back is what a generated wrapper's _H.ptr()
+    // expects -- the same shape the typescript, go, rust and julia backends expose.
+    std::vector<ConstantDecl> table_constants = ffi_data.constants;
     std::ranges::sort(table_constants,
                       [](const ConstantDecl& left, const ConstantDecl& right)
                       {
@@ -1046,6 +1043,42 @@ void LuaJITEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "    C.kwxUtf8Buffer_Delete(buf)\n";
     writer << "    C.wxString_Delete(ws_ptr)\n";
     writer << "    return str\n";
+    writer << "end\n";
+    writer << "\n";
+
+    writer << "--- Borrow a wxString for the duration of fn and free it on every exit path.\n";
+    writer << "--- The pointer is valid only inside fn; do not store it.\n";
+    writer << "--- @param str string\n";
+    writer << "--- @param fn fun(ws: cdata): any\n";
+    writer << "--- @return any\n";
+    writer << "function M.with_wxs(str, fn)\n";
+    writer << "    local ws = M.wxs(str)\n";
+    writer << "    local ok, result = pcall(fn, ws)\n";
+    writer << "    M.wxs_free(ws)\n";
+    writer << "    if not ok then\n";
+    writer << "        error(result, 0)\n";
+    writer << "    end\n";
+    writer << "    return result\n";
+    writer << "end\n";
+    writer << "\n";
+    writer << "--- Convert a strdup'ed UTF-8 C string to a Lua string, then free it with the\n";
+    writer << "--- library allocator.\n";
+    writer << "--- @param ptr cdata char pointer returned by a C wrapper\n";
+    writer << "--- @return string\n";
+    writer << "function M.cstr_to_str(ptr)\n";
+    writer << "    local s = (ptr ~= nil) and ffi.string(ptr) or \"\"\n";
+    writer << "    C.wxCFree(ptr)\n";
+    writer << "    return s\n";
+    writer << "end\n";
+    writer << "\n";
+
+    writer << "--- Read a borrowed UTF-8 C string without freeing it. The buffer belongs to\n";
+    writer << "--- another object (or is one of the call's own arguments), so wxCFree must not\n";
+    writer << "--- touch it.\n";
+    writer << "--- @param ptr cdata char pointer returned by a C wrapper\n";
+    writer << "--- @return string\n";
+    writer << "function M.borrow_cstr(ptr)\n";
+    writer << "    return (ptr ~= nil) and ffi.string(ptr) or \"\"\n";
     writer << "end\n";
     writer << "\n";
 
@@ -1863,6 +1896,26 @@ struct LuaUiRoleSpec
     std::vector<std::string_view> method_names;
 };
 
+// Method names that satisfy a role for a class outside UiRequiredClasses().  A container append
+// takes the pre-built item (which carries the separator and check kinds itself); a class without
+// AppendItem falls back to its own Append.  `append_by_id` is the id form every port proves.
+[[nodiscard]] static std::vector<std::string_view> LuaUiOptionalRoleMethods(std::string_view role)
+{
+    if (role == "append")
+    {
+        return { "AppendItem", "Append" };
+    }
+    if (role == "append_by_id")
+    {
+        return { "AppendById" };
+    }
+    if (role == "set_value")
+    {
+        return { "SetValue" };
+    }
+    return {};
+}
+
 // Fill one role, recording an `unsupported` entry when no emitted method satisfies it.
 static void LuaUiAddRole(const ParsedFFI& ffi_data, const ClassInfo& class_info,
                          const std::string& role, const std::vector<std::string_view>& method_names,
@@ -2150,6 +2203,27 @@ UiDescriptor LuaJITEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) const
         ui_class.idiom = "constructor";
         ui_class.ctor.idiom = "constructor";
         ui_class.ctor.returns = class_name;
+        // A class with a role contract outside UiRequiredClasses() (the menu tree) publishes that
+        // role here; every other generic class keeps its constructor-only entry.
+        for (const std::string_view optional_role_view: UiRequiredRolesForClass(class_name))
+        {
+            const std::string role(optional_role_view);
+            if (role == "ctor")
+            {
+                continue;
+            }
+            const std::vector<std::string_view> method_names = LuaUiOptionalRoleMethods(role);
+            UiCallable callable = method_names.empty() ?
+                                      LuaUiUnsupportedCallable() :
+                                      LuaUiRoleCallable(parsed_ffi, *class_info, method_names);
+            if (callable.symbol.empty())
+            {
+                descriptor.unsupported.push_back(UiUnsupported {
+                    .class_name = class_name, .role = role, .reason = "no_method" });
+                continue;
+            }
+            ui_class.roles[role] = std::move(callable);
+        }
         descriptor.classes.emplace(class_name, std::move(ui_class));
     }
 

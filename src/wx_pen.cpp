@@ -24,30 +24,32 @@ extern "C"
 #endif
     }
 
+    // The stock pens are wxWidgets globals, so the caller-owned contract of the
+    // declaration (TClass(wxPen), released with wxPen_Delete) requires a copy.
     EXPORT void* wxPen_CreateFromStock(int id)
     {
         switch (id)
         {
-            case 0:
-                return (void*) wxRED_PEN;
-            case 1:
-                return (void*) wxCYAN_PEN;
-            case 2:
-                return (void*) wxGREEN_PEN;
-            case 3:
-                return (void*) wxBLACK_PEN;
-            case 4:
-                return (void*) wxWHITE_PEN;
-            case 5:
-                return (void*) wxTRANSPARENT_PEN;
-            case 6:
-                return (void*) wxBLACK_DASHED_PEN;
-            case 7:
-                return (void*) wxGREY_PEN;
-            case 8:
-                return (void*) wxMEDIUM_GREY_PEN;
-            case 9:
-                return (void*) wxLIGHT_GREY_PEN;
+            case kwxStockPen_Red:
+                return new wxPen(*wxRED_PEN);
+            case kwxStockPen_Cyan:
+                return new wxPen(*wxCYAN_PEN);
+            case kwxStockPen_Green:
+                return new wxPen(*wxGREEN_PEN);
+            case kwxStockPen_Black:
+                return new wxPen(*wxBLACK_PEN);
+            case kwxStockPen_White:
+                return new wxPen(*wxWHITE_PEN);
+            case kwxStockPen_Transparent:
+                return new wxPen(*wxTRANSPARENT_PEN);
+            case kwxStockPen_BlackDashed:
+                return new wxPen(*wxBLACK_DASHED_PEN);
+            case kwxStockPen_Grey:
+                return new wxPen(*wxGREY_PEN);
+            case kwxStockPen_MediumGrey:
+                return new wxPen(*wxMEDIUM_GREY_PEN);
+            case kwxStockPen_LightGrey:
+                return new wxPen(*wxLIGHT_GREY_PEN);
         }
 
         return nullptr;

@@ -10,8 +10,8 @@
 
 TClassDef(wxPlatformInfo) TClass(wxPlatformInfo) wxPlatformInfo_Create();
 void wxPlatformInfo_Delete(TSelf(wxPlatformInfo) pObject);
-TClass(wxPlatformInfo) wxPlatformInfo_Get();
-TClass(wxPlatformInfo) wxPlatformInfo_GetCurrent();
+TClassOwned(wxPlatformInfo) wxPlatformInfo_Get();
+TClassOwned(wxPlatformInfo) wxPlatformInfo_GetCurrent();
 int wxPlatformInfo_GetOperatingSystemIdFromName(TClass(wxString) name);
 int wxPlatformInfo_GetPortIdFromName(TClass(wxString) port_name);
 int wxPlatformInfo_GetBitnessFromName(TClass(wxString) bitness);
@@ -77,7 +77,7 @@ TClass(wxString) wxSecretValue_GetAsString(TSelf(wxSecretValue) pObject);
 
 // wxSecretStore_DeleteSecret deletes a stored secret; wxSecretStore_Delete
 // destroys the store itself.
-TClassDef(wxSecretStore) TClass(wxSecretStore) wxSecretStore_GetDefault();
+TClassDef(wxSecretStore) TClassOwned(wxSecretStore) wxSecretStore_GetDefault();
 void wxSecretStore_Delete(TSelf(wxSecretStore) pObject);
 TBool wxSecretStore_IsOk(TSelf(wxSecretStore) pObject);
 TBool wxSecretStore_IsOkWithError(TSelf(wxSecretStore) pObject, TClass(wxString) error_message);
@@ -149,6 +149,33 @@ TBool wxXmlNode_GetNoConversion(TSelf(wxXmlNode) pObject);
 void wxXmlNode_SetNoConversion(TSelf(wxXmlNode) pObject, TBool no_conversion);
 
 // ---------------------------------------------------------------------------
+// wxXmlDocument
+// ---------------------------------------------------------------------------
+//
+// The class itself, its node tree and the file/string load-save methods are
+// declared in `include/kwx_regex_xml_extra.h`; only the explicit file and stream
+// forms are added here.  LoadStream() parses the document from a caller-supplied
+// wxInputStream (a wxStringInputStream wraps the layout text) and SaveStream()
+// writes it into a wxOutputStream (a wxStringOutputStream captures the XML as
+// text) -- that pair is what the wxAuiManager layout round trip needs.  All four
+// return false when the filename or stream argument is null.  `flags` are the
+// wxXmlDocumentLoadFlag values (wxXMLDOC_NONE, wxXMLDOC_KEEP_WHITESPACE_NODES);
+// `indentstep` is the number of spaces per nesting level.
+//
+// Node ownership stays with the document: GetDocumentNode()/GetRoot() return a
+// borrowed node that must never be passed to wxXmlNode_Delete, while SetRoot()
+// transfers ownership of the node and of everything under it.
+
+TClassDef(wxXmlDocument) TBool
+    wxXmlDocument_LoadFile(TSelf(wxXmlDocument) pObject, TClass(wxString) filename, int flags);
+TBool wxXmlDocument_LoadStream(TSelf(wxXmlDocument) pObject, TClass(wxInputStream) stream,
+                               int flags);
+TBool wxXmlDocument_SaveFile(TSelf(wxXmlDocument) pObject, TClass(wxString) filename,
+                             int indentstep);
+TBool wxXmlDocument_SaveStream(TSelf(wxXmlDocument) pObject, TClass(wxOutputStream) stream,
+                               int indentstep);
+
+// ---------------------------------------------------------------------------
 // wxFSFile / wxFileSystem
 // ---------------------------------------------------------------------------
 
@@ -161,7 +188,7 @@ TClass(wxInputStream) wxFSFile_DetachStream(TSelf(wxFSFile) pObject);
 TClass(wxString) wxFSFile_GetLocation(TSelf(wxFSFile) pObject);
 TClass(wxString) wxFSFile_GetMimeType(TSelf(wxFSFile) pObject);
 TClass(wxString) wxFSFile_GetAnchor(TSelf(wxFSFile) pObject);
-TClass(wxDateTime) wxFSFile_GetModificationTime(TSelf(wxFSFile) pObject);
+TClassOwned(wxDateTime) wxFSFile_GetModificationTime(TSelf(wxFSFile) pObject);
 
 TClassDefExtend(wxFileSystem, wxObject) TClass(wxFileSystem) wxFileSystem_Create();
 void wxFileSystem_Delete(TSelf(wxFileSystem) pObject);
@@ -208,9 +235,9 @@ TClass(wxFileName) wxFileName_CreateFull(TClass(wxString) volume, TClass(wxStrin
 void wxFileName_Delete(TSelf(wxFileName) pObject);
 
 // Static pseudo-constructors - the returned object is owned by the caller.
-TClass(wxFileName) wxFileName_DirName(TClass(wxString) dir, int format);
-TClass(wxFileName) wxFileName_FileName(TClass(wxString) file, int format);
-TClass(wxFileName) wxFileName_URLToFileName(TClass(wxString) url);
+TClassOwned(wxFileName) wxFileName_DirName(TClass(wxString) dir, int format);
+TClassOwned(wxFileName) wxFileName_FileName(TClass(wxString) file, int format);
+TClassOwned(wxFileName) wxFileName_URLToFileName(TClass(wxString) url);
 
 // Components.
 TClass(wxString) wxFileName_GetFullPath(TSelf(wxFileName) pObject, int format);
@@ -277,14 +304,14 @@ TBool wxFileName_IsDirWritable(TSelf(wxFileName) pObject);
 TBool wxFileName_SameAs(TSelf(wxFileName) pObject, TClass(wxFileName) other, int format);
 TBool wxFileName_ShouldFollowLink(TSelf(wxFileName) pObject);
 void wxFileName_DontFollowLink(TSelf(wxFileName) pObject);
-TClass(wxFileName) wxFileName_ResolveLink(TSelf(wxFileName) pObject);
+TClassOwned(wxFileName) wxFileName_ResolveLink(TSelf(wxFileName) pObject);
 TBool wxFileName_Mkdir(TSelf(wxFileName) pObject, int perm, int flags);
 TBool wxFileName_Rmdir(TSelf(wxFileName) pObject, int flags);
 TBool wxFileName_SetPermissions(TSelf(wxFileName) pObject, int permissions);
 TBool wxFileName_Touch(TSelf(wxFileName) pObject);
 TBool wxFileName_GetTimes(TSelf(wxFileName) pObject, TClass(wxDateTime) access_time,
                           TClass(wxDateTime) mod_time, TClass(wxDateTime) create_time);
-TClass(wxDateTime) wxFileName_GetModificationTime(TSelf(wxFileName) pObject);
+TClassOwned(wxDateTime) wxFileName_GetModificationTime(TSelf(wxFileName) pObject);
 // Returns the file size in bytes, or -1.0 if it cannot be determined.
 double wxFileName_GetSize(TSelf(wxFileName) pObject);
 TClass(wxString)

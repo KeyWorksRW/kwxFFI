@@ -93,6 +93,11 @@ void wxSecureZeroMemory(void* data, unsigned count);
 // ---------------------------------------------------------------------------
 
 TBool wxGetEnv(TClass(wxString) var, TClass(wxString) value);
+// wxGetEnv()'s wxString* value out-parameter cannot be handed back through the flat ABI:
+// every binding marshals a TClass(wxString) parameter as an input string.  This returns the
+// variable's value as a newly allocated wxString (the caller owns it), or NULL when the
+// variable is not set, so each port reads the environment with one call and one return value.
+TClass(wxString) wxGetEnvValue(TClass(wxString) var);
 TBool wxSetEnv(TClass(wxString) var, TClass(wxString) value);
 TBool wxUnsetEnv(TClass(wxString) var);
 TBool wxGetEnvMap(TClass(wxArrayString) env_map);
@@ -173,7 +178,7 @@ TClass(wxString) wxSaveFileSelector(TClass(wxString) what, TClass(wxString) exte
 TBool wxIsStockID(int id);
 TBool wxIsStockLabel(int id, TClass(wxString) label);
 TClass(wxString) wxGetStockLabel(int id, long flags);
-TClass(wxAcceleratorEntry) wxGetStockAccelerator(int id);
+TClassOwned(wxAcceleratorEntry) wxGetStockAccelerator(int id);
 TClass(wxString) wxGetStockHelpString(int id, int client);
 
 // ---------------------------------------------------------------------------
@@ -270,6 +275,11 @@ void wxInitAllImageHandlers();
 void wxUnusedVar(void* value);
 int wxGetSingleChoiceIndex(TClass(wxString) message, TClass(wxString) caption,
                            TClass(wxString) choices, int count, TClass(wxWindow) parent);
+// wxGetSingleChoiceIndex() with a wxArrayString of choices and every remaining
+// argument at its C++ default.  wxGetSingleChoiceIndexEx takes the ten-argument
+// form; this is the four-argument one the wxWidgets sample uses.
+int wxGetSingleChoiceIndexArray(TClass(wxString) message, TClass(wxString) caption,
+                                TClass(wxArrayString) choices, TClass(wxWindow) parent);
 int wxGetSingleChoiceIndexEx(TClass(wxString) message, TClass(wxString) caption, int n,
                              TClass(wxArrayString) choices, TClass(wxWindow) parent, int x, int y,
                              TBool centre, int width, int height, int initialSelection);
@@ -277,20 +287,29 @@ void wxBeginBusyCursor();
 void wxEndBusyCursor();
 TClass(wxString) wxJoin(TClass(wxArrayString) array, int separator);
 int wxAtoi(TClass(wxString) str);
-TClass(wxSize) wxGetDisplaySize();
+TClassOwned(wxSize) wxGetDisplaySize();
 TClass(wxWindow) wxGetTopLevelParent(TClass(wxWindow) window);
 TBool wxIsprint(int character);
 int wxRound(double value);
 void wxWakeUpIdle();
 void wxBell();
 double wxDegToRad(double degrees);
-TString wxFgets(TString buffer, int size, void* stream);
+// Reads one record into `buffer`, which the caller owns and which must hold at least `size`
+// bytes: an output buffer, so it is declared TStringOut and not TString.  `size` is the
+// capacity including the terminator, exactly like fgets().  Returns `buffer` (borrowed -- the
+// callee does not allocate it and the caller must not free the result) or null at end of
+// file.  `stream` is a FILE* from kwxStdin()/kwxStdout()/kwxStderr() (include/kwx_console.h).
+TString wxFgets(TStringOut buffer, int size, void* stream);
+// fputs() equivalent for a wx stream handle: writes `str` with no added newline and
+// returns a non-negative value on success.  `stream` is a FILE* from kwxStdin/
+// kwxStdout/kwxStderr (include/kwx_console.h) or from wxFgets's stream argument.
+int wxFputs(TClass(wxString) str, void* stream);
 TClass(wxString) wxGetCwd();
 TBool wxIsMainThread();
 int wxNewEventType();
 void wxQueueEvent(TClass(wxEvtHandler) dest, TClass(wxEvent) event);
 void wxSetCursor(TClass(wxCursor) cursors);
-TClass(wxArrayString) wxSplit(TClass(wxString) str, int separator);
+TClassOwned(wxArrayString) wxSplit(TClass(wxString) str, int separator);
 int wxStrcmp(TClass(wxString) first, TClass(wxString) second);
 void wxSwap(void* first, void* second, size_t size);
 void* wxUIntToPtr(size_t value);
@@ -300,19 +319,18 @@ TClass(wxString) wxDirSelector(TClass(wxString) message, TClass(wxString) defaul
 TBool wxFileExists(TClass(wxString) filename);
 TClass(wxWindow) wxFindFocusDescendant(TClass(wxWindow) ancestor);
 int wxGetBatteryState();
-TClass(wxRect) wxGetClientDisplayRect();
+TClassOwned(wxRect) wxGetClientDisplayRect();
 long wxGetLocalTime();
 int wxGetPowerType();
-int wxGetSelectedChoices(void* selections, TClass(wxString) choices, int count,
-                         TClass(wxString) message, TClass(wxString) caption,
-                         TClass(wxWindow) parent);
+int wxGetSelectedChoices(void* selections, TArrayString(count, choices), TClass(wxString) message,
+                         TClass(wxString) caption, TClass(wxWindow) parent);
 int wxGetSelectedChoicesEx(void* selections, TClass(wxString) message, TClass(wxString) caption,
                            int n, TClass(wxArrayString) choices, TClass(wxWindow) parent, int x,
                            int y, TBool centre, int width, int height);
 TClass(wxString) wxGetSingleChoice(TClass(wxString) message, TClass(wxString) caption,
-                                   TClass(wxString) choices, int count, TClass(wxWindow) parent);
+                                   TArrayString(count, choices), TClass(wxWindow) parent);
 void* wxGetSingleChoiceData(TClass(wxString) message, TClass(wxString) caption,
-                            TClass(wxString) choices, int count, void* client_data,
+                            TArrayString(count, choices), void* client_data,
                             TClass(wxWindow) parent);
 void* wxGetSingleChoiceDataEx(TClass(wxString) message, TClass(wxString) caption, int n,
                               TClass(wxArrayString) choices, void* client_data,
@@ -327,6 +345,23 @@ TBool wxIsalnum(int character);
 TBool wxIsdigit(int character);
 TBool wxIslower(int character);
 void* wxMakeFloatingPointValidator(TDoubleInOut value, int style);
+// wxFloatingPointValidator<T> is a template, so it is created by a factory and then
+// addressed as an opaque pointer. The two-argument factory above mirrors the
+// (value, style) constructor and uses the maximal precision for wxDouble;
+// WithPrecision mirrors (precision, value, style), i.e. the number of digits kept
+// after the decimal point. The result is caller-owned: attach it with
+// wxWindow_SetValidator (which clones it, and the window deletes its clone), then
+// release the original with wxValidator_Delete. The accessors below accept only a
+// pointer returned by one of these two factories.
+void* wxMakeFloatingPointValidatorWithPrecision(int precision, TDoubleInOut value, int style);
+void wxFloatingPointValidator_SetPrecision(void* validator, int precision);
+void wxFloatingPointValidator_SetFactor(void* validator, double factor);
+void wxFloatingPointValidator_SetStyle(void* validator, int style);
+void wxFloatingPointValidator_SetMin(void* validator, double min);
+double wxFloatingPointValidator_GetMin(void* validator);
+void wxFloatingPointValidator_SetMax(void* validator, double max);
+double wxFloatingPointValidator_GetMax(void* validator);
+void wxFloatingPointValidator_SetRange(void* validator, double min, double max);
 void wxMutexGuiEnter();
 void wxMutexGuiLeave();
 TBool wxPlatformIs(int platform);
@@ -339,5 +374,7 @@ TBool wxRenameFile(TClass(wxString) old_path, TClass(wxString) new_path, TBool o
 TBool wxShowTip(TClass(wxWindow) parent, void* tip_provider);
 void* wxSizeRefFromVariant(TClass(wxVariant) variant);
 TString wxStrdup(TClass(wxString) str);
+// strlen() for a UTF-8 C string; returns 0 for null.
+size_t wxStrlen(TString str);
 double wxStrtod(TClass(wxString) nptr);
 long wxStrtol(TClass(wxString) nptr, int base);

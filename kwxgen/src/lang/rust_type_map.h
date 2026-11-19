@@ -66,6 +66,10 @@ inline std::string RustFFIReturnType(const std::string& return_type,
     {
         return "c_long";
     }
+    if (return_type == "TInt64" || return_type == "int64_t")
+    {
+        return "i64";
+    }
     if (return_type == "unsigned" || return_type == "unsigned int")
     {
         return "c_uint";
@@ -386,6 +390,10 @@ inline std::vector<RustFFIParam> ExpandParamToRustFFI(const Param& param)
     else if (raw_type == "long")
     {
         result.push_back({ "c_long", name });
+    }
+    else if (raw_type == "TInt64" || raw_type == "int64_t")
+    {
+        result.push_back({ "i64", name });
     }
     else if (raw_type == "unsigned" || raw_type == "unsigned int")
     {

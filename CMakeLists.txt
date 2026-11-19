@@ -190,9 +190,9 @@ endif()
 # ###################### Set wxWidgets location macros #######################
 if(WIN32)
     set(wxWidgets_REQUIRED_COMPONENTS base core lunasvg aui html ribbon richtext propgrid webview stc xml xrc gl media
-        net)
+        net qa)
 else()
-    set(wxWidgets_REQUIRED_COMPONENTS base core lunasvg aui html ribbon richtext propgrid stc xml xrc gl media net)
+    set(wxWidgets_REQUIRED_COMPONENTS base core lunasvg aui html ribbon richtext propgrid stc xml xrc gl media net qa)
 endif()
 
 include(FetchContent)
@@ -391,6 +391,13 @@ function(kwxfi_configure_target target library_type)
 
     # PUBLIC so callers only need to link kwxFFI to get all wxWidgets dependencies
     target_link_libraries(${target} PUBLIC ${wxWidgets_LIBRARIES} ${wxWidgets_BUILTIN_LIBS})
+
+    # MSAA query surface (src/wx_msaa.cpp). oleacc provides
+    # AccessibleObjectFromWindow / AccessibleChildren / GetRoleText; uuid
+    # provides IID_IAccessible for static consumers of this target.
+    if(WIN32)
+        target_link_libraries(${target} PUBLIC oleacc uuid)
+    endif()
 
     # On MSVC the static library and the shared library's import library are both
     # named kwxFFI.lib, so a BOTH build gives each library type its own directory.

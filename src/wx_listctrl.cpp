@@ -583,6 +583,120 @@ extern "C"
         return self->SetHeaderAttr(*attr);
     }
 
+    // --- wxItemAttr: the header attribute wxListCtrl and wxDataViewCtrl take ---
+
+    EXPORT wxItemAttr* wxItemAttr_Create()
+    {
+        return new wxItemAttr();
+    }
+
+    EXPORT void wxItemAttr_Copy(wxItemAttr* self, wxItemAttr* other)
+    {
+        if (!self || !other)
+        {
+            return;
+        }
+        *self = *other;
+    }
+
+    EXPORT void wxItemAttr_Delete(wxItemAttr* self)
+    {
+        delete self;
+    }
+
+    EXPORT void wxItemAttr_SetTextColour(wxItemAttr* self, wxColour* colour)
+    {
+        if (!self || !colour)
+        {
+            return;
+        }
+        self->SetTextColour(*colour);
+    }
+
+    EXPORT void wxItemAttr_SetBackgroundColour(wxItemAttr* self, wxColour* colour)
+    {
+        if (!self || !colour)
+        {
+            return;
+        }
+        self->SetBackgroundColour(*colour);
+    }
+
+    EXPORT void wxItemAttr_SetFont(wxItemAttr* self, wxFont* font)
+    {
+        if (!self || !font)
+        {
+            return;
+        }
+        self->SetFont(*font);
+    }
+
+    EXPORT int wxItemAttr_HasTextColour(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasTextColour() ? 1 : 0;
+    }
+
+    EXPORT int wxItemAttr_HasBackgroundColour(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasBackgroundColour() ? 1 : 0;
+    }
+
+    EXPORT int wxItemAttr_HasFont(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasFont() ? 1 : 0;
+    }
+
+    EXPORT int wxItemAttr_HasColours(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return 0;
+        }
+        return self->HasColours() ? 1 : 0;
+    }
+
+    // Borrowed, owned by the attribute: valid only while the attribute lives.
+    EXPORT wxColour* wxItemAttr_GetTextColour(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxColour*>(&self->GetTextColour());
+    }
+
+    // Borrowed, owned by the attribute: valid only while the attribute lives.
+    EXPORT wxColour* wxItemAttr_GetBackgroundColour(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxColour*>(&self->GetBackgroundColour());
+    }
+
+    // Borrowed, owned by the attribute: valid only while the attribute lives.
+    EXPORT wxFont* wxItemAttr_GetFont(wxItemAttr* self)
+    {
+        if (!self)
+        {
+            return nullptr;
+        }
+        return const_cast<wxFont*>(&self->GetFont());
+    }
+
     EXPORT int wxListCtrl_GetColumnOrder(wxListCtrl* self, int col)
     {
         return self->GetColumnOrder(col);
@@ -601,6 +715,13 @@ extern "C"
     EXPORT int wxListCtrl_SetItemPtrData(wxListCtrl* self, long item, uintptr_t data)
     {
         return self->SetItemPtrData(item, static_cast<wxUIntPtr>(data));
+    }
+
+    EXPORT uintptr_t wxListCtrl_GetItemPtrData(wxListCtrl* self, long item)
+    {
+        if (!self)
+            return 0;
+        return static_cast<uintptr_t>(self->GetItemData(item));
     }
 
     EXPORT wxColour* wxListCtrl_GetItemTextColour(wxListCtrl* self, long item)

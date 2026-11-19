@@ -13,6 +13,26 @@ extern "C"
                                     (long) style);
     }
 
+    EXPORT void* wxWindow_CreateWithBackgroundStyle(wxWindow* parent, int id, int x, int y,
+                                                    int width, int height, int style,
+                                                    int backgroundStyle)
+    {
+        // Two-step construction: the background style has to be set before Create(), which is the
+        // only time wxWindowBase::SetBackgroundStyle() accepts wxBG_STYLE_TRANSPARENT. The default
+        // constructor is public on the platform wxWindow class.
+        wxWindow* window = new wxWindow();
+        window->SetBackgroundStyle(static_cast<wxBackgroundStyle>(backgroundStyle));
+
+        if (!window->Create(parent, (wxWindowID) id, wxPoint(x, y), wxSize(width, height),
+                            (long) style))
+        {
+            delete window;
+            return nullptr;
+        }
+
+        return (void*) window;
+    }
+
     EXPORT int wxWindow_Close(wxWindow* self, bool force)
     {
         return self->Close(force);
@@ -733,6 +753,13 @@ extern "C"
         *height = size.y;
     }
 
+    EXPORT void wxWindow_SetSizeWH(wxWindow* self, int width, int height)
+    {
+        if (!self)
+            return;
+        self->SetSize(width, height);
+    }
+
     EXPORT void wxWindow_WindowToClientSize(wxWindow* self, int* width, int* height)
     {
         const wxSize size = self->WindowToClientSize(self->GetSize());
@@ -1035,6 +1062,21 @@ extern "C"
     EXPORT int wxWindow_ToDIP(wxWindow* self, int value)
     {
         return self->ToDIP(value);
+    }
+
+    EXPORT wxSize* wxWindow_FromDIPSize(wxWindow* self, int width, int height)
+    {
+        return new wxSize(self->FromDIP(wxSize(width, height)));
+    }
+
+    EXPORT wxSize* wxWindow_FromDIPSizeForWindow(int width, int height, wxWindow* window)
+    {
+        return new wxSize(wxWindow::FromDIP(wxSize(width, height), window));
+    }
+
+    EXPORT wxSize* wxWindow_FromDIPSizeDefault(int width, int height)
+    {
+        return new wxSize(wxWindow::FromDIP(wxSize(width, height), nullptr));
     }
 
     EXPORT int wxWindow_HasCapture(wxWindow* self)

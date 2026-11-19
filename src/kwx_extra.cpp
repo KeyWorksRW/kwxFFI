@@ -1364,6 +1364,39 @@ extern "C"
         return self->length();
     }
 
+    EXPORT int wxString_ToLong(wxString* self, long* value)
+    {
+        if (!self || !value)
+        {
+            return 0;
+        }
+        return self->ToLong(value) ? 1 : 0;
+    }
+
+    EXPORT int wxString_ToLongLong(wxString* self, int64_t* value)
+    {
+        if (!self || !value)
+        {
+            return 0;
+        }
+        wxLongLong_t converted = 0;
+        if (!self->ToLongLong(&converted))
+        {
+            return 0;
+        }
+        *value = static_cast<int64_t>(converted);
+        return 1;
+    }
+
+    EXPORT int wxString_ToDouble(wxString* self, double* value)
+    {
+        if (!self || !value)
+        {
+            return 0;
+        }
+        return self->ToDouble(value) ? 1 : 0;
+    }
+
     EXPORT void* kwxUtf8Buffer_Create(wxString* self)
     {
         return new std::string(self->utf8_string());
@@ -1734,6 +1767,18 @@ extern "C"
     EXPORT int wxObject_IsKindOf(wxObject* self, wxClassInfo* classInfo)
     {
         return self->IsKindOf(classInfo);
+    }
+
+    // Runtime class test by name for any wxObject.  Mirrors wxEvent_IsOfClass.
+    EXPORT int wxObject_IsOfClass(wxObject* self, char* className)
+    {
+        if (!self || !className)
+        {
+            return 0;
+        }
+
+        const wxClassInfo* info = wxClassInfo::FindClass(wxString::FromUTF8(className));
+        return info && self->IsKindOf(info) ? 1 : 0;
     }
 
     EXPORT wxClassInfo* wxObject_GetClassInfo(wxObject* self)
@@ -2577,39 +2622,42 @@ extern "C"
         return (void*) strdup((self->GetTimestamp()).utf8_string().data());
     }
 
+    // The message is data, not a format string: wxLogError() and friends are variadic and read
+    // their first argument as a wxString format, so a literal '%' in the caller's text would be
+    // interpreted as a conversion specification.
     EXPORT void LogError(wxString* message)
     {
-        wxLogError(*message);
+        wxLogError("%s", message->utf8_string().data());
     }
 
     EXPORT void LogFatalError(wxString* message)
     {
-        wxLogFatalError(*message);
+        wxLogFatalError("%s", message->utf8_string().data());
     }
 
     EXPORT void LogWarning(wxString* message)
     {
-        wxLogWarning(*message);
+        wxLogWarning("%s", message->utf8_string().data());
     }
 
     EXPORT void LogMessage(wxString* message)
     {
-        wxLogMessage(*message);
+        wxLogMessage("%s", message->utf8_string().data());
     }
 
     EXPORT void LogInfo(wxString* message)
     {
-        wxLogInfo(*message);
+        wxLogInfo("%s", message->utf8_string().data());
     }
 
     EXPORT void LogVerbose(wxString* message)
     {
-        wxLogVerbose(*message);
+        wxLogVerbose("%s", message->utf8_string().data());
     }
 
     EXPORT void LogStatus(wxString* message)
     {
-        wxLogStatus(*message);
+        wxLogStatus("%s", message->utf8_string().data());
     }
 
     EXPORT void LogStatusWindow(wxFrame* frame, wxString* message)
@@ -2619,17 +2667,17 @@ extern "C"
 
     EXPORT void LogSysError(wxString* message)
     {
-        wxLogSysError(*message);
+        wxLogSysError("%s", message->utf8_string().data());
     }
 
     EXPORT void LogDebug(wxString* message)
     {
-        wxLogDebug(*message);
+        wxLogDebug("%s", message->utf8_string().data());
     }
 
     EXPORT void LogTrace(wxString* mask, wxString* message)
     {
-        wxLogTrace(*mask, *message);
+        wxLogTrace(mask->utf8_string().data(), "%s", message->utf8_string().data());
     }
 
     EXPORT wxGridCellTextEnterEditor* wxGridCellTextEnterEditor_Ctor()
@@ -2903,6 +2951,11 @@ extern "C"
     EXPORT double wxSizerFlags_GetDefaultBorderFractional()
     {
         return static_cast<double>(wxSizerFlags::GetDefaultBorderFractional());
+    }
+
+    EXPORT int wxSizerFlags_GetDefaultBorder()
+    {
+        return wxSizerFlags::GetDefaultBorder();
     }
 
     EXPORT void wxSizerFlags_DisableConsistencyChecks()

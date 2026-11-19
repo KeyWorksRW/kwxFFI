@@ -518,6 +518,20 @@ void FortranEmitter::GenerateConstants(const ParsedFFI& ffi_data, std::ostream& 
 
     for (const auto& constant: sorted_constants)
     {
+        if (constant.return_type == "wxString*")
+        {
+            // The C accessor allocates a wxString the caller owns. Its idiomatic form is a
+            // native Fortran string, emitted with the other typed wrappers in
+            // wx_free_functions.f90; only the raw C binding stays here, under its C export
+            // name, so the wrapper never has to shadow the identifier it exposes.
+            output << "    type(c_ptr) function "
+                   << FortranCInterfaceIdentifier(constant.export_name) << "() &\n";
+            output << "        bind(C, name='" << constant.export_name << "')\n";
+            output << "      import :: c_ptr\n";
+            output << "    end function\n\n";
+            continue;
+        }
+
         std::string fType;
         std::string importSym;
         if (constant.return_type.find('*') != std::string::npos)
@@ -961,11 +975,16 @@ contains
         integer(c_size_t) :: slen
         integer :: idx
 
-        fstring = ""
-        if (.not. c_associated(cstr)) return
+        if (.not. c_associated(cstr)) then
+            fstring = ""
+            return
+        end if
 
         slen = c_strlen(cstr)
-        if (slen <= 0) return
+        if (slen <= 0) then
+            fstring = ""
+            return
+        end if
 
         allocate(character(len=int(slen)) :: fstring)
         call c_f_pointer(cstr, chars, [int(slen)])
@@ -1046,11 +1065,13 @@ module wx_events
 contains
 
     !--- Connection ---
+    !  The receiver may be any wxEvtHandler (wxWindow, wxTimer, wxProcess,
+    !  wxNotificationMessage or a custom handler), not only a wxWindow.
 
-    subroutine wx_connect(window, event_type, handler, user_data, id, last_id)
-        class(wxWindow_t), intent(in) :: window
+    subroutine wx_connect(handler, event_type, callback, user_data, id, last_id)
+        class(wxevthandler_t), intent(in) :: handler
         integer, intent(in) :: event_type
-        procedure(event_callback) :: handler
+        procedure(event_callback) :: callback
         type(c_ptr), intent(in), optional :: user_data
         integer, intent(in), optional :: id
         integer, intent(in), optional :: last_id
@@ -1059,7 +1080,7 @@ contains
         type(c_ptr) :: data_ptr
         integer(c_int) :: c_first, c_last, c_type, dummy
 
-        fptr = c_funloc(handler)
+        fptr = c_funloc(callback)
         data_ptr = c_null_ptr
         if (present(user_data)) data_ptr = user_data
         c_first = -1_c_int
@@ -1069,14 +1090,14 @@ contains
         c_type = int(event_type, c_int)
 
         ! TClosureFun is void* in C, so the function pointer crosses as a c_ptr.
-        dummy = wxEvtHandler_Connect(window%ptr, c_first, c_last, c_type, &
+        dummy = wxEvtHandler_Connect(handler%ptr, c_first, c_last, c_type, &
             wxClosure_Create(transfer(fptr, c_null_ptr), data_ptr))
     end subroutine
 
-    subroutine wx_bind(window, event_type, handler, user_data, id, last_id)
-        class(wxWindow_t), intent(in) :: window
+    subroutine wx_bind(handler, event_type, callback, user_data, id, last_id)
+        class(wxevthandler_t), intent(in) :: handler
         integer, intent(in) :: event_type
-        procedure(event_callback) :: handler
+        procedure(event_callback) :: callback
         type(c_ptr), intent(in), optional :: user_data
         integer, intent(in), optional :: id
         integer, intent(in), optional :: last_id
@@ -1085,7 +1106,7 @@ contains
         type(c_ptr) :: data_ptr
         integer(c_int) :: c_first, c_last, c_type, dummy
 
-        fptr = c_funloc(handler)
+        fptr = c_funloc(callback)
         data_ptr = c_null_ptr
         if (present(user_data)) data_ptr = user_data
         c_first = -1_c_int
@@ -1094,12 +1115,12 @@ contains
         if (present(last_id)) c_last = int(last_id, c_int)
         c_type = int(event_type, c_int)
 
-        dummy = wxEvtHandler_Bind(window%ptr, c_first, c_last, c_type, &
+        dummy = wxEvtHandler_Bind(handler%ptr, c_first, c_last, c_type, &
             wxClosure_Create(transfer(fptr, c_null_ptr), data_ptr))
     end subroutine
 
-    subroutine wx_unbind(window, event_type, id, last_id)
-        class(wxWindow_t), intent(in) :: window
+    subroutine wx_unbind(handler, event_type, id, last_id)
+        class(wxevthandler_t), intent(in) :: handler
         integer, intent(in) :: event_type
         integer, intent(in), optional :: id, last_id
 
@@ -1111,11 +1132,11 @@ contains
         if (present(last_id)) c_last = int(last_id, c_int)
         c_type = int(event_type, c_int)
 
-        dummy = wxEvtHandler_Unbind(window%ptr, c_first, c_last, c_type)
+        dummy = wxEvtHandler_Unbind(handler%ptr, c_first, c_last, c_type)
     end subroutine
 
-    subroutine wx_disconnect(window, event_type, id, last_id)
-        class(wxWindow_t), intent(in) :: window
+    subroutine wx_disconnect(handler, event_type, id, last_id)
+        class(wxevthandler_t), intent(in) :: handler
         integer, intent(in) :: event_type
         integer, intent(in), optional :: id, last_id
 
@@ -1127,7 +1148,7 @@ contains
         if (present(last_id)) c_last = int(last_id, c_int)
         c_type = int(event_type, c_int)
 
-        dummy = wxEvtHandler_Disconnect(window%ptr, c_first, c_last, &
+        dummy = wxEvtHandler_Disconnect(handler%ptr, c_first, c_last, &
             c_type, -1_c_int)
     end subroutine
 
@@ -1337,6 +1358,7 @@ struct FortranClassModuleState
     bool uses_to_wxstring = false;
     bool uses_from_wxstring = false;
     bool uses_from_cstring = false;
+    bool uses_free_cstring = false;
     std::size_t deduplicated_count = 0;
 };
 
@@ -1483,6 +1505,40 @@ struct FortranClassModuleState
     return false;
 }
 
+// True when the parameter at `param_index` is followed by an explicit byte count: a scalar named
+// exactly len/length/size that precedes any other string parameter.  A TString paired with such
+// a count carries data rather than blank padding, so the copy must keep every character the
+// caller's length covers instead of trimming.  The name is matched exactly, not by substring:
+// wxMBConv_MB2WC(..., TString input, int output_size) names a different buffer's size and must
+// keep its trimmed conversion.
+[[nodiscard]] static bool HasFortranByteCountAfter(const FunctionDecl& func,
+                                                   std::size_t receiver_params,
+                                                   std::size_t param_index)
+{
+    for (std::size_t sibling_index = param_index + 1; sibling_index < func.params.size();
+         ++sibling_index)
+    {
+        const Param& sibling = func.params[sibling_index];
+        const FortranParamKind sibling_kind = ClassifyFortranParam(sibling);
+        if (sibling_kind == FortranParamKind::string_input ||
+            sibling_kind == FortranParamKind::string_output ||
+            sibling_kind == FortranParamKind::string_array_input)
+        {
+            return false;
+        }
+        if (sibling_kind != FortranParamKind::scalar)
+        {
+            continue;
+        }
+        const std::string sibling_name = ToLower(sibling.param_name);
+        if (sibling_name == "len" || sibling_name == "length" || sibling_name == "size")
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Type-only key for one dummy argument. Fortran resolves a generic interface on dummy types
 // and ranks, never on names or intent, so two specifics agreeing here would be ambiguous.
 //
@@ -1605,14 +1661,22 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
             if (param.raw_type == "TString")
             {
                 // A bare TString is a UTF-8 C string, not a wxString handle: copy it into a
-                // NUL-terminated buffer and pass the address, because the raw kwxffi
-                // interface declares the argument as type(c_ptr). The buffer is allocatable,
-                // so it is released automatically when the procedure returns.
+                // NUL-terminated buffer and pass the address.  When the declaration also names
+                // the byte count, every character the caller's length covers is data -- copy it
+                // verbatim; otherwise the value is a plain string and Fortran's blank padding is
+                // noise, so trim it.
                 const std::string buffer_name = base_name + "_c";
                 local_declarations.push_back(
                     "character(kind=c_char, len=:), allocatable, target :: " + buffer_name);
-                setup_statements.push_back(buffer_name + " = trim(" + base_name +
-                                           ") // c_null_char");
+                if (HasFortranByteCountAfter(func, receiver_params, param_index))
+                {
+                    setup_statements.push_back(buffer_name + " = " + base_name + " // c_null_char");
+                }
+                else
+                {
+                    setup_statements.push_back(buffer_name + " = trim(" + base_name +
+                                               ") // c_null_char");
+                }
                 call_arguments.push_back("c_loc(" + buffer_name + ")");
             }
             else
@@ -1923,6 +1987,7 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
     std::string result_name = "result_value";
     bool result_is_string = false;
     bool result_is_cstring = false;
+    bool result_is_owned_cstring = false;
     bool result_is_wrapper = false;
 
     if (is_constructor)
@@ -1937,15 +2002,22 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
             func.return_macro == "TClass" || func.return_macro == "TClassRef";
         if (func.return_type == "TString")
         {
-            // TString is a NUL-terminated UTF-8 C string, so copy it into a Fortran string.
-            // Ownership of the C buffer is not declared by the FFI (some exports strdup()
-            // and some return an internal buffer), so the pointer is deliberately not freed;
-            // wx_string::free_cstring() lets a caller release it when it knows the contract.
+            // TString is a NUL-terminated UTF-8 C string, so copy it into a Fortran string
+            // before the export's buffer goes out of scope.
             result_is_cstring = true;
             result_name = make_dummy_name("result_text");
             result_declaration = "character(len=:), allocatable :: " + result_name;
             local_declarations.push_back("type(c_ptr) :: " + result_name + "_ptr");
             state.uses_from_cstring = true;
+            // FFI-wide rule: a bare TString/TStringVoid return is strdup()ed by the export and
+            // owned by the caller (see IsBareCStringReturn), so release it with wxCFree() once
+            // the Fortran copy exists. wx_string::free_cstring() remains available for callers
+            // that already hold such a pointer.
+            if (IsBareCStringReturn(func))
+            {
+                result_is_owned_cstring = true;
+                state.uses_free_cstring = true;
+            }
         }
         else if (returns_class && func.return_arg == "wxString")
         {
@@ -2038,6 +2110,10 @@ static void BuildFortranWrapperProcedure(FortranClassModuleState& state, const F
     {
         result_assignment = result_name + "_ptr = " + call_expression + "\n        " + result_name +
                             " = from_cstring(" + result_name + "_ptr)";
+        if (result_is_owned_cstring)
+        {
+            result_assignment += "\n        call free_cstring(" + result_name + "_ptr)";
+        }
     }
     else if (returns_value && result_is_string)
     {
@@ -2307,6 +2383,10 @@ void FortranEmitter::EmitClassModule(std::ostream& output, const ClassInfo& clas
     {
         string_imports.emplace_back("from_cstring");
     }
+    if (state.uses_free_cstring)
+    {
+        string_imports.emplace_back("free_cstring");
+    }
     if (!string_imports.empty())
     {
         output << "    use wx_string, only: ";
@@ -2462,7 +2542,44 @@ void FortranEmitter::GenerateFreeFunctionModule(const ParsedFFI& ffi_data, const
             free_functions.push_back(&func);
         }
     }
-    if (free_functions.empty())
+    // A wxString*-valued constant is a parameterless C function whose idiomatic form is a
+    // native Fortran string, so it is wrapped here with the other non-class functions. The
+    // identifier is the one BuildConstantNames() assigns, so it stays the name a consumer
+    // already uses for that constant.
+    struct FortranStringConstant
+    {
+        std::string name;
+        std::string export_name;
+    };
+
+    std::vector<FortranStringConstant> string_constants;
+    {
+        const std::map<std::string, ConstantFortranName> constant_names =
+            BuildConstantNames(ffi_data);
+        std::vector<ConstantDecl> sorted_constants = ffi_data.constants;
+        std::ranges::sort(sorted_constants, {}, &ConstantDecl::export_name);
+        std::set<std::string> emitted_names;
+        for (const ConstantDecl& constant: sorted_constants)
+        {
+            if (constant.return_type != "wxString*")
+            {
+                continue;
+            }
+            const std::map<std::string, ConstantFortranName>::const_iterator name_iter =
+                constant_names.find(constant.export_name);
+            if (name_iter == constant_names.end())
+            {
+                continue;
+            }
+            if (!emitted_names.insert(ToLower(name_iter->second.name)).second)
+            {
+                continue;
+            }
+            string_constants.push_back({ name_iter->second.name, constant.export_name });
+        }
+    }
+
+    if (free_functions.empty() && string_constants.empty())
     {
         return;
     }
@@ -2497,7 +2614,12 @@ void FortranEmitter::GenerateFreeFunctionModule(const ParsedFFI& ffi_data, const
         }
         BuildFortranWrapperProcedure(state, *func, std::string {}, type_names, false, true);
     }
-    if (state.procedures.empty())
+    if (!string_constants.empty())
+    {
+        // The wrappers below read the wxString through wx_string::from_wxstring.
+        state.uses_from_wxstring = true;
+    }
+    if (state.procedures.empty() && string_constants.empty())
     {
         return;
     }
@@ -2505,6 +2627,11 @@ void FortranEmitter::GenerateFreeFunctionModule(const ParsedFFI& ffi_data, const
     // Interfaces must be built before the public statements are written, because the builder
     // adds a public name for every generic it emits.
     const std::string interfaces = BuildFortranOverloadInterfaces(state);
+
+    for (const FortranStringConstant& constant: string_constants)
+    {
+        state.public_names.push_back(constant.name);
+    }
 
     ConditionalFileWriter output(outDir / (state.module_name + ".f90"));
     output << "! Code generated by kwxgen. DO NOT EDIT.\n";
@@ -2525,6 +2652,10 @@ void FortranEmitter::GenerateFreeFunctionModule(const ParsedFFI& ffi_data, const
     if (state.uses_from_cstring)
     {
         string_imports.emplace_back("from_cstring");
+    }
+    if (state.uses_free_cstring)
+    {
+        string_imports.emplace_back("free_cstring");
     }
     if (!string_imports.empty())
     {
@@ -2553,6 +2684,20 @@ void FortranEmitter::GenerateFreeFunctionModule(const ParsedFFI& ffi_data, const
     {
         output << procedure.text << "\n";
     }
+    for (const FortranStringConstant& constant: string_constants)
+    {
+        // The C accessor hands over a wxString the caller owns: copy it into a Fortran string
+        // and release it exactly once.
+        output << "    function " << constant.name << "() result(result_text)\n";
+        output << "        character(len=:), allocatable :: result_text\n";
+        output << "        type(c_ptr) :: result_text_ptr\n\n";
+        output << "        result_text_ptr = " << FortranCInterfaceIdentifier(constant.export_name)
+               << "()\n";
+        output << "        result_text = from_wxstring(result_text_ptr)\n";
+        output << "        call wxString_Delete(result_text_ptr)\n";
+        output << "    end function " << constant.name << "\n\n";
+    }
+
     output << "end module " << state.module_name << "\n";
 
     std::println(stderr, "  Free function module: {:L} procedure(s)", state.procedures.size());
@@ -2869,6 +3014,11 @@ struct FortranUiResolution
         { "set_bitmap", { "SetBitmap" } },
         { "create_statusbar", { "CreateStatusBar" } },
         { "set_menubar", { "SetMenuBar" } },
+        // A container append.  wxMenu takes the pre-built item (which carries separator and
+        // check kinds itself); a class without AppendItem falls back to its own Append.
+        { "append", { "AppendItem", "Append" } },
+        // The id form of a menu append: wxMenu::AppendById, the shape all six ports prove.
+        { "append_by_id", { "AppendById" } },
         { "show_modal", { "ShowModal" } },
         { "end_modal", { "EndModal" } },
         { "set_escape_id", { "SetEscapeId" } },
@@ -3183,8 +3333,8 @@ UiDescriptor FortranEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) cons
                 continue;
             }
 
-            // A generic class carries a constructor and nothing else: per-class roles exist
-            // only where UiRequiredRolesForClass() defines them.
+            // A generic class carries a constructor, plus any role that
+            // UiRequiredRolesForClass() defines for it (the menu tree's append).
             UiClass class_info {};
             class_info.idiom = "procedure";
             const std::map<std::string, std::string>::const_iterator type_iter =
@@ -3198,6 +3348,27 @@ UiDescriptor FortranEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) cons
                     .class_name = class_name, .role = "ctor", .reason = "no_naming" });
                 continue;
             }
+
+            // A generic class carries its constructor alone unless UiRequiredRolesForClass()
+            // defines a role contract for it (the menu tree's append), in which case that role
+            // is published rather than dropped.
+            for (const std::string_view optional_role_view: UiRequiredRolesForClass(class_name))
+            {
+                const std::string role(optional_role_view);
+                if (role == "ctor")
+                {
+                    continue;
+                }
+                UiCallable callable = FortranUiRoleCallable(parsed_ffi, index, class_name, role);
+                if (callable.symbol.empty())
+                {
+                    descriptor.unsupported.push_back(UiUnsupported {
+                        .class_name = class_name, .role = role, .reason = "no_method" });
+                    continue;
+                }
+                class_info.roles[role] = std::move(callable);
+            }
+
             descriptor.classes.emplace(class_name, std::move(class_info));
             continue;
         }

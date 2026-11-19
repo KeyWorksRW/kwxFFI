@@ -698,8 +698,7 @@ static std::vector<GoParam> ConvertParam(const Param& param, const std::string& 
     GoParam go_param;
     go_param.name = ParamName(param.param_name.empty() ? "arg" : param.param_name, reserved_name);
 
-    if (param.macro_name == "TClass" && param.macro_arg == "wxString" &&
-        (param.raw_type.empty() || param.raw_type.back() != '*'))
+    if (IsWxStringInputParam(param))
     {
         // wxString parameter: class file bridges Go string → NewWxString,
         // glue function receives the raw pointer directly.
@@ -1652,10 +1651,23 @@ static void EmitMethod(std::ostream& output, const ClassInfo& /*class_info*/,
     }
     else if (go_ret_type == "string")
     {
-        // Glue returns unsafe.Pointer (wxString*), convert to Go string.
-        // Use "retPtr" (not "wxStr") to avoid collision with input WxString locals.
+        // The glue returns unsafe.Pointer: a wxString* for a TClass(wxString) return, a
+        // strdup'ed char* for an owned bare TString (read + free), or a borrowed char* for one
+        // of the accessors in IsBorrowedCStringReturn (read only). Use "retPtr" (not "wxStr")
+        // to avoid collision with input WxString locals.
         output << "\tretPtr := " << glue_call << "\n";
-        output << "\treturn WxStringToGoAndFree(retPtr)\n";
+        if (IsBareCStringReturn(func_decl))
+        {
+            output << "\treturn CStringToGoAndFree(retPtr)\n";
+        }
+        else if (IsBorrowedCStringReturn(func_decl))
+        {
+            output << "\treturn CStringToGo(retPtr)\n";
+        }
+        else
+        {
+            output << "\treturn WxStringToGoAndFree(retPtr)\n";
+        }
     }
     else if (const std::string value_converter = ValueClassFromPtrConverter(func_decl);
              !value_converter.empty())
@@ -1749,8 +1761,21 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
     }
     else if (go_ret_type == "string")
     {
+        // Same split as the class-method path: a bare TString is a strdup'ed char* when the
+        // wrapper owns it, a borrowed char* when it does not.
         output << "\tretPtr := " << glue_call << "\n";
-        output << "\treturn WxStringToGoAndFree(retPtr)\n";
+        if (IsBareCStringReturn(func_decl))
+        {
+            output << "\treturn CStringToGoAndFree(retPtr)\n";
+        }
+        else if (IsBorrowedCStringReturn(func_decl))
+        {
+            output << "\treturn CStringToGo(retPtr)\n";
+        }
+        else
+        {
+            output << "\treturn WxStringToGoAndFree(retPtr)\n";
+        }
     }
     else if (const std::string value_converter = ValueClassFromPtrConverter(func_decl);
              !value_converter.empty())
@@ -2154,6 +2179,18 @@ constexpr std::string_view kGoEventHandlerType = "EventHandler";
     {
         return { "CreateStatusBar" };
     }
+    // A container append.  wxMenu takes the pre-built item (which carries separator and check
+    // kinds itself); a class without AppendItem falls back to its own Append overload.
+    if (role == "append")
+    {
+        return { "AppendItem", "Append" };
+    }
+    // The id form of a menu append: wxMenu::AppendById, the shape all six ports prove. It
+    // carries the item id without requiring a constructible wxMenuItem.
+    if (role == "append_by_id")
+    {
+        return { "AppendById" };
+    }
     if (role == "set_menubar")
     {
         return { "SetMenuBar" };
@@ -2540,6 +2577,26 @@ UiDescriptor GoEmitter::BuildUiDescriptor(const ParsedFFI& parsed_ffi) const
                 GoConstructorName(StripPrefix(class_name), emitted_ctor->method_name);
             generic_class_info.ctor.idiom = "constructor";
             generic_class_info.ctor.returns = class_name;
+
+            // A class outside UiRequiredClasses() usually carries a constructor alone, but a
+            // small set of them has a role contract (the menu tree's append).  Resolving it here
+            // keeps the descriptor honest instead of dropping the role silently.
+            for (const std::string_view optional_role_view: UiRequiredRolesForClass(class_name))
+            {
+                const std::string role(optional_role_view);
+                if (role == "ctor")
+                {
+                    continue;
+                }
+                UiCallable callable = GoUiRoleCallable(parsed_ffi, class_name, role);
+                if (callable.symbol.empty())
+                {
+                    descriptor.unsupported.push_back(UiUnsupported {
+                        .class_name = class_name, .role = role, .reason = "no_method" });
+                    continue;
+                }
+                generic_class_info.roles[role] = callable;
+            }
 
             if (generic_class_info.type.empty() || generic_class_info.ctor.symbol.empty())
             {
@@ -3047,6 +3104,16 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "\t}\n";
     writer << "}\n";
     writer << "\n";
+    writer << "// WithWxString borrows a wxString for the duration of fn and frees it on "
+              "every\n";
+    writer << "// return path, including a panic. Do not store the pointer after fn "
+              "returns.\n";
+    writer << "func WithWxString[T any](s string, fn func(ws *WxString) T) T {\n";
+    writer << "\tws := NewWxString(s)\n";
+    writer << "\tdefer ws.Free()\n";
+    writer << "\treturn fn(ws)\n";
+    writer << "}\n";
+    writer << "\n";
     writer << "// WxStringToGoAndFree converts a wxString pointer returned by a C wrapper "
               "into a "
               "Go\n";
@@ -3054,6 +3121,65 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
               "call.\n";
     writer << "func WxStringToGoAndFree(ptr unsafe.Pointer) string {\n";
     writer << "\treturn cgo_WxStringToGoAndFree(ptr)\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "// WxStringToGo converts a borrowed wxString pointer into a Go string WITHOUT\n";
+    writer << "// freeing it. Use it for the `const wxString*` a callback receives as an\n";
+    writer << "// argument (for example the serializer/deserializer notebook name); that\n";
+    writer << "// string belongs to wxWidgets. Convert only a wxString allocated for you by a\n";
+    writer << "// wrapper with WxStringToGoAndFree.\n";
+    writer << "func WxStringToGo(ptr unsafe.Pointer) string {\n";
+    writer << "\treturn cgo_WxStringToGo(ptr)\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "// CStringToGoAndFree converts a strdup'ed UTF-8 C string returned by a C "
+              "wrapper into a\n";
+    writer << "// Go string, then frees it with the library allocator. The pointer must not be "
+              "used\n";
+    writer << "// after this call.\n";
+    writer << "func CStringToGoAndFree(ptr unsafe.Pointer) string {\n";
+    writer << "\treturn cgo_CStringToGoAndFree(ptr)\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "// CStringToGo converts a borrowed UTF-8 C string returned by a C wrapper into "
+              "a Go\n";
+    writer << "// string WITHOUT freeing it. The buffer belongs to another object (or is one of "
+              "the\n";
+    writer << "// call's own arguments), so it must not be released with wxCFree.\n";
+    writer << "func CStringToGo(ptr unsafe.Pointer) string {\n";
+    writer << "\treturn cgo_CStringToGo(ptr)\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "// wxPoint, wxSize and wxRect are hand-maintained Go value types, so the\n";
+    writer << "// generated class files carry no constructor for them. These helpers allocate a\n";
+    writer << "// native object for a C parameter that takes a TClass(wxPoint), TClass(wxSize)\n";
+    writer << "// or TClass(wxRect) pointer; wxWidgets copies the value during the call, so\n";
+    writer << "// release the handle with the matching Free* as soon as the call returns.\n";
+    writer << "func NewSizePtr(width, height int) unsafe.Pointer { return cgo_wxSize_Create(width, "
+              "height) }\n";
+    writer << "\n";
+    writer << "func FreeSizePtr(ptr unsafe.Pointer) {\n";
+    writer << "\tif ptr != nil {\n";
+    writer << "\t\tcgo_wxSize_Delete(ptr)\n";
+    writer << "\t}\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "func NewPointPtr(x, y int) unsafe.Pointer { return cgo_wxPoint_Create(x, y) }\n";
+    writer << "\n";
+    writer << "func FreePointPtr(ptr unsafe.Pointer) {\n";
+    writer << "\tif ptr != nil {\n";
+    writer << "\t\tcgo_wxPoint_Delete(ptr)\n";
+    writer << "\t}\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "func NewRectPtr(x, y, width, height int) unsafe.Pointer {\n";
+    writer << "\treturn cgo_wxRect_Create(x, y, width, height)\n";
+    writer << "}\n";
+    writer << "\n";
+    writer << "func FreeRectPtr(ptr unsafe.Pointer) {\n";
+    writer << "\tif ptr != nil {\n";
+    writer << "\t\tcgo_wxRect_Delete(ptr)\n";
+    writer << "\t}\n";
     writer << "}\n";
     writer << "\n";
     writer << "// wxStringTable packs items into one NUL-terminated UTF-8 block and returns\n";
@@ -3702,6 +3828,33 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
     writer << "\tC.kwxUtf8Buffer_Delete(buf)\n";
     writer << "\tC.wxString_Delete(ptr)\n";
     writer << "\treturn s\n";
+    writer << "}\n\n";
+    writer << "// cgo_WxStringToGo reads a borrowed wxString without freeing it.\n";
+    writer << "func cgo_WxStringToGo(ptr unsafe.Pointer) string {\n";
+    writer << "\tif ptr == nil {\n";
+    writer << "\t\treturn \"\"\n";
+    writer << "\t}\n";
+    writer << "\tbuf := C.kwxUtf8Buffer_Create(ptr)\n";
+    writer << "\ts := C.GoString(C.kwxUtf8Buffer_Data(buf))\n";
+    writer << "\tC.kwxUtf8Buffer_Delete(buf)\n";
+    writer << "\treturn s\n";
+    writer << "}\n\n";
+    writer << "// cgo_CStringToGoAndFree converts a strdup'ed UTF-8 C string into a Go string,\n";
+    writer << "// then frees it with the library allocator.\n";
+    writer << "func cgo_CStringToGoAndFree(ptr unsafe.Pointer) string {\n";
+    writer << "\tif ptr == nil {\n";
+    writer << "\t\treturn \"\"\n";
+    writer << "\t}\n";
+    writer << "\ts := C.GoString((*C.char)(ptr))\n";
+    writer << "\tC.wxCFree(ptr)\n";
+    writer << "\treturn s\n";
+    writer << "}\n\n";
+    writer << "// cgo_CStringToGo reads a borrowed UTF-8 C string without freeing it.\n";
+    writer << "func cgo_CStringToGo(ptr unsafe.Pointer) string {\n";
+    writer << "\tif ptr == nil {\n";
+    writer << "\t\treturn \"\"\n";
+    writer << "\t}\n";
+    writer << "\treturn C.GoString((*C.char)(ptr))\n";
     writer << "}\n\n";
 
     size_t glue_count = 0;

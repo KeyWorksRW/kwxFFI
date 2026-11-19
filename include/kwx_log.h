@@ -24,7 +24,7 @@ void wxLog_OnLog(TSelf(wxLog) pObject, int level, void* szString, int timestamp)
 void wxLog_Flush(TSelf(wxLog) pObject);
 TBool wxLog_HasPendingMessages(TSelf(wxLog) pObject);
 void wxLog_FlushActive(TSelf(wxLog) pObject);
-void* wxLog_GetActiveTarget();
+TClass(wxLog) wxLog_GetActiveTarget();
 // Returns the previously installed target.  wxWidgets hands ownership of it to
 // the caller, so the declaration is marked TClassOwned: the generated binding
 // returns a wrapper whose Delete() actually frees it.
@@ -117,13 +117,33 @@ TClass(wxString) wxLogRecordInfo_GetMask(TSelf(wxLogRecordInfo) pObject);
 // before calling this function.
 //
 // wxPrintf(), wxCmdLineParser::Usage() and wxCmdLineParser::Parse() error
-// messages all write through the process-wide wxMessageOutput.  A GUI host has
-// no console from wxWidgets' point of view, so the default wxMessageOutputBest
-// falls back to a modal message box.  The kwxMessageOutput* helpers install a
-// static wxMessageOutputStderr (or stdout) target so that text reaches the
-// console the host process already owns; kwxMessageOutputReset restores the
-// wxWidgets default.
+// messages all write through the process-wide wxMessageOutput.  The
+// kwxMessageOutput* helpers install a heap-allocated wxMessageOutputStderr (or
+// stdout) target that wxWidgets deletes during wxEntryCleanup();
+// kwxMessageOutputReset() installs null and disposes of the previous target, so
+// the traits default is created again on the next wxMessageOutput::Get().  A
+// console application needs none of these calls: its traits already create
+// wxMessageOutputBest, which writes to stderr whenever one is attached.  The
+// helpers exist for a GUI-subsystem host whose default would raise a message
+// box.
 int wxPrintf(TClass(wxString) text);
+// wxPrintf() for text whose trailing blanks are significant and whose byte count the caller
+// states explicitly: exactly `len` bytes of `text` are used (the buffer need not be
+// NUL-terminated) and are interpreted as UTF-8, like wxString_CreateLen().  A binding whose
+// string -> wxString conversion trims padding -- a Fortran character variable is blank-padded
+// -- cannot reach the space that ends a prompt through wxPrintf(); this companion takes the
+// length instead.
+int wxPrintfLen(TString text, int len);
 void kwxMessageOutputUseStderr();
 void kwxMessageOutputUseStdout();
 void kwxMessageOutputReset();
+
+// Installs a log target that writes each record to stderr exactly once and disposes
+// of the target it replaces, so a GUI-subsystem host running a console-style sample
+// prints one line per LogError()/LogWarning() call.  wxLogStderr is not usable there:
+// when the executable has no stderr of its own (wxGUIAppTraits::HasStderr() is false
+// for a GUI-subsystem program on MSW) wxLogStderr::DoLogText() writes the record a
+// second time through wxMessageOutputDebug(), which on MSW also goes to stderr.  A
+// console-subsystem program needs no call at all.  The installed object is owned by
+// wxWidgets; do not keep a wrapper to the previous target, it is deleted here.
+void kwxLogUseStderr();

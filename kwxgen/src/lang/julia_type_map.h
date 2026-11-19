@@ -243,6 +243,16 @@ inline std::vector<JuliaParam> ExpandParamToJulia(const Param& p)
         return result;
     }
 
+    // TIntIn / TBoolIn are `int*` the callee retains and writes back through, and the idiomatic
+    // layer emits Ref{Cint} plus Base.unsafe_convert(Ptr{Cint}, ...).  Declare the low-level
+    // parameter with the same pointee type: Julia does not convert Ptr{Int32} to Ptr{Cvoid} at a
+    // call, so a generic Ptr{Cvoid} here makes every generated wrapper a MethodError.
+    if (p.raw_type == "TIntIn" || p.raw_type == "TBoolIn")
+    {
+        result.push_back({ "Ptr{Cint}", p.param_name.empty() ? "arg" : p.param_name });
+        return result;
+    }
+
     if (IsTypedPointerMacro(p.raw_type))
     {
         result.push_back({ "Ptr{Cvoid}", p.param_name.empty() ? "arg" : p.param_name });
@@ -270,9 +280,15 @@ inline std::vector<JuliaParam> ExpandParamToJulia(const Param& p)
         return result;
     }
 
-    if (p.raw_type == "TBoolInt" || p.raw_type == "TBool*")
+    if (p.raw_type == "TBoolInt")
     {
         result.push_back({ "Cint", p.param_name.empty() ? "arg" : p.param_name });
+        return result;
+    }
+
+    if (p.raw_type == "TBool*")
+    {
+        result.push_back({ "Ptr{Cint}", p.param_name.empty() ? "arg" : p.param_name });
         return result;
     }
 

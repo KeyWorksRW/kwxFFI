@@ -278,54 +278,102 @@ extern "C"
         return ::wxPrintf("%s", text->utf8_string().data());
     }
 
-    // Static targets: wxMessageOutput::Set() stores a borrowed pointer, so a
-    // per-call allocation would leak.  Function-local statics also keep the
-    // objects alive until process exit, after which nothing calls Set() again.
-    static wxMessageOutputStderr& StderrMessageOutput()
+    EXPORT int wxPrintfLen(char* text, int len)
     {
-        static wxMessageOutputStderr message_output(stderr);
-        return message_output;
+        if (!text || len <= 0)
+        {
+            return 0;
+        }
+
+        // The caller states the byte count, so the text is published verbatim.  It is forwarded
+        // as an argument, never as the printf format: a '%' in caller text must not be
+        // interpreted.  FromUTF8() takes the length, so the buffer needs no terminator and any
+        // trailing blank survives.
+        const wxString value = wxString::FromUTF8(text, static_cast<size_t>(len));
+        return ::wxPrintf("%s", value.utf8_string().data());
     }
 
-    static wxMessageOutputStderr& StdoutMessageOutput()
+    // wxMessageOutput::Set() transfers ownership: DoCommonPostCleanup() ends with
+    // `delete wxMessageOutput::Set(nullptr)` (wx src/common/init.cpp:453), so the
+    // installed object must be heap-allocated.  A function-local static would be
+    // `delete`d by wxWidgets at shutdown, which frees non-heap storage and aborts
+    // the process with STATUS_HEAP_CORRUPTION on every run.  Set() returns the
+    // pointer it replaced without deleting it, so the caller disposes of that one
+    // here; the object that is still installed belongs to wxWidgets.
+    static void InstallMessageOutput(FILE* stream)
     {
-        static wxMessageOutputStderr message_output(stdout);
-        return message_output;
+        wxMessageOutput* const pPrevious = wxMessageOutput::Set(new wxMessageOutputStderr(stream));
+        delete pPrevious;
     }
 
     EXPORT void kwxMessageOutputUseStderr()
     {
-        wxMessageOutput::Set(&StderrMessageOutput());
+        InstallMessageOutput(stderr);
     }
 
     EXPORT void kwxMessageOutputUseStdout()
     {
-        wxMessageOutput::Set(&StdoutMessageOutput());
+        InstallMessageOutput(stdout);
     }
 
     EXPORT void kwxMessageOutputReset()
     {
-        wxMessageOutput::Set(nullptr);
+        delete wxMessageOutput::Set(nullptr);
     }
 
+    namespace
+    {
+        // wxLogStderr::DoLogText() (wx src/common/log.cpp:847) writes the record to its
+        // FILE and then, when that FILE is stderr and the executable has no stderr of its
+        // own - wxGUIAppTraitsBase::HasStderr() returns false off Unix
+        // (wx src/common/appcmn.cpp:583) - writes it a second time through
+        // wxMessageOutputDebug(), whose Windows implementation also ends in
+        // wxMessageOutputStderr::Output() (wx src/common/msgout.cpp:163-173).  A
+        // console-subsystem program never sees that because
+        // wxConsoleAppTraitsBase::HasStderr() returns true.  This target performs exactly
+        // the first write, so a GUI-subsystem host prints one line per record.
+        class kwxStderrLogTarget : public wxLog
+        {
+        protected:
+            void DoLogText(const wxString& msg) override
+            {
+                wxMessageOutputStderr(stderr).Output(msg);
+            }
+        };
+    }  // namespace
+
+    // Installs a log target that writes every record to stderr exactly once, whatever
+    // subsystem the executable is linked with, and disposes of the target it replaces
+    // (wxLog::SetActiveTarget() transfers ownership of the installed object to wxWidgets
+    // and returns the previous target without deleting it).  A console-style sample in a
+    // GUI-subsystem host calls this instead of creating a wxLogStderr and calling
+    // wxLog_SetActiveTarget() from the binding.
+    EXPORT void kwxLogUseStderr()
+    {
+        delete wxLog::SetActiveTarget(new kwxStderrLogTarget());
+    }
+
+    // The message is data, not a format string: wxLogError() and friends are variadic and read
+    // their first argument as a wxString format, so a literal '%' in the caller's text would be
+    // interpreted as a conversion specification.
     EXPORT void LogErrorMsg(wxString* message)
     {
-        wxLogError(*message);
+        wxLogError("%s", message->utf8_string().data());
     }
 
     EXPORT void LogFatalErrorMsg(wxString* message)
     {
-        wxLogFatalError(*message);
+        wxLogFatalError("%s", message->utf8_string().data());
     }
 
     EXPORT void LogWarningMsg(wxString* message)
     {
-        wxLogWarning(*message);
+        wxLogWarning("%s", message->utf8_string().data());
     }
 
     EXPORT void LogMessageMsg(wxString* message)
     {
-        wxLogMessage(*message);
+        wxLogMessage("%s", message->utf8_string().data());
     }
 
     EXPORT void* wxLogChain_Create(void* logger)
